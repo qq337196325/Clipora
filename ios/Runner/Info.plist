@@ -45,5 +45,47 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- 配置URL Schemes以接收分享内容 -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>inkwell.shareextension</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ShareMedia-inkwell</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- 支持的文档类型 -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>All Files</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.data</string>
+				<string>public.content</string>
+				<string>public.audiovisual-content</string>
+				<string>public.movie</string>
+				<string>public.audiovisual-content</string>
+				<string>public.video</string>
+				<string>public.audio</string>
+				<string>public.text</string>
+				<string>public.data</string>
+				<string>public.zip-archive</string>
+				<string>com.pkware.zip-archive</string>
+				<string>public.composite-content</string>
+				<string>public.text</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -12,16 +12,33 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   cupertino_icons: ^1.0.8
+  flutter_inappwebview: ^6.1.5
+  get: ^4.7.2
+  get_storage: ^2.1.1
+  go_router: ^15.1.2
+  intl: ^0.20.2
+  bot_toast: ^4.1.3
+  screenshot: ^3.0.0                               # 将widget内容保存为图片
+  path_provider: ^2.1.5                            # 获取文件路径
+  permission_handler: ^12.0.0+1                    # 权限处理
+  image: ^4.5.4                                    # 图片处理和拼接
+  isar: ^3.1.0+1                                   # NoSQL本地数据库
+  receive_sharing_intent: ^1.8.1                   # 接收分享内容
+  animated_segmented_tab_control: ^2.0.0           # 切换tab
+  markdown_widget: ^2.3.2+8
+  flutter_markdown_selectionarea: ^0.6.17+1        # 支持 SelectionArea 的 MarkdownWidget
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  build_runner: ^2.4.7
+  isar_generator: ^3.1.0+1
 
 flutter:
 
   uses-material-design: true
-
+  assets:
+            - assets/js/ # 确保这行或 assets/js/html2canvas.min.js 被添加

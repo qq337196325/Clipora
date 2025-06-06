@@ -1,16 +1,43 @@
-# inkwell
 
-A new Flutter project.
 
-## Getting Started
+inkwell是款收藏与阅读软件
 
-This project is a starting point for a Flutter application.
+主要功能是网页收藏/知识管理；重搜索；
 
-A few resources to get you started if this is your first Flutter project:
+### 主要解决用户的痛点
+1. 各种笔记收藏分散在各大平台，没有聚合管理；
+2. 没有标记功能（标记功能有很多可以完善的地方）；
+3. 网页内容可能会被屏蔽、需要一个快照功能；
+4. 添加翻译功能；
+5. 考虑免登录模式，要考虑离线的情况；
+6. 最求极简模式 - 用户可配置模式，自己根据需要进行开启相关功能；
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 其他要点
+1. 现在是大数据适当，要考虑多收集用户操作数据，进行推荐处理；
+
+
+### v1.0.0 版本功能
+1. 实现网页快照收藏；
+2. 实现将网页保存为图片；（优先）
+3. 
+
+
+我现在应该做的是详情页部分，我应该要定义好数据库结构；
+
+
+### 系统架构要点
+1. 免登录、断网访问；
+2. 多语言；
+3. 主题更换；
+4. 尽可能多的数据收集，进行自动帮用户做一些自动化或者提示；
+5. 要做好离线同步更新时间；
+
+
+### 首页布局
+1. 顶部放搜索栏；
+2. 放“未读箱”最新收藏未处理的；
+3. 突出标签和分类
+
+
+
