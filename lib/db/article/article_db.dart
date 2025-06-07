@@ -9,14 +9,21 @@ class ArticleDb {
 
   
   @Index() late String title;
-  String? url;
   String? excerpt;          // 摘要/简介
   String? content;
-  @Index() List<String> tags = []; 
+  @Index() List<String> tags = [];
+
+
+  // String snapshotPath = "";        // 快照路径
+  String url = "";
+  String mhtmlPath = "";              // mhtml快照路径【因为跨平台、这个要考虑下怎么保存】
+  String markdown = "";               // Markdown文档
+  String shareOriginalContent = "";   //分享接收到的原始内容
 
   // 用户行为数据
-  int readCount = 0;        // 阅读次数
-  int readDuration = 0;     // 阅读时长(秒)
+  int isRead = 0;            // 是否阅读   0=未读    1= 已读
+  int readCount = 0;         // 阅读次数
+  int readDuration = 0;      // 阅读时长(秒)
   double readProgress = 0.0; // 阅读进度(0-1)
 
 

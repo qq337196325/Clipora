@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bot_toast/bot_toast.dart';
-import 'package:inkwell/api/share_service.dart';
+import 'package:inkwell/controller/share_service.dart';
+import 'dart:async';
 
 /// 分享接收页面
 class ShareReceivePage extends StatefulWidget {
@@ -13,23 +14,45 @@ class ShareReceivePage extends StatefulWidget {
 class _ShareReceivePageState extends State<ShareReceivePage> {
   final ShareService _shareService = ShareService.instance;
   SharedContent? _currentSharedContent;
+  StreamSubscription? _shareSubscription;
+  List<SharedContent> _shareHistory = [];
 
   @override
   void initState() {
     super.initState();
     _listenToShareContent();
     // ShareService会在初始化时自动检查初始分享内容
+    
+    // 显示页面加载完成提示
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      BotToast.showText(text: '分享接收页面已准备就绪，等待分享内容...');
+    });
   }
 
   /// 监听分享内容
   void _listenToShareContent() {
-    _shareService.sharedContentStream.listen((SharedContent content) {
-      debugPrint('分享接收页面收到内容: $content');
+    _shareSubscription = _shareService.sharedContentStream.listen((SharedContent content) {
+      debugPrint('===== 分享接收页面收到内容 =====');
+      debugPrint('内容详情: $content');
       setState(() {
         _currentSharedContent = content;
+        _shareHistory.insert(0, content); // 添加到历史记录开头
+        if (_shareHistory.length > 10) {
+          _shareHistory = _shareHistory.take(10).toList(); // 只保留最近10条
+        }
       });
-      BotToast.showText(text: '接收到分享内容: ${content.title}');
+      BotToast.showText(text: '🎉 接收到分享内容: ${content.title}');
+    }, onError: (error) {
+      debugPrint('===== 分享内容监听错误 =====');
+      debugPrint('错误: $error');
+      BotToast.showText(text: '❌ 分享监听错误: $error');
     });
+  }
+
+  @override
+  void dispose() {
+    _shareSubscription?.cancel();
+    super.dispose();
   }
 
   /// 处理分享内容
@@ -94,18 +117,41 @@ class _ShareReceivePageState extends State<ShareReceivePage> {
   /// 测试分享功能
   void _testShare() {
     _shareService.handleManualShare(
-      '这是一个测试分享的文本内容',
+      '这是一个测试分享的文本内容 - ${DateTime.now().millisecondsSinceEpoch}',
       ShareContentType.text,
     );
+  }
+
+  /// 测试URL分享
+  void _testUrlShare() {
+    _shareService.handleManualShare(
+      'https://www.baidu.com',
+      ShareContentType.url,
+    );
+  }
+
+  /// 清除历史记录
+  void _clearHistory() {
+    setState(() {
+      _shareHistory.clear();
+    });
+    BotToast.showText(text: '已清除历史记录');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('分享接收'),
+        title: const Text('分享接收测试'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.clear_all),
+            onPressed: _clearHistory,
+            tooltip: '清除历史',
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -124,18 +170,27 @@ class _ShareReceivePageState extends State<ShareReceivePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '分享状态',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        _currentSharedContent == null ? Icons.info_outline : Icons.check_circle,
+                        color: _currentSharedContent == null ? Colors.grey[600] : Colors.green[600],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '当前状态',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
                     _currentSharedContent == null
-                        ? '暂无分享内容'
+                        ? '等待分享内容...'
                         : '已接收: ${_currentSharedContent!.title}',
                     style: TextStyle(
                       fontSize: 16,
@@ -144,16 +199,80 @@ class _ShareReceivePageState extends State<ShareReceivePage> {
                           : Colors.green[700],
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '历史记录: ${_shareHistory.length} 条',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
                 ],
               ),
             ),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            
+            // 测试按钮区域
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '测试功能',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange[700],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _testShare,
+                          icon: const Icon(Icons.text_fields, size: 18),
+                          label: const Text('测试文本'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _testUrlShare,
+                          icon: const Icon(Icons.link, size: 18),
+                          label: const Text('测试链接'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 16),
             
             // 分享内容详情
             if (_currentSharedContent != null) ...[
               Text(
-                '分享内容详情',
+                '当前分享内容',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -199,7 +318,7 @@ class _ShareReceivePageState extends State<ShareReceivePage> {
                 ),
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               
               // 操作按钮
               Row(
@@ -231,40 +350,92 @@ class _ShareReceivePageState extends State<ShareReceivePage> {
                   ),
                 ],
               ),
+              
+              const SizedBox(height: 16),
             ],
             
-            const Spacer(),
-            
-            // 测试按钮
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _testShare,
-                icon: const Icon(Icons.share),
-                label: const Text('测试分享功能'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+            // 历史记录
+            if (_shareHistory.isNotEmpty) ...[
+              Text(
+                '分享历史',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // 说明文字
-            Text(
-              '使用说明：\n'
-              '1. 在其他应用中选择分享内容\n'
-              '2. 选择"Inkwell"应用\n'
-              '3. 应用将自动打开并显示分享内容\n'
-              '4. 点击"收藏到应用"保存内容',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                height: 1.5,
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _shareHistory.length,
+                  itemBuilder: (context, index) {
+                    final item = _shareHistory[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: Icon(_getIconForType(item.type)),
+                        title: Text(item.title ?? '未知'),
+                        subtitle: Text(
+                          _getContentPreview(item),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: Text(
+                          _getTypeLabel(item.type),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+            ] else ...[
+              const Spacer(),
+              
+              // 说明文字
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.share_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '如何测试分享功能：',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '1. 点击上方"测试文本"或"测试链接"按钮\n'
+                      '2. 在其他应用中选择分享内容\n'
+                      '3. 选择"Inkwell"应用接收分享\n'
+                      '4. 应用将自动打开并显示分享内容\n'
+                      '5. 查看日志输出获取详细调试信息',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

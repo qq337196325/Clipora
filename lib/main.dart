@@ -4,25 +4,35 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:inkwell/route/route.dart';
-import 'package:inkwell/api/share_service.dart';
+import 'package:inkwell/controller/share_service.dart';
+import 'package:inkwell/db/database_service.dart';
+import 'package:inkwell/db/article/article_service.dart';
 import 'package:inkwell/basics/translations/app_translations.dart';
 import 'package:inkwell/controller/language_controller.dart';
+
+import 'basics/apps_state.dart';
 
 void main() async {
   HttpOverrides.global = MyHttpOverrides(); // 忽略证书
   WidgetsFlutterBinding.ensureInitialized();
   
   // 初始化GetStorage
-  await GetStorage.init();
-  
-  // 初始化GetX服务
+  GetStorage.init();
   _initServices();
 
-  runApp(MyApp());
+  runApp(AppsState(child: MyApp()));
 }
 
-/// 初始化服务
-void _initServices() {
+/// 异步初始化服务
+Future<void> _initServices() async {
+  // 注册数据库服务（必须第一个初始化并等待完成）
+  final dbService = Get.put(DatabaseService(), permanent: true);
+  // 等待数据库服务完全初始化
+  dbService.initDb();
+  
+  // 注册文章服务
+  Get.put(ArticleService(), permanent: true);
+  
   // 注册分享服务
   Get.put(ShareService(), permanent: true);
   
@@ -36,10 +46,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ThemeData themeData = ThemeData();
-    // ThemeData light = lightTheme;
-
-    // ClientLog.instance.getDeviceInfo();
-
     return GetMaterialApp.router(
       title: "Clipora",
       debugShowCheckedModeBanner: false,

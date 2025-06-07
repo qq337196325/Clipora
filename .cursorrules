@@ -71,6 +71,7 @@ lib/
 - 列表使用PagedListView实现分页
 - 搜索功能使用InputSearchWidget
 - 加载状态使用EasyLoading
+- 日志打印使用getLogger()
 
 ## 状态管理
 

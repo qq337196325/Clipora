@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '/basics/utils/logger.dart';
+import '../basics/logger.dart';
 import '/basics/config.dart';
 
 // 参考来源： https://blog.csdn.net/UserNamezhangxi/article/details/112576483

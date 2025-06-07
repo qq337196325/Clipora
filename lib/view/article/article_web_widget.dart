@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
+import '../../basics/logger.dart';
+
 
 class ArticleWebWidget extends StatefulWidget {
   final Function(String)? onSnapshotCreated;
@@ -67,30 +69,6 @@ class _ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: refreshPage,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('重新加载'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      onPressed: () => tryAlternativeUrl(),
-                      icon: const Icon(Icons.language),
-                      label: const Text('尝试其他网站'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
@@ -161,16 +139,8 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   bool hasError = false;
   String errorMessage = '';
   
-  // URL列表
-  List<String> urls = [
-    'https://juejin.cn/post/7449699023768600627',
-    'https://www.bing.com',
-    'https://www.google.com',
-    'https://m.baidu.com',
-    'http://www.baidu.com',
-  ];
-  int currentUrlIndex = 0;
-  String get currentUrl => urls[currentUrlIndex];
+  // URL
+  String get currentUrl => 'https://juejin.cn/post/7449699023768600627';
   
   // WebView设置 - 使用更简单的配置
   InAppWebViewSettings webViewSettings = InAppWebViewSettings(
@@ -207,7 +177,6 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   @override
   void initState() {
     super.initState();
-    print('初始化WebView，URL: $currentUrl');
   }
 
   @override
@@ -230,8 +199,6 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         isLoading = true;
       });
 
-      print('开始生成MHTML快照...');
-      
       // 获取应用文档目录
       final Directory appDir = await getApplicationDocumentsDirectory();
       final String snapshotDir = '${appDir.path}/snapshots';
@@ -266,7 +233,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         );
 
         if (savedPath != null && savedPath.isNotEmpty) {
-          print('网页快照保存成功: $savedPath');
+          getLogger().i('网页快照保存成功: $savedPath');
           BotToast.showText(text: '快照保存成功');
 
           // 通过回调返回文件路径给父组件
@@ -326,54 +293,5 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     }
   }
 
-  // 刷新页面
-  void refreshPage() {
-    print('刷新页面: $currentUrl');
-    setState(() {
-      isLoading = true;
-      hasError = false;
-      errorMessage = '';
-    });
-    if (webViewController != null) {
-      webViewController!.reload();
-    } else {
-      // 如果控制器为空，重新创建WebView
-      setState(() {});
-    }
-  }
-  
-  // 尝试其他URL
-  void tryAlternativeUrl() {
-    currentUrlIndex = (currentUrlIndex + 1) % urls.length;
-    print('尝试新URL: $currentUrl');
-    setState(() {
-      isLoading = true;
-      hasError = false;
-      errorMessage = '';
-    });
-    
-    if (webViewController != null) {
-      webViewController!.loadUrl(
-        urlRequest: URLRequest(url: WebUri(currentUrl)),
-      );
-    } else {
-      // 重新创建WebView
-      setState(() {});
-    }
-  }
-  
-  // 返回上一页
-  void goBack() async {
-    if (await webViewController?.canGoBack() ?? false) {
-      webViewController?.goBack();
-    }
-  }
-  
-  // 前进下一页
-  void goForward() async {
-    if (await webViewController?.canGoForward() ?? false) {
-      webViewController?.goForward();
-    }
-  }
 
 }

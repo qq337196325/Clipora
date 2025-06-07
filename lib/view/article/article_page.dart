@@ -7,12 +7,19 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:dio/dio.dart';
 
+import '../../basics/upload.dart';
 import 'article_web_widget.dart';
 import '../../api/user_api.dart';
 
 
 class ArticlePage extends StatefulWidget {
-  const ArticlePage({super.key});
+
+  final int id;
+
+  const ArticlePage({
+    super.key,
+    required this.id,
+  });
 
   @override
   State<ArticlePage> createState() => _ArticlePageState();
@@ -55,11 +62,16 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
               )
             ),
             Expanded(
-              child: TabBarView(
-                // controller: tabController, // 使用自定义的TabController
-                // physics: const NeverScrollableScrollPhysics(), // 禁用默认滑动切换
+              child:
+              // ArticleWebWidget(
+              //   key: _webWidgetKey,
+              //   onSnapshotCreated: _onSnapshotCreated,
+              // )
+
+              TabBarView(
+                physics: const NeverScrollableScrollPhysics(), // 禁用默认滑动切换
                 controller: tabController, // 使用自定义的TabController
-                physics: const BouncingScrollPhysics(),
+                // physics: const BouncingScrollPhysics(),
                 // clipBehavior: Clip.none, // 避免裁剪问题
                 children: tabWidget,
               ),
@@ -133,78 +145,15 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     BotToast.showText(text: '快照已保存，路径: ${path.split('/').last}');
     
     // 自动上传快照文件到服务端
-    _uploadSnapshotToServer(path);
+    uploadSnapshotToServer(path);
   }
 
-  // 上传快照文件到服务端
-  Future<void> _uploadSnapshotToServer(String filePath) async {
-    if (filePath.isEmpty) {
-      print('上传失败：文件路径为空');
-      return;
-    }
 
-    try {
-      setState(() {
-        isUploading = true;
-      });
-
-      // 显示上传开始提示
-      BotToast.showText(text: '开始上传快照到服务器...');
-
-      // 检查文件是否存在
-      final File file = File(filePath);
-      if (!await file.exists()) {
-        throw Exception('快照文件不存在');
-      }
-
-      // 准备上传参数
-      final fileName = filePath.split('/').last;
-      final FormData formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          filePath,
-          filename: fileName,
-        ),
-      });
-
-      print('开始上传文件: $fileName');
-      print('文件大小: ${await file.length()} bytes');
-
-      // 调用上传接口
-      final response = await UserApi.uploadMhtmlApi(formData);
-
-      print('上传响应: $response');
-
-      // 检查响应结果
-      if (response['code'] == 0 || response['code'] == 200) {
-        print('文件上传成功');
-        BotToast.showText(
-          text: '快照上传成功！',
-        );
-        
-        // 可以在这里处理服务器返回的数据，比如保存文件ID等
-        if (response['data'] != null) {
-          print('服务器返回数据: ${response['data']}');
-        }
-      } else {
-        throw Exception(response['message'] ?? '上传失败');
-      }
-
-    } catch (e) {
-      print('上传快照失败: $e');
-      BotToast.showText(
-        text: '快照上传失败: ${e.toString()}',
-      );
-    } finally {
-      setState(() {
-        isUploading = false;
-      });
-    }
-  }
 
   // 手动重新上传快照（可选功能）
   Future<void> _retryUploadSnapshot() async {
     if (snapshotPath.isNotEmpty) {
-      await _uploadSnapshotToServer(snapshotPath);
+      await uploadSnapshotToServer(snapshotPath);
     } else {
       BotToast.showText(text: '没有可上传的快照文件');
     }
