@@ -9,7 +9,8 @@ import 'package:inkwell/db/database_service.dart';
 import 'package:inkwell/db/article/article_service.dart';
 import 'package:inkwell/basics/translations/app_translations.dart';
 import 'package:inkwell/controller/language_controller.dart';
-import 'package:inkwell/view/article/components/markdown_webview_pool_manager.dart';
+import 'package:inkwell/view/article/components/markdown_webview_pool_manager.dart' as MarkdownPool;
+import 'package:inkwell/view/article/components/web_webview_pool_manager.dart';
 import 'package:inkwell/basics/logger.dart';
 
 import 'basics/apps_state.dart';
@@ -42,18 +43,35 @@ Future<void> _initServices() async {
   // 注册语言控制器
   Get.put(LanguageController(), permanent: true);
   
-  // 🚀 初始化WebView池 - 异步预热，提升文章页面性能
-  _initWebViewPool();
+  // 🚀 初始化WebView优化器 - 异步预热，提升页面性能
+  _initWebViewOptimizers();
 }
 
-/// 初始化WebView池（异步，不阻塞应用启动）
-void _initWebViewPool() {
-  getLogger().i('🔥 开始应用启动时预热WebView池...');
+/// 初始化所有WebView优化器（异步，不阻塞应用启动）
+void _initWebViewOptimizers() {
+  getLogger().i('🔥 开始应用启动时预热所有WebView优化器...');
   
-  WebViewPoolManager().initialize().then((_) {
-    getLogger().i('✅ WebView池预热完成，文章页面加载将显著提升');
+  // 并行初始化两个优化器
+  final futures = [
+    // Markdown页面优化器
+    MarkdownPool.WebViewPoolManager().initialize().then((_) {
+      getLogger().i('✅ Markdown WebView优化器预热完成');
+    }).catchError((e) {
+      getLogger().e('❌ Markdown WebView优化器预热失败: $e');
+    }),
+    
+    // Web页面优化器
+    WebWebViewPoolManager().initialize().then((_) {
+      getLogger().i('✅ Web页面优化器预热完成');
+    }).catchError((e) {
+      getLogger().e('❌ Web页面优化器预热失败: $e');
+    }),
+  ];
+  
+  Future.wait(futures).then((_) {
+    getLogger().i('🎉 所有WebView优化器预热完成，页面加载性能将显著提升');
   }).catchError((e) {
-    getLogger().e('❌ WebView池预热失败: $e');
+    getLogger().e('❌ WebView优化器预热过程中出错: $e');
   });
 }
 

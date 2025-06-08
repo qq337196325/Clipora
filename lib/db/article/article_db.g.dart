@@ -22,80 +22,130 @@ const ArticleDbSchema = CollectionSchema(
       name: r'content',
       type: IsarType.string,
     ),
-    r'createdAt': PropertySchema(
+    r'contentHeight': PropertySchema(
       id: 1,
+      name: r'contentHeight',
+      type: IsarType.long,
+    ),
+    r'createdAt': PropertySchema(
+      id: 2,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
+    r'currentElementId': PropertySchema(
+      id: 3,
+      name: r'currentElementId',
+      type: IsarType.string,
+    ),
+    r'currentElementOffset': PropertySchema(
+      id: 4,
+      name: r'currentElementOffset',
+      type: IsarType.long,
+    ),
+    r'currentElementText': PropertySchema(
+      id: 5,
+      name: r'currentElementText',
+      type: IsarType.string,
+    ),
     r'excerpt': PropertySchema(
-      id: 2,
+      id: 6,
       name: r'excerpt',
       type: IsarType.string,
     ),
     r'isRead': PropertySchema(
-      id: 3,
+      id: 7,
       name: r'isRead',
       type: IsarType.long,
     ),
+    r'lastReadTime': PropertySchema(
+      id: 8,
+      name: r'lastReadTime',
+      type: IsarType.dateTime,
+    ),
     r'markdown': PropertySchema(
-      id: 4,
+      id: 9,
       name: r'markdown',
       type: IsarType.string,
     ),
+    r'markdownScrollY': PropertySchema(
+      id: 10,
+      name: r'markdownScrollY',
+      type: IsarType.long,
+    ),
+    r'markdownScrollx': PropertySchema(
+      id: 11,
+      name: r'markdownScrollx',
+      type: IsarType.long,
+    ),
     r'mhtmlPath': PropertySchema(
-      id: 5,
+      id: 12,
       name: r'mhtmlPath',
       type: IsarType.string,
     ),
     r'readCount': PropertySchema(
-      id: 6,
+      id: 13,
       name: r'readCount',
       type: IsarType.long,
     ),
     r'readDuration': PropertySchema(
-      id: 7,
+      id: 14,
       name: r'readDuration',
       type: IsarType.long,
     ),
     r'readProgress': PropertySchema(
-      id: 8,
+      id: 15,
       name: r'readProgress',
       type: IsarType.double,
     ),
+    r'readingSessionId': PropertySchema(
+      id: 16,
+      name: r'readingSessionId',
+      type: IsarType.string,
+    ),
+    r'readingStartTime': PropertySchema(
+      id: 17,
+      name: r'readingStartTime',
+      type: IsarType.long,
+    ),
     r'serviceId': PropertySchema(
-      id: 9,
+      id: 18,
       name: r'serviceId',
       type: IsarType.string,
     ),
     r'serviceUpdatedAt': PropertySchema(
-      id: 10,
+      id: 19,
       name: r'serviceUpdatedAt',
       type: IsarType.long,
     ),
     r'shareOriginalContent': PropertySchema(
-      id: 11,
+      id: 20,
       name: r'shareOriginalContent',
       type: IsarType.string,
     ),
     r'tags': PropertySchema(
-      id: 12,
+      id: 21,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'title': PropertySchema(
-      id: 13,
+      id: 22,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 14,
+      id: 23,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 15,
+      id: 24,
       name: r'url',
       type: IsarType.string,
+    ),
+    r'viewportHeight': PropertySchema(
+      id: 25,
+      name: r'viewportHeight',
+      type: IsarType.long,
     )
   },
   estimateSize: _articleDbEstimateSize,
@@ -177,6 +227,8 @@ int _articleDbEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.currentElementId.length * 3;
+  bytesCount += 3 + object.currentElementText.length * 3;
   {
     final value = object.excerpt;
     if (value != null) {
@@ -185,6 +237,7 @@ int _articleDbEstimateSize(
   }
   bytesCount += 3 + object.markdown.length * 3;
   bytesCount += 3 + object.mhtmlPath.length * 3;
+  bytesCount += 3 + object.readingSessionId.length * 3;
   bytesCount += 3 + object.serviceId.length * 3;
   bytesCount += 3 + object.shareOriginalContent.length * 3;
   bytesCount += 3 + object.tags.length * 3;
@@ -206,21 +259,31 @@ void _articleDbSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.content);
-  writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeString(offsets[2], object.excerpt);
-  writer.writeLong(offsets[3], object.isRead);
-  writer.writeString(offsets[4], object.markdown);
-  writer.writeString(offsets[5], object.mhtmlPath);
-  writer.writeLong(offsets[6], object.readCount);
-  writer.writeLong(offsets[7], object.readDuration);
-  writer.writeDouble(offsets[8], object.readProgress);
-  writer.writeString(offsets[9], object.serviceId);
-  writer.writeLong(offsets[10], object.serviceUpdatedAt);
-  writer.writeString(offsets[11], object.shareOriginalContent);
-  writer.writeStringList(offsets[12], object.tags);
-  writer.writeString(offsets[13], object.title);
-  writer.writeDateTime(offsets[14], object.updatedAt);
-  writer.writeString(offsets[15], object.url);
+  writer.writeLong(offsets[1], object.contentHeight);
+  writer.writeDateTime(offsets[2], object.createdAt);
+  writer.writeString(offsets[3], object.currentElementId);
+  writer.writeLong(offsets[4], object.currentElementOffset);
+  writer.writeString(offsets[5], object.currentElementText);
+  writer.writeString(offsets[6], object.excerpt);
+  writer.writeLong(offsets[7], object.isRead);
+  writer.writeDateTime(offsets[8], object.lastReadTime);
+  writer.writeString(offsets[9], object.markdown);
+  writer.writeLong(offsets[10], object.markdownScrollY);
+  writer.writeLong(offsets[11], object.markdownScrollx);
+  writer.writeString(offsets[12], object.mhtmlPath);
+  writer.writeLong(offsets[13], object.readCount);
+  writer.writeLong(offsets[14], object.readDuration);
+  writer.writeDouble(offsets[15], object.readProgress);
+  writer.writeString(offsets[16], object.readingSessionId);
+  writer.writeLong(offsets[17], object.readingStartTime);
+  writer.writeString(offsets[18], object.serviceId);
+  writer.writeLong(offsets[19], object.serviceUpdatedAt);
+  writer.writeString(offsets[20], object.shareOriginalContent);
+  writer.writeStringList(offsets[21], object.tags);
+  writer.writeString(offsets[22], object.title);
+  writer.writeDateTime(offsets[23], object.updatedAt);
+  writer.writeString(offsets[24], object.url);
+  writer.writeLong(offsets[25], object.viewportHeight);
 }
 
 ArticleDb _articleDbDeserialize(
@@ -231,22 +294,32 @@ ArticleDb _articleDbDeserialize(
 ) {
   final object = ArticleDb();
   object.content = reader.readStringOrNull(offsets[0]);
-  object.createdAt = reader.readDateTime(offsets[1]);
-  object.excerpt = reader.readStringOrNull(offsets[2]);
+  object.contentHeight = reader.readLong(offsets[1]);
+  object.createdAt = reader.readDateTime(offsets[2]);
+  object.currentElementId = reader.readString(offsets[3]);
+  object.currentElementOffset = reader.readLong(offsets[4]);
+  object.currentElementText = reader.readString(offsets[5]);
+  object.excerpt = reader.readStringOrNull(offsets[6]);
   object.id = id;
-  object.isRead = reader.readLong(offsets[3]);
-  object.markdown = reader.readString(offsets[4]);
-  object.mhtmlPath = reader.readString(offsets[5]);
-  object.readCount = reader.readLong(offsets[6]);
-  object.readDuration = reader.readLong(offsets[7]);
-  object.readProgress = reader.readDouble(offsets[8]);
-  object.serviceId = reader.readString(offsets[9]);
-  object.serviceUpdatedAt = reader.readLong(offsets[10]);
-  object.shareOriginalContent = reader.readString(offsets[11]);
-  object.tags = reader.readStringList(offsets[12]) ?? [];
-  object.title = reader.readString(offsets[13]);
-  object.updatedAt = reader.readDateTime(offsets[14]);
-  object.url = reader.readString(offsets[15]);
+  object.isRead = reader.readLong(offsets[7]);
+  object.lastReadTime = reader.readDateTimeOrNull(offsets[8]);
+  object.markdown = reader.readString(offsets[9]);
+  object.markdownScrollY = reader.readLong(offsets[10]);
+  object.markdownScrollx = reader.readLong(offsets[11]);
+  object.mhtmlPath = reader.readString(offsets[12]);
+  object.readCount = reader.readLong(offsets[13]);
+  object.readDuration = reader.readLong(offsets[14]);
+  object.readProgress = reader.readDouble(offsets[15]);
+  object.readingSessionId = reader.readString(offsets[16]);
+  object.readingStartTime = reader.readLong(offsets[17]);
+  object.serviceId = reader.readString(offsets[18]);
+  object.serviceUpdatedAt = reader.readLong(offsets[19]);
+  object.shareOriginalContent = reader.readString(offsets[20]);
+  object.tags = reader.readStringList(offsets[21]) ?? [];
+  object.title = reader.readString(offsets[22]);
+  object.updatedAt = reader.readDateTime(offsets[23]);
+  object.url = reader.readString(offsets[24]);
+  object.viewportHeight = reader.readLong(offsets[25]);
   return object;
 }
 
@@ -260,35 +333,55 @@ P _articleDbDeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readDateTime(offset)) as P;
-    case 2:
-      return (reader.readStringOrNull(offset)) as P;
-    case 3:
       return (reader.readLong(offset)) as P;
-    case 4:
+    case 2:
+      return (reader.readDateTime(offset)) as P;
+    case 3:
       return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readLong(offset)) as P;
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
       return (reader.readLong(offset)) as P;
     case 8:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 9:
       return (reader.readString(offset)) as P;
     case 10:
       return (reader.readLong(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 12:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readString(offset)) as P;
     case 13:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 14:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 15:
+      return (reader.readDouble(offset)) as P;
+    case 16:
       return (reader.readString(offset)) as P;
+    case 17:
+      return (reader.readLong(offset)) as P;
+    case 18:
+      return (reader.readString(offset)) as P;
+    case 19:
+      return (reader.readLong(offset)) as P;
+    case 20:
+      return (reader.readString(offset)) as P;
+    case 21:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 22:
+      return (reader.readString(offset)) as P;
+    case 23:
+      return (reader.readDateTime(offset)) as P;
+    case 24:
+      return (reader.readString(offset)) as P;
+    case 25:
+      return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -818,6 +911,62 @@ extension ArticleDbQueryFilter
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      contentHeightEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'contentHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      contentHeightGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'contentHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      contentHeightLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'contentHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      contentHeightBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'contentHeight',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> createdAtEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -868,6 +1017,334 @@ extension ArticleDbQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentElementId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'currentElementId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'currentElementId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'currentElementId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'currentElementId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'currentElementId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'currentElementId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'currentElementId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentElementId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'currentElementId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementOffsetEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentElementOffset',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementOffsetGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'currentElementOffset',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementOffsetLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'currentElementOffset',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementOffsetBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'currentElementOffset',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentElementText',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'currentElementText',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'currentElementText',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'currentElementText',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'currentElementText',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'currentElementText',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'currentElementText',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'currentElementText',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentElementText',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      currentElementTextIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'currentElementText',
+        value: '',
       ));
     });
   }
@@ -1125,6 +1602,79 @@ extension ArticleDbQueryFilter
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      lastReadTimeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastReadTime',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      lastReadTimeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastReadTime',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> lastReadTimeEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastReadTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      lastReadTimeGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastReadTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      lastReadTimeLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastReadTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> lastReadTimeBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastReadTime',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> markdownEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1252,6 +1802,118 @@ extension ArticleDbQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'markdown',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollYEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'markdownScrollY',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollYGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'markdownScrollY',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollYLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'markdownScrollY',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollYBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'markdownScrollY',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollxEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'markdownScrollx',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollxGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'markdownScrollx',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollxLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'markdownScrollx',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollxBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'markdownScrollx',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -1557,6 +2219,198 @@ extension ArticleDbQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'readingSessionId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'readingSessionId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'readingSessionId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'readingSessionId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'readingSessionId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'readingSessionId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'readingSessionId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'readingSessionId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'readingSessionId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingSessionIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'readingSessionId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingStartTimeEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'readingStartTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingStartTimeGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'readingStartTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingStartTimeLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'readingStartTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      readingStartTimeBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'readingStartTime',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -2417,6 +3271,62 @@ extension ArticleDbQueryFilter
       ));
     });
   }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      viewportHeightEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'viewportHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      viewportHeightGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'viewportHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      viewportHeightLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'viewportHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      viewportHeightBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'viewportHeight',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension ArticleDbQueryObject
@@ -2438,6 +3348,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByContentHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contentHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByContentHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contentHeight', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -2447,6 +3369,46 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByCurrentElementId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      sortByCurrentElementIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      sortByCurrentElementOffset() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementOffset', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      sortByCurrentElementOffsetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementOffset', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByCurrentElementText() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementText', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      sortByCurrentElementTextDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementText', Sort.desc);
     });
   }
 
@@ -2474,6 +3436,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByLastReadTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastReadTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByLastReadTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastReadTime', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdown() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'markdown', Sort.asc);
@@ -2483,6 +3457,30 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'markdown', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollY() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollY', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollYDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollY', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollx() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollx', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollxDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollx', Sort.desc);
     });
   }
 
@@ -2531,6 +3529,32 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByReadProgressDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'readProgress', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByReadingSessionId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readingSessionId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      sortByReadingSessionIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readingSessionId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByReadingStartTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readingStartTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      sortByReadingStartTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readingStartTime', Sort.desc);
     });
   }
 
@@ -2608,6 +3632,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
       return query.addSortBy(r'url', Sort.desc);
     });
   }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByViewportHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'viewportHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByViewportHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'viewportHeight', Sort.desc);
+    });
+  }
 }
 
 extension ArticleDbQuerySortThenBy
@@ -2624,6 +3660,18 @@ extension ArticleDbQuerySortThenBy
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByContentHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contentHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByContentHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contentHeight', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -2633,6 +3681,46 @@ extension ArticleDbQuerySortThenBy
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByCurrentElementId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      thenByCurrentElementIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      thenByCurrentElementOffset() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementOffset', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      thenByCurrentElementOffsetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementOffset', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByCurrentElementText() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementText', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      thenByCurrentElementTextDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentElementText', Sort.desc);
     });
   }
 
@@ -2672,6 +3760,18 @@ extension ArticleDbQuerySortThenBy
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByLastReadTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastReadTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByLastReadTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastReadTime', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdown() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'markdown', Sort.asc);
@@ -2681,6 +3781,30 @@ extension ArticleDbQuerySortThenBy
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'markdown', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollY() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollY', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollYDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollY', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollx() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollx', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollxDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollx', Sort.desc);
     });
   }
 
@@ -2729,6 +3853,32 @@ extension ArticleDbQuerySortThenBy
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByReadProgressDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'readProgress', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByReadingSessionId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readingSessionId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      thenByReadingSessionIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readingSessionId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByReadingStartTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readingStartTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      thenByReadingStartTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readingStartTime', Sort.desc);
     });
   }
 
@@ -2806,6 +3956,18 @@ extension ArticleDbQuerySortThenBy
       return query.addSortBy(r'url', Sort.desc);
     });
   }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByViewportHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'viewportHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByViewportHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'viewportHeight', Sort.desc);
+    });
+  }
 }
 
 extension ArticleDbQueryWhereDistinct
@@ -2817,9 +3979,38 @@ extension ArticleDbQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByContentHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'contentHeight');
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByCurrentElementId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'currentElementId',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct>
+      distinctByCurrentElementOffset() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'currentElementOffset');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByCurrentElementText(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'currentElementText',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -2836,10 +4027,28 @@ extension ArticleDbQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByLastReadTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastReadTime');
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByMarkdown(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'markdown', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByMarkdownScrollY() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'markdownScrollY');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByMarkdownScrollx() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'markdownScrollx');
     });
   }
 
@@ -2865,6 +4074,20 @@ extension ArticleDbQueryWhereDistinct
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByReadProgress() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'readProgress');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByReadingSessionId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'readingSessionId',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByReadingStartTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'readingStartTime');
     });
   }
 
@@ -2914,6 +4137,12 @@ extension ArticleDbQueryWhereDistinct
       return query.addDistinctBy(r'url', caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByViewportHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'viewportHeight');
+    });
+  }
 }
 
 extension ArticleDbQueryProperty
@@ -2930,9 +4159,35 @@ extension ArticleDbQueryProperty
     });
   }
 
+  QueryBuilder<ArticleDb, int, QQueryOperations> contentHeightProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'contentHeight');
+    });
+  }
+
   QueryBuilder<ArticleDb, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<ArticleDb, String, QQueryOperations> currentElementIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'currentElementId');
+    });
+  }
+
+  QueryBuilder<ArticleDb, int, QQueryOperations>
+      currentElementOffsetProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'currentElementOffset');
+    });
+  }
+
+  QueryBuilder<ArticleDb, String, QQueryOperations>
+      currentElementTextProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'currentElementText');
     });
   }
 
@@ -2948,9 +4203,27 @@ extension ArticleDbQueryProperty
     });
   }
 
+  QueryBuilder<ArticleDb, DateTime?, QQueryOperations> lastReadTimeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastReadTime');
+    });
+  }
+
   QueryBuilder<ArticleDb, String, QQueryOperations> markdownProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'markdown');
+    });
+  }
+
+  QueryBuilder<ArticleDb, int, QQueryOperations> markdownScrollYProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'markdownScrollY');
+    });
+  }
+
+  QueryBuilder<ArticleDb, int, QQueryOperations> markdownScrollxProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'markdownScrollx');
     });
   }
 
@@ -2975,6 +4248,18 @@ extension ArticleDbQueryProperty
   QueryBuilder<ArticleDb, double, QQueryOperations> readProgressProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'readProgress');
+    });
+  }
+
+  QueryBuilder<ArticleDb, String, QQueryOperations> readingSessionIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'readingSessionId');
+    });
+  }
+
+  QueryBuilder<ArticleDb, int, QQueryOperations> readingStartTimeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'readingStartTime');
     });
   }
 
@@ -3018,6 +4303,12 @@ extension ArticleDbQueryProperty
   QueryBuilder<ArticleDb, String, QQueryOperations> urlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'url');
+    });
+  }
+
+  QueryBuilder<ArticleDb, int, QQueryOperations> viewportHeightProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'viewportHeight');
     });
   }
 }

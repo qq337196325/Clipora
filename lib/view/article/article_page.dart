@@ -180,8 +180,19 @@ mixin ArticlePageBLoC on State<ArticlePage> {
      animationDuration: const Duration(milliseconds: 350), // 优化切换动画时长
    );
 
-    tabs.add(const SegmentTab(label: '网页', color: Color(0xFF00BCF6)));
+    tabs.add(const SegmentTab(label: '图文', color: Color(0xFF00BCF6)));
     // 使用Builder来确保响应式更新
+  tabWidget.add(Builder(
+      builder: (context) => Obx(() => ArticleMarkdownWidget(
+        markdownContent: _markdownContent.value,
+        article: articleController.currentArticle, // 添加article参数
+      )),
+    ));
+
+    
+
+    tabs.add(const SegmentTab(label: '网页', color: Color(0xFF00BCF6)));
+    // 修改为传递markdown内容而不是serviceId
     tabWidget.add(Builder(
       builder: (context) => Obx(() => ArticleWebWidget(
         key: _webWidgetKey,
@@ -192,14 +203,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         articleId: widget.id,  // 传入文章ID
       )),
     ));
-
-    tabs.add(const SegmentTab(label: '图文', color: Color(0xFF00BCF6)));
-    // 修改为传递markdown内容而不是serviceId
-    tabWidget.add(Builder(
-      builder: (context) => Obx(() => ArticleMarkdownWidget(
-        markdownContent: _markdownContent.value,
-      )),
-    ));
+  
 
     tabs.add(const SegmentTab(label: '快照', color: Color(0xFF00BCF6)));
     // 注意：不要在这里创建Widget，而是使用一个Builder来确保状态更新时重新构建 

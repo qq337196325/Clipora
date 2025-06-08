@@ -28,6 +28,20 @@ class ArticleDb {
   int readDuration = 0;      // 阅读时长(秒)
   double readProgress = 0.0; // 阅读进度(0-1)
 
+  // 精确定位相关字段
+  int markdownScrollY = 0;     // Markdown文档滚动Y位置
+  int markdownScrollx = 0;     // Markdown文档滚动X位置
+  String currentElementId = "";   // 当前可见元素的ID
+  String currentElementText = ""; // 当前可见元素的文本片段(前100字符，用于备用定位)
+  int currentElementOffset = 0;   // 当前元素在页面中的偏移量
+  int viewportHeight = 0;         // 视窗高度(用于计算相对位置)
+  int contentHeight = 0;          // 内容总高度
+  DateTime? lastReadTime;         // 最后阅读时间
+  
+  // 阅读会话信息
+  String readingSessionId = "";   // 阅读会话ID(用于区分不同的阅读会话)
+  int readingStartTime = 0;       // 本次阅读开始时间戳
+
   int serviceUpdatedAt = 0;
 
   @Index() DateTime createdAt = DateTime.now();

@@ -9,6 +9,7 @@ import 'dart:collection';
 
 import '../../basics/logger.dart';
 import '../../db/article/article_service.dart';
+import 'components/web_webview_pool_manager.dart';
 
 
 class ArticleWebWidget extends StatefulWidget {
@@ -82,32 +83,30 @@ class _ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
           Expanded(
             child: InAppWebView(
               initialUrlRequest: URLRequest(url: WebUri(currentUrl)),
-              initialSettings: webViewSettings,
-              initialUserScripts: UnmodifiableListView([
-                UserScript(
-                  source: ArticlePageBLoC.corsScript,
-                  injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
-                ),
-              ]),
+              initialSettings: WebWebViewPoolManager().getOptimizedSettings(),
+              initialUserScripts: UnmodifiableListView(WebWebViewPoolManager().getOptimizedUserScripts()),
               onWebViewCreated: (controller) {
                 webViewController = controller;
-                print('WebView创建成功');
+                getLogger().i('🌐 Web页面WebView创建成功');
                 
-                // 添加JavaScript处理器以支持更好的页面交互
-                _setupWebViewConfiguration(controller);
+                // 使用优化的WebView配置
+                _setupOptimizedWebView(controller);
               },
               onLoadStart: (controller, url) {
-                print('开始加载: $url');
+                getLogger().i('🌐 开始加载Web页面: $url');
                 setState(() {
                   isLoading = true;
                   hasError = false;
                 });
               },
               onLoadStop: (controller, url) {
-                print('加载完成: $url');
+                getLogger().i('🌐 Web页面加载完成: $url');
                 setState(() {
                   isLoading = false;
                 });
+                
+                // 页面加载完成后进行优化设置
+                _finalizeWebPageOptimization();
               },
               onProgressChanged: (controller, progress) {
                 setState(() {
@@ -115,14 +114,12 @@ class _ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 });
               },
               onReceivedError: (controller, request, error) {
-                print('WebView错误详情:');
-                print('  错误类型: ${error.type}');
-                print('  错误描述: ${error.description}');
-                print('  请求URL: ${request.url}');
-                print('  请求方法: ${request.method}');
-                print('  请求头: ${request.headers}');
-                
-                getLogger().e('WebView加载错误', error: error.description);
+                getLogger().e('❌ WebView加载错误: ${error.description}', error: {
+                  'type': error.type,
+                  'url': request.url,
+                  'method': request.method,
+                  'headers': request.headers,
+                });
                 
                 setState(() {
                   isLoading = false;
@@ -131,13 +128,7 @@ class _ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 });
               },
               onReceivedHttpError: (controller, request, errorResponse) {
-                print('HTTP错误详情:');
-                print('  状态码: ${errorResponse.statusCode}');
-                print('  原因: ${errorResponse.reasonPhrase}');
-                print('  请求URL: ${request.url}');
-                print('  响应头: ${errorResponse.headers}');
-                
-                getLogger().e('HTTP错误', error: '${errorResponse.statusCode}: ${errorResponse.reasonPhrase}');
+                getLogger().e('❌ HTTP错误: ${errorResponse.statusCode}: ${errorResponse.reasonPhrase}');
                 
                 setState(() {
                   isLoading = false;
@@ -145,59 +136,65 @@ class _ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                   errorMessage = 'HTTP错误: ${errorResponse.statusCode}\n${errorResponse.reasonPhrase}\nURL: ${request.url}';
                 });
               },
-              // 拦截URL跳转，处理自定义scheme
-              shouldOverrideUrlLoading: (controller, navigationAction) async {
-                final uri = navigationAction.request.url!;
-                final url = uri.toString();
-                
-                print('URL跳转拦截: $url');
-                
-                // 检查是否是自定义scheme（非http/https）
-                if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                  print('拦截自定义scheme跳转: ${uri.scheme}://');
-                  // 阻止跳转，返回CANCEL
-                  return NavigationActionPolicy.CANCEL;
-                }
-                
-                // 检查是否是应用内跳转scheme
-                if (url.startsWith('snssdk') || 
-                    url.startsWith('sslocal') || 
-                    url.startsWith('toutiao') ||
-                    url.startsWith('newsarticle')) {
-                  print('拦截应用跳转scheme: $url');
-                  return NavigationActionPolicy.CANCEL;
-                }
-                
-                // 允许正常的HTTP/HTTPS链接
-                print('允许正常HTTP跳转: $url');
-                return NavigationActionPolicy.ALLOW;
-              },
-              // 拦截资源请求，处理API请求的CORS问题
-              shouldInterceptRequest: (controller, request) async {
-                final url = request.url.toString();
-                
-                // 如果是掘金API请求，添加CORS头
-                if (url.contains('api.juejin.cn')) {
-                  print('拦截掘金API请求: $url');
-                  
-                  // 创建新的请求头，添加CORS相关头部
-                  final headers = Map<String, String>.from(request.headers ?? {});
-                  headers['Access-Control-Allow-Origin'] = '*';
-                  headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-                  headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With';
-                  headers['Access-Control-Allow-Credentials'] = 'true';
-                  
-                  // 返回null表示允许请求继续，但修改了头部
-                  return null;
-                }
-                
-                // 其他请求正常处理
-                return null;
-              },
+              // 使用优化的URL跳转处理
+              shouldOverrideUrlLoading: _handleOptimizedUrlNavigation,
+              // 使用优化的资源请求拦截
+              shouldInterceptRequest: _handleOptimizedResourceRequest,
             ),
           ),
       ],
     );
+  }
+
+  /// 优化的URL导航处理
+  Future<NavigationActionPolicy> _handleOptimizedUrlNavigation(
+    InAppWebViewController controller, 
+    NavigationAction navigationAction
+  ) async {
+    final uri = navigationAction.request.url!;
+    final url = uri.toString();
+    
+    getLogger().d('🌐 URL跳转拦截: $url');
+    
+    // 检查是否是自定义scheme（非http/https）
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      getLogger().w('⚠️ 拦截自定义scheme跳转: ${uri.scheme}://');
+      return NavigationActionPolicy.CANCEL;
+    }
+    
+    // 检查是否是应用内跳转scheme
+    if (url.startsWith('snssdk') || 
+        url.startsWith('sslocal') || 
+        url.startsWith('toutiao') ||
+        url.startsWith('newsarticle')) {
+      getLogger().w('⚠️ 拦截应用跳转scheme: $url');
+      return NavigationActionPolicy.CANCEL;
+    }
+    
+    // 允许正常的HTTP/HTTPS链接
+    getLogger().d('✅ 允许正常HTTP跳转: $url');
+    return NavigationActionPolicy.ALLOW;
+  }
+
+  /// 优化的资源请求处理
+  Future<WebResourceResponse?> _handleOptimizedResourceRequest(
+    InAppWebViewController controller, 
+    WebResourceRequest request
+  ) async {
+    final url = request.url.toString();
+    
+    // 如果是API请求，记录并优化处理
+    if (url.contains('api.juejin.cn') || 
+        url.contains('api.toutiao.com') ||
+        url.contains('api.douban.com')) {
+      getLogger().d('🌐 拦截API请求: ${url.substring(0, 100)}...');
+      
+      // 这里可以添加更多的请求优化逻辑
+      // 比如添加缓存、请求去重等
+    }
+    
+    // 返回null表示使用默认处理
+    return null;
   }
 
 }
@@ -222,120 +219,6 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   // 获取文章ID
   int? get articleId => widget.articleId;
   
-  // WebView设置 - 使用稳定可靠的配置
-  InAppWebViewSettings webViewSettings = InAppWebViewSettings(
-    // ==== 核心功能设置 ====
-    javaScriptEnabled: true,
-    domStorageEnabled: true,
-    
-    // ==== 网络和缓存设置 ====
-    clearCache: false,
-    cacheMode: CacheMode.LOAD_DEFAULT,
-    
-    // ==== 安全设置 ====
-    allowFileAccess: true,
-    allowContentAccess: true,
-    
-    // ==== CORS和跨域设置 ====
-    mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-    // 允许跨域访问
-    allowUniversalAccessFromFileURLs: true,
-    allowFileAccessFromFileURLs: true,
-    
-    // ==== 用户代理 - 使用更兼容的移动版Chrome ====
-    userAgent: "Mozilla/5.0 (Linux; Android 12; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 EdgA/120.0.0.0",
-    
-    // ==== 视口和缩放设置 ====
-    supportZoom: true,
-    builtInZoomControls: true,
-    displayZoomControls: false,
-    useWideViewPort: true,
-    loadWithOverviewMode: true,
-    
-    // ==== 基本网络设置 ====
-    blockNetworkImage: false,
-    blockNetworkLoads: false,
-    loadsImagesAutomatically: true,
-    
-    // ==== Cookie设置 ====
-    thirdPartyCookiesEnabled: true,
-    
-    // ==== 媒体设置 ====
-    mediaPlaybackRequiresUserGesture: false,
-    
-    // ==== 滚动条设置 ====
-    verticalScrollBarEnabled: true,
-    horizontalScrollBarEnabled: true,
-    
-    // ==== URL拦截设置 ====
-    useShouldOverrideUrlLoading: true,
-  );
-
-  // CORS处理脚本
-  static const String corsScript = '''
-    (function() {
-      console.log('🔧 开始注入CORS处理脚本...');
-      
-      // 重写fetch方法来处理CORS问题
-      const originalFetch = window.fetch;
-      window.fetch = function(url, options = {}) {
-        if (typeof url === 'string' && url.includes('api.juejin.cn')) {
-          console.log('🌐 拦截掘金API fetch请求:', url);
-          options.mode = 'no-cors';
-          options.credentials = 'include';
-          // 添加更多兼容性头部
-          options.headers = {
-            ...options.headers,
-            'User-Agent': navigator.userAgent,
-            'Accept': '*/*',
-            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          };
-        }
-        return originalFetch.call(this, url, options).catch(error => {
-          console.warn('⚠️ Fetch请求失败，尝试备用方案:', error);
-          return Promise.resolve(new Response('{}', { status: 200 }));
-        });
-      };
-      
-      // 重写XMLHttpRequest
-      const originalXHROpen = XMLHttpRequest.prototype.open;
-      const originalXHRSend = XMLHttpRequest.prototype.send;
-      
-      XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
-        this._url = url;
-        this._method = method;
-        const result = originalXHROpen.call(this, method, url, async, user, password);
-        
-        if (typeof url === 'string' && url.includes('api.juejin.cn')) {
-          console.log('🌐 拦截掘金API XHR请求:', method, url);
-          // 监听状态变化
-          this.addEventListener('readystatechange', function() {
-            if (this.readyState === 4 && this.status === 0) {
-              console.log('🔄 XHR请求被CORS阻止，返回空响应');
-            }
-          });
-        }
-        
-        return result;
-      };
-      
-      XMLHttpRequest.prototype.send = function(data) {
-        if (this._url && this._url.includes('api.juejin.cn')) {
-          try {
-            this.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-          } catch(e) {
-            console.warn('⚠️ 设置请求头失败:', e);
-          }
-        }
-        return originalXHRSend.call(this, data);
-      };
-      
-      console.log('✅ CORS处理脚本注入完成');
-    })();
-  ''';
-
   // 添加任务状态监听相关变量
   Timer? _pollingTimer;
   bool _isPolling = false;
@@ -343,6 +226,8 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   @override
   void initState() {
     super.initState();
+    // 确保Web页面优化器已初始化
+    _ensureWebOptimizer();
   }
 
   @override
@@ -353,10 +238,217 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     super.dispose();
   }
 
+  /// 确保Web页面优化器已初始化
+  void _ensureWebOptimizer() {
+    WebWebViewPoolManager().initialize().catchError((e) {
+      getLogger().e('❌ Web页面优化器初始化失败: $e');
+    });
+  }
+
+  /// 设置优化的WebView
+  Future<void> _setupOptimizedWebView(InAppWebViewController controller) async {
+    try {
+      getLogger().i('🎯 开始设置优化的Web页面WebView...');
+      
+      // 检查优化器是否已准备就绪
+      if (WebWebViewPoolManager().isOptimized) {
+        getLogger().i('✅ 使用预热的Web页面优化配置');
+        await WebWebViewPoolManager().setupOptimizedWebView(controller);
+      } else {
+        getLogger().w('⚠️ 优化器未准备就绪，使用传统方式设置');
+        await _setupTraditionalWebView(controller);
+      }
+      
+      getLogger().i('✅ Web页面WebView设置完成');
+    } catch (e) {
+      getLogger().e('❌ 设置优化WebView失败: $e');
+      // 降级到传统方式
+      await _setupTraditionalWebView(controller);
+    }
+  }
+
+  /// 传统方式设置WebView（备用）
+  Future<void> _setupTraditionalWebView(InAppWebViewController controller) async {
+    try {
+      getLogger().i('🔧 使用传统方式设置WebView...');
+      
+      // 注入传统CORS处理脚本
+      await controller.evaluateJavascript(source: _getTraditionalCorsScript());
+      
+      getLogger().i('✅ 传统WebView设置完成');
+    } catch (e) {
+      getLogger().e('❌ 传统WebView设置失败: $e');
+    }
+  }
+
+  /// 页面加载完成后的最终优化
+  Future<void> _finalizeWebPageOptimization() async {
+    if (webViewController == null) return;
+    
+    try {
+      getLogger().i('🎨 执行页面加载完成后的优化...');
+      
+      // 注入页面完成后的优化脚本
+      await webViewController!.evaluateJavascript(source: '''
+        (function() {
+          console.log('🎨 执行页面完成后优化...');
+          
+          // 延迟执行，确保页面完全渲染
+          setTimeout(function() {
+            // 强制移除水平滚动条的终极方案
+            function eliminateHorizontalScroll() {
+              console.log('🔧 开始消除水平滚动条...');
+              
+              // 1. 强制设置body和html的样式
+              document.documentElement.style.overflowX = 'hidden';
+              document.documentElement.style.maxWidth = '100%';
+              document.body.style.overflowX = 'hidden';
+              document.body.style.maxWidth = '100%';
+              document.body.style.width = '100%';
+              
+              // 2. 检查并修复所有可能导致水平滚动的元素
+              const allElements = document.querySelectorAll('*');
+              let fixedCount = 0;
+              
+              allElements.forEach(function(el) {
+                const rect = el.getBoundingClientRect();
+                const computed = window.getComputedStyle(el);
+                
+                // 检查元素是否超出视口宽度
+                if (rect.width > window.innerWidth || 
+                    rect.right > window.innerWidth) {
+                  
+                  // 记录原始宽度用于调试
+                  const originalWidth = computed.width;
+                  
+                  // 应用修复样式
+                  el.style.maxWidth = '100%';
+                  el.style.boxSizing = 'border-box';
+                  
+                  // 特殊处理不同类型的元素
+                  const tagName = el.tagName.toLowerCase();
+                  
+                  if (tagName === 'img' || tagName === 'video') {
+                    el.style.width = '100%';
+                    el.style.height = 'auto';
+                  } else if (tagName === 'table') {
+                    el.style.width = '100%';
+                    el.style.tableLayout = 'fixed';
+                  } else if (tagName === 'pre' || tagName === 'code') {
+                    el.style.whiteSpace = 'pre-wrap';
+                    el.style.wordWrap = 'break-word';
+                    el.style.overflowX = 'auto';
+                  } else if (computed.position === 'fixed' || computed.position === 'absolute') {
+                    // 对于定位元素，确保不超出边界
+                    if (rect.right > window.innerWidth) {
+                      el.style.right = '0';
+                      el.style.left = 'auto';
+                      el.style.maxWidth = '100%';
+                    }
+                  }
+                  
+                  fixedCount++;
+                  console.log('🔧 修复超宽元素:', tagName, '原始宽度:', originalWidth);
+                }
+              });
+              
+              // 3. 强制刷新布局
+              document.body.offsetHeight; // 触发重排
+              
+              // 4. 最后检查是否还有水平滚动
+              const hasHorizontalScroll = document.documentElement.scrollWidth > document.documentElement.clientWidth;
+              
+              console.log('📊 优化结果:', {
+                '修复元素数量': fixedCount,
+                '视口宽度': window.innerWidth,
+                '文档宽度': document.documentElement.scrollWidth,
+                '是否还有水平滚动': hasHorizontalScroll
+              });
+              
+              if (hasHorizontalScroll) {
+                console.warn('⚠️ 仍存在水平滚动，应用强制CSS覆盖');
+                // 最后的强制手段
+                const forceStyle = document.createElement('style');
+                forceStyle.innerHTML = `
+                  * { 
+                    max-width: 100% !important; 
+                    box-sizing: border-box !important; 
+                  }
+                  html, body { 
+                    overflow-x: hidden !important; 
+                    width: 100% !important;
+                  }
+                `;
+                document.head.appendChild(forceStyle);
+              }
+              
+              return fixedCount;
+            }
+            
+            // 执行消除水平滚动
+            const fixedCount = eliminateHorizontalScroll();
+            
+            // 优化已加载的图片
+            const images = document.querySelectorAll('img');
+            let optimizedCount = 0;
+            
+            images.forEach(function(img) {
+              if (!img.style.maxWidth) {
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                optimizedCount++;
+              }
+            });
+            
+            console.log('✅ 页面优化完成，修复了 ' + fixedCount + ' 个超宽元素，优化了 ' + optimizedCount + ' 张图片');
+            
+            // 触发性能统计
+            if (window.performance && window.performance.timing) {
+              const timing = window.performance.timing;
+              const loadTime = timing.loadEventEnd - timing.navigationStart;
+              console.log('📊 页面加载耗时: ' + loadTime + 'ms');
+            }
+          }, 500);
+        })();
+      ''');
+      
+      // 输出性能统计
+      final stats = WebWebViewPoolManager().getPerformanceStats();
+      getLogger().i('📊 Web页面性能统计: $stats');
+      
+      getLogger().i('✅ 页面最终优化完成');
+    } catch (e) {
+      getLogger().e('❌ 页面最终优化失败: $e');
+    }
+  }
+
+  /// 获取传统CORS脚本（备用）
+  String _getTraditionalCorsScript() {
+    return '''
+    (function() {
+      console.log('🔧 注入传统CORS处理脚本...');
+      
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options = {}) {
+        if (typeof url === 'string' && url.includes('api.juejin.cn')) {
+          options.mode = 'no-cors';
+          options.credentials = 'include';
+        }
+        return originalFetch.call(this, url, options).catch(error => {
+          console.warn('⚠️ Fetch请求失败:', error);
+          return Promise.resolve(new Response('{}', { status: 200 }));
+        });
+      };
+      
+      console.log('✅ 传统CORS处理脚本注入完成');
+    })();
+  ''';
+  }
+
   // 生成MHTML快照并保存到本地
   Future<void> generateMHTMLSnapshot() async {
     if (webViewController == null) {
-      print('WebView控制器未初始化');
+      getLogger().w('WebView控制器未初始化');
       BotToast.showText(text: 'WebView未初始化');
       return;
     }
@@ -401,7 +493,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         );
 
         if (savedPath != null && savedPath.isNotEmpty) {
-          getLogger().i('网页快照保存成功: $savedPath');
+          getLogger().i('✅ 网页快照保存成功: $savedPath');
           BotToast.showText(text: '快照保存成功');
 
           // 更新数据库中的mhtmlPath字段
@@ -411,23 +503,19 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
           if (widget.onSnapshotCreated != null) {
             widget.onSnapshotCreated!(savedPath);
           }
-
-          // 自动上传到服务器进行Markdown解析（可选）
-          // 如果需要自动上传并解析，取消下面这行的注释
-          // await uploadSnapshotToServer(savedPath);
           
         } else {
           throw Exception('saveWebArchive返回空路径');
         }
       } catch (saveError) {
-        print('saveWebArchive失败: $saveError');
+        getLogger().e('saveWebArchive失败: $saveError');
         
-        // 如果saveWebArchive也失败了，尝试使用截图作为备用方案
+        // 如果saveWebArchive失败，尝试使用截图作为备用方案
         await _fallbackToScreenshot(snapshotDir, timestamp);
       }
 
     } catch (e) {
-      print('生成网页快照失败: $e');
+      getLogger().e('❌ 生成网页快照失败: $e');
       BotToast.showText(text: '生成快照失败: $e');
     } finally {
       setState(() {
@@ -468,7 +556,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   // 备用方案：使用截图
   Future<void> _fallbackToScreenshot(String snapshotDir, String timestamp) async {
     try {
-      print('尝试使用截图作为备用方案...');
+      getLogger().i('📸 尝试使用截图作为备用方案...');
       
       // 获取WebView截图
       final Uint8List? screenshot = await webViewController!.takeScreenshot();
@@ -481,7 +569,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         final File file = File(filePath);
         await file.writeAsBytes(screenshot);
         
-        print('截图保存成功: $filePath');
+        getLogger().i('✅ 截图保存成功: $filePath');
         BotToast.showText(text: '已保存为截图快照');
         
         // 更新数据库中的mhtmlPath字段（即使是截图也保存路径）
@@ -492,26 +580,12 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
           widget.onSnapshotCreated!(filePath);
         }
       } else {
-        print('截图生成失败');
+        getLogger().e('❌ 截图生成失败');
         BotToast.showText(text: '快照和截图都生成失败');
       }
     } catch (screenshotError) {
-      print('截图备用方案也失败: $screenshotError');
+      getLogger().e('❌ 截图备用方案也失败: $screenshotError');
       BotToast.showText(text: '所有快照方案都失败了');
-    }
-  }
-
-  // 设置WebView基本配置
-  Future<void> _setupWebViewConfiguration(InAppWebViewController controller) async {
-    try {
-      print('开始设置WebView基本配置...');
-      
-      // 注入JavaScript代码来处理CORS问题
-      await controller.evaluateJavascript(source: corsScript);
-      
-      print('WebView基本配置设置完成');
-    } catch (e) {
-      print('WebView配置设置失败: $e');
     }
   }
 
@@ -522,13 +596,6 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       BotToast.showText(text: '正在上传快照...');
       
       // TODO: 实现上传逻辑，这里假设返回任务ID
-      // final response = await dio.post('/api/upload-snapshot', 
-      //   data: FormData.fromMap({
-      //     'file': await MultipartFile.fromFile(snapshotPath),
-      //   })
-      // );
-      // final taskId = response.data['taskId'];
-      
       // 模拟返回任务ID
       final taskId = 'task_${DateTime.now().millisecondsSinceEpoch}';
       
@@ -548,7 +615,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   // 智能轮询监听任务状态
   Future<void> _startPollingTaskStatus(String taskId) async {
     if (_isPolling) {
-      print('已经在轮询中，跳过重复请求');
+      getLogger().d('已经在轮询中，跳过重复请求');
       return;
     }
     
@@ -564,13 +631,9 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       
       try {
         pollCount++;
-        print('轮询任务状态，第${pollCount}次: $taskId');
+        getLogger().d('轮询任务状态，第${pollCount}次: $taskId');
         
         // TODO: 实际的状态查询API调用
-        // final response = await dio.get('/api/task-status/$taskId');
-        // final status = response.data['status'];
-        // final result = response.data['result'];
-        
         // 模拟服务器响应
         final Map<String, dynamic> mockResponse = await _mockServerResponse(taskId, pollCount);
         final String status = mockResponse['status'];
@@ -581,7 +644,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
           case 'pending':
           case 'processing':
             // 继续轮询
-            print('任务处理中... 状态: $status');
+            getLogger().d('任务处理中... 状态: $status');
             
             // 确定下次轮询间隔
             int intervalIndex = (pollCount - 1).clamp(0, intervals.length - 1);
@@ -596,23 +659,23 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
             
           case 'completed':
             // 处理成功
-            print('任务处理完成: $result');
+            getLogger().i('任务处理完成: $result');
             _handleTaskCompleted(taskId, result!);
             break;
             
           case 'failed':
             // 处理失败
-            print('任务处理失败: $error');
+            getLogger().e('任务处理失败: $error');
             _handleTaskFailed(taskId, error ?? '未知错误');
             break;
             
           default:
-            print('未知任务状态: $status');
+            getLogger().w('未知任务状态: $status');
             _handleTaskFailed(taskId, '未知状态: $status');
         }
         
       } catch (e) {
-        print('轮询状态查询失败: $e');
+        getLogger().e('轮询状态查询失败: $e');
         
         // 网络错误时继续重试，但增加间隔
         if (pollCount < maxPollCount) {
@@ -638,37 +701,30 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   void _handleTaskCompleted(String taskId, String markdownContent) {
     _stopPolling();
     
-    print('Markdown解析完成，长度: ${markdownContent.length}');
+    getLogger().i('✅ Markdown解析完成，长度: ${markdownContent.length}');
     BotToast.showText(text: '文档解析完成！');
     
-    // TODO: 处理解析后的Markdown内容
-    // 可以保存到本地、显示在UI中、或者触发回调
+    // 处理解析后的Markdown内容
     _onMarkdownReady(markdownContent);
   }
 
   // 任务失败处理
   void _handleTaskFailed(String taskId, String error) {
     _stopPolling();
-    
-    getLogger().e('任务处理失败', error: error);
+    getLogger().e('❌ 任务处理失败: $error');
     BotToast.showText(text: '处理失败: $error');
   }
 
   // 轮询超时处理
   void _handlePollingTimeout(String taskId) {
     _stopPolling();
-    
-    getLogger().w('任务轮询超时', error: taskId);
+    getLogger().w('⚠️ 任务轮询超时: $taskId');
     BotToast.showText(text: '处理超时，请稍后重试');
   }
 
   // Markdown内容就绪回调
   void _onMarkdownReady(String markdownContent) {
-    // 这里可以根据具体需求处理Markdown内容
-    // 比如：显示在新页面、保存到数据库、通知父组件等
-    
     if (widget.onSnapshotCreated != null) {
-      // 可以扩展回调参数来传递Markdown内容
       widget.onSnapshotCreated!(markdownContent);
     }
   }
@@ -702,7 +758,4 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       };
     }
   }
-
-  
-
 }
