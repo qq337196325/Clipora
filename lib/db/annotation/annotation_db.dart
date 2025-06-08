@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
 
-// part 'annotation_db.g.dart';
+part 'annotation_db.g.dart';
 
 @collection
 class AnnotationDb {

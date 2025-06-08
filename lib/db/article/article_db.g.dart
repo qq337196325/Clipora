@@ -62,28 +62,38 @@ const ArticleDbSchema = CollectionSchema(
       name: r'readProgress',
       type: IsarType.double,
     ),
-    r'shareOriginalContent': PropertySchema(
+    r'serviceId': PropertySchema(
       id: 9,
+      name: r'serviceId',
+      type: IsarType.string,
+    ),
+    r'serviceUpdatedAt': PropertySchema(
+      id: 10,
+      name: r'serviceUpdatedAt',
+      type: IsarType.long,
+    ),
+    r'shareOriginalContent': PropertySchema(
+      id: 11,
       name: r'shareOriginalContent',
       type: IsarType.string,
     ),
     r'tags': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'title': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'url',
       type: IsarType.string,
     )
@@ -175,6 +185,7 @@ int _articleDbEstimateSize(
   }
   bytesCount += 3 + object.markdown.length * 3;
   bytesCount += 3 + object.mhtmlPath.length * 3;
+  bytesCount += 3 + object.serviceId.length * 3;
   bytesCount += 3 + object.shareOriginalContent.length * 3;
   bytesCount += 3 + object.tags.length * 3;
   {
@@ -203,11 +214,13 @@ void _articleDbSerialize(
   writer.writeLong(offsets[6], object.readCount);
   writer.writeLong(offsets[7], object.readDuration);
   writer.writeDouble(offsets[8], object.readProgress);
-  writer.writeString(offsets[9], object.shareOriginalContent);
-  writer.writeStringList(offsets[10], object.tags);
-  writer.writeString(offsets[11], object.title);
-  writer.writeDateTime(offsets[12], object.updatedAt);
-  writer.writeString(offsets[13], object.url);
+  writer.writeString(offsets[9], object.serviceId);
+  writer.writeLong(offsets[10], object.serviceUpdatedAt);
+  writer.writeString(offsets[11], object.shareOriginalContent);
+  writer.writeStringList(offsets[12], object.tags);
+  writer.writeString(offsets[13], object.title);
+  writer.writeDateTime(offsets[14], object.updatedAt);
+  writer.writeString(offsets[15], object.url);
 }
 
 ArticleDb _articleDbDeserialize(
@@ -227,11 +240,13 @@ ArticleDb _articleDbDeserialize(
   object.readCount = reader.readLong(offsets[6]);
   object.readDuration = reader.readLong(offsets[7]);
   object.readProgress = reader.readDouble(offsets[8]);
-  object.shareOriginalContent = reader.readString(offsets[9]);
-  object.tags = reader.readStringList(offsets[10]) ?? [];
-  object.title = reader.readString(offsets[11]);
-  object.updatedAt = reader.readDateTime(offsets[12]);
-  object.url = reader.readString(offsets[13]);
+  object.serviceId = reader.readString(offsets[9]);
+  object.serviceUpdatedAt = reader.readLong(offsets[10]);
+  object.shareOriginalContent = reader.readString(offsets[11]);
+  object.tags = reader.readStringList(offsets[12]) ?? [];
+  object.title = reader.readString(offsets[13]);
+  object.updatedAt = reader.readDateTime(offsets[14]);
+  object.url = reader.readString(offsets[15]);
   return object;
 }
 
@@ -263,12 +278,16 @@ P _articleDbDeserializeProp<P>(
     case 9:
       return (reader.readString(offset)) as P;
     case 10:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readLong(offset)) as P;
     case 11:
       return (reader.readString(offset)) as P;
     case 12:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
+      return (reader.readDateTime(offset)) as P;
+    case 15:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1542,6 +1561,194 @@ extension ArticleDbQueryFilter
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> serviceIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      serviceIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> serviceIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> serviceIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'serviceId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> serviceIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> serviceIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> serviceIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> serviceIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'serviceId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> serviceIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      serviceIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'serviceId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      serviceUpdatedAtEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceUpdatedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      serviceUpdatedAtGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'serviceUpdatedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      serviceUpdatedAtLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'serviceUpdatedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      serviceUpdatedAtBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'serviceUpdatedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
       shareOriginalContentEqualTo(
     String value, {
@@ -2327,6 +2534,31 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByServiceId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByServiceIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByServiceUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceUpdatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      sortByServiceUpdatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceUpdatedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
       sortByShareOriginalContent() {
     return QueryBuilder.apply(this, (query) {
@@ -2500,6 +2732,31 @@ extension ArticleDbQuerySortThenBy
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByServiceId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByServiceIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByServiceUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceUpdatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      thenByServiceUpdatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceUpdatedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
       thenByShareOriginalContent() {
     return QueryBuilder.apply(this, (query) {
@@ -2611,6 +2868,19 @@ extension ArticleDbQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByServiceId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'serviceId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByServiceUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'serviceUpdatedAt');
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByShareOriginalContent(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2705,6 +2975,18 @@ extension ArticleDbQueryProperty
   QueryBuilder<ArticleDb, double, QQueryOperations> readProgressProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'readProgress');
+    });
+  }
+
+  QueryBuilder<ArticleDb, String, QQueryOperations> serviceIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'serviceId');
+    });
+  }
+
+  QueryBuilder<ArticleDb, int, QQueryOperations> serviceUpdatedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'serviceUpdatedAt');
     });
   }
 

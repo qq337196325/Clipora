@@ -3,6 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:get/get.dart';
 
 import 'article/article_db.dart';
+import 'annotation/annotation_db.dart';
 import '../basics/logger.dart';
 
 /// 数据库服务类
@@ -34,7 +35,7 @@ class DatabaseService extends GetxService {
       final dir = await getApplicationDocumentsDirectory();
       
       _isar = await Isar.open(
-        [ArticleDbSchema],
+        [ArticleDbSchema, AnnotationDbSchema],
         directory: dir.path,
         name: 'inkwell_db',
       );
@@ -49,6 +50,9 @@ class DatabaseService extends GetxService {
 
   /// 获取文章集合
   IsarCollection<ArticleDb> get articles => _isar.articleDbs;
+
+  /// 获取标注集合
+  IsarCollection<AnnotationDb> get annotations => _isar.annotationDbs;
 
   @override
   void onClose() {

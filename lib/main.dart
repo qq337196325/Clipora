@@ -9,8 +9,11 @@ import 'package:inkwell/db/database_service.dart';
 import 'package:inkwell/db/article/article_service.dart';
 import 'package:inkwell/basics/translations/app_translations.dart';
 import 'package:inkwell/controller/language_controller.dart';
+import 'package:inkwell/view/article/components/markdown_webview_pool_manager.dart';
+import 'package:inkwell/basics/logger.dart';
 
 import 'basics/apps_state.dart';
+
 
 void main() async {
   HttpOverrides.global = MyHttpOverrides(); // 忽略证书
@@ -38,6 +41,20 @@ Future<void> _initServices() async {
   
   // 注册语言控制器
   Get.put(LanguageController(), permanent: true);
+  
+  // 🚀 初始化WebView池 - 异步预热，提升文章页面性能
+  _initWebViewPool();
+}
+
+/// 初始化WebView池（异步，不阻塞应用启动）
+void _initWebViewPool() {
+  getLogger().i('🔥 开始应用启动时预热WebView池...');
+  
+  WebViewPoolManager().initialize().then((_) {
+    getLogger().i('✅ WebView池预热完成，文章页面加载将显著提升');
+  }).catchError((e) {
+    getLogger().e('❌ WebView池预热失败: $e');
+  });
 }
 
 class MyApp extends StatelessWidget {

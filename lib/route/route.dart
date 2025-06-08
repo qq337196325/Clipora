@@ -28,7 +28,9 @@ List<RouteInfo> routeInfos = [
 
   // RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state) => ArticlePage()),
   RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state){
-    return ArticlePage(id: getQueryParam("id",state));
+    final idStr = getQueryParam("id", state);
+    final id = int.tryParse(idStr) ?? 0;
+    return ArticlePage(id: id);
   }),
 
   RouteInfo(path: "/${RouteName.articlePage2}", name: RouteName.articlePage2, builder: (context, state) => ArticlePage2()), 

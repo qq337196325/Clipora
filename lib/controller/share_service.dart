@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:get/get.dart';
 
 import '../basics/logger.dart';
 import '../db/article/article_service.dart';
+import '../db/article/article_db.dart';
+import '../api/user_api.dart';
 
 /// 分享内容类型枚举
 enum ShareContentType {
@@ -293,10 +294,95 @@ class ShareService extends GetxService {
       );
 
       getLogger().i('✅ 分享内容已保存到数据库: ${article.title}, ID: ${article.id}');
+
+      // 调用后端 API 同步文章
+      await _syncArticleToBackend(article, originalContent);
     } catch (e, stackTrace) {
       getLogger().e('❌ 保存分享内容到数据库失败: $e');
       getLogger().e('堆栈跟踪: $stackTrace');
     }
+  }
+
+  /// 同步文章到后端
+  Future<void> _syncArticleToBackend(ArticleDb article, String originalContent) async {
+    try {
+      getLogger().i('🌐 开始同步文章到后端: ${article.title}');
+      
+      final param = {
+        'client_article_id': article.id,
+        'title': article.title,
+        'url': article.url,
+        'share_original_content': originalContent,
+      };
+      
+      getLogger().i('🌐 发送参数: $param');
+      
+      final response = await UserApi.createArticleApi(param);
+      getLogger().i('🌐 后端响应: $response');
+      
+      if (response['code'] == 0) {
+        // 更安全的方式获取serviceId
+        final serviceIdData = response['data'];
+        String serviceId = '';
+        
+        if (serviceIdData != null) {
+          if (serviceIdData is String) {
+            serviceId = serviceIdData;
+          } else {
+            serviceId = serviceIdData.toString();
+          }
+          
+          getLogger().i('🔍 原始serviceId数据: $serviceIdData (类型: ${serviceIdData.runtimeType})');
+          getLogger().i('🔍 转换后serviceId: "$serviceId"');
+          
+          // 验证ObjectID格式
+          if (_isValidObjectId(serviceId)) {
+            // 更新本地数据库中的 serviceId
+            final updateSuccess = await ArticleService.instance.updateServiceId(article.id, serviceId);
+            if (updateSuccess) {
+              getLogger().i('✅ 文章同步成功，服务端ID: $serviceId');
+            } else {
+              getLogger().e('❌ 更新本地服务端ID失败');
+            }
+          } else {
+            getLogger().e('❌ 后端返回的serviceId格式无效: "$serviceId"');
+          }
+        } else {
+          getLogger().w('⚠️ 后端返回空的服务端ID');
+        }
+      } else {
+        getLogger().e('❌ 后端返回错误: ${response['msg']}');
+      }
+    } catch (e) {
+      getLogger().e('❌ 同步文章到后端失败: $e');
+      // 同步失败不影响本地保存，仅记录错误
+    }
+  }
+
+  /// 验证MongoDB ObjectID格式
+  /// ObjectID应该是24位十六进制字符串，且不能是全0
+  bool _isValidObjectId(String id) {
+    // 检查长度
+    if (id.length != 24) {
+      getLogger().w('ObjectID长度错误: ${id.length}, 期望: 24');
+      return false;
+    }
+    
+    // 检查是否为十六进制字符串
+    final hexPattern = RegExp(r'^[0-9a-fA-F]{24}$');
+    if (!hexPattern.hasMatch(id)) {
+      getLogger().w('ObjectID格式错误，应为24位十六进制字符串: "$id"');
+      return false;
+    }
+    
+    // 检查是否为全0（无效的ObjectID）
+    if (id == '000000000000000000000000') {
+      getLogger().w('ObjectID不能为全0: "$id"');
+      return false;
+    }
+    
+    getLogger().i('ObjectID格式验证通过: "$id"');
+    return true;
   }
 
   /// 解析分享内容，提取标题和URL

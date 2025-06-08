@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../controller/article_controller.dart';
+
 
 
 class AppsState extends StatefulWidget {
@@ -21,7 +23,7 @@ class _MyHomePageState extends State<AppsState> {
 
   @override
   void initState() {
-    // Get.lazyPut(() => BankAccountController());
+    Get.lazyPut(() => ArticleController());
     // Get.lazyPut(() => FullCommodityCategoryController());
     // Get.lazyPut(() => FullCommodityUtilController());
     // Get.lazyPut(() => UserController());
