@@ -26,6 +26,7 @@ class ArticleMarkdownWidget extends StatefulWidget {
 }
 
 class _ArticlePageState extends State<ArticleMarkdownWidget> with WidgetsBindingObserver {
+  final GlobalKey _webViewKey = GlobalKey();
   InAppWebViewController? _webViewController;
   String get markdownContent => widget.markdownContent;
   ArticleDb? get article => widget.article;
@@ -42,6 +43,11 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with WidgetsBinding
   DateTime? _lastSaveTime; // 上次保存时间
   static const Duration _saveInterval = Duration(seconds: 20); // 调整为20秒
   static const Duration _minSaveInterval = Duration(seconds: 5); // 最小保存间隔
+
+  // 自定义选择菜单状态
+  OverlayEntry? _selectionMenuOverlay;
+  OverlayEntry? _backgroundCatcher;
+  String _currentSelectedText = '';
 
   @override
   Widget build(BuildContext context) {
@@ -76,48 +82,6 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with WidgetsBinding
                 ),
               ),
             ),
-          
-          // 调试按钮
-          if (!isLoading && article != null)
-            Positioned(
-              top: 50,
-              right: 16,
-              child: Column(
-                children: [
-                  FloatingActionButton(
-                    mini: true,
-                    heroTag: "save_position_fab",
-                    onPressed: _debugSavePosition,
-                    child: const Icon(Icons.save),
-                    tooltip: '调试：保存位置',
-                  ),
-                  const SizedBox(height: 8),
-                  FloatingActionButton(
-                    mini: true,
-                    heroTag: "restore_position_fab",
-                    onPressed: _debugRestorePosition,
-                    child: const Icon(Icons.restore),
-                    tooltip: '调试：恢复位置',
-                  ),
-                  const SizedBox(height: 8),
-                  FloatingActionButton(
-                    mini: true,
-                    heroTag: "show_info_fab",
-                    onPressed: _debugShowCurrentInfo,
-                    child: const Icon(Icons.info),
-                    tooltip: '调试：显示信息',
-                  ),
-                  const SizedBox(height: 8),
-                  FloatingActionButton(
-                    mini: true,
-                    heroTag: "refresh_db_fab",
-                    onPressed: _debugRefreshFromDb,
-                    child: const Icon(Icons.refresh),
-                    tooltip: '调试：刷新数据库',
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );
@@ -125,14 +89,62 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with WidgetsBinding
 
   Widget _buildOptimizedWebView() {
     return InAppWebView(
+      key: _webViewKey,
       initialData: InAppWebViewInitialData(
         data: WebViewPoolManager().getHtmlTemplate(),
         mimeType: "text/html",
         encoding: "utf-8",
       ),
+      // 配置选项以支持自定义选择菜单
+      initialSettings: InAppWebViewSettings(
+        // ==== 基础设置 ====
+        javaScriptEnabled: true,
+        domStorageEnabled: true,
+        
+        // ==== 强力阻止系统默认菜单 ====
+        disableContextMenu: true,  // 重新启用，配合JavaScript完全控制
+        disableDefaultErrorPage: true,
+        
+        // ==== Android特定设置 ====
+        textZoom: 100,
+        supportMultipleWindows: false,
+        // Android平台特殊设置
+        // overScrollMode: AndroidOverScrollMode.OVER_SCROLL_NEVER,
+        
+        // ==== iOS特定设置 ====
+        allowsInlineMediaPlayback: true,
+        // iOS平台特殊设置
+        disableLongPressContextMenuOnLinks: true,
+        
+        // ==== 触控和选择设置 ====
+        supportZoom: false,  // 禁用缩放避免与选择手势冲突
+        builtInZoomControls: false,
+        displayZoomControls: false,
+        
+        // ==== 选择相关设置 ====
+        disableHorizontalScroll: false,
+        disableVerticalScroll: false,
+        
+        // ==== 用户代理设置 ====
+        userAgent: "Mozilla/5.0 (Linux; Android 12; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 InkwellReader/1.0",
+        
+        // ==== 安全设置 ====
+        allowFileAccess: true,
+        allowContentAccess: true,
+        
+        // ==== 缓存设置 ====
+        cacheMode: CacheMode.LOAD_DEFAULT,
+        
+        // ==== 其他设置 ====
+        clearCache: false,
+        // 禁用默认的用户选择样式
+        disableInputAccessoryView: true,
+      ),
       onWebViewCreated: (controller) {
         _webViewController = controller;
         _setupWebView();
+        // 设置自定义选择处理器
+        _setupTextSelectionHandlers(controller);
       },
       onLoadStop: (controller, url) async {
         if (_webViewController != null) {
@@ -172,6 +184,9 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with WidgetsBinding
     
     // 移除生命周期观察者
     WidgetsBinding.instance.removeObserver(this);
+    
+    // 清理自定义选择菜单
+    _hideCustomSelectionMenu();
     
     // 取消定时器
     _positionSaveTimer?.cancel();
@@ -272,6 +287,9 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with WidgetsBinding
     try {
       // 注入精确定位追踪脚本
       await _injectPositionTracker();
+      
+      // 注入文字选择处理脚本
+      await _injectTextSelectionScript();
       
       // 设置图片点击处理器
       await _setupImageClickHandler();
@@ -458,6 +476,378 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with WidgetsBinding
       getLogger().i('✅ 精确定位追踪脚本注入成功');
     } catch (e) {
       getLogger().e('❌ 精确定位追踪脚本注入失败: $e');
+    }
+  }
+
+  /// 注入文字选择处理脚本
+  Future<void> _injectTextSelectionScript() async {
+    if (!_isWebViewAvailable()) return;
+    
+    const jsCode = '''
+      (function() {
+        console.log('🎯 注入文字选择处理脚本');
+        
+        let currentSelection = null;
+        let isSelecting = false;
+        let highlightCounter = 0;
+        let noteCounter = 0;
+        let selectionTimeout = null;
+        
+        // 更强力地阻止系统默认行为
+        function preventSystemBehavior(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          return false;
+        }
+        
+        // 禁用系统默认的上下文菜单
+        document.addEventListener('contextmenu', preventSystemBehavior, true);
+        
+        // 阻止系统选择菜单的各种触发方式
+        document.addEventListener('selectstart', function(e) {
+          console.log('🎯 开始选择文字');
+          isSelecting = true;
+        }, true);
+        
+        // 监听触摸开始（移动端）
+        document.addEventListener('touchstart', function(e) {
+          // 清除之前的超时
+          if (selectionTimeout) {
+            clearTimeout(selectionTimeout);
+          }
+        }, true);
+        
+        // 监听鼠标按下
+        document.addEventListener('mousedown', function(e) {
+          // 清除之前的超时
+          if (selectionTimeout) {
+            clearTimeout(selectionTimeout);
+          }
+        }, true);
+        
+        // 监听鼠标抬起事件（选择完成）
+        document.addEventListener('mouseup', function(e) {
+          selectionTimeout = setTimeout(function() {
+            handleTextSelection(e);
+          }, 100); // 增加延迟确保选择完成
+        }, true);
+        
+        // 监听触摸结束事件（移动端选择完成）
+        document.addEventListener('touchend', function(e) {
+          selectionTimeout = setTimeout(function() {
+            handleTextSelection(e);
+          }, 150); // 移动端需要更长延迟
+        }, true);
+        
+        // 监听选择变化事件
+        document.addEventListener('selectionchange', function(e) {
+          const selection = window.getSelection();
+          if (selection && selection.toString().trim().length > 0) {
+            // 有文字被选择
+            currentSelection = selection;
+            console.log('📝 检测到文字选择变化:', selection.toString().trim());
+            
+            // 延迟处理，防止过度触发
+            if (selectionTimeout) {
+              clearTimeout(selectionTimeout);
+            }
+            selectionTimeout = setTimeout(function() {
+              handleSelectionChange();
+            }, 200);
+          } else {
+            // 选择被清除
+            if (currentSelection) {
+              console.log('❌ 选择已清除');
+              currentSelection = null;
+              // 通知Flutter清除选择
+              notifyFlutter('onSelectionCleared', {});
+            }
+          }
+        }, true);
+        
+        // 处理选择变化
+        function handleSelectionChange() {
+          if (!currentSelection) return;
+          
+          const selectedText = currentSelection.toString().trim();
+          if (selectedText.length < 2) {
+            console.log('⚠️ 选择文字过短，跳过处理:', selectedText.length);
+            return;
+          }
+          
+          try {
+            const range = currentSelection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            
+            // 使用getBoundingClientRect()返回的视窗相对坐标
+            const selectionData = {
+              text: selectedText,
+              x: rect.left,
+              y: rect.top,
+              width: rect.width,
+              height: rect.height
+            };
+            
+            console.log('📍 选择位置详细信息 (viewport-relative):', selectionData);
+            
+            // 通知Flutter
+            notifyFlutter('onTextSelected', selectionData);
+            
+          } catch (error) {
+            console.error('❌ 处理选择变化失败:', error);
+          }
+        }
+        
+        // 处理文字选择
+        function handleTextSelection(originalEvent) {
+          const selection = window.getSelection();
+          if (!selection || selection.toString().trim().length === 0) {
+            console.log('⚠️ 选择为空，跳过处理');
+            return;
+          }
+          
+          const selectedText = selection.toString().trim();
+          if (selectedText.length < 2) { // 忽略过短的选择
+            console.log('⚠️ 选择文字过短，跳过处理:', selectedText.length);
+            return;
+          }
+          
+          console.log('📝 处理文字选择:', selectedText);
+          
+          // 强制阻止系统默认行为
+          if (originalEvent) {
+            originalEvent.preventDefault();
+            originalEvent.stopPropagation();
+            originalEvent.stopImmediatePropagation();
+          }
+          
+          // 阻止所有可能的系统菜单
+          setTimeout(function() {
+            document.addEventListener('contextmenu', preventSystemBehavior, true);
+          }, 10);
+          
+          try {
+            // 获取选择的位置信息
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            
+            // 使用getBoundingClientRect()返回的视窗相对坐标
+            const selectionData = {
+              text: selectedText,
+              x: rect.left,
+              y: rect.top,
+              width: rect.width,
+              height: rect.height
+            };
+            
+            console.log('📍 最终选择位置信息 (viewport-relative):', selectionData);
+            
+            // 通知Flutter
+            notifyFlutter('onTextSelected', selectionData);
+            
+          } catch (error) {
+            console.error('❌ 处理文字选择失败:', error);
+          }
+        }
+        
+        // 高亮选中的文字
+        function highlightSelection(color = 'yellow') {
+          const selection = window.getSelection();
+          if (!selection || selection.toString().trim().length === 0) {
+            console.warn('⚠️ 没有选中的文字可以高亮');
+            return false;
+          }
+          
+          try {
+            const range = selection.getRangeAt(0);
+            const selectedText = selection.toString().trim();
+            
+            // 创建高亮元素
+            const highlightSpan = document.createElement('span');
+            highlightSpan.className = 'flutter-highlight';
+            highlightSpan.style.backgroundColor = color;
+            highlightSpan.style.padding = '2px 1px';
+            highlightSpan.style.borderRadius = '2px';
+            highlightSpan.dataset.highlightId = 'highlight_' + (++highlightCounter) + '_' + Date.now();
+            highlightSpan.dataset.originalText = selectedText;
+            
+            // 包装选中的内容
+            try {
+              range.surroundContents(highlightSpan);
+              console.log('✅ 文字高亮成功:', selectedText);
+              
+              // 清除选择
+              selection.removeAllRanges();
+              
+              // 通知Flutter
+              notifyFlutter('onTextHighlighted', {
+                text: selectedText,
+                id: highlightSpan.dataset.highlightId,
+                color: color
+              });
+              
+              return true;
+            } catch (e) {
+              // 如果surroundContents失败，使用备用方法
+              const contents = range.extractContents();
+              highlightSpan.appendChild(contents);
+              range.insertNode(highlightSpan);
+              
+              selection.removeAllRanges();
+              
+              console.log('✅ 文字高亮成功(备用方法):', selectedText);
+              
+              notifyFlutter('onTextHighlighted', {
+                text: selectedText,
+                id: highlightSpan.dataset.highlightId,
+                color: color
+              });
+              
+              return true;
+            }
+          } catch (error) {
+            console.error('❌ 高亮文字失败:', error);
+            return false;
+          }
+        }
+        
+        // 添加笔记到选中的文字
+        function addNoteToSelection(noteText) {
+          const selection = window.getSelection();
+          if (!selection || selection.toString().trim().length === 0) {
+            console.warn('⚠️ 没有选中的文字可以添加笔记');
+            return false;
+          }
+          
+          try {
+            const range = selection.getRangeAt(0);
+            const selectedText = selection.toString().trim();
+            
+            // 创建笔记元素
+            const noteSpan = document.createElement('span');
+            noteSpan.className = 'flutter-note';
+            noteSpan.style.backgroundColor = '#fff3cd';
+            noteSpan.style.borderBottom = '2px solid #ffc107';
+            noteSpan.style.position = 'relative';
+            noteSpan.style.cursor = 'help';
+            noteSpan.dataset.noteId = 'note_' + (++noteCounter) + '_' + Date.now();
+            noteSpan.dataset.noteText = noteText;
+            noteSpan.dataset.originalText = selectedText;
+            noteSpan.title = '笔记: ' + noteText;
+            
+            // 包装选中的内容
+            try {
+              range.surroundContents(noteSpan);
+              console.log('✅ 笔记添加成功:', selectedText, '笔记:', noteText);
+              
+              // 清除选择
+              selection.removeAllRanges();
+              
+              // 通知Flutter
+              notifyFlutter('onNoteAdded', {
+                note: noteText,
+                selectedText: selectedText,
+                id: noteSpan.dataset.noteId
+              });
+              
+              return true;
+            } catch (e) {
+              // 备用方法
+              const contents = range.extractContents();
+              noteSpan.appendChild(contents);
+              range.insertNode(noteSpan);
+              
+              selection.removeAllRanges();
+              
+              console.log('✅ 笔记添加成功(备用方法):', selectedText, '笔记:', noteText);
+              
+              notifyFlutter('onNoteAdded', {
+                note: noteText,
+                selectedText: selectedText,
+                id: noteSpan.dataset.noteId
+              });
+              
+              return true;
+            }
+          } catch (error) {
+            console.error('❌ 添加笔记失败:', error);
+            return false;
+          }
+        }
+        
+        // 清除当前选择
+        function clearSelection() {
+          const selection = window.getSelection();
+          if (selection) {
+            selection.removeAllRanges();
+            console.log('✅ 清除选择完成');
+          }
+        }
+        
+        // 获取当前选择的文字
+        function getCurrentSelection() {
+          const selection = window.getSelection();
+          if (selection && selection.toString().trim().length > 0) {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            
+            return {
+              text: selection.toString().trim(),
+              x: rect.left + (rect.width / 2),
+              y: rect.top,
+              width: rect.width,
+              height: rect.height
+            };
+          }
+          return null;
+        }
+        
+        // 统一的Flutter通知函数
+        function notifyFlutter(handlerName, data) {
+          try {
+            console.log('📤 向Flutter发送消息:', handlerName, data);
+            
+            // 检查flutter_inappwebview是否可用
+            if (typeof window.flutter_inappwebview === 'undefined') {
+              console.error('❌ window.flutter_inappwebview 未定义');
+              return false;
+            }
+            
+            if (typeof window.flutter_inappwebview.callHandler !== 'function') {
+              console.error('❌ window.flutter_inappwebview.callHandler 不是函数');
+              return false;
+            }
+            
+            // 调用Flutter处理器
+            window.flutter_inappwebview.callHandler(handlerName, data);
+            console.log('✅ 消息发送成功:', handlerName);
+            return true;
+            
+          } catch (error) {
+            console.error('❌ 发送消息到Flutter失败:', error);
+            return false;
+          }
+        }
+        
+        // 暴露给Flutter调用的方法
+        window.flutter_text_selector = {
+          highlightSelection: highlightSelection,
+          addNoteToSelection: addNoteToSelection,
+          clearSelection: clearSelection,
+          getCurrentSelection: getCurrentSelection
+        };
+        
+        console.log('✅ 文字选择处理脚本注入完成');
+        console.log('🔍 检查flutter_inappwebview:', typeof window.flutter_inappwebview);
+      })();
+    ''';
+    
+    try {
+      await _webViewController!.evaluateJavascript(source: jsCode);
+      getLogger().i('✅ 文字选择处理脚本注入成功');
+    } catch (e) {
+      getLogger().e('❌ 文字选择处理脚本注入失败: $e');
     }
   }
 
@@ -963,91 +1353,6 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with WidgetsBinding
     );
   }
 
-  /// 调试：手动保存位置
-  void _debugSavePosition() {
-    if (_isDisposed || !_isWebViewAvailable()) {
-      getLogger().w('⚠️ WebView不可用，无法手动保存位置');
-      return;
-    }
-    
-    getLogger().i('🔧 手动触发保存位置');
-    _saveCurrentReadingPosition();
-  }
-
-  /// 调试：手动恢复位置
-  void _debugRestorePosition() {
-    if (_isDisposed || !_isWebViewAvailable()) {
-      getLogger().w('⚠️ WebView不可用，无法手动恢复位置');
-      return;
-    }
-    
-    getLogger().i('🔧 手动触发恢复位置');
-    _restoreReadingPosition();
-  }
-
-  /// 调试：显示当前信息
-  Future<void> _debugShowCurrentInfo() async {
-    getLogger().i('🔧 显示当前调试信息');
-    
-    if (_isDisposed) {
-      getLogger().w('⚠️ 组件已销毁');
-      return;
-    }
-    
-    if (!_isWebViewAvailable()) {
-      getLogger().w('⚠️ WebView不可用');
-      return;
-    }
-    
-    try {
-      // 获取当前页面信息
-      final pageInfo = await _webViewController!.evaluateJavascript(
-        source: '''
-          ({
-            url: window.location.href,
-            title: document.title,
-            scrollY: window.scrollY,
-            scrollX: window.scrollX,
-            contentHeight: document.documentElement.scrollHeight,
-            viewportHeight: window.innerHeight,
-            readyState: document.readyState,
-            hasTracker: typeof window.flutter_reading_tracker !== "undefined"
-          })
-        '''
-      );
-      
-      getLogger().i('📄 当前页面信息: $pageInfo');
-      
-      if (article != null) {
-        getLogger().i('💾 数据库中的位置信息:');
-        getLogger().i('  - 滚动Y: ${article!.markdownScrollY}');
-        getLogger().i('  - 滚动X: ${article!.markdownScrollx}');
-        getLogger().i('  - 元素ID: ${article!.currentElementId}');
-        getLogger().i('  - 元素文本: ${article!.currentElementText}');
-        getLogger().i('  - 阅读进度: ${(article!.readProgress * 100).toStringAsFixed(1)}%');
-        getLogger().i('  - 最后阅读时间: ${article!.lastReadTime}');
-      }
-      
-      // 测试JavaScript函数
-      if (pageInfo is Map && pageInfo['hasTracker'] == true) {
-        // 再次检查WebView是否可用
-        if (_isWebViewAvailable()) {
-          final currentElement = await _webViewController!.evaluateJavascript(
-            source: 'window.flutter_reading_tracker.getCurrentVisibleElement()'
-          );
-          getLogger().i('🎯 当前可见元素: $currentElement');
-        }
-      }
-      
-    } catch (e) {
-      if (e.toString().contains('disposed') || e.toString().contains('Disposed')) {
-        getLogger().w('⚠️ WebView已销毁，无法获取调试信息');
-      } else {
-        getLogger().e('获取调试信息失败: $e');
-      }
-    }
-  }
-
   /// 确保加载最新的文章数据（优化版本）
   Future<void> _ensureLatestArticleData() async {
     if (article?.id == null) return;
@@ -1083,14 +1388,382 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with WidgetsBinding
     }
   }
 
-  /// 调试：手动刷新数据库
-  void _debugRefreshFromDb() {
-    if (_isDisposed || !_isWebViewAvailable()) {
-      getLogger().w('⚠️ WebView不可用，无法手动刷新数据库');
+  /// 设置自定义选择处理器
+  void _setupTextSelectionHandlers(InAppWebViewController controller) {
+    // 设置文字选择事件处理器
+    controller.addJavaScriptHandler(
+      handlerName: 'onTextSelected',
+      callback: (args) {
+        final data = args[0] as Map<String, dynamic>;
+        final String selectedText = data['text'] ?? '';
+        final double x = (data['x'] ?? 0).toDouble();
+        final double y = (data['y'] ?? 0).toDouble();
+        final double width = (data['width'] ?? 0).toDouble();
+        final double height = (data['height'] ?? 0).toDouble();
+        
+        getLogger().d('📝 文字被选择: $selectedText');
+        getLogger().d('📍 选择位置: x=$x, y=$y, width=$width, height=$height');
+        
+        _showCustomSelectionMenu(selectedText, x, y, width, height);
+      },
+    );
+
+    // 设置选择取消事件处理器
+    controller.addJavaScriptHandler(
+      handlerName: 'onSelectionCleared',
+      callback: (args) {
+        getLogger().d('❌ 选择已取消');
+        _hideCustomSelectionMenu();
+      },
+    );
+
+    // 设置高亮事件处理器
+    controller.addJavaScriptHandler(
+      handlerName: 'onTextHighlighted',
+      callback: (args) {
+        final data = args[0] as Map<String, dynamic>;
+        final String highlightedText = data['text'] ?? '';
+        final String highlightId = data['id'] ?? '';
+        final String color = data['color'] ?? 'yellow';
+        
+        getLogger().d('🎨 文字已高亮: $highlightedText (ID: $highlightId, 颜色: $color)');
+        _handleTextHighlighted(highlightedText, highlightId, color);
+      },
+    );
+
+    // 设置笔记添加事件处理器
+    controller.addJavaScriptHandler(
+      handlerName: 'onNoteAdded',
+      callback: (args) {
+        final data = args[0] as Map<String, dynamic>;
+        final String noteText = data['note'] ?? '';
+        final String selectedText = data['selectedText'] ?? '';
+        final String noteId = data['id'] ?? '';
+        
+        getLogger().d('📝 笔记已添加: $noteText (关联文字: $selectedText, ID: $noteId)');
+        _handleNoteAdded(noteText, selectedText, noteId);
+      },
+    );
+    
+    getLogger().i('✅ 文字选择处理器设置完成');
+  }
+
+  /// 显示自定义选择菜单
+  void _showCustomSelectionMenu(String selectedText, double x, double y, double width, double height) {
+    if (_isDisposed || !mounted) return;
+
+    final RenderBox? renderBox = _webViewKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) {
+      getLogger().w('⚠️无法获取WebView的RenderBox，无法显示菜单');
       return;
     }
+
+    // 获取WebView在屏幕上的位置
+    final webViewOffset = renderBox.localToGlobal(Offset.zero);
+
+    _currentSelectedText = selectedText;
+    _hideCustomSelectionMenu(); // 先隐藏之前的菜单
+
+    // 获取屏幕尺寸和安全区域
+    final screenSize = MediaQuery.of(context).size;
+    final padding = MediaQuery.of(context).padding;
+
+    // JS返回的是相对于WebView视窗的坐标(x,y)。x是left, y是top。
+    // 计算选中文字在屏幕上的绝对位置
+    final selectionRectOnScreen = Rect.fromLTWH(
+      webViewOffset.dx + x,
+      webViewOffset.dy + y,
+      width,
+      height,
+    );
     
-    getLogger().i('🔄 手动触发刷新数据库');
-    _ensureLatestArticleData();
+    const menuHeight = 50.0; // 预估菜单高度
+    const menuWidth = 200.0; // 预估菜单宽度
+
+    // 默认将菜单放在选中区域的上方
+    double menuY = selectionRectOnScreen.top - menuHeight - 8;
+    // 水平居中对齐
+    double menuX = selectionRectOnScreen.center.dx - (menuWidth / 2);
+
+    // Y轴边界检查, 如果上方空间不够，显示在选中文字下方
+    if (menuY < padding.top) {
+      menuY = selectionRectOnScreen.bottom + 8;
+    }
+    
+    // X轴边界检查
+    if (menuX < 16) {
+      menuX = 16;
+    } else if (menuX + menuWidth > screenSize.width - 16) {
+      menuX = screenSize.width - menuWidth - 16;
+    }
+
+    getLogger().d('📍 菜单位置计算:');
+    getLogger().d('  WebView偏移: $webViewOffset');
+    getLogger().d('  选择区域 (WebView内): Rect.fromLTWH($x, $y, $width, $height)');
+    getLogger().d('  选择区域 (屏幕): $selectionRectOnScreen');
+    getLogger().d('  最终菜单位置: x=$menuX, y=$menuY');
+    
+    _backgroundCatcher = OverlayEntry(
+      builder: (context) => Positioned.fill(
+        child: GestureDetector(
+          onTap: _hideCustomSelectionMenu,
+          child: Container(
+            color: Colors.transparent,
+          ),
+        ),
+      ),
+    );
+
+    _selectionMenuOverlay = OverlayEntry(
+      builder: (context) => Positioned(
+        left: menuX,
+        top: menuY,
+        child: GestureDetector(
+          onTap: () {}, // 阻止事件穿透到背景
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: menuWidth,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IntrinsicWidth(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildMenuButton(
+                      icon: Icons.copy,
+                      label: '复制',
+                      onTap: () => _handleCopyText(selectedText),
+                    ),
+                    Container(width: 1, height: 30, color: Colors.grey[600]),
+                    _buildMenuButton(
+                      icon: Icons.highlight,
+                      label: '高亮',
+                      onTap: () => _handleHighlightText(selectedText),
+                    ),
+                    Container(width: 1, height: 30, color: Colors.grey[600]),
+                    _buildMenuButton(
+                      icon: Icons.note_add,
+                      label: '笔记',
+                      onTap: () => _handleAddNote(selectedText),
+                    ),
+                    Container(width: 1, height: 30, color: Colors.grey[600]),
+                    _buildMenuButton(
+                      icon: Icons.share,
+                      label: '分享',
+                      onTap: () => _handleShareText(selectedText),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    
+    Overlay.of(context).insertAll([_backgroundCatcher!, _selectionMenuOverlay!]);
+  }
+
+  /// 构建菜单按钮
+  Widget _buildMenuButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        onTap();
+        _hideCustomSelectionMenu();
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 隐藏自定义选择菜单
+  void _hideCustomSelectionMenu() {
+    _selectionMenuOverlay?.remove();
+    _selectionMenuOverlay = null;
+    _backgroundCatcher?.remove();
+    _backgroundCatcher = null;
+  }
+
+  /// 处理复制文字
+  void _handleCopyText(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    _showMessage('已复制到剪贴板');
+    getLogger().d('📋 文字已复制: $text');
+  }
+
+  /// 处理高亮文字
+  void _handleHighlightText(String text) {
+    if (!_isWebViewAvailable()) return;
+    
+    // 调用JavaScript高亮功能
+    _webViewController!.evaluateJavascript(source: '''
+      (function() {
+        if (window.flutter_text_selector) {
+          window.flutter_text_selector.highlightSelection('yellow');
+        }
+      })();
+    ''');
+    
+    _showMessage('已添加高亮');
+    getLogger().d('🎨 文字已高亮: $text');
+  }
+
+  /// 处理添加笔记
+  void _handleAddNote(String selectedText) {
+    _showAddNoteDialog(selectedText);
+  }
+
+  /// 处理分享文字
+  void _handleShareText(String text) {
+    // 这里可以集成分享功能
+    _showMessage('分享功能待实现');
+    getLogger().d('📤 分享文字: $text');
+  }
+
+  /// 显示添加笔记对话框
+  void _showAddNoteDialog(String selectedText) {
+    if (!mounted) return;
+    
+    final TextEditingController noteController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('添加笔记'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '选中文字:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            SizedBox(height: 4),
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                selectedText,
+                style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              '笔记内容:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: noteController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: '请输入笔记内容...',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final noteText = noteController.text.trim();
+              if (noteText.isNotEmpty) {
+                _addNoteToText(selectedText, noteText);
+                Navigator.of(context).pop();
+                _showMessage('笔记已添加');
+              }
+            },
+            child: Text('添加'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 添加笔记到文字
+  void _addNoteToText(String selectedText, String noteText) {
+    if (!_isWebViewAvailable()) return;
+    
+    // 调用JavaScript添加笔记功能
+    _webViewController!.evaluateJavascript(source: '''
+      (function() {
+        if (window.flutter_text_selector) {
+          window.flutter_text_selector.addNoteToSelection('${_escapeForJS(noteText)}');
+        }
+      })();
+    ''');
+    
+    getLogger().d('📝 笔记已添加: 文字="$selectedText", 笔记="$noteText"');
+  }
+
+  /// 处理文字高亮事件
+  void _handleTextHighlighted(String text, String highlightId, String color) {
+    // 这里可以保存高亮信息到数据库
+    getLogger().i('🎨 高亮已保存: ID=$highlightId, 颜色=$color');
+  }
+
+  /// 处理笔记添加事件
+  void _handleNoteAdded(String noteText, String selectedText, String noteId) {
+    // 这里可以保存笔记信息到数据库
+    getLogger().i('📝 笔记已保存: ID=$noteId');
+  }
+
+  /// 显示提示消息
+  void _showMessage(String message) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - 100,
+          left: 16,
+          right: 16,
+        ),
+      ),
+    );
   }
 }
