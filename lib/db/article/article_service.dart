@@ -371,6 +371,126 @@ class ArticleService extends GetxService {
     }
   }
 
+  /// 获取所有未同步到服务端的文章
+  Future<List<ArticleDb>> getUnsyncedArticles() async {
+    await _ensureDatabaseInitialized();
+    try {
+      // 使用 isar 索引查询 isCreateService == false 的数据
+      return await _dbService.articles
+          .filter()
+          .isCreateServiceEqualTo(false)
+          .findAll();
+    } catch (e) {
+      getLogger().e('❌ 获取未同步文章列表失败: $e');
+      return [];
+    }
+  }
+
+  /// 标记文章已同步到服务端
+  Future<bool> markArticleAsSynced(int articleId, String serviceId) async {
+    await _ensureDatabaseInitialized();
+    try {
+      return await _dbService.isar.writeTxn(() async {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null) {
+          article.serviceId = serviceId;
+          article.isCreateService = true;
+          article.updatedAt = DateTime.now();
+          await _dbService.articles.put(article);
+          getLogger().i('✅ 成功标记文章为已同步: ID $articleId, ServiceID: $serviceId');
+          return true;
+        }
+        getLogger().w('⚠️ 标记同步失败：未找到文章 ID $articleId');
+        return false;
+      });
+    } catch (e) {
+      getLogger().e('❌ 标记文章为已同步时出错: $e');
+      return false;
+    }
+  }
+
+  /// 获取所有需要生成快照的文章
+  Future<List<ArticleDb>> getUnsnapshottedArticles() async {
+    await _ensureDatabaseInitialized();
+    try {
+      // 查询 isGenerateMhtml == false 且 url 不为空的数据
+      return await _dbService.articles
+          .filter()
+          .isGenerateMhtmlEqualTo(false)
+          .and()
+          .urlIsNotEmpty()
+          .findAll();
+    } catch (e) {
+      getLogger().e('❌ 获取待快照文章列表失败: $e');
+      return [];
+    }
+  }
+
+  /// 更新文章的快照信息
+  Future<bool> updateArticleSnapshotInfo(int articleId, String mhtmlPath) async {
+    await _ensureDatabaseInitialized();
+    try {
+      return await _dbService.isar.writeTxn(() async {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null) {
+          article.mhtmlPath = mhtmlPath;
+          article.isGenerateMhtml = true;
+          article.updatedAt = DateTime.now();
+          await _dbService.articles.put(article);
+          getLogger().i('✅ 成功更新文章快照信息: ID $articleId');
+          return true;
+        }
+        getLogger().w('⚠️ 更新快照信息失败：未找到文章 ID $articleId');
+        return false;
+      });
+    } catch (e) {
+      getLogger().e('❌ 更新文章快照信息时出错: $e');
+      return false;
+    }
+  }
+
+  /// 获取所有需要生成Markdown的文章
+  Future<List<ArticleDb>> getArticlesToGenerateMarkdown() async {
+    await _ensureDatabaseInitialized();
+    try {
+      // 查询 isGenerateMhtml == true 且 isGenerateMarkdown == false 且 serviceId 不为空的数据
+      return await _dbService.articles
+          .filter()
+          .isGenerateMhtmlEqualTo(true)
+          .and()
+          .isGenerateMarkdownEqualTo(false)
+          .and()
+          .serviceIdIsNotEmpty()
+          .findAll();
+    } catch (e) {
+      getLogger().e('❌ 获取待生成Markdown文章列表失败: $e');
+      return [];
+    }
+  }
+
+  /// 更新文章的Markdown内容和状态
+  Future<bool> updateArticleMarkdown(int articleId, String markdown) async {
+    await _ensureDatabaseInitialized();
+    try {
+      return await _dbService.isar.writeTxn(() async {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null) {
+          article.markdown = markdown;
+          article.isGenerateMarkdown = true;
+          article.updatedAt = DateTime.now();
+          await _dbService.articles.put(article);
+          getLogger().i('✅ 成功更新文章Markdown内容: ID $articleId');
+          return true;
+        }
+        getLogger().w('⚠️ 更新Markdown内容失败：未找到文章 ID $articleId');
+        return false;
+      });
+    } catch (e) {
+      getLogger().e('❌ 更新文章Markdown内容时出错: $e');
+      return false;
+    }
+  }
+
   /// 清空所有文章数据（慎用！）
   Future<void> clearAllArticles() async {
     await _ensureDatabaseInitialized();

@@ -17,8 +17,11 @@ class ArticleDb {
 
 
   String url = "";
+  @Index() bool isCreateService = false;       // 是否在服务端添加
+  @Index() bool isGenerateMhtml = false;       // 是否生成了Mhtml文件
   String mhtmlPath = "";              // mhtml快照路径【因为跨平台、这个要考虑下怎么保存】
   String markdown = "";               // Markdown文档
+  @Index() bool isGenerateMarkdown = false;    // 是否生成了Markdown文档
   String shareOriginalContent = "";   // 分享接收到的原始内容
   String serviceId = ""; 
 
@@ -30,7 +33,7 @@ class ArticleDb {
 
   // 精确定位相关字段
   int markdownScrollY = 0;     // Markdown文档滚动Y位置
-  int markdownScrollx = 0;     // Markdown文档滚动X位置
+  int markdownScrollX = 0;     // Markdown文档滚动X位置
   String currentElementId = "";   // 当前可见元素的ID
   String currentElementText = ""; // 当前可见元素的文本片段(前100字符，用于备用定位)
   int currentElementOffset = 0;   // 当前元素在页面中的偏移量

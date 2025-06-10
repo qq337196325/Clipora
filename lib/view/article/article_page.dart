@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart';
+import 'package:flutter/rendering.dart';
 
 import '../../basics/upload.dart';
 import 'article_markdown_widget.dart';
@@ -31,124 +32,228 @@ class ArticlePage extends StatefulWidget {
 
 class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin,ArticlePageBLoC {
 
+  final double _topBarHeight = 52.0;
+  final double _bottomBarHeight = 56.0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Obx(() => Text(
-          articleController.hasArticle 
-            ? articleController.articleTitle 
-            : '文章阅读',
-        )),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          // 显示加载状态
-          Obx(() {
-            if (articleController.isLoading) {
-              return const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          }),
-          IconButton(
-            onPressed: generateSnapshot,
-            icon: const Icon(Icons.save_alt),
-            tooltip: '生成快照',
-          ),
-        ],
-      ),
-      body: Obx(() {
-        // 显示错误信息
-        if (articleController.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '加载失败',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  articleController.errorMessage,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _loadArticleData,
-                  child: const Text('重试'),
-                ),
-              ],
-            ),
-          );
-        }
+    // 使用Obx来监听文章加载状态
+    return Obx(() {
+      if (articleController.hasError) {
+        return Scaffold(body: _buildErrorView(context));
+      }
 
-        // 显示加载状态
-        if (articleController.isLoading) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('正在加载文章...'),
-              ],
-            ),
-          );
-        }
+      if (articleController.isLoading && !articleController.hasArticle) {
+        return Scaffold(body: _buildInitialLoadingView());
+      }
+      
+      // 主内容UI
+      return Scaffold(
+        body: Stack(
+          children: [
+            // 主要内容区域
+            _buildContentView(context),
+            
+            // 顶部操作栏
+            _buildTopBar(context),
+            
+            // 底部操作栏
+            _buildBottomBar(context),
+          ],
+        ),
+      );
+    });
+  }
 
-        // 显示主要内容
-        return SafeArea(
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.only(left: 10, right: 10, top: 6, bottom: 6),
-                child:  SegmentedTabControl(
-                  controller: tabController, // 使用自定义的TabController
-                  barDecoration: BoxDecoration(
-                    color: Color(0xFFF3F2F1),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  tabTextColor: Color(0xFF161514),
-                  selectedTabTextColor: Color(0xFFF3F2F1),
-                  squeezeIntensity: 4,
-                  height: 28,
-                  tabPadding: EdgeInsets.symmetric(horizontal: 8),
-                  tabs: tabs,
-                )
-              ),
-              Expanded(
-                child:TabBarView(
-                  physics: const NeverScrollableScrollPhysics(), // 禁用默认滑动切换
-                  controller: tabController, // 使用自定义的TabController
-                  // physics: const BouncingScrollPhysics(),
-                  // clipBehavior: Clip.none, // 避免裁剪问题
-                  children: tabWidget,
-                ),
-              ),
-            ],
-          ),
-        );
-      }),
+  /// 构建主要内容视图
+  Widget _buildContentView(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final topPadding = mediaQuery.padding.top + _topBarHeight;
+    final bottomPadding = mediaQuery.padding.bottom + _bottomBarHeight;
+
+    // 更新Markdown组件的边距
+    // 注意：这里我们直接更新了 `ArticleMarkdownWidget` 的参数，
+    // 在下一次 `Obx` 重建时，新的 padding 会被传递下去。
+    // 为了使切换标签页时也能及时更新其他组件的padding，
+    // 我们可能需要更精细的状态管理或回调机制。
+    // 目前，这个实现主要针对 `ArticleMarkdownWidget`。
     
+    // 我们需要更新ArticleMarkdownWidget的padding
+    // 通过在initState中创建widget列表，然后在build中更新它们
+    // 来确保padding可以动态变化
+    _updateTabWidgets(EdgeInsets.only(top: topPadding, bottom: bottomPadding));
+    
+    return TabBarView(
+      physics: const NeverScrollableScrollPhysics(),
+      controller: tabController,
+      children: tabWidget,
     );
   }
 
+  /// 构建顶部操作栏
+  Widget _buildTopBar(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.fastOutSlowIn,
+        offset: _isBottomBarVisible ? Offset.zero : const Offset(0, -1.5),
+        child: Container(
+          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+          height: MediaQuery.of(context).padding.top + _topBarHeight,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).shadowColor.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              )
+            ],
+          ),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SegmentedTabControl(
+                controller: tabController,
+                barDecoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                indicatorDecoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ],
+                ),
+                tabTextColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                selectedTabTextColor: Theme.of(context).colorScheme.onPrimary,
+                squeezeIntensity: 4,
+                height: 36,
+                tabPadding: const EdgeInsets.symmetric(horizontal: 8),
+                tabs: tabs,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
+  /// 构建底部操作栏
+  Widget _buildBottomBar(BuildContext context) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.fastOutSlowIn,
+        offset: _isBottomBarVisible ? Offset.zero : const Offset(0, 1.5),
+        child: Container(
+          height: _bottomBarHeight + MediaQuery.of(context).padding.bottom,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).shadowColor.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              )
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                _buildBottomBarItem(
+                  context,
+                  icon: Icons.arrow_back_ios_new,
+                  tooltip: '返回',
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                _buildBottomBarItem(
+                  context,
+                  icon: Icons.camera_alt_outlined,
+                  tooltip: '生成快照',
+                  onPressed: generateSnapshot,
+                ),
+                _buildBottomBarItem(
+                  context,
+                  icon: Icons.download_outlined,
+                  tooltip: '下载快照',
+                  onPressed: downloadSnapshot,
+                ),
+                _buildBottomBarItem(
+                  context,
+                  icon: Icons.share_outlined,
+                  tooltip: '分享',
+                  onPressed: () {
+                    BotToast.showText(text: '分享功能待开发');
+                  },
+                ),
+                _buildBottomBarItem(
+                  context,
+                  icon: Icons.more_horiz,
+                  tooltip: '更多',
+                  onPressed: () {
+                    BotToast.showText(text: '更多功能待开发');
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 构建错误视图
+  Widget _buildErrorView(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 64, color: Colors.red),
+          const SizedBox(height: 16),
+          Text('加载失败', style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 8),
+          Text(
+            articleController.errorMessage,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadArticleData,
+            child: const Text('重试'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建初始加载视图
+  Widget _buildInitialLoadingView() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('正在加载文章...'),
+        ],
+      ),
+    );
+  }
 }
 
 mixin ArticlePageBLoC on State<ArticlePage> {
@@ -170,68 +275,96 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   // 添加markdown内容状态管理
   final RxString _markdownContent = ''.obs;
   String get markdownContent => _markdownContent.value;
+  
+  // 用于控制UI显隐的状态
+  bool _isBottomBarVisible = true;
 
    @override
   void initState() {
-
-   tabController = TabController(
+    super.initState();
+    
+    tabController = TabController(
      length: 4,
      vsync: this as TickerProvider,
      animationDuration: const Duration(milliseconds: 350), // 优化切换动画时长
    );
 
-    tabs.add(const SegmentTab(label: '图文', color: Color(0xFF00BCF6)));
-    // 使用Builder来确保响应式更新
-  tabWidget.add(Builder(
-      builder: (context) => Obx(() => ArticleMarkdownWidget(
+    _initializeTabs();
+
+    // 加载文章数据
+    _loadArticleData();
+  }
+
+  void _initializeTabs() {
+    tabs = [
+      const SegmentTab(label: '图文', color: Color(0xFF00BCF6)),
+      const SegmentTab(label: '网页', color: Color(0xFF00BCF6)),
+      const SegmentTab(label: '快照', color: Color(0xFF00BCF6)),
+      const SegmentTab(label: '快照图', color: Color(0xFF00BCF6)),
+    ];
+  }
+
+  void _updateTabWidgets(EdgeInsets padding) {
+    tabWidget = [
+      // 图文
+      Obx(() => ArticleMarkdownWidget(
         markdownContent: _markdownContent.value,
-        article: articleController.currentArticle, // 添加article参数
+        article: articleController.currentArticle,
+        onScroll: _handleScroll,
+        contentPadding: padding,
       )),
-    ));
-
-    
-
-    tabs.add(const SegmentTab(label: '网页', color: Color(0xFF00BCF6)));
-    // 修改为传递markdown内容而不是serviceId
-    tabWidget.add(Builder(
-      builder: (context) => Obx(() => ArticleWebWidget(
+      // 网页
+      Obx(() => ArticleWebWidget(
         key: _webWidgetKey,
         onSnapshotCreated: _onSnapshotCreated,
         url: articleController.articleUrl.isNotEmpty 
           ? articleController.articleUrl 
           : null,
-        articleId: widget.id,  // 传入文章ID
+        articleId: widget.id,
+        // TODO: ArticleWebWidget也需要支持contentPadding和onScroll
       )),
-    ));
-  
-
-    tabs.add(const SegmentTab(label: '快照', color: Color(0xFF00BCF6)));
-    // 注意：不要在这里创建Widget，而是使用一个Builder来确保状态更新时重新构建 
-    tabWidget.add(Builder(
-      builder: (context) => Obx(() => ArticleMhtmlWidget(
+      // 快照
+      Obx(() => ArticleMhtmlWidget(
         mhtmlPath: articleController.hasArticle 
           ? articleController.currentArticle!.mhtmlPath 
-          : '', // 如果没有快照路径，传递空字符串
+          : '',
         title: articleController.hasArticle 
           ? articleController.currentArticle!.title 
           : null,
       )),
-    ));
+      // 快照图
+      Container(),
+    ];
+  }
 
-    tabs.add(const SegmentTab(label: '快照图', color: Color(0xFF00BCF6)));
-    tabWidget.add(Container()); 
+  /// 处理滚动事件，用于显示/隐藏UI元素
+  void _handleScroll(ScrollDirection direction, double scrollY) {
+    // 滚动到顶部，总是显示
+    if (scrollY < 50) {
+      if (!_isBottomBarVisible) {
+        setState(() => _isBottomBarVisible = true);
+      }
+      return;
+    }
 
-    super.initState();
-    
-    // 加载文章数据
-    _loadArticleData();
+    // 向下滚动，隐藏
+    if (direction == ScrollDirection.reverse) {
+      if (_isBottomBarVisible) {
+        setState(() => _isBottomBarVisible = false);
+      }
+    } 
+    // 向上滚动，显示
+    else if (direction == ScrollDirection.forward) {
+      if (!_isBottomBarVisible) {
+        setState(() => _isBottomBarVisible = true);
+      }
+    }
   }
 
   /// 加载文章数据
   Future<void> _loadArticleData() async {
     await articleController.loadArticleById(widget.id);
     
-    // 文章数据加载完成后，检查并加载markdown内容
     if (articleController.hasArticle) {
       await _loadMarkdownContent();
     }
@@ -358,7 +491,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     // 获取当前选中的tab索引
     final currentIndex = tabController.index;
     
-    if (currentIndex == 0) {
+    if (currentIndex == 1) { // 网页标签页的索引为1
       // 当前在网页tab，调用ArticleWebWidget的生成快照方法
       final webWidgetState = _webWidgetKey.currentState;
       if (webWidgetState != null) {
@@ -922,5 +1055,15 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   /// 获取当前文章标题（便捷方法）
   String get currentArticleTitle => articleController.articleTitle;
 
+  Widget _buildBottomBarItem(BuildContext context, {required IconData icon, required String tooltip, required VoidCallback onPressed}) {
+    return IconButton(
+      icon: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
+      tooltip: tooltip,
+      onPressed: onPressed,
+      iconSize: 24.0,
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      splashRadius: 24.0,
+    );
+  }
 }
 

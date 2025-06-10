@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:inkwell/route/route.dart';
 import 'package:inkwell/controller/share_service.dart';
+import 'package:inkwell/controller/sync_service.dart';
+import 'package:inkwell/controller/snapshot_service.dart';
 import 'package:inkwell/db/database_service.dart';
 import 'package:inkwell/db/article/article_service.dart';
 import 'package:inkwell/basics/translations/app_translations.dart';
@@ -12,6 +14,7 @@ import 'package:inkwell/controller/language_controller.dart';
 import 'package:inkwell/view/article/components/markdown_webview_pool_manager.dart' as MarkdownPool;
 import 'package:inkwell/view/article/components/web_webview_pool_manager.dart';
 import 'package:inkwell/basics/logger.dart';
+import 'package:inkwell/controller/markdown_service.dart';
 
 import 'basics/apps_state.dart';
 
@@ -39,6 +42,15 @@ Future<void> _initServices() async {
   
   // 注册分享服务
   Get.put(ShareService(), permanent: true);
+  
+  // 注册同步服务
+  Get.put(SyncService(), permanent: true);
+  
+  // 注册快照服务
+  Get.put(SnapshotService(), permanent: true);
+  
+  // 注册Markdown生成服务
+  Get.put(MarkdownService(), permanent: true);
   
   // 注册语言控制器
   Get.put(LanguageController(), permanent: true);

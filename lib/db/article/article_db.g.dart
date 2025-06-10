@@ -52,98 +52,113 @@ const ArticleDbSchema = CollectionSchema(
       name: r'excerpt',
       type: IsarType.string,
     ),
-    r'isRead': PropertySchema(
+    r'isCreateService': PropertySchema(
       id: 7,
+      name: r'isCreateService',
+      type: IsarType.bool,
+    ),
+    r'isGenerateMarkdown': PropertySchema(
+      id: 8,
+      name: r'isGenerateMarkdown',
+      type: IsarType.bool,
+    ),
+    r'isGenerateMhtml': PropertySchema(
+      id: 9,
+      name: r'isGenerateMhtml',
+      type: IsarType.bool,
+    ),
+    r'isRead': PropertySchema(
+      id: 10,
       name: r'isRead',
       type: IsarType.long,
     ),
     r'lastReadTime': PropertySchema(
-      id: 8,
+      id: 11,
       name: r'lastReadTime',
       type: IsarType.dateTime,
     ),
     r'markdown': PropertySchema(
-      id: 9,
+      id: 12,
       name: r'markdown',
       type: IsarType.string,
     ),
+    r'markdownScrollX': PropertySchema(
+      id: 13,
+      name: r'markdownScrollX',
+      type: IsarType.long,
+    ),
     r'markdownScrollY': PropertySchema(
-      id: 10,
+      id: 14,
       name: r'markdownScrollY',
       type: IsarType.long,
     ),
-    r'markdownScrollx': PropertySchema(
-      id: 11,
-      name: r'markdownScrollx',
-      type: IsarType.long,
-    ),
     r'mhtmlPath': PropertySchema(
-      id: 12,
+      id: 15,
       name: r'mhtmlPath',
       type: IsarType.string,
     ),
     r'readCount': PropertySchema(
-      id: 13,
+      id: 16,
       name: r'readCount',
       type: IsarType.long,
     ),
     r'readDuration': PropertySchema(
-      id: 14,
+      id: 17,
       name: r'readDuration',
       type: IsarType.long,
     ),
     r'readProgress': PropertySchema(
-      id: 15,
+      id: 18,
       name: r'readProgress',
       type: IsarType.double,
     ),
     r'readingSessionId': PropertySchema(
-      id: 16,
+      id: 19,
       name: r'readingSessionId',
       type: IsarType.string,
     ),
     r'readingStartTime': PropertySchema(
-      id: 17,
+      id: 20,
       name: r'readingStartTime',
       type: IsarType.long,
     ),
     r'serviceId': PropertySchema(
-      id: 18,
+      id: 21,
       name: r'serviceId',
       type: IsarType.string,
     ),
     r'serviceUpdatedAt': PropertySchema(
-      id: 19,
+      id: 22,
       name: r'serviceUpdatedAt',
       type: IsarType.long,
     ),
     r'shareOriginalContent': PropertySchema(
-      id: 20,
+      id: 23,
       name: r'shareOriginalContent',
       type: IsarType.string,
     ),
     r'tags': PropertySchema(
-      id: 21,
+      id: 24,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'title': PropertySchema(
-      id: 22,
+      id: 25,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 23,
+      id: 26,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 24,
+      id: 27,
       name: r'url',
       type: IsarType.string,
     ),
     r'viewportHeight': PropertySchema(
-      id: 25,
+      id: 28,
       name: r'viewportHeight',
       type: IsarType.long,
     )
@@ -177,6 +192,45 @@ const ArticleDbSchema = CollectionSchema(
           name: r'tags',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'isCreateService': IndexSchema(
+      id: -566756087340374678,
+      name: r'isCreateService',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'isCreateService',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'isGenerateMhtml': IndexSchema(
+      id: 6244298069370056548,
+      name: r'isGenerateMhtml',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'isGenerateMhtml',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'isGenerateMarkdown': IndexSchema(
+      id: 7840021492461074430,
+      name: r'isGenerateMarkdown',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'isGenerateMarkdown',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     ),
@@ -265,25 +319,28 @@ void _articleDbSerialize(
   writer.writeLong(offsets[4], object.currentElementOffset);
   writer.writeString(offsets[5], object.currentElementText);
   writer.writeString(offsets[6], object.excerpt);
-  writer.writeLong(offsets[7], object.isRead);
-  writer.writeDateTime(offsets[8], object.lastReadTime);
-  writer.writeString(offsets[9], object.markdown);
-  writer.writeLong(offsets[10], object.markdownScrollY);
-  writer.writeLong(offsets[11], object.markdownScrollx);
-  writer.writeString(offsets[12], object.mhtmlPath);
-  writer.writeLong(offsets[13], object.readCount);
-  writer.writeLong(offsets[14], object.readDuration);
-  writer.writeDouble(offsets[15], object.readProgress);
-  writer.writeString(offsets[16], object.readingSessionId);
-  writer.writeLong(offsets[17], object.readingStartTime);
-  writer.writeString(offsets[18], object.serviceId);
-  writer.writeLong(offsets[19], object.serviceUpdatedAt);
-  writer.writeString(offsets[20], object.shareOriginalContent);
-  writer.writeStringList(offsets[21], object.tags);
-  writer.writeString(offsets[22], object.title);
-  writer.writeDateTime(offsets[23], object.updatedAt);
-  writer.writeString(offsets[24], object.url);
-  writer.writeLong(offsets[25], object.viewportHeight);
+  writer.writeBool(offsets[7], object.isCreateService);
+  writer.writeBool(offsets[8], object.isGenerateMarkdown);
+  writer.writeBool(offsets[9], object.isGenerateMhtml);
+  writer.writeLong(offsets[10], object.isRead);
+  writer.writeDateTime(offsets[11], object.lastReadTime);
+  writer.writeString(offsets[12], object.markdown);
+  writer.writeLong(offsets[13], object.markdownScrollX);
+  writer.writeLong(offsets[14], object.markdownScrollY);
+  writer.writeString(offsets[15], object.mhtmlPath);
+  writer.writeLong(offsets[16], object.readCount);
+  writer.writeLong(offsets[17], object.readDuration);
+  writer.writeDouble(offsets[18], object.readProgress);
+  writer.writeString(offsets[19], object.readingSessionId);
+  writer.writeLong(offsets[20], object.readingStartTime);
+  writer.writeString(offsets[21], object.serviceId);
+  writer.writeLong(offsets[22], object.serviceUpdatedAt);
+  writer.writeString(offsets[23], object.shareOriginalContent);
+  writer.writeStringList(offsets[24], object.tags);
+  writer.writeString(offsets[25], object.title);
+  writer.writeDateTime(offsets[26], object.updatedAt);
+  writer.writeString(offsets[27], object.url);
+  writer.writeLong(offsets[28], object.viewportHeight);
 }
 
 ArticleDb _articleDbDeserialize(
@@ -301,25 +358,28 @@ ArticleDb _articleDbDeserialize(
   object.currentElementText = reader.readString(offsets[5]);
   object.excerpt = reader.readStringOrNull(offsets[6]);
   object.id = id;
-  object.isRead = reader.readLong(offsets[7]);
-  object.lastReadTime = reader.readDateTimeOrNull(offsets[8]);
-  object.markdown = reader.readString(offsets[9]);
-  object.markdownScrollY = reader.readLong(offsets[10]);
-  object.markdownScrollx = reader.readLong(offsets[11]);
-  object.mhtmlPath = reader.readString(offsets[12]);
-  object.readCount = reader.readLong(offsets[13]);
-  object.readDuration = reader.readLong(offsets[14]);
-  object.readProgress = reader.readDouble(offsets[15]);
-  object.readingSessionId = reader.readString(offsets[16]);
-  object.readingStartTime = reader.readLong(offsets[17]);
-  object.serviceId = reader.readString(offsets[18]);
-  object.serviceUpdatedAt = reader.readLong(offsets[19]);
-  object.shareOriginalContent = reader.readString(offsets[20]);
-  object.tags = reader.readStringList(offsets[21]) ?? [];
-  object.title = reader.readString(offsets[22]);
-  object.updatedAt = reader.readDateTime(offsets[23]);
-  object.url = reader.readString(offsets[24]);
-  object.viewportHeight = reader.readLong(offsets[25]);
+  object.isCreateService = reader.readBool(offsets[7]);
+  object.isGenerateMarkdown = reader.readBool(offsets[8]);
+  object.isGenerateMhtml = reader.readBool(offsets[9]);
+  object.isRead = reader.readLong(offsets[10]);
+  object.lastReadTime = reader.readDateTimeOrNull(offsets[11]);
+  object.markdown = reader.readString(offsets[12]);
+  object.markdownScrollX = reader.readLong(offsets[13]);
+  object.markdownScrollY = reader.readLong(offsets[14]);
+  object.mhtmlPath = reader.readString(offsets[15]);
+  object.readCount = reader.readLong(offsets[16]);
+  object.readDuration = reader.readLong(offsets[17]);
+  object.readProgress = reader.readDouble(offsets[18]);
+  object.readingSessionId = reader.readString(offsets[19]);
+  object.readingStartTime = reader.readLong(offsets[20]);
+  object.serviceId = reader.readString(offsets[21]);
+  object.serviceUpdatedAt = reader.readLong(offsets[22]);
+  object.shareOriginalContent = reader.readString(offsets[23]);
+  object.tags = reader.readStringList(offsets[24]) ?? [];
+  object.title = reader.readString(offsets[25]);
+  object.updatedAt = reader.readDateTime(offsets[26]);
+  object.url = reader.readString(offsets[27]);
+  object.viewportHeight = reader.readLong(offsets[28]);
   return object;
 }
 
@@ -345,15 +405,15 @@ P _articleDbDeserializeProp<P>(
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 8:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 10:
       return (reader.readLong(offset)) as P;
     case 11:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 12:
       return (reader.readString(offset)) as P;
     case 13:
@@ -361,26 +421,32 @@ P _articleDbDeserializeProp<P>(
     case 14:
       return (reader.readLong(offset)) as P;
     case 15:
-      return (reader.readDouble(offset)) as P;
-    case 16:
       return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readLong(offset)) as P;
     case 17:
       return (reader.readLong(offset)) as P;
     case 18:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 19:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 20:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 21:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readString(offset)) as P;
     case 22:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 23:
-      return (reader.readDateTime(offset)) as P;
-    case 24:
       return (reader.readString(offset)) as P;
+    case 24:
+      return (reader.readStringList(offset) ?? []) as P;
     case 25:
+      return (reader.readString(offset)) as P;
+    case 26:
+      return (reader.readDateTime(offset)) as P;
+    case 27:
+      return (reader.readString(offset)) as P;
+    case 28:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -404,6 +470,30 @@ extension ArticleDbQueryWhereSort
   QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyIsCreateService() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'isCreateService'),
+      );
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyIsGenerateMhtml() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'isGenerateMhtml'),
+      );
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyIsGenerateMarkdown() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'isGenerateMarkdown'),
+      );
     });
   }
 
@@ -575,6 +665,141 @@ extension ArticleDbQueryWhere
               indexName: r'tags',
               lower: [],
               upper: [tags],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> isCreateServiceEqualTo(
+      bool isCreateService) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'isCreateService',
+        value: [isCreateService],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause>
+      isCreateServiceNotEqualTo(bool isCreateService) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isCreateService',
+              lower: [],
+              upper: [isCreateService],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isCreateService',
+              lower: [isCreateService],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isCreateService',
+              lower: [isCreateService],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isCreateService',
+              lower: [],
+              upper: [isCreateService],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> isGenerateMhtmlEqualTo(
+      bool isGenerateMhtml) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'isGenerateMhtml',
+        value: [isGenerateMhtml],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause>
+      isGenerateMhtmlNotEqualTo(bool isGenerateMhtml) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isGenerateMhtml',
+              lower: [],
+              upper: [isGenerateMhtml],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isGenerateMhtml',
+              lower: [isGenerateMhtml],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isGenerateMhtml',
+              lower: [isGenerateMhtml],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isGenerateMhtml',
+              lower: [],
+              upper: [isGenerateMhtml],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause>
+      isGenerateMarkdownEqualTo(bool isGenerateMarkdown) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'isGenerateMarkdown',
+        value: [isGenerateMarkdown],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause>
+      isGenerateMarkdownNotEqualTo(bool isGenerateMarkdown) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isGenerateMarkdown',
+              lower: [],
+              upper: [isGenerateMarkdown],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isGenerateMarkdown',
+              lower: [isGenerateMarkdown],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isGenerateMarkdown',
+              lower: [isGenerateMarkdown],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isGenerateMarkdown',
+              lower: [],
+              upper: [isGenerateMarkdown],
               includeUpper: false,
             ));
       }
@@ -1549,6 +1774,36 @@ extension ArticleDbQueryFilter
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      isCreateServiceEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isCreateService',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      isGenerateMarkdownEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isGenerateMarkdown',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      isGenerateMhtmlEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isGenerateMhtml',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> isReadEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -1807,6 +2062,62 @@ extension ArticleDbQueryFilter
   }
 
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollXEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'markdownScrollX',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollXGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'markdownScrollX',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollXLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'markdownScrollX',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownScrollXBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'markdownScrollX',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
       markdownScrollYEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1854,62 +2165,6 @@ extension ArticleDbQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'markdownScrollY',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
-      markdownScrollxEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'markdownScrollx',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
-      markdownScrollxGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'markdownScrollx',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
-      markdownScrollxLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'markdownScrollx',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
-      markdownScrollxBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'markdownScrollx',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -3424,6 +3679,43 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsCreateService() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCreateService', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsCreateServiceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCreateService', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsGenerateMarkdown() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isGenerateMarkdown', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      sortByIsGenerateMarkdownDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isGenerateMarkdown', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsGenerateMhtml() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isGenerateMhtml', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsGenerateMhtmlDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isGenerateMhtml', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsRead() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isRead', Sort.asc);
@@ -3460,6 +3752,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollX() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollX', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollXDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollX', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollY() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'markdownScrollY', Sort.asc);
@@ -3469,18 +3773,6 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollYDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'markdownScrollY', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollx() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'markdownScrollx', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownScrollxDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'markdownScrollx', Sort.desc);
     });
   }
 
@@ -3748,6 +4040,43 @@ extension ArticleDbQuerySortThenBy
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsCreateService() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCreateService', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsCreateServiceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCreateService', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsGenerateMarkdown() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isGenerateMarkdown', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy>
+      thenByIsGenerateMarkdownDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isGenerateMarkdown', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsGenerateMhtml() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isGenerateMhtml', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsGenerateMhtmlDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isGenerateMhtml', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsRead() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isRead', Sort.asc);
@@ -3784,6 +4113,18 @@ extension ArticleDbQuerySortThenBy
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollX() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollX', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollXDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownScrollX', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollY() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'markdownScrollY', Sort.asc);
@@ -3793,18 +4134,6 @@ extension ArticleDbQuerySortThenBy
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollYDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'markdownScrollY', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollx() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'markdownScrollx', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownScrollxDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'markdownScrollx', Sort.desc);
     });
   }
 
@@ -4021,6 +4350,24 @@ extension ArticleDbQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByIsCreateService() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isCreateService');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByIsGenerateMarkdown() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isGenerateMarkdown');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByIsGenerateMhtml() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isGenerateMhtml');
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByIsRead() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isRead');
@@ -4040,15 +4387,15 @@ extension ArticleDbQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByMarkdownScrollY() {
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByMarkdownScrollX() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'markdownScrollY');
+      return query.addDistinctBy(r'markdownScrollX');
     });
   }
 
-  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByMarkdownScrollx() {
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByMarkdownScrollY() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'markdownScrollx');
+      return query.addDistinctBy(r'markdownScrollY');
     });
   }
 
@@ -4197,6 +4544,24 @@ extension ArticleDbQueryProperty
     });
   }
 
+  QueryBuilder<ArticleDb, bool, QQueryOperations> isCreateServiceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isCreateService');
+    });
+  }
+
+  QueryBuilder<ArticleDb, bool, QQueryOperations> isGenerateMarkdownProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isGenerateMarkdown');
+    });
+  }
+
+  QueryBuilder<ArticleDb, bool, QQueryOperations> isGenerateMhtmlProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isGenerateMhtml');
+    });
+  }
+
   QueryBuilder<ArticleDb, int, QQueryOperations> isReadProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isRead');
@@ -4215,15 +4580,15 @@ extension ArticleDbQueryProperty
     });
   }
 
-  QueryBuilder<ArticleDb, int, QQueryOperations> markdownScrollYProperty() {
+  QueryBuilder<ArticleDb, int, QQueryOperations> markdownScrollXProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'markdownScrollY');
+      return query.addPropertyName(r'markdownScrollX');
     });
   }
 
-  QueryBuilder<ArticleDb, int, QQueryOperations> markdownScrollxProperty() {
+  QueryBuilder<ArticleDb, int, QQueryOperations> markdownScrollYProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'markdownScrollx');
+      return query.addPropertyName(r'markdownScrollY');
     });
   }
 

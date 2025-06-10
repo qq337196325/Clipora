@@ -12,6 +12,8 @@ import '/basics/config.dart';
 Dio initDio(String _apiHost) {
   BaseOptions options = BaseOptions(
     baseUrl: _apiHost,
+    connectTimeout: const Duration(milliseconds: 5000), // 5秒连接超时
+    receiveTimeout: const Duration(milliseconds: 5000), // 5秒接收超时
   );
   Dio dio = Dio(options);
 

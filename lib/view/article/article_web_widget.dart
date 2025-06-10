@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import '../../basics/logger.dart';
+import '../../controller/snapshot_service.dart';
 import '../../db/article/article_service.dart';
 import 'components/web_webview_pool_manager.dart';
 
@@ -496,14 +497,9 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
           getLogger().i('✅ 网页快照保存成功: $savedPath');
           BotToast.showText(text: '快照保存成功');
 
-          // 更新数据库中的mhtmlPath字段
-          await _updateArticleMhtmlPath(savedPath);
+          // 使用统一的处理器
+          await _handleSnapshotGenerated(savedPath);
 
-          // 通过回调返回文件路径给父组件
-          if (widget.onSnapshotCreated != null) {
-            widget.onSnapshotCreated!(savedPath);
-          }
-          
         } else {
           throw Exception('saveWebArchive返回空路径');
         }
@@ -521,6 +517,63 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  // 处理快照（MHTML或截图）生成后的逻辑
+  Future<void> _handleSnapshotGenerated(String filePath, {bool isMhtml = true}) async {
+    final snapshotType = isMhtml ? 'MHTML' : '截图';
+    getLogger().i('✅ $snapshotType 快照已生成: $filePath');
+    BotToast.showText(text: '$snapshotType 快照生成成功, 准备上传...');
+
+    bool uploadSuccess = false;
+    try {
+      // 调用上传服务
+      uploadSuccess = await SnapshotService.instance.uploadSnapshotToServer(filePath);
+    } catch (e) {
+      getLogger().e('❌ 快照上传服务调用失败: $e');
+      uploadSuccess = false;
+    }
+
+    if (uploadSuccess) {
+      getLogger().i('✅ 快照上传成功: $filePath');
+      BotToast.showText(text: '快照上传成功!');
+      // 上传成功后更新数据库，标记isGenerateMhtml为true
+      await _updateArticleAfterUploadSuccess(filePath);
+    } else {
+      getLogger().w('⚠️ 快照上传失败, 只保存本地路径: $filePath');
+      BotToast.showText(text: '快照上传失败, 已保存到本地');
+      // 上传失败，仍按旧逻辑保存本地路径
+      await _updateArticleMhtmlPath(filePath);
+    }
+
+    // 通过回调返回文件路径给父组件
+    if (widget.onSnapshotCreated != null) {
+      widget.onSnapshotCreated!(filePath);
+    }
+  }
+
+  // 上传成功后更新数据库
+  Future<void> _updateArticleAfterUploadSuccess(String path) async {
+    if (articleId == null) {
+      getLogger().w('⚠️ 文章ID为空，无法更新上传状态');
+      return;
+    }
+    try {
+      final article = await ArticleService.instance.getArticleById(articleId!);
+      if (article != null) {
+        article.mhtmlPath = path;
+        article.isGenerateMhtml = true; // 标记为已生成快照并上传
+        article.updatedAt = DateTime.now();
+        
+        await ArticleService.instance.saveArticle(article);
+        
+        getLogger().i('✅ 文章快照上传状态更新成功: ${article.title}');
+      } else {
+        getLogger().e('❌ 未找到ID为 $articleId 的文章记录');
+      }
+    } catch (e) {
+      getLogger().e('❌ 更新文章快照上传状态失败: $e');
     }
   }
 
@@ -568,17 +621,10 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         // 保存截图文件
         final File file = File(filePath);
         await file.writeAsBytes(screenshot);
-        
-        getLogger().i('✅ 截图保存成功: $filePath');
-        BotToast.showText(text: '已保存为截图快照');
-        
-        // 更新数据库中的mhtmlPath字段（即使是截图也保存路径）
-        await _updateArticleMhtmlPath(filePath);
-        
-        // 通过回调返回文件路径给父组件
-        if (widget.onSnapshotCreated != null) {
-          widget.onSnapshotCreated!(filePath);
-        }
+
+        // 使用统一的处理器
+        await _handleSnapshotGenerated(filePath, isMhtml: false);
+
       } else {
         getLogger().e('❌ 截图生成失败');
         BotToast.showText(text: '快照和截图都生成失败');
