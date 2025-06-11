@@ -1,20 +1,21 @@
-import 'package:animated_segmented_tab_control/animated_segmented_tab_control.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:inkwell/api/user_api.dart';
+import 'package:inkwell/basics/logger.dart';
+import 'package:inkwell/basics/upload.dart';
+import 'package:inkwell/db/article/article_service.dart';
+import 'package:inkwell/view/article/components/article_bottom_bar.dart';
+import 'package:inkwell/view/article/components/article_loading_view.dart';
+import 'package:inkwell/view/article/components/article_top_bar.dart';
+import 'package:inkwell/view/article/utils/snapshot_utils.dart';
 
-import '../../basics/upload.dart';
 import 'article_markdown_widget.dart';
 import 'article_mhtml_widget.dart';
 import 'article_web_widget.dart';
-import '../../api/user_api.dart';
 import '../../controller/article_controller.dart';
-import '../../basics/logger.dart';
-import '../../db/article/article_service.dart';
 
 
 class ArticlePage extends StatefulWidget {
@@ -43,7 +44,8 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
         return Scaffold(body: _buildErrorView(context));
       }
 
-      if (articleController.isLoading && !articleController.hasArticle) {
+      // 在tabs初始化之前，始终显示加载视图
+      if (tabs.isEmpty) {
         return Scaffold(body: _buildInitialLoadingView());
       }
       
@@ -55,10 +57,23 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
             _buildContentView(context),
             
             // 顶部操作栏
-            _buildTopBar(context),
+            ArticleTopBar(
+              isVisible: _isBottomBarVisible,
+              topBarHeight: _topBarHeight,
+              tabController: tabController,
+              tabs: tabs,
+            ),
             
             // 底部操作栏
-            _buildBottomBar(context),
+            ArticleBottomBar(
+              articleId: widget.id,
+              isVisible: _isBottomBarVisible,
+              bottomBarHeight: _bottomBarHeight,
+              onBack: () => Navigator.of(context).pop(),
+              onGenerateSnapshot: generateSnapshot,
+              onDownloadSnapshot: downloadSnapshot,
+              onReGenerateSnapshot: () => (_webWidgetKey.currentState as ArticlePageState?)?.createSnapshot(),
+            ),
           ],
         ),
       );
@@ -90,132 +105,6 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
     );
   }
 
-  /// 构建顶部操作栏
-  Widget _buildTopBar(BuildContext context) {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.fastOutSlowIn,
-        offset: _isBottomBarVisible ? Offset.zero : const Offset(0, -1.5),
-        child: Container(
-          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-          height: MediaQuery.of(context).padding.top + _topBarHeight,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).shadowColor.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              )
-            ],
-          ),
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SegmentedTabControl(
-                controller: tabController,
-                barDecoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceVariant,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                indicatorDecoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
-                  ],
-                ),
-                tabTextColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                selectedTabTextColor: Theme.of(context).colorScheme.onPrimary,
-                squeezeIntensity: 4,
-                height: 36,
-                tabPadding: const EdgeInsets.symmetric(horizontal: 8),
-                tabs: tabs,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// 构建底部操作栏
-  Widget _buildBottomBar(BuildContext context) {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.fastOutSlowIn,
-        offset: _isBottomBarVisible ? Offset.zero : const Offset(0, 1.5),
-        child: Container(
-          height: _bottomBarHeight + MediaQuery.of(context).padding.bottom,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).shadowColor.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              )
-            ],
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                _buildBottomBarItem(
-                  context,
-                  icon: Icons.arrow_back_ios_new,
-                  tooltip: '返回',
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                _buildBottomBarItem(
-                  context,
-                  icon: Icons.camera_alt_outlined,
-                  tooltip: '生成快照',
-                  onPressed: generateSnapshot,
-                ),
-                _buildBottomBarItem(
-                  context,
-                  icon: Icons.download_outlined,
-                  tooltip: '下载快照',
-                  onPressed: downloadSnapshot,
-                ),
-                _buildBottomBarItem(
-                  context,
-                  icon: Icons.share_outlined,
-                  tooltip: '分享',
-                  onPressed: () {
-                    BotToast.showText(text: '分享功能待开发');
-                  },
-                ),
-                _buildBottomBarItem(
-                  context,
-                  icon: Icons.more_horiz,
-                  tooltip: '更多',
-                  onPressed: () {
-                    BotToast.showText(text: '更多功能待开发');
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   /// 构建错误视图
   Widget _buildErrorView(BuildContext context) {
     return Center(
@@ -243,16 +132,7 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
 
   /// 构建初始加载视图
   Widget _buildInitialLoadingView() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('正在加载文章...'),
-        ],
-      ),
-    );
+    return const ArticleLoadingView();
   }
 }
 
@@ -263,11 +143,11 @@ mixin ArticlePageBLoC on State<ArticlePage> {
    final ArticleController articleController = Get.find<ArticleController>();
 
   late TabController tabController;
-   List<SegmentTab> tabs = [];
+  List<String> tabs = []; // 改为简单的String列表
   List<Widget> tabWidget = [];
   
   // 用于存储ArticleWebWidget的GlobalKey，以便调用其方法
-  final GlobalKey<State<ArticleWebWidget>> _webWidgetKey = GlobalKey<State<ArticleWebWidget>>();
+  final GlobalKey<ArticlePageState> _webWidgetKey = GlobalKey<ArticlePageState>();
 
   String snapshotPath = "";
   bool isUploading = false; // 添加上传状态标识
@@ -283,58 +163,216 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   void initState() {
     super.initState();
     
+    // 进入沉浸式模式，隐藏系统状态栏
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    
+    // 初始化一个临时的空控制器，它将在数据加载后被替换
     tabController = TabController(
-     length: 4,
-     vsync: this as TickerProvider,
-     animationDuration: const Duration(milliseconds: 350), // 优化切换动画时长
-   );
-
-    _initializeTabs();
+      length: 0, // 初始长度为0，以匹配空的tabs列表
+      vsync: this as TickerProvider,
+      animationDuration: const Duration(milliseconds: 350),
+    );
 
     // 加载文章数据
     _loadArticleData();
   }
 
   void _initializeTabs() {
-    tabs = [
-      const SegmentTab(label: '图文', color: Color(0xFF00BCF6)),
-      const SegmentTab(label: '网页', color: Color(0xFF00BCF6)),
-      const SegmentTab(label: '快照', color: Color(0xFF00BCF6)),
-      const SegmentTab(label: '快照图', color: Color(0xFF00BCF6)),
-    ];
+    // 此方法仅在 articleController.hasArticle 为 true 时调用
+    // 网页tab总是显示
+    tabs = ['网页'];
+
+    final article = articleController.currentArticle!;
+    
+    // 根据isGenerateMarkdown决定是否显示图文tab
+    if (article.isGenerateMarkdown) {
+      tabs.insert(0, '图文');
+    }
+    
+    // 根据isGenerateMhtml决定是否显示快照tab
+    if (article.isGenerateMhtml) {
+      tabs.add('快照');
+    }
+    
+    // 快照图tab（暂时保留，可根据需要调整条件）
+    tabs.add('快照图');
+    
+    // 先初始化tabWidget，再更新TabController
+    _initializeTabWidgets();
+    
+    // 更新TabController的长度
+    _updateTabController();
+  }
+
+  /// 初始化TabWidget列表（创建空的占位符）
+  void _initializeTabWidgets() {
+    tabWidget = [];
+    for (int i = 0; i < tabs.length; i++) {
+      tabWidget.add(Container(
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      ));
+    }
+    getLogger().i('🔄 初始化tabWidget，数量: ${tabWidget.length}');
+  }
+
+  /// 更新TabController的长度和默认选中tab
+  void _updateTabController() {
+    final newLength = tabs.length;
+    if (tabController.length != newLength) {
+      // 保存当前选中的tab索引和名称
+      int currentIndex = tabController.index;
+      String? currentTabName;
+      if (currentIndex < tabs.length) {
+        currentTabName = tabs[currentIndex];
+      }
+      
+      // 销毁旧的TabController
+      tabController.dispose();
+      
+      // 创建新的TabController
+      tabController = TabController(
+        length: newLength,
+        vsync: this as TickerProvider,
+        animationDuration: const Duration(milliseconds: 350),
+      );
+      
+      // 尝试恢复之前选中的tab
+      _restoreSelectedTab(currentTabName, currentIndex);
+    }
+  }
+
+  /// 恢复选中的tab状态
+  void _restoreSelectedTab(String? previousTabName, int previousIndex) {
+    if (!articleController.hasArticle) return;
+    
+    // 如果之前有选中的tab名称，尝试找到对应的新索引
+    if (previousTabName != null) {
+      final newIndex = tabs.indexOf(previousTabName);
+      if (newIndex != -1) {
+        tabController.index = newIndex;
+        getLogger().i('🔄 恢复选中tab: $previousTabName (索引: $newIndex)');
+        return;
+      }
+    }
+    
+    // 如果无法恢复，使用默认选择逻辑
+    _setDefaultSelectedTab();
+  }
+
+  /// 设置默认选中的tab
+  void _setDefaultSelectedTab() {
+    if (!articleController.hasArticle) return;
+    
+    final article = articleController.currentArticle!;
+    
+    // 如果isGenerateMarkdown为false，默认显示网页tab
+    if (!article.isGenerateMarkdown) {
+      // 网页tab的索引（当没有图文tab时为0，有图文tab时为1）
+      final webTabIndex = article.isGenerateMarkdown ? 1 : 0;
+      tabController.index = webTabIndex;
+    } else {
+      // 如果有图文tab，默认选中图文tab
+      tabController.index = 0;
+    }
+  }
+
+  /// 刷新tabs显示（当生成新内容后调用）
+  void refreshTabs() {
+    if (!articleController.hasArticle) return;
+    
+    getLogger().i('🔄 刷新tabs显示');
+    
+    // 重新初始化tabs
+    _initializeTabs();
+    
+    // 强制更新UI
+    setState(() {});
+    
+    getLogger().i('✅ tabs刷新完成，当前tab数量: ${tabs.length}');
   }
 
   void _updateTabWidgets(EdgeInsets padding) {
-    tabWidget = [
-      // 图文
-      Obx(() => ArticleMarkdownWidget(
-        markdownContent: _markdownContent.value,
-        article: articleController.currentArticle,
-        onScroll: _handleScroll,
-        contentPadding: padding,
-      )),
-      // 网页
-      Obx(() => ArticleWebWidget(
-        key: _webWidgetKey,
-        onSnapshotCreated: _onSnapshotCreated,
-        url: articleController.articleUrl.isNotEmpty 
-          ? articleController.articleUrl 
-          : null,
-        articleId: widget.id,
-        // TODO: ArticleWebWidget也需要支持contentPadding和onScroll
-      )),
-      // 快照
-      Obx(() => ArticleMhtmlWidget(
-        mhtmlPath: articleController.hasArticle 
-          ? articleController.currentArticle!.mhtmlPath 
-          : '',
-        title: articleController.hasArticle 
-          ? articleController.currentArticle!.title 
-          : null,
-      )),
-      // 快照图
-      Container(),
-    ];
+    if (!articleController.hasArticle) {
+      tabWidget = [
+        // 只显示网页tab
+        Obx(() => ArticleWebWidget(
+          key: _webWidgetKey,
+          onSnapshotCreated: _onSnapshotCreated,
+          url: articleController.articleUrl.isNotEmpty 
+            ? articleController.articleUrl 
+            : null,
+          articleId: widget.id,
+          onScroll: _handleScroll,
+          contentPadding: padding,
+        )),
+      ];
+      return;
+    }
+
+    final article = articleController.currentArticle!;
+    tabWidget = [];
+
+    // 确保tabWidget的生成顺序与tabs一致
+    for (String tabName in tabs) {
+      switch (tabName) {
+        case '图文':
+          tabWidget.add(
+            Obx(() => ArticleMarkdownWidget(
+              markdownContent: _markdownContent.value,
+              article: articleController.currentArticle,
+              onScroll: _handleScroll,
+              contentPadding: padding,
+            ))
+          );
+          break;
+        case '网页':
+          tabWidget.add(
+            Obx(() => ArticleWebWidget(
+              key: _webWidgetKey,
+              onSnapshotCreated: _onSnapshotCreated,
+              url: articleController.articleUrl.isNotEmpty 
+                ? articleController.articleUrl 
+                : null,
+              articleId: widget.id,
+              onScroll: _handleScroll,
+              contentPadding: padding,
+            ))
+          );
+          break;
+        case '快照':
+          tabWidget.add(
+            ArticleMhtmlWidget(
+              mhtmlPath: article.mhtmlPath,
+              title: article.title,
+            )
+          );
+          break;
+        case '快照图':
+          tabWidget.add(Container(
+            child: const Center(
+              child: Text('快照图功能开发中...'),
+            ),
+          ));
+          break;
+      }
+    }
+
+    // 确保tabWidget数量与tabs数量一致
+    if (tabWidget.length != tabs.length) {
+      getLogger().e('❌ tabWidget数量(${tabWidget.length})与tabs数量(${tabs.length})不一致');
+      // 如果数量不一致，补充空容器
+      while (tabWidget.length < tabs.length) {
+        tabWidget.add(Container(
+          child: const Center(
+            child: Text('内容加载中...'),
+          ),
+        ));
+      }
+    }
+
+    getLogger().i('✅ tabs更新完成: ${tabs.join(', ')}, 数量: ${tabs.length}');
   }
 
   /// 处理滚动事件，用于显示/隐藏UI元素
@@ -366,6 +404,14 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     await articleController.loadArticleById(widget.id);
     
     if (articleController.hasArticle) {
+      // 数据加载成功后，再初始化tabs
+      _initializeTabs();
+
+      // 触发UI重建以显示新的tabs
+      if (mounted) {
+        setState(() {});
+      }
+      
       await _loadMarkdownContent();
     }
   }
@@ -417,22 +463,32 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         final data = response['data'];
         final markdownContent = data['markdown_content'] ?? '';
         
-        getLogger().i('✅ 服务端Markdown内容获取成功，长度: ${markdownContent.length}');
-        
-        // 更新本地状态
-        _markdownContent.value = markdownContent;
-        
-        // 保存到数据库
         if (markdownContent.isNotEmpty) {
+          getLogger().i('✅ 服务端Markdown内容获取成功，长度: ${markdownContent.length}');
+          
+          // 更新本地状态
+          _markdownContent.value = markdownContent;
+          
+          // 保存到数据库
           await _saveMarkdownToDatabase(articleId, markdownContent);
+        } else {
+          getLogger().i('ℹ️ 服务端暂无Markdown内容，等待生成');
+          _markdownContent.value = '';
         }
       } else {
-        throw Exception(response['msg'] ?? '获取文章失败');
+        // 检查是否是"系统错误"或类似的服务端错误
+        final errorMsg = response['msg'] ?? '获取文章失败';
+        if (errorMsg.contains('系统错误') || errorMsg.contains('暂无') || errorMsg.contains('不存在')) {
+          getLogger().w('⚠️ 服务端暂无Markdown内容: $errorMsg');
+          _markdownContent.value = '';
+        } else {
+          throw Exception(errorMsg);
+        }
       }
     } catch (e) {
-      getLogger().e('❌ 从服务端获取Markdown内容失败: $e');
-      BotToast.showText(text: '加载Markdown内容失败: $e');
+      getLogger().w('⚠️ 获取Markdown内容时出现异常: $e');
       _markdownContent.value = '';
+      // 不再显示用户错误提示，因为这是正常情况（还没生成Markdown）
     }
   }
 
@@ -446,6 +502,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
       if (article != null) {
         // 更新markdown字段
         article.markdown = markdownContent;
+        article.isGenerateMarkdown = true; // 标记已生成markdown
         article.updatedAt = DateTime.now();
         
         // 保存到数据库
@@ -455,6 +512,9 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         
         // 刷新控制器中的文章数据
         await articleController.refreshCurrentArticle();
+        
+        // 刷新tabs显示
+        refreshTabs();
       } else {
         getLogger().e('❌ 未找到ID为 $articleId 的文章记录');
       }
@@ -471,18 +531,44 @@ mixin ArticlePageBLoC on State<ArticlePage> {
 
     BotToast.showText(text: '快照已保存，路径: ${path.split('/').last}');
     
-    // 自动上传快照文件到服务端
+    // 更新数据库中的mhtml相关字段
+    _updateMhtmlStatus(path);
+    
+    // 自动上传快照文件到服务端 
     uploadSnapshotToServer(path,articleController.currentArticle!.serviceId);
   }
 
-
-
-  // 手动重新上传快照（可选功能）
-  Future<void> _retryUploadSnapshot() async {
-    if (snapshotPath.isNotEmpty) {
-      await uploadSnapshotToServer(snapshotPath,articleController.currentArticle!.serviceId);
-    } else {
-      BotToast.showText(text: '没有可上传的快照文件');
+  /// 更新数据库中的mhtml状态
+  Future<void> _updateMhtmlStatus(String mhtmlPath) async {
+    if (!articleController.hasArticle) return;
+    
+    try {
+      final article = articleController.currentArticle!;
+      getLogger().i('💾 更新mhtml状态到数据库，文章ID: ${article.id}');
+      
+      // 获取文章记录
+      final dbArticle = await ArticleService.instance.getArticleById(article.id);
+      if (dbArticle != null) {
+        // 更新mhtml相关字段
+        dbArticle.mhtmlPath = mhtmlPath;
+        dbArticle.isGenerateMhtml = true; // 标记已生成mhtml
+        dbArticle.updatedAt = DateTime.now();
+        
+        // 保存到数据库
+        await ArticleService.instance.saveArticle(dbArticle);
+        
+        getLogger().i('✅ mhtml状态更新成功');
+        
+        // 刷新控制器中的文章数据
+        await articleController.refreshCurrentArticle();
+        
+        // 刷新tabs显示
+        refreshTabs();
+      } else {
+        getLogger().e('❌ 未找到ID为 ${article.id} 的文章记录');
+      }
+    } catch (e) {
+      getLogger().e('❌ 更新mhtml状态失败: $e');
     }
   }
 
@@ -491,7 +577,10 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     // 获取当前选中的tab索引
     final currentIndex = tabController.index;
     
-    if (currentIndex == 1) { // 网页标签页的索引为1
+    // 需要根据动态的tab结构找到网页tab的索引
+    int webTabIndex = _getWebTabIndex();
+    
+    if (currentIndex == webTabIndex) {
       // 当前在网页tab，调用ArticleWebWidget的生成快照方法
       final webWidgetState = _webWidgetKey.currentState;
       if (webWidgetState != null) {
@@ -505,286 +594,13 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     }
   }
 
-  // 构建快照视图
-  Widget _buildSnapshotView() {
-    print('=== 构建快照视图 ===');
-    print('当前snapshotPath: "$snapshotPath"');
-    print('snapshotPath是否为空: ${snapshotPath.isEmpty}');
-    print('=== ===');
+  /// 获取网页tab的索引
+  int _getWebTabIndex() {
+    if (!articleController.hasArticle) return 0;
     
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text(
-                '快照信息',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (isUploading)
-                const Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        '上传中...',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (snapshotPath.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 48,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      '暂无快照',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '请先在网页标签页生成快照',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          _getSnapshotIcon(),
-                          color: Colors.green,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${_getSnapshotType()}已生成',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      '文件名: ${snapshotPath.split('/').last}',
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '文件类型: ${_getFileExtension().toUpperCase()}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '完整路径: $snapshotPath',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    if (isUploading)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 8),
-                        child: Row(
-                          children: [
-                            Icon(Icons.cloud_upload, size: 16, color: Colors.blue),
-                            SizedBox(width: 4),
-                            Text(
-                              '正在上传到服务器...',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            BotToast.showText(text: '快照文件: ${snapshotPath.split('/').last}');
-                          },
-                          icon: const Icon(Icons.info),
-                          label: const Text('文件信息'),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: downloadSnapshot,
-                          icon: const Icon(Icons.download),
-                          label: const Text('下载快照'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: isUploading ? null : _retryUploadSnapshot,
-                          icon: const Icon(Icons.cloud_upload),
-                          label: const Text('重新上传'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                        if (_isImageFile())
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _showImagePreview();
-                            },
-                            icon: const Icon(Icons.image),
-                            label: const Text('预览图片'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // 获取快照图标
-  IconData _getSnapshotIcon() {
-    final extension = _getFileExtension();
-    switch (extension) {
-      case 'png':
-      case 'jpg':
-      case 'jpeg':
-        return Icons.image;
-      case 'mht':
-      case 'webarchive':
-        return Icons.archive;
-      default:
-        return Icons.file_present;
-    }
-  }
-
-  // 获取快照类型描述
-  String _getSnapshotType() {
-    final extension = _getFileExtension();
-    switch (extension) {
-      case 'png':
-        return '截图快照';
-      case 'mht':
-        return 'MHT快照';
-      case 'webarchive':
-        return 'WebArchive快照';
-      default:
-        return '文件快照';
-    }
-  }
-
-  // 获取文件扩展名
-  String _getFileExtension() {
-    if (snapshotPath.isEmpty) return '';
-    return snapshotPath.split('.').last.toLowerCase();
-  }
-
-  // 判断是否是图片文件
-  bool _isImageFile() {
-    final extension = _getFileExtension();
-    return ['png', 'jpg', 'jpeg', 'gif', 'bmp'].contains(extension);
-  }
-
-  // 显示图片预览
-  void _showImagePreview() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                '快照预览',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                constraints: const BoxConstraints(
-                  maxHeight: 400,
-                  maxWidth: 300,
-                ),
-                child: Image.file(
-                  File(snapshotPath),
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Column(
-                      children: [
-                        Icon(Icons.error, size: 48, color: Colors.red),
-                        Text('无法加载图片'),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('关闭'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    final article = articleController.currentArticle!;
+    // 如果有图文tab，网页tab索引为1，否则为0
+    return article.isGenerateMarkdown ? 1 : 0;
   }
 
   // 下载快照到用户可访问的目录
@@ -793,254 +609,14 @@ mixin ArticlePageBLoC on State<ArticlePage> {
       BotToast.showText(text: '没有可下载的快照');
       return;
     }
-
-    try {
-      // 显示下载开始提示
-      BotToast.showText(text: '开始下载快照...');
-
-      // 检查并请求存储权限
-      bool hasPermission = await _checkAndRequestPermissions();
-      if (!hasPermission) {
-        BotToast.showText(text: '需要存储权限才能下载文件');
-        return;
-      }
-
-      // 获取源文件
-      final File sourceFile = File(snapshotPath);
-      if (!await sourceFile.exists()) {
-        BotToast.showText(text: '快照文件不存在');
-        return;
-      }
-
-      // 获取下载目录
-      Directory? downloadDir;
-      if (Platform.isAndroid) {
-        // Android: 使用公共下载目录
-        downloadDir = Directory('/storage/emulated/0/Download');
-        // 如果公共下载目录不存在，使用外部存储目录
-        if (!await downloadDir.exists()) {
-          downloadDir = await getExternalStorageDirectory();
-        }
-      } else if (Platform.isIOS) {
-        // iOS: 使用应用文档目录
-        downloadDir = await getApplicationDocumentsDirectory();
-      }
-
-      if (downloadDir == null) {
-        BotToast.showText(text: '无法获取下载目录');
-        return;
-      }
-
-      // 确保下载目录存在
-      if (!await downloadDir.exists()) {
-        await downloadDir.create(recursive: true);
-      }
-
-      // 生成目标文件名
-      final String fileName = snapshotPath.split('/').last;
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String fileExtension = fileName.split('.').last;
-      final String downloadFileName = 'inkwell_snapshot_$timestamp.$fileExtension';
-      final String downloadPath = '${downloadDir.path}/$downloadFileName';
-
-      // 复制文件到下载目录
-      final File targetFile = File(downloadPath);
-      await sourceFile.copy(downloadPath);
-
-      print('快照已下载到: $downloadPath');
-      
-      // 显示下载成功提示
-      BotToast.showText(
-        text: '快照下载成功\n保存位置: ${Platform.isAndroid ? "Download" : "Documents"}/$downloadFileName',
-      );
-
-      // 显示详细的下载信息对话框
-      _showDownloadSuccessDialog(downloadPath, downloadFileName);
-
-    } catch (e) {
-      print('下载快照失败: $e');
-      BotToast.showText(text: '下载失败: $e');
-    }
-  }
-
-  // 检查并请求存储权限
-  Future<bool> _checkAndRequestPermissions() async {
-    if (Platform.isIOS) {
-      // iOS不需要额外的存储权限
-      return true;
-    }
-
-    // Android权限检查
-    if (Platform.isAndroid) {
-      // 对于Android 13 (API 33) 及以上版本，访问公共目录不需要存储权限
-      // 但我们仍然可以检查并请求权限以兼容更低版本
-      try {
-        PermissionStatus status = await Permission.storage.status;
-        
-        if (status.isGranted) {
-          return true;
-        }
-        
-        if (status.isDenied) {
-          // 请求权限
-          status = await Permission.storage.request();
-          if (status.isGranted) {
-            return true;
-          }
-        }
-        
-        if (status.isPermanentlyDenied) {
-          // 如果权限被永久拒绝，显示对话框指导用户
-          _showPermissionDeniedDialog();
-          return false;
-        }
-        
-        // 即使权限被拒绝，在较新的Android版本上仍然可以访问公共目录
-        // 所以我们返回true让下载继续尝试
-        return true;
-        
-      } catch (e) {
-        print('权限检查失败: $e');
-        // 如果权限检查失败，仍然尝试下载
-        return true;
-      }
-    }
-
-    return true;
-  }
-
-  // 显示权限被拒绝的对话框
-  void _showPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(
-          Icons.warning,
-          color: Colors.orange,
-          size: 48,
-        ),
-        title: const Text('需要存储权限'),
-        content: const Text(
-          '为了将快照保存到下载文件夹，需要授予存储权限。\n\n'
-          '您可以在设置中手动开启权限，或者选择继续下载（文件将保存到应用目录）。',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              openAppSettings();
-            },
-            child: const Text('打开设置'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // 继续下载到应用目录
-              _downloadToAppDirectory();
-            },
-            child: const Text('继续下载'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 下载到应用目录（备用方案）
-  Future<void> _downloadToAppDirectory() async {
-    try {
-      final File sourceFile = File(snapshotPath);
-      if (!await sourceFile.exists()) {
-        BotToast.showText(text: '快照文件不存在');
-        return;
-      }
-
-      // 使用应用外部存储目录
-      final Directory? appDir = await getExternalStorageDirectory();
-      if (appDir == null) {
-        BotToast.showText(text: '无法获取存储目录');
-        return;
-      }
-
-      // 创建下载子目录
-      final Directory downloadDir = Directory('${appDir.path}/Download');
-      if (!await downloadDir.exists()) {
-        await downloadDir.create(recursive: true);
-      }
-
-      // 生成目标文件名
-      final String fileName = snapshotPath.split('/').last;
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String fileExtension = fileName.split('.').last;
-      final String downloadFileName = 'inkwell_snapshot_$timestamp.$fileExtension';
-      final String downloadPath = '${downloadDir.path}/$downloadFileName';
-
-      // 复制文件
-      await sourceFile.copy(downloadPath);
-
-      print('快照已下载到应用目录: $downloadPath');
-      
-      BotToast.showText(
-        text: '快照已保存到应用目录\n$downloadFileName',
-      );
-
-      _showDownloadSuccessDialog(downloadPath, downloadFileName);
-
-    } catch (e) {
-      print('下载到应用目录失败: $e');
-      BotToast.showText(text: '下载失败: $e');
-    }
-  }
-
-  // 显示下载成功对话框
-  void _showDownloadSuccessDialog(String filePath, String fileName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(
-          Icons.download_done,
-          color: Colors.green,
-          size: 48,
-        ),
-        title: const Text('下载成功'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '文件名: $fileName',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '保存位置: ${Platform.isAndroid ? "Download" : "Documents"} 文件夹',
-              style: const TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '完整路径: $filePath',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
-          ),
-        ],
-      ),
-    );
+    await SnapshotUtils.downloadSnapshot(context, snapshotPath);
   }
 
   @override
   void dispose() {
+    // 退出页面时恢复系统默认UI，显示状态栏
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
     tabController.dispose();
     // 清理文章控制器
     articleController.clearCurrentArticle();
@@ -1054,16 +630,4 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   
   /// 获取当前文章标题（便捷方法）
   String get currentArticleTitle => articleController.articleTitle;
-
-  Widget _buildBottomBarItem(BuildContext context, {required IconData icon, required String tooltip, required VoidCallback onPressed}) {
-    return IconButton(
-      icon: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
-      tooltip: tooltip,
-      onPressed: onPressed,
-      iconSize: 24.0,
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      splashRadius: 24.0,
-    );
-  }
-}
-
+} 

@@ -61,10 +61,9 @@ lib/
 - 使用SizedBox进行固定间距
 
 ### 样式规范
-- 颜色使用UiColour类统一管理
-- 字体大小使用具体数值（如：fontSize: 18）
 - 圆角使用BorderRadius.circular()
 - 阴影效果使用BoxShadow
+- 需要注意要适配主题
 
 ### 交互组件
 - 点击事件使用GestureDetector包装

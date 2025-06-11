@@ -1,36 +1,38 @@
-import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'dart:typed_data';
 import 'dart:async';
 import 'dart:collection';
 
 import '../../basics/logger.dart';
-import '../../controller/snapshot_service.dart';
-import '../../db/article/article_service.dart';
 import 'components/web_webview_pool_manager.dart';
+import 'utils/auto_expander.dart';
+import 'utils/snapshot_utils.dart';
 
 
 class ArticleWebWidget extends StatefulWidget {
   final Function(String)? onSnapshotCreated;
   final String? url;
   final int? articleId;  // 添加文章ID参数
+  final void Function(ScrollDirection direction, double scrollY)? onScroll;
+  final EdgeInsetsGeometry contentPadding;
   
   const ArticleWebWidget({
     super.key,
     this.onSnapshotCreated,
     this.url,
     this.articleId,  // 添加文章ID参数
+    this.onScroll,
+    this.contentPadding = EdgeInsets.zero,
   });
 
   @override
-  State<ArticleWebWidget> createState() => _ArticlePageState();
+  State<ArticleWebWidget> createState() => ArticlePageState();
 }
 
 
-class _ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
+class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
+  double _lastScrollY = 0.0;
 
   // 公共方法：供外部调用生成快照
   Future<void> createSnapshot() async {
@@ -106,8 +108,18 @@ class _ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                   isLoading = false;
                 });
                 
+                // 注入内边距
+                final padding = widget.contentPadding.resolve(Directionality.of(context));
+                controller.evaluateJavascript(source: '''
+                  document.body.style.paddingTop = '${padding.top}px';
+                  document.body.style.paddingBottom = '${padding.bottom}px';
+                  document.body.style.paddingLeft = '${padding.left}px';
+                  document.body.style.paddingRight = '${padding.right}px';
+                  document.documentElement.style.scrollPaddingTop = '${padding.top}px';
+                ''');
+                
                 // 页面加载完成后进行优化设置
-                _finalizeWebPageOptimization();
+                _finalizeWebPageOptimization(url);
               },
               onProgressChanged: (controller, progress) {
                 setState(() {
@@ -136,6 +148,15 @@ class _ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                   hasError = true;
                   errorMessage = 'HTTP错误: ${errorResponse.statusCode}\n${errorResponse.reasonPhrase}\nURL: ${request.url}';
                 });
+              },
+              onScrollChanged: (controller, x, y) {
+                final scrollY = y.toDouble();
+                // 只有在滚动距离超过一个阈值时才触发，避免过于敏感
+                if ((scrollY - _lastScrollY).abs() > 15) {
+                  final direction = scrollY > _lastScrollY ? ScrollDirection.reverse : ScrollDirection.forward;
+                  widget.onScroll?.call(direction, scrollY);
+                  _lastScrollY = scrollY;
+                }
               },
               // 使用优化的URL跳转处理
               shouldOverrideUrlLoading: _handleOptimizedUrlNavigation,
@@ -219,10 +240,6 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   
   // 获取文章ID
   int? get articleId => widget.articleId;
-  
-  // 添加任务状态监听相关变量
-  Timer? _pollingTimer;
-  bool _isPolling = false;
 
   @override
   void initState() {
@@ -233,8 +250,6 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
 
   @override
   void dispose() {
-    // 清理轮询定时器
-    _pollingTimer?.cancel();
     webViewController?.dispose();
     super.dispose();
   }
@@ -283,7 +298,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   }
 
   /// 页面加载完成后的最终优化
-  Future<void> _finalizeWebPageOptimization() async {
+  Future<void> _finalizeWebPageOptimization(WebUri? url) async {
     if (webViewController == null) return;
     
     try {
@@ -413,6 +428,11 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         })();
       ''');
       
+      // 应用自动展开规则
+      if (url != null) {
+        AutoExpander.apply(webViewController!, url);
+      }
+      
       // 输出性能统计
       final stats = WebWebViewPoolManager().getPerformanceStats();
       getLogger().i('📊 Web页面性能统计: $stats');
@@ -448,360 +468,17 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
 
   // 生成MHTML快照并保存到本地
   Future<void> generateMHTMLSnapshot() async {
-    if (webViewController == null) {
-      getLogger().w('WebView控制器未初始化');
-      BotToast.showText(text: 'WebView未初始化');
-      return;
-    }
-
-    try {
-      // 显示加载提示
-      setState(() {
-        isLoading = true;
-      });
-
-      // 获取应用文档目录
-      final Directory appDir = await getApplicationDocumentsDirectory();
-      final String snapshotDir = '${appDir.path}/snapshots';
-      
-      // 创建快照目录
-      final Directory snapshotDirectory = Directory(snapshotDir);
-      if (!await snapshotDirectory.exists()) {
-        await snapshotDirectory.create(recursive: true);
-      }
-
-      // 生成文件名（使用时间戳）
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      String fileName;
-      String filePath;
-      
-      // 根据平台设置文件扩展名
-      if (Platform.isAndroid) {
-        fileName = 'snapshot_$timestamp.mht';
-      } else if (Platform.isIOS || Platform.isMacOS) {
-        fileName = 'snapshot_$timestamp.webarchive';
-      } else {
-        fileName = 'snapshot_$timestamp.mht';
-      }
-      
-      filePath = '$snapshotDir/$fileName';
-
-      try {
-        // 使用saveWebArchive方法保存网页快照
-        final String? savedPath = await webViewController!.saveWebArchive(
-          filePath: filePath,
-          autoname: false,
-        );
-
-        if (savedPath != null && savedPath.isNotEmpty) {
-          getLogger().i('✅ 网页快照保存成功: $savedPath');
-          BotToast.showText(text: '快照保存成功');
-
-          // 使用统一的处理器
-          await _handleSnapshotGenerated(savedPath);
-
-        } else {
-          throw Exception('saveWebArchive返回空路径');
+    await SnapshotUtils.generateAndProcessSnapshot(
+      webViewController: webViewController,
+      articleId: articleId,
+      onSnapshotCreated: widget.onSnapshotCreated,
+      onLoadingStateChanged: (loading) {
+        if (mounted) {
+          setState(() {
+            isLoading = loading;
+          });
         }
-      } catch (saveError) {
-        getLogger().e('saveWebArchive失败: $saveError');
-        
-        // 如果saveWebArchive失败，尝试使用截图作为备用方案
-        await _fallbackToScreenshot(snapshotDir, timestamp);
-      }
-
-    } catch (e) {
-      getLogger().e('❌ 生成网页快照失败: $e');
-      BotToast.showText(text: '生成快照失败: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  // 处理快照（MHTML或截图）生成后的逻辑
-  Future<void> _handleSnapshotGenerated(String filePath, {bool isMhtml = true}) async {
-    final snapshotType = isMhtml ? 'MHTML' : '截图';
-    getLogger().i('✅ $snapshotType 快照已生成: $filePath');
-    BotToast.showText(text: '$snapshotType 快照生成成功, 准备上传...');
-
-    bool uploadSuccess = false;
-    try {
-      // 调用上传服务
-      uploadSuccess = await SnapshotService.instance.uploadSnapshotToServer(filePath);
-    } catch (e) {
-      getLogger().e('❌ 快照上传服务调用失败: $e');
-      uploadSuccess = false;
-    }
-
-    if (uploadSuccess) {
-      getLogger().i('✅ 快照上传成功: $filePath');
-      BotToast.showText(text: '快照上传成功!');
-      // 上传成功后更新数据库，标记isGenerateMhtml为true
-      await _updateArticleAfterUploadSuccess(filePath);
-    } else {
-      getLogger().w('⚠️ 快照上传失败, 只保存本地路径: $filePath');
-      BotToast.showText(text: '快照上传失败, 已保存到本地');
-      // 上传失败，仍按旧逻辑保存本地路径
-      await _updateArticleMhtmlPath(filePath);
-    }
-
-    // 通过回调返回文件路径给父组件
-    if (widget.onSnapshotCreated != null) {
-      widget.onSnapshotCreated!(filePath);
-    }
-  }
-
-  // 上传成功后更新数据库
-  Future<void> _updateArticleAfterUploadSuccess(String path) async {
-    if (articleId == null) {
-      getLogger().w('⚠️ 文章ID为空，无法更新上传状态');
-      return;
-    }
-    try {
-      final article = await ArticleService.instance.getArticleById(articleId!);
-      if (article != null) {
-        article.mhtmlPath = path;
-        article.isGenerateMhtml = true; // 标记为已生成快照并上传
-        article.updatedAt = DateTime.now();
-        
-        await ArticleService.instance.saveArticle(article);
-        
-        getLogger().i('✅ 文章快照上传状态更新成功: ${article.title}');
-      } else {
-        getLogger().e('❌ 未找到ID为 $articleId 的文章记录');
-      }
-    } catch (e) {
-      getLogger().e('❌ 更新文章快照上传状态失败: $e');
-    }
-  }
-
-  // 更新文章的MHTML路径到数据库
-  Future<void> _updateArticleMhtmlPath(String mhtmlPath) async {
-    if (articleId == null) {
-      getLogger().w('⚠️ 文章ID为空，无法更新MHTML路径');
-      return;
-    }
-
-    try {
-      getLogger().i('📝 更新文章MHTML路径，ID: $articleId, 路径: $mhtmlPath');
-      
-      // 获取文章记录
-      final article = await ArticleService.instance.getArticleById(articleId!);
-      if (article != null) {
-        // 更新MHTML路径
-        article.mhtmlPath = mhtmlPath;
-        article.updatedAt = DateTime.now();
-        
-        // 保存到数据库
-        await ArticleService.instance.saveArticle(article);
-        
-        getLogger().i('✅ 文章MHTML路径更新成功: ${article.title}');
-      } else {
-        getLogger().e('❌ 未找到ID为 $articleId 的文章记录');
-      }
-    } catch (e) {
-      getLogger().e('❌ 更新文章MHTML路径失败: $e');
-    }
-  }
-
-  // 备用方案：使用截图
-  Future<void> _fallbackToScreenshot(String snapshotDir, String timestamp) async {
-    try {
-      getLogger().i('📸 尝试使用截图作为备用方案...');
-      
-      // 获取WebView截图
-      final Uint8List? screenshot = await webViewController!.takeScreenshot();
-      
-      if (screenshot != null && screenshot.isNotEmpty) {
-        final String fileName = 'screenshot_$timestamp.png';
-        final String filePath = '$snapshotDir/$fileName';
-        
-        // 保存截图文件
-        final File file = File(filePath);
-        await file.writeAsBytes(screenshot);
-
-        // 使用统一的处理器
-        await _handleSnapshotGenerated(filePath, isMhtml: false);
-
-      } else {
-        getLogger().e('❌ 截图生成失败');
-        BotToast.showText(text: '快照和截图都生成失败');
-      }
-    } catch (screenshotError) {
-      getLogger().e('❌ 截图备用方案也失败: $screenshotError');
-      BotToast.showText(text: '所有快照方案都失败了');
-    }
-  }
-
-  // 上传快照到服务器并开始监听处理状态  
-  Future<String?> uploadSnapshotToServer(String snapshotPath) async {
-    try {
-      // 显示上传进度
-      BotToast.showText(text: '正在上传快照...');
-      
-      // TODO: 实现上传逻辑，这里假设返回任务ID
-      // 模拟返回任务ID
-      final taskId = 'task_${DateTime.now().millisecondsSinceEpoch}';
-      
-      BotToast.showText(text: '上传成功，正在处理...');
-      
-      // 开始轮询监听处理状态
-      await _startPollingTaskStatus(taskId);
-      
-      return taskId;
-    } catch (e) {
-      getLogger().e('上传快照失败', error: e);
-      BotToast.showText(text: '上传失败: $e');
-      return null;
-    }
-  }
-
-  // 智能轮询监听任务状态
-  Future<void> _startPollingTaskStatus(String taskId) async {
-    if (_isPolling) {
-      getLogger().d('已经在轮询中，跳过重复请求');
-      return;
-    }
-    
-    _isPolling = true;
-    int pollCount = 0;
-    const int maxPollCount = 30; // 最多轮询30次（约5分钟）
-    
-    // 渐进式轮询间隔：前几次快一点，后面慢一点
-    List<int> intervals = [1, 2, 3, 3, 5, 5, 5, 8, 8, 10]; // 秒
-    
-    void poll() async {
-      if (!_isPolling || !mounted) return;
-      
-      try {
-        pollCount++;
-        getLogger().d('轮询任务状态，第${pollCount}次: $taskId');
-        
-        // TODO: 实际的状态查询API调用
-        // 模拟服务器响应
-        final Map<String, dynamic> mockResponse = await _mockServerResponse(taskId, pollCount);
-        final String status = mockResponse['status'];
-        final String? result = mockResponse['result'];
-        final String? error = mockResponse['error'];
-        
-        switch (status) {
-          case 'pending':
-          case 'processing':
-            // 继续轮询
-            getLogger().d('任务处理中... 状态: $status');
-            
-            // 确定下次轮询间隔
-            int intervalIndex = (pollCount - 1).clamp(0, intervals.length - 1);
-            int nextInterval = intervals[intervalIndex];
-            
-            if (pollCount < maxPollCount) {
-              _pollingTimer = Timer(Duration(seconds: nextInterval), poll);
-            } else {
-              _handlePollingTimeout(taskId);
-            }
-            break;
-            
-          case 'completed':
-            // 处理成功
-            getLogger().i('任务处理完成: $result');
-            _handleTaskCompleted(taskId, result!);
-            break;
-            
-          case 'failed':
-            // 处理失败
-            getLogger().e('任务处理失败: $error');
-            _handleTaskFailed(taskId, error ?? '未知错误');
-            break;
-            
-          default:
-            getLogger().w('未知任务状态: $status');
-            _handleTaskFailed(taskId, '未知状态: $status');
-        }
-        
-      } catch (e) {
-        getLogger().e('轮询状态查询失败: $e');
-        
-        // 网络错误时继续重试，但增加间隔
-        if (pollCount < maxPollCount) {
-          _pollingTimer = Timer(const Duration(seconds: 10), poll);
-        } else {
-          _handlePollingTimeout(taskId);
-        }
-      }
-    }
-    
-    // 开始第一次轮询
-    poll();
-  }
-
-  // 停止轮询
-  void _stopPolling() {
-    _isPolling = false;
-    _pollingTimer?.cancel();
-    _pollingTimer = null;
-  }
-
-  // 任务完成处理
-  void _handleTaskCompleted(String taskId, String markdownContent) {
-    _stopPolling();
-    
-    getLogger().i('✅ Markdown解析完成，长度: ${markdownContent.length}');
-    BotToast.showText(text: '文档解析完成！');
-    
-    // 处理解析后的Markdown内容
-    _onMarkdownReady(markdownContent);
-  }
-
-  // 任务失败处理
-  void _handleTaskFailed(String taskId, String error) {
-    _stopPolling();
-    getLogger().e('❌ 任务处理失败: $error');
-    BotToast.showText(text: '处理失败: $error');
-  }
-
-  // 轮询超时处理
-  void _handlePollingTimeout(String taskId) {
-    _stopPolling();
-    getLogger().w('⚠️ 任务轮询超时: $taskId');
-    BotToast.showText(text: '处理超时，请稍后重试');
-  }
-
-  // Markdown内容就绪回调
-  void _onMarkdownReady(String markdownContent) {
-    if (widget.onSnapshotCreated != null) {
-      widget.onSnapshotCreated!(markdownContent);
-    }
-  }
-
-  // 模拟服务器响应（实际使用时删除此方法）
-  Future<Map<String, dynamic>> _mockServerResponse(String taskId, int pollCount) async {
-    await Future.delayed(const Duration(milliseconds: 500)); // 模拟网络延迟
-    
-    // 模拟不同的处理阶段
-    if (pollCount <= 2) {
-      return {'status': 'pending'};
-    } else if (pollCount <= 6) {
-      return {'status': 'processing'};
-    } else if (pollCount <= 8) {
-      // 80%概率成功
-      if (DateTime.now().millisecond % 10 < 8) {
-        return {
-          'status': 'completed',
-          'result': '# 解析结果\n\n这是从MHTML解析出的Markdown内容...\n\n## 章节1\n内容示例...'
-        };
-      } else {
-        return {
-          'status': 'failed',
-          'error': '解析MHTML文件时出错'
-        };
-      }
-    } else {
-      return {
-        'status': 'completed',
-        'result': '# 最终解析结果\n\n完整的Markdown文档内容...'
-      };
-    }
+      },
+    );
   }
 }

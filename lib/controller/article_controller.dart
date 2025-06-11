@@ -149,9 +149,6 @@ class ArticleController extends GetxController {
   /// 获取文章摘要
   String get articleExcerpt => _currentArticle.value?.excerpt ?? '';
 
-  /// 获取文章标签
-  List<String> get articleTags => _currentArticle.value?.tags ?? [];
-
   /// 获取阅读进度
   double get readProgress => _currentArticle.value?.readProgress ?? 0.0;
 

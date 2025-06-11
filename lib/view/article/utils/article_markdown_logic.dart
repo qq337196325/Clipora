@@ -34,7 +34,6 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
   bool _isRestoringPosition = false;
   bool _isDisposed = false;
   
-  bool _hasUnsavedChanges = false;
   DateTime? _lastSaveTime;
   static const Duration _saveInterval = Duration(seconds: 20);
   static const Duration _minSaveInterval = Duration(seconds: 5);
@@ -64,7 +63,7 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
     _hideCustomSelectionMenu();
     _positionSaveTimer?.cancel();
     
-    if (webViewController != null && article != null && _hasUnsavedChanges) {
+    if (webViewController != null && article != null) {
       _saveCurrentReadingPosition().catchError((e) {
         getLogger().d('⚠️ dispose时保存阅读位置失败: $e');
       });
@@ -140,9 +139,7 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
         timer.cancel();
         return;
       }
-      if (_hasUnsavedChanges) {
-        _saveCurrentReadingPosition();
-      }
+      _saveCurrentReadingPosition();
     });
   }
 
@@ -192,9 +189,6 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
           getLogger().i('💾 保存阅读位置成功: 进度变化: ${(oldProgress * 100).toStringAsFixed(1)}% → ${(article!.readProgress * 100).toStringAsFixed(1)}%');
           await ArticleService.instance.saveArticle(article!);
           _lastSaveTime = DateTime.now();
-          _hasUnsavedChanges = false;
-        } else {
-           markUnsavedChanges();
         }
       }
     } catch (e) {
@@ -584,7 +578,6 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
 
   // === 辅助方法 ===
   bool _isWebViewAvailable() => !_isDisposed && webViewController != null && mounted;
-  void markUnsavedChanges() => _hasUnsavedChanges = true;
   bool _shouldSave() => _lastSaveTime == null || DateTime.now().difference(_lastSaveTime!) >= _minSaveInterval;
 
   Future<void> _ensureLatestArticleData() async {
@@ -640,12 +633,10 @@ class AppLifecycleObserver with WidgetsBindingObserver {
     switch (state) {
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
-        if (logic._hasUnsavedChanges) {
-          logic._saveCurrentReadingPosition();
-        }
+        logic._saveCurrentReadingPosition();
         break;
       case AppLifecycleState.resumed:
-        logic.markUnsavedChanges();
+        // logic.markUnsavedChanges(); // onResume, a check will be triggered by the timer anyway
         break;
       default:
         break;

@@ -63,7 +63,8 @@ class ShareService extends GetxService {
     super.onReady();
     getLogger().i('ShareService onReady 被调用');
     // 在这里检查初始分享内容，确保UI已经准备好
-    _checkInitialShare();
+    // _checkInitialShare();
+    // 初始分享内容的检查已移至 main.dart 以优化启动流程
   }
 
   /// 初始化分享监听器
@@ -94,34 +95,23 @@ class ShareService extends GetxService {
     }
   }
 
-  /// 检查应用启动时的分享内容
-  void _checkInitialShare() async {
-    getLogger().i('===== 开始检查初始分享内容 =====');
-    
-    // 移除了1000毫秒的延迟，以加快应用通过分享启动时的响应速度。
-    // GetX的onReady生命周期确保了此时检查初始分享是安全的。
-    try {
-      // 检查初始分享内容 (应用被关闭时收到的分享)
-      // 从v1.6.0+开始，所有类型的分享(包括文本)都通过getInitialMedia接收
-      getLogger().i('🔍 检查初始分享内容...');
-      final List<SharedMediaFile> initialMedia = await ReceiveSharingIntent.instance.getInitialMedia();
-      getLogger().i('初始分享结果: ${initialMedia.length} 个文件');
-      
-      if (initialMedia.isNotEmpty) {
-        getLogger().i('🎉 发现初始分享内容:');
-        for (var file in initialMedia) {
-          getLogger().i('初始分享文件: path=${file.path}, type=${file.type}, message=${file.message}');
-        }
-        _handleMediaShare(initialMedia);
-        // 处理完成后清除
-        ReceiveSharingIntent.instance.reset();
-      } else {
-        getLogger().i('📭 没有发现初始分享内容');
-      }
-      
-    } catch (e) {
-      getLogger().e('❌ 检查初始分享内容时出错: $e');
+  /// 处理从 main.dart 传递的初始分享内容
+  /// 应用冷启动时，由 main.dart 调用此方法来处理分享
+  void processInitialShare(List<SharedMediaFile> initialMedia) {
+    getLogger().i('===== 开始处理初始分享内容 (由main传递) =====');
+
+    if (initialMedia.isEmpty) {
+      getLogger().i('📭 没有发现初始分享内容');
+      return;
     }
+
+    getLogger().i('🎉 发现初始分享内容:');
+    for (var file in initialMedia) {
+      getLogger().i('初始分享文件: path=${file.path}, type=${file.type}, message=${file.message}');
+    }
+    _handleMediaShare(initialMedia);
+    // 处理完成后清除，避免重复处理
+    ReceiveSharingIntent.instance.reset();
   }
 
   /// 处理媒体文件分享 (包括文本、URL、图片、文件等所有类型)

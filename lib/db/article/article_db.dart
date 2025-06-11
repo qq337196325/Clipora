@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import '../tag/tag_db.dart';
 
 part 'article_db.g.dart'; // 用于代码生成
 
@@ -11,16 +12,16 @@ class ArticleDb {
 
   
   @Index() late String title;
-  String? excerpt;          // 摘要/简介
+  String? excerpt;                  // 摘要/简介
   String? content;
-  @Index() List<String> tags = [];
+  final tags = IsarLinks<TagDb>();
 
 
   String url = "";
   @Index() bool isCreateService = false;       // 是否在服务端添加
   @Index() bool isGenerateMhtml = false;       // 是否生成了Mhtml文件
   String mhtmlPath = "";              // mhtml快照路径【因为跨平台、这个要考虑下怎么保存】
-  String markdown = "";               // Markdown文档
+  @Index() String markdown = "";               // Markdown文档
   @Index() bool isGenerateMarkdown = false;    // 是否生成了Markdown文档
   String shareOriginalContent = "";   // 分享接收到的原始内容
   String serviceId = ""; 
@@ -50,15 +51,6 @@ class ArticleDb {
   @Index() DateTime createdAt = DateTime.now();
   @Index() DateTime updatedAt = DateTime.now();
 }
-
-
-// | 类型             | 建议用途          |
-// | -------------- | ------------- |
-// | `String`       | 标题、内容、链接等文本   |
-// | `int`/`double` | 计数、数值评分、价格等   |
-// | `DateTime`     | 时间戳、创建时间、到期时间 |
-// | `bool`         | 标记状态（是否已读等）   |
-// | `List<String>` | 标签、关键词        |
 
 // 每次新增或修改模型后，一定要重新运行代码生成命令：
 // flutter pub run build_runner build --delete-conflicting-outputs

@@ -137,28 +137,23 @@ const ArticleDbSchema = CollectionSchema(
       name: r'shareOriginalContent',
       type: IsarType.string,
     ),
-    r'tags': PropertySchema(
-      id: 24,
-      name: r'tags',
-      type: IsarType.stringList,
-    ),
     r'title': PropertySchema(
-      id: 25,
+      id: 24,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 26,
+      id: 25,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 27,
+      id: 26,
       name: r'url',
       type: IsarType.string,
     ),
     r'viewportHeight': PropertySchema(
-      id: 28,
+      id: 27,
       name: r'viewportHeight',
       type: IsarType.long,
     )
@@ -177,19 +172,6 @@ const ArticleDbSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'title',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
-    r'tags': IndexSchema(
-      id: 4029205728550669204,
-      name: r'tags',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'tags',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -218,6 +200,19 @@ const ArticleDbSchema = CollectionSchema(
           name: r'isGenerateMhtml',
           type: IndexType.value,
           caseSensitive: false,
+        )
+      ],
+    ),
+    r'markdown': IndexSchema(
+      id: 8956440606025981778,
+      name: r'markdown',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'markdown',
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     ),
@@ -261,7 +256,14 @@ const ArticleDbSchema = CollectionSchema(
       ],
     )
   },
-  links: {},
+  links: {
+    r'tags': LinkSchema(
+      id: 517979699855733339,
+      name: r'tags',
+      target: r'TagDb',
+      single: false,
+    )
+  },
   embeddedSchemas: {},
   getId: _articleDbGetId,
   getLinks: _articleDbGetLinks,
@@ -294,13 +296,6 @@ int _articleDbEstimateSize(
   bytesCount += 3 + object.readingSessionId.length * 3;
   bytesCount += 3 + object.serviceId.length * 3;
   bytesCount += 3 + object.shareOriginalContent.length * 3;
-  bytesCount += 3 + object.tags.length * 3;
-  {
-    for (var i = 0; i < object.tags.length; i++) {
-      final value = object.tags[i];
-      bytesCount += value.length * 3;
-    }
-  }
   bytesCount += 3 + object.title.length * 3;
   bytesCount += 3 + object.url.length * 3;
   return bytesCount;
@@ -336,11 +331,10 @@ void _articleDbSerialize(
   writer.writeString(offsets[21], object.serviceId);
   writer.writeLong(offsets[22], object.serviceUpdatedAt);
   writer.writeString(offsets[23], object.shareOriginalContent);
-  writer.writeStringList(offsets[24], object.tags);
-  writer.writeString(offsets[25], object.title);
-  writer.writeDateTime(offsets[26], object.updatedAt);
-  writer.writeString(offsets[27], object.url);
-  writer.writeLong(offsets[28], object.viewportHeight);
+  writer.writeString(offsets[24], object.title);
+  writer.writeDateTime(offsets[25], object.updatedAt);
+  writer.writeString(offsets[26], object.url);
+  writer.writeLong(offsets[27], object.viewportHeight);
 }
 
 ArticleDb _articleDbDeserialize(
@@ -375,11 +369,10 @@ ArticleDb _articleDbDeserialize(
   object.serviceId = reader.readString(offsets[21]);
   object.serviceUpdatedAt = reader.readLong(offsets[22]);
   object.shareOriginalContent = reader.readString(offsets[23]);
-  object.tags = reader.readStringList(offsets[24]) ?? [];
-  object.title = reader.readString(offsets[25]);
-  object.updatedAt = reader.readDateTime(offsets[26]);
-  object.url = reader.readString(offsets[27]);
-  object.viewportHeight = reader.readLong(offsets[28]);
+  object.title = reader.readString(offsets[24]);
+  object.updatedAt = reader.readDateTime(offsets[25]);
+  object.url = reader.readString(offsets[26]);
+  object.viewportHeight = reader.readLong(offsets[27]);
   return object;
 }
 
@@ -439,14 +432,12 @@ P _articleDbDeserializeProp<P>(
     case 23:
       return (reader.readString(offset)) as P;
     case 24:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readString(offset)) as P;
     case 25:
-      return (reader.readString(offset)) as P;
-    case 26:
       return (reader.readDateTime(offset)) as P;
-    case 27:
+    case 26:
       return (reader.readString(offset)) as P;
-    case 28:
+    case 27:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -458,11 +449,12 @@ Id _articleDbGetId(ArticleDb object) {
 }
 
 List<IsarLinkBase<dynamic>> _articleDbGetLinks(ArticleDb object) {
-  return [];
+  return [object.tags];
 }
 
 void _articleDbAttach(IsarCollection<dynamic> col, Id id, ArticleDb object) {
   object.id = id;
+  object.tags.attach(col, col.isar.collection<TagDb>(), r'tags', id);
 }
 
 extension ArticleDbQueryWhereSort
@@ -626,51 +618,6 @@ extension ArticleDbQueryWhere
     });
   }
 
-  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> tagsEqualTo(
-      List<String> tags) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'tags',
-        value: [tags],
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> tagsNotEqualTo(
-      List<String> tags) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'tags',
-              lower: [],
-              upper: [tags],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'tags',
-              lower: [tags],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'tags',
-              lower: [tags],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'tags',
-              lower: [],
-              upper: [tags],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
   QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> isCreateServiceEqualTo(
       bool isCreateService) {
     return QueryBuilder.apply(this, (query) {
@@ -755,6 +702,51 @@ extension ArticleDbQueryWhere
               indexName: r'isGenerateMhtml',
               lower: [],
               upper: [isGenerateMhtml],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> markdownEqualTo(
+      String markdown) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'markdown',
+        value: [markdown],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> markdownNotEqualTo(
+      String markdown) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'markdown',
+              lower: [],
+              upper: [markdown],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'markdown',
+              lower: [markdown],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'markdown',
+              lower: [markdown],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'markdown',
+              lower: [],
+              upper: [markdown],
               includeUpper: false,
             ));
       }
@@ -2994,225 +2986,6 @@ extension ArticleDbQueryFilter
     });
   }
 
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsElementEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tags',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
-      tagsElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'tags',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsElementLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'tags',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsElementBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'tags',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
-      tagsElementStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'tags',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsElementEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'tags',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsElementContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'tags',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsElementMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'tags',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
-      tagsElementIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tags',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
-      tagsElementIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'tags',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tags',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tags',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tags',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tags',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
-      tagsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tags',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tags',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
-
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> titleEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -3588,7 +3361,64 @@ extension ArticleDbQueryObject
     on QueryBuilder<ArticleDb, ArticleDb, QFilterCondition> {}
 
 extension ArticleDbQueryLinks
-    on QueryBuilder<ArticleDb, ArticleDb, QFilterCondition> {}
+    on QueryBuilder<ArticleDb, ArticleDb, QFilterCondition> {
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tags(
+      FilterQuery<TagDb> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'tags');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'tags', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'tags', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'tags', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'tags', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      tagsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'tags', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> tagsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'tags', lower, includeLower, upper, includeUpper);
+    });
+  }
+}
 
 extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByContent() {
@@ -4459,12 +4289,6 @@ extension ArticleDbQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByTags() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'tags');
-    });
-  }
-
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByTitle(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -4644,12 +4468,6 @@ extension ArticleDbQueryProperty
       shareOriginalContentProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'shareOriginalContent');
-    });
-  }
-
-  QueryBuilder<ArticleDb, List<String>, QQueryOperations> tagsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'tags');
     });
   }
 

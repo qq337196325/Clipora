@@ -6,7 +6,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:inkwell/route/route.dart';
 import 'package:inkwell/controller/share_service.dart';
 import 'package:inkwell/controller/sync_service.dart';
-import 'package:inkwell/controller/snapshot_service.dart';
 import 'package:inkwell/db/database_service.dart';
 import 'package:inkwell/db/article/article_service.dart';
 import 'package:inkwell/basics/translations/app_translations.dart';
@@ -14,8 +13,9 @@ import 'package:inkwell/controller/language_controller.dart';
 import 'package:inkwell/view/article/components/markdown_webview_pool_manager.dart' as MarkdownPool;
 import 'package:inkwell/view/article/components/web_webview_pool_manager.dart';
 import 'package:inkwell/basics/logger.dart';
-import 'package:inkwell/controller/markdown_service.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
+import 'basics/app_theme.dart';
 import 'basics/apps_state.dart';
 
 
@@ -23,19 +23,37 @@ void main() async {
   HttpOverrides.global = MyHttpOverrides(); // 忽略证书
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 初始化GetStorage
-  GetStorage.init();
-  _initServices();
+  // 初始化GetStorage，确保后续服务可用
+  await GetStorage.init();
+
+  // 检查是否从分享启动，这是优化启动速度的关键
+  final initialMedia = await ReceiveSharingIntent.instance.getInitialMedia();
+  final isShareLaunch = initialMedia.isNotEmpty;
+  
+  // 根据启动类型初始化所需的服务
+  await _initServices(isShareLaunch: isShareLaunch);
+
+  // 如果是从分享启动，立即处理分享内容
+  if (isShareLaunch) {
+    // ShareService 已被初始化，可以直接找到并调用
+    Get.find<ShareService>().processInitialShare(initialMedia);
+  }
+
 
   runApp(AppsState(child: MyApp()));
 }
 
-/// 异步初始化服务
-Future<void> _initServices() async {
+/// 根据启动模式初始化服务
+///
+/// [isShareLaunch] - 如果为 true, 则为分享启动模式，只初始化核心服务以加快启动。
+///                 否则为正常启动模式，初始化所有服务。
+Future<void> _initServices({required bool isShareLaunch}) async {
+  // --- 核心服务 (任何模式下都必须初始化) ---
+  getLogger().i('🔧 初始化核心服务...');
   // 注册数据库服务（必须第一个初始化并等待完成）
   final dbService = Get.put(DatabaseService(), permanent: true);
-  // 等待数据库服务完全初始化
-  dbService.initDb();
+  // 确保数据库初始化完成，这对于后续操作至关重要
+  await dbService.initDb();
   
   // 注册文章服务
   Get.put(ArticleService(), permanent: true);
@@ -43,19 +61,30 @@ Future<void> _initServices() async {
   // 注册分享服务
   Get.put(ShareService(), permanent: true);
   
+  // 注册语言控制器
+  Get.put(LanguageController(), permanent: true);
+  getLogger().i('✅ 核心服务初始化完成');
+
+  // 如果是分享启动，则跳过非必要的服务初始化，以实现快速启动
+  if (isShareLaunch) {
+    getLogger().i('🚀 分享模式启动: 已跳过非核心服务初始化。');
+    return;
+  }
+
+  // --- 附加服务 (仅在正常启动模式下初始化) ---
+  getLogger().i('🔧 初始化附加服务 (正常启动模式)...');
+  
   // 注册同步服务
   Get.put(SyncService(), permanent: true);
   
   // 注册快照服务
-  Get.put(SnapshotService(), permanent: true);
+  // Get.put(SnapshotService(), permanent: true);
   
-  // 注册Markdown生成服务
-  Get.put(MarkdownService(), permanent: true);
+  // // 注册Markdown生成服务
+  // Get.put(MarkdownService(), permanent: true);
+  // getLogger().i('✅ 附加服务初始化完成');
   
-  // 注册语言控制器
-  Get.put(LanguageController(), permanent: true);
-  
-  // 🚀 初始化WebView优化器 - 异步预热，提升页面性能
+  // 🚀 在正常启动时，异步预热WebView，不阻塞UI线程
   _initWebViewOptimizers();
 }
 
@@ -92,10 +121,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ThemeData themeData = ThemeData();
     return GetMaterialApp.router(
       title: "Clipora",
       debugShowCheckedModeBanner: false,
+      
+      // 应用我们自定义的护眼主题
+      theme: readingTheme,
       
       // 多语言配置
       translations: AppTranslations(),
@@ -105,13 +136,8 @@ class MyApp extends StatelessWidget {
       routeInformationParser: router.routeInformationParser,
       routerDelegate: router.routerDelegate,
       routeInformationProvider: router.routeInformationProvider,
-      // 添加 BotToast 配置
-      // builder: BotToastInit(),
-       builder: (context, child) {
-        final botToastBuilder = BotToastInit();  
-        child = botToastBuilder(context, child);
-        return child;
-      },
+      // 推荐使用官方推荐的简洁方式来初始化 BotToast
+      builder: BotToastInit(),
     );
 
   }

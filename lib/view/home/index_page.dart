@@ -1,21 +1,16 @@
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:animated_segmented_tab_control/animated_segmented_tab_control.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:bot_toast/bot_toast.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:image/image.dart' as img;
+import 'package:get/get.dart';
+
 import '../../../route/route_name.dart';
 import '../../db/article/article_service.dart';
+import '../../db/tag/tag_service.dart';
 import '../../db/article/article_db.dart';
 import '../../db/database_service.dart';
-import 'package:get/get.dart';
+import 'widgets/my_page_modal.dart';
 
 class IndexPage extends StatefulWidget {
   const IndexPage({super.key});
@@ -44,11 +39,8 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                   // 左边的"我的"图标
                   GestureDetector(
                     onTap: () {
-                      // 处理"我的"点击事件
-                      // TODO: 添加"我的"页面路由
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('我的页面')),
-                      );
+                      // 处理"我的"点击事件, 弹出模态框
+                      _showMyPageModal();
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -142,6 +134,9 @@ mixin IndexPageBLoC on State<IndexPage> {
 
   // 文章列表相关变量
   List<ArticleDb> articles = [];
+  List<ArticleDb> unreadArticles = [];
+  List<ArticleDb> recentlyReadArticles = [];
+  List<TagWithCount> tagsWithCount = [];
   bool isLoading = false;
   bool hasError = false;
   String errorMessage = '';
@@ -215,8 +210,21 @@ mixin IndexPageBLoC on State<IndexPage> {
       print('📊 数据库中文章总数: $totalCount');
       
       // 执行正常的查询
-      final articleList = await ArticleService.instance.getAllArticles();
+      final results = await Future.wait([
+        ArticleService.instance.getAllArticles(),
+        ArticleService.instance.getUnreadArticles(limit: 5),
+        ArticleService.instance.getRecentlyReadArticles(limit: 5),
+        TagService.instance.getTagsWithArticleCount(),
+      ]);
+      final articleList = results[0] as List<ArticleDb>;
+      final unreadList = results[1] as List<ArticleDb>;
+      final recentlyReadList = results[2] as List<ArticleDb>;
+      final tagsList = results[3] as List<TagWithCount>;
+
       print('📋 查询结果数量: ${articleList.length}');
+      print('📚 未读文章数量: ${unreadList.length}');
+      print('📖 最近阅读数量: ${recentlyReadList.length}');
+      print('🏷️ 标签数量: ${tagsList.length}');
       
       if (articleList.isNotEmpty) {
         print('📄 第一篇文章信息:');
@@ -227,6 +235,9 @@ mixin IndexPageBLoC on State<IndexPage> {
       setState(() {
         print('🔄 setState 前: articles.length = ${articles.length}');
         articles = articleList;
+        unreadArticles = unreadList;
+        recentlyReadArticles = recentlyReadList;
+        tagsWithCount = tagsList;
         isLoading = false;
         print('🔄 setState 后: articles.length = ${articles.length}');
       });
@@ -275,73 +286,44 @@ mixin IndexPageBLoC on State<IndexPage> {
   Widget _buildArticleListPage() {
     return RefreshIndicator(
       onRefresh: _refreshArticles,
-      child: Container(
+      child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-
-    Container(
-      // 添加一些内容以便测试滑动效果
-      child: Column(
         children: [
-          InkWell(
-            onTap: () async {
-              await context.push('/${RouteName.articlePage}');
-            },
-            child: Center(
-              child: Text('文章页面', style: TextStyle(fontSize: 18)),
+          _buildUnreadSection(),
+          _buildRecentlyReadSection(),
+          _buildTagsSection(),
+          // 标题栏
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              children: [
+                const Text(
+                  '我的文章',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF161514),
+                  ),
+                ),
+                const Spacer(),
+                Builder(
+                  builder: (context) {
+                    print('📊 标题栏显示: articles.length = ${articles.length}');
+                    return Text(
+                      '共 ${articles.length} 篇',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF666666),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
-          SizedBox(
-            height: 20,
-          ),
-          InkWell(
-            onTap: () async {
-              await context.push('/${RouteName.articlePage2}');
-            },
-            child: Center(
-              child: Text('文章页面2', style: TextStyle(fontSize: 18)),
-            ),
-          ),
+          // 文章列表
+          _buildArticleList(),
         ],
-      ),
-    ),
-
-            // 标题栏
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Row(
-                children: [
-                  const Text(
-                    '我的文章',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF161514),
-                    ),
-                  ),
-                  const Spacer(),
-                  Builder(
-                    builder: (context) {
-                      print('📊 标题栏显示: articles.length = ${articles.length}');
-                      return Text(
-                        '共 ${articles.length} 篇',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF666666),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            // 文章列表
-            Expanded(
-              child: _buildArticleList(),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -411,6 +393,8 @@ mixin IndexPageBLoC on State<IndexPage> {
     }
 
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: articles.length,
       itemBuilder: (context, index) {
         final article = articles[index];
@@ -545,27 +529,6 @@ mixin IndexPageBLoC on State<IndexPage> {
                     ),
                   ),
                   const Spacer(),
-                  // 标签
-                  if (article.tags.isNotEmpty)
-                    Wrap(
-                      spacing: 4,
-                      children: article.tags.take(2).map((tag) => 
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            tag,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: Color(0xFF666666),
-                            ),
-                          ),
-                        ),
-                      ).toList(),
-                    ),
                 ],
               ),
             ],
@@ -601,6 +564,270 @@ mixin IndexPageBLoC on State<IndexPage> {
           ],
         );
       },
+    );
+  }
+
+  /// 显示"我的"页面模态框
+  void _showMyPageModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext modalContext) {
+        return const MyPageModal();
+      },
+    );
+  }
+
+  /// 构建未读文章区域
+  Widget _buildUnreadSection() {
+    return Container(
+      padding: const EdgeInsets.only(top: 16, bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '稍后阅读',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF161514),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFEEEEEE)),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: unreadArticles.isEmpty
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24.0),
+                    child: Text(
+                      '暂无需要稍后阅读的文章',
+                      style: TextStyle(
+                        color: Color(0xFF999999),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: unreadArticles.expand((article) {
+                    final index = unreadArticles.indexOf(article);
+                    return [
+                      if (index > 0)
+                        const Divider(
+                          height: 25,
+                          thickness: 1,
+                          color: Color(0xFFF5F5F5),
+                        ),
+                      InkWell(
+                        onTap: () {
+                          context.push('/${RouteName.articlePage}?id=${article.id}');
+                        },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                article.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Color(0xFF161514),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 14,
+                              color: Color(0xFFCCCCCC),
+                            )
+                          ],
+                        ),
+                      ),
+                    ];
+                  }).toList(),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建最近阅读文章区域
+  Widget _buildRecentlyReadSection() {
+    return Container(
+      padding: const EdgeInsets.only(top: 8, bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '最近阅读',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF161514),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFEEEEEE)),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: recentlyReadArticles.isEmpty
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24.0),
+                    child: Text(
+                      '暂无最近阅读记录',
+                      style: TextStyle(
+                        color: Color(0xFF999999),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: recentlyReadArticles.expand((article) {
+                    final index = recentlyReadArticles.indexOf(article);
+                    return [
+                      if (index > 0)
+                        const Divider(
+                          height: 25,
+                          thickness: 1,
+                          color: Color(0xFFF5F5F5),
+                        ),
+                      InkWell(
+                        onTap: () {
+                          context.push('/${RouteName.articlePage}?id=${article.id}');
+                        },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                article.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Color(0xFF161514),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 14,
+                              color: Color(0xFFCCCCCC),
+                            )
+                          ],
+                        ),
+                      ),
+                    ];
+                  }).toList(),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建标签区域
+  Widget _buildTagsSection() {
+    if (tagsWithCount.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.only(top: 8, bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '我的标签',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF161514),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: tagsWithCount.map((tagWithCount) {
+              const bgColor = Color(0xFFF8F8F8);
+              const textColor = Color(0xFF555555);
+              const borderColor = Color(0xFFE0E0E0);
+
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content:
+                              Text('筛选标签: ${tagWithCount.tag.name}')),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: borderColor,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.tag_rounded,
+                            size: 15, color: textColor),
+                        const SizedBox(width: 5),
+                        Text(
+                          tagWithCount.tag.name,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: textColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${tagWithCount.count})',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: textColor.withOpacity(0.7),
+                            fontWeight: FontWeight.w400,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
     );
   }
 

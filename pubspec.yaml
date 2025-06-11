@@ -33,6 +33,7 @@ dependencies:
   flutter_markdown_selectionarea: ^0.6.17+1        # 支持 SelectionArea 的 MarkdownWidget
   isar_flutter_libs: ^3.1.0+1                      # Isar 原生库文件
   page_flip_builder: ^0.1.4
+  modal_bottom_sheet: ^3.0.0
 
 
 dev_dependencies:

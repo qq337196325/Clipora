@@ -65,7 +65,6 @@ class ArticleService extends GetxService {
         ..url = url
         ..shareOriginalContent = originalContent
         ..excerpt = excerpt
-        ..tags = tags ?? []
         ..isRead = 0
         ..readCount = 0
         ..readDuration = 0
@@ -112,6 +111,42 @@ class ArticleService extends GetxService {
           .findAll();
     } catch (e) {
       getLogger().e('❌ 获取文章列表失败: $e');
+      return [];
+    }
+  }
+
+  /// 获取未读文章
+  Future<List<ArticleDb>> getUnreadArticles({int limit = 5}) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      return await _dbService.articles
+          .where()
+          .filter()
+          .isReadEqualTo(0)
+          .sortByCreatedAtDesc()
+          .limit(limit)
+          .findAll();
+    } catch (e) {
+      getLogger().e('❌ 获取未读文章列表失败: $e');
+      return [];
+    }
+  }
+
+  /// 获取最近阅读的文章
+  Future<List<ArticleDb>> getRecentlyReadArticles({int limit = 5}) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      return await _dbService.articles
+          .where()
+          .filter()
+          .isReadEqualTo(1)
+          .sortByLastReadTimeDesc()
+          .limit(limit)
+          .findAll();
+    } catch (e) {
+      getLogger().e('❌ 获取最近阅读文章列表失败: $e');
       return [];
     }
   }
