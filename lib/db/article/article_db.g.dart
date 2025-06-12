@@ -17,143 +17,173 @@ const ArticleDbSchema = CollectionSchema(
   name: r'ArticleDb',
   id: 9105731770752749089,
   properties: {
-    r'content': PropertySchema(
+    r'articleDate': PropertySchema(
       id: 0,
+      name: r'articleDate',
+      type: IsarType.dateTime,
+    ),
+    r'author': PropertySchema(
+      id: 1,
+      name: r'author',
+      type: IsarType.string,
+    ),
+    r'content': PropertySchema(
+      id: 2,
       name: r'content',
       type: IsarType.string,
     ),
     r'contentHeight': PropertySchema(
-      id: 1,
+      id: 3,
       name: r'contentHeight',
       type: IsarType.long,
     ),
     r'createdAt': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'currentElementId': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'currentElementId',
       type: IsarType.string,
     ),
     r'currentElementOffset': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'currentElementOffset',
       type: IsarType.long,
     ),
     r'currentElementText': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'currentElementText',
       type: IsarType.string,
     ),
+    r'deletedAt': PropertySchema(
+      id: 8,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'domain': PropertySchema(
+      id: 9,
+      name: r'domain',
+      type: IsarType.string,
+    ),
     r'excerpt': PropertySchema(
-      id: 6,
+      id: 10,
       name: r'excerpt',
       type: IsarType.string,
     ),
+    r'isArchived': PropertySchema(
+      id: 11,
+      name: r'isArchived',
+      type: IsarType.bool,
+    ),
     r'isCreateService': PropertySchema(
-      id: 7,
+      id: 12,
       name: r'isCreateService',
       type: IsarType.bool,
     ),
     r'isGenerateMarkdown': PropertySchema(
-      id: 8,
+      id: 13,
       name: r'isGenerateMarkdown',
       type: IsarType.bool,
     ),
     r'isGenerateMhtml': PropertySchema(
-      id: 9,
+      id: 14,
       name: r'isGenerateMhtml',
       type: IsarType.bool,
     ),
+    r'isImportant': PropertySchema(
+      id: 15,
+      name: r'isImportant',
+      type: IsarType.bool,
+    ),
     r'isRead': PropertySchema(
-      id: 10,
+      id: 16,
       name: r'isRead',
       type: IsarType.long,
     ),
     r'lastReadTime': PropertySchema(
-      id: 11,
+      id: 17,
       name: r'lastReadTime',
       type: IsarType.dateTime,
     ),
     r'markdown': PropertySchema(
-      id: 12,
+      id: 18,
       name: r'markdown',
       type: IsarType.string,
     ),
     r'markdownScrollX': PropertySchema(
-      id: 13,
+      id: 19,
       name: r'markdownScrollX',
       type: IsarType.long,
     ),
     r'markdownScrollY': PropertySchema(
-      id: 14,
+      id: 20,
       name: r'markdownScrollY',
       type: IsarType.long,
     ),
     r'mhtmlPath': PropertySchema(
-      id: 15,
+      id: 21,
       name: r'mhtmlPath',
       type: IsarType.string,
     ),
     r'readCount': PropertySchema(
-      id: 16,
+      id: 22,
       name: r'readCount',
       type: IsarType.long,
     ),
     r'readDuration': PropertySchema(
-      id: 17,
+      id: 23,
       name: r'readDuration',
       type: IsarType.long,
     ),
     r'readProgress': PropertySchema(
-      id: 18,
+      id: 24,
       name: r'readProgress',
       type: IsarType.double,
     ),
     r'readingSessionId': PropertySchema(
-      id: 19,
+      id: 25,
       name: r'readingSessionId',
       type: IsarType.string,
     ),
     r'readingStartTime': PropertySchema(
-      id: 20,
+      id: 26,
       name: r'readingStartTime',
       type: IsarType.long,
     ),
     r'serviceId': PropertySchema(
-      id: 21,
+      id: 27,
       name: r'serviceId',
       type: IsarType.string,
     ),
     r'serviceUpdatedAt': PropertySchema(
-      id: 22,
+      id: 28,
       name: r'serviceUpdatedAt',
       type: IsarType.long,
     ),
     r'shareOriginalContent': PropertySchema(
-      id: 23,
+      id: 29,
       name: r'shareOriginalContent',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 24,
+      id: 30,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 25,
+      id: 31,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 26,
+      id: 32,
       name: r'url',
       type: IsarType.string,
     ),
     r'viewportHeight': PropertySchema(
-      id: 27,
+      id: 33,
       name: r'viewportHeight',
       type: IsarType.long,
     )
@@ -174,6 +204,45 @@ const ArticleDbSchema = CollectionSchema(
           name: r'title',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'domain': IndexSchema(
+      id: 1163864941618423784,
+      name: r'domain',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'domain',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'author': IndexSchema(
+      id: 1831044620441877526,
+      name: r'author',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'author',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'articleDate': IndexSchema(
+      id: 7578881227902430341,
+      name: r'articleDate',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'articleDate',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     ),
@@ -229,6 +298,45 @@ const ArticleDbSchema = CollectionSchema(
         )
       ],
     ),
+    r'serviceId': IndexSchema(
+      id: -2057415921448131436,
+      name: r'serviceId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'serviceId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'isArchived': IndexSchema(
+      id: 655844772568347876,
+      name: r'isArchived',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'isArchived',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'isImportant': IndexSchema(
+      id: -878819913280491997,
+      name: r'isImportant',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'isImportant',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
     r'createdAt': IndexSchema(
       id: -3433535483987302584,
       name: r'createdAt',
@@ -262,6 +370,12 @@ const ArticleDbSchema = CollectionSchema(
       name: r'tags',
       target: r'TagDb',
       single: false,
+    ),
+    r'category': LinkSchema(
+      id: -2321539935029527768,
+      name: r'category',
+      target: r'CategoryDb',
+      single: true,
     )
   },
   embeddedSchemas: {},
@@ -277,6 +391,7 @@ int _articleDbEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.author.length * 3;
   {
     final value = object.content;
     if (value != null) {
@@ -285,6 +400,7 @@ int _articleDbEstimateSize(
   }
   bytesCount += 3 + object.currentElementId.length * 3;
   bytesCount += 3 + object.currentElementText.length * 3;
+  bytesCount += 3 + object.domain.length * 3;
   {
     final value = object.excerpt;
     if (value != null) {
@@ -307,34 +423,40 @@ void _articleDbSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.content);
-  writer.writeLong(offsets[1], object.contentHeight);
-  writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeString(offsets[3], object.currentElementId);
-  writer.writeLong(offsets[4], object.currentElementOffset);
-  writer.writeString(offsets[5], object.currentElementText);
-  writer.writeString(offsets[6], object.excerpt);
-  writer.writeBool(offsets[7], object.isCreateService);
-  writer.writeBool(offsets[8], object.isGenerateMarkdown);
-  writer.writeBool(offsets[9], object.isGenerateMhtml);
-  writer.writeLong(offsets[10], object.isRead);
-  writer.writeDateTime(offsets[11], object.lastReadTime);
-  writer.writeString(offsets[12], object.markdown);
-  writer.writeLong(offsets[13], object.markdownScrollX);
-  writer.writeLong(offsets[14], object.markdownScrollY);
-  writer.writeString(offsets[15], object.mhtmlPath);
-  writer.writeLong(offsets[16], object.readCount);
-  writer.writeLong(offsets[17], object.readDuration);
-  writer.writeDouble(offsets[18], object.readProgress);
-  writer.writeString(offsets[19], object.readingSessionId);
-  writer.writeLong(offsets[20], object.readingStartTime);
-  writer.writeString(offsets[21], object.serviceId);
-  writer.writeLong(offsets[22], object.serviceUpdatedAt);
-  writer.writeString(offsets[23], object.shareOriginalContent);
-  writer.writeString(offsets[24], object.title);
-  writer.writeDateTime(offsets[25], object.updatedAt);
-  writer.writeString(offsets[26], object.url);
-  writer.writeLong(offsets[27], object.viewportHeight);
+  writer.writeDateTime(offsets[0], object.articleDate);
+  writer.writeString(offsets[1], object.author);
+  writer.writeString(offsets[2], object.content);
+  writer.writeLong(offsets[3], object.contentHeight);
+  writer.writeDateTime(offsets[4], object.createdAt);
+  writer.writeString(offsets[5], object.currentElementId);
+  writer.writeLong(offsets[6], object.currentElementOffset);
+  writer.writeString(offsets[7], object.currentElementText);
+  writer.writeDateTime(offsets[8], object.deletedAt);
+  writer.writeString(offsets[9], object.domain);
+  writer.writeString(offsets[10], object.excerpt);
+  writer.writeBool(offsets[11], object.isArchived);
+  writer.writeBool(offsets[12], object.isCreateService);
+  writer.writeBool(offsets[13], object.isGenerateMarkdown);
+  writer.writeBool(offsets[14], object.isGenerateMhtml);
+  writer.writeBool(offsets[15], object.isImportant);
+  writer.writeLong(offsets[16], object.isRead);
+  writer.writeDateTime(offsets[17], object.lastReadTime);
+  writer.writeString(offsets[18], object.markdown);
+  writer.writeLong(offsets[19], object.markdownScrollX);
+  writer.writeLong(offsets[20], object.markdownScrollY);
+  writer.writeString(offsets[21], object.mhtmlPath);
+  writer.writeLong(offsets[22], object.readCount);
+  writer.writeLong(offsets[23], object.readDuration);
+  writer.writeDouble(offsets[24], object.readProgress);
+  writer.writeString(offsets[25], object.readingSessionId);
+  writer.writeLong(offsets[26], object.readingStartTime);
+  writer.writeString(offsets[27], object.serviceId);
+  writer.writeLong(offsets[28], object.serviceUpdatedAt);
+  writer.writeString(offsets[29], object.shareOriginalContent);
+  writer.writeString(offsets[30], object.title);
+  writer.writeDateTime(offsets[31], object.updatedAt);
+  writer.writeString(offsets[32], object.url);
+  writer.writeLong(offsets[33], object.viewportHeight);
 }
 
 ArticleDb _articleDbDeserialize(
@@ -344,35 +466,41 @@ ArticleDb _articleDbDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = ArticleDb();
-  object.content = reader.readStringOrNull(offsets[0]);
-  object.contentHeight = reader.readLong(offsets[1]);
-  object.createdAt = reader.readDateTime(offsets[2]);
-  object.currentElementId = reader.readString(offsets[3]);
-  object.currentElementOffset = reader.readLong(offsets[4]);
-  object.currentElementText = reader.readString(offsets[5]);
-  object.excerpt = reader.readStringOrNull(offsets[6]);
+  object.articleDate = reader.readDateTimeOrNull(offsets[0]);
+  object.author = reader.readString(offsets[1]);
+  object.content = reader.readStringOrNull(offsets[2]);
+  object.contentHeight = reader.readLong(offsets[3]);
+  object.createdAt = reader.readDateTime(offsets[4]);
+  object.currentElementId = reader.readString(offsets[5]);
+  object.currentElementOffset = reader.readLong(offsets[6]);
+  object.currentElementText = reader.readString(offsets[7]);
+  object.deletedAt = reader.readDateTimeOrNull(offsets[8]);
+  object.domain = reader.readString(offsets[9]);
+  object.excerpt = reader.readStringOrNull(offsets[10]);
   object.id = id;
-  object.isCreateService = reader.readBool(offsets[7]);
-  object.isGenerateMarkdown = reader.readBool(offsets[8]);
-  object.isGenerateMhtml = reader.readBool(offsets[9]);
-  object.isRead = reader.readLong(offsets[10]);
-  object.lastReadTime = reader.readDateTimeOrNull(offsets[11]);
-  object.markdown = reader.readString(offsets[12]);
-  object.markdownScrollX = reader.readLong(offsets[13]);
-  object.markdownScrollY = reader.readLong(offsets[14]);
-  object.mhtmlPath = reader.readString(offsets[15]);
-  object.readCount = reader.readLong(offsets[16]);
-  object.readDuration = reader.readLong(offsets[17]);
-  object.readProgress = reader.readDouble(offsets[18]);
-  object.readingSessionId = reader.readString(offsets[19]);
-  object.readingStartTime = reader.readLong(offsets[20]);
-  object.serviceId = reader.readString(offsets[21]);
-  object.serviceUpdatedAt = reader.readLong(offsets[22]);
-  object.shareOriginalContent = reader.readString(offsets[23]);
-  object.title = reader.readString(offsets[24]);
-  object.updatedAt = reader.readDateTime(offsets[25]);
-  object.url = reader.readString(offsets[26]);
-  object.viewportHeight = reader.readLong(offsets[27]);
+  object.isArchived = reader.readBool(offsets[11]);
+  object.isCreateService = reader.readBool(offsets[12]);
+  object.isGenerateMarkdown = reader.readBool(offsets[13]);
+  object.isGenerateMhtml = reader.readBool(offsets[14]);
+  object.isImportant = reader.readBool(offsets[15]);
+  object.isRead = reader.readLong(offsets[16]);
+  object.lastReadTime = reader.readDateTimeOrNull(offsets[17]);
+  object.markdown = reader.readString(offsets[18]);
+  object.markdownScrollX = reader.readLong(offsets[19]);
+  object.markdownScrollY = reader.readLong(offsets[20]);
+  object.mhtmlPath = reader.readString(offsets[21]);
+  object.readCount = reader.readLong(offsets[22]);
+  object.readDuration = reader.readLong(offsets[23]);
+  object.readProgress = reader.readDouble(offsets[24]);
+  object.readingSessionId = reader.readString(offsets[25]);
+  object.readingStartTime = reader.readLong(offsets[26]);
+  object.serviceId = reader.readString(offsets[27]);
+  object.serviceUpdatedAt = reader.readLong(offsets[28]);
+  object.shareOriginalContent = reader.readString(offsets[29]);
+  object.title = reader.readString(offsets[30]);
+  object.updatedAt = reader.readDateTime(offsets[31]);
+  object.url = reader.readString(offsets[32]);
+  object.viewportHeight = reader.readLong(offsets[33]);
   return object;
 }
 
@@ -384,45 +512,45 @@ P _articleDbDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 1:
-      return (reader.readLong(offset)) as P;
-    case 2:
-      return (reader.readDateTime(offset)) as P;
-    case 3:
       return (reader.readString(offset)) as P;
-    case 4:
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
       return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readDateTime(offset)) as P;
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 7:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readBool(offset)) as P;
-    case 9:
-      return (reader.readBool(offset)) as P;
-    case 10:
-      return (reader.readLong(offset)) as P;
-    case 11:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
+      return (reader.readBool(offset)) as P;
     case 12:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 13:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 14:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 15:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 16:
       return (reader.readLong(offset)) as P;
     case 17:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 18:
-      return (reader.readDouble(offset)) as P;
-    case 19:
       return (reader.readString(offset)) as P;
+    case 19:
+      return (reader.readLong(offset)) as P;
     case 20:
       return (reader.readLong(offset)) as P;
     case 21:
@@ -430,14 +558,26 @@ P _articleDbDeserializeProp<P>(
     case 22:
       return (reader.readLong(offset)) as P;
     case 23:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 24:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 25:
-      return (reader.readDateTime(offset)) as P;
-    case 26:
       return (reader.readString(offset)) as P;
+    case 26:
+      return (reader.readLong(offset)) as P;
     case 27:
+      return (reader.readString(offset)) as P;
+    case 28:
+      return (reader.readLong(offset)) as P;
+    case 29:
+      return (reader.readString(offset)) as P;
+    case 30:
+      return (reader.readString(offset)) as P;
+    case 31:
+      return (reader.readDateTime(offset)) as P;
+    case 32:
+      return (reader.readString(offset)) as P;
+    case 33:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -449,12 +589,14 @@ Id _articleDbGetId(ArticleDb object) {
 }
 
 List<IsarLinkBase<dynamic>> _articleDbGetLinks(ArticleDb object) {
-  return [object.tags];
+  return [object.tags, object.category];
 }
 
 void _articleDbAttach(IsarCollection<dynamic> col, Id id, ArticleDb object) {
   object.id = id;
   object.tags.attach(col, col.isar.collection<TagDb>(), r'tags', id);
+  object.category
+      .attach(col, col.isar.collection<CategoryDb>(), r'category', id);
 }
 
 extension ArticleDbQueryWhereSort
@@ -462,6 +604,14 @@ extension ArticleDbQueryWhereSort
   QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyArticleDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'articleDate'),
+      );
     });
   }
 
@@ -485,6 +635,22 @@ extension ArticleDbQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'isGenerateMarkdown'),
+      );
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyIsArchived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'isArchived'),
+      );
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyIsImportant() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'isImportant'),
       );
     });
   }
@@ -615,6 +781,206 @@ extension ArticleDbQueryWhere
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> domainEqualTo(
+      String domain) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'domain',
+        value: [domain],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> domainNotEqualTo(
+      String domain) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'domain',
+              lower: [],
+              upper: [domain],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'domain',
+              lower: [domain],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'domain',
+              lower: [domain],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'domain',
+              lower: [],
+              upper: [domain],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> authorEqualTo(
+      String author) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'author',
+        value: [author],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> authorNotEqualTo(
+      String author) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'author',
+              lower: [],
+              upper: [author],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'author',
+              lower: [author],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'author',
+              lower: [author],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'author',
+              lower: [],
+              upper: [author],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> articleDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'articleDate',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> articleDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'articleDate',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> articleDateEqualTo(
+      DateTime? articleDate) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'articleDate',
+        value: [articleDate],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> articleDateNotEqualTo(
+      DateTime? articleDate) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'articleDate',
+              lower: [],
+              upper: [articleDate],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'articleDate',
+              lower: [articleDate],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'articleDate',
+              lower: [articleDate],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'articleDate',
+              lower: [],
+              upper: [articleDate],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> articleDateGreaterThan(
+    DateTime? articleDate, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'articleDate',
+        lower: [articleDate],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> articleDateLessThan(
+    DateTime? articleDate, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'articleDate',
+        lower: [],
+        upper: [articleDate],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> articleDateBetween(
+    DateTime? lowerArticleDate,
+    DateTime? upperArticleDate, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'articleDate',
+        lower: [lowerArticleDate],
+        includeLower: includeLower,
+        upper: [upperArticleDate],
+        includeUpper: includeUpper,
+      ));
     });
   }
 
@@ -792,6 +1158,141 @@ extension ArticleDbQueryWhere
               indexName: r'isGenerateMarkdown',
               lower: [],
               upper: [isGenerateMarkdown],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> serviceIdEqualTo(
+      String serviceId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serviceId',
+        value: [serviceId],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> serviceIdNotEqualTo(
+      String serviceId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [],
+              upper: [serviceId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [serviceId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [serviceId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [],
+              upper: [serviceId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> isArchivedEqualTo(
+      bool isArchived) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'isArchived',
+        value: [isArchived],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> isArchivedNotEqualTo(
+      bool isArchived) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isArchived',
+              lower: [],
+              upper: [isArchived],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isArchived',
+              lower: [isArchived],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isArchived',
+              lower: [isArchived],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isArchived',
+              lower: [],
+              upper: [isArchived],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> isImportantEqualTo(
+      bool isImportant) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'isImportant',
+        value: [isImportant],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> isImportantNotEqualTo(
+      bool isImportant) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isImportant',
+              lower: [],
+              upper: [isImportant],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isImportant',
+              lower: [isImportant],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isImportant',
+              lower: [isImportant],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isImportant',
+              lower: [],
+              upper: [isImportant],
               includeUpper: false,
             ));
       }
@@ -981,6 +1482,208 @@ extension ArticleDbQueryWhere
 
 extension ArticleDbQueryFilter
     on QueryBuilder<ArticleDb, ArticleDb, QFilterCondition> {
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      articleDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'articleDate',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      articleDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'articleDate',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> articleDateEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'articleDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      articleDateGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'articleDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> articleDateLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'articleDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> articleDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'articleDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'author',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'author',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'author',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'author',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'author',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'author',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'author',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'author',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'author',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> authorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'author',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> contentIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1566,6 +2269,207 @@ extension ArticleDbQueryFilter
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'domain',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'domain',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'domain',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'domain',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'domain',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'domain',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'domain',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'domain',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'domain',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> domainIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'domain',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> excerptIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1766,6 +2670,16 @@ extension ArticleDbQueryFilter
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> isArchivedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isArchived',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
       isCreateServiceEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
@@ -1791,6 +2705,16 @@ extension ArticleDbQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isGenerateMhtml',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> isImportantEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isImportant',
         value: value,
       ));
     });
@@ -3418,9 +4342,46 @@ extension ArticleDbQueryLinks
           r'tags', lower, includeLower, upper, includeUpper);
     });
   }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> category(
+      FilterQuery<CategoryDb> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'category');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> categoryIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'category', 0, true, 0, true);
+    });
+  }
 }
 
 extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByArticleDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'articleDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByArticleDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'articleDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByAuthor() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'author', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByAuthorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'author', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'content', Sort.asc);
@@ -3497,6 +4458,30 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByDomain() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'domain', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByDomainDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'domain', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByExcerpt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'excerpt', Sort.asc);
@@ -3506,6 +4491,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByExcerptDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'excerpt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsArchived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isArchived', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsArchivedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isArchived', Sort.desc);
     });
   }
 
@@ -3543,6 +4540,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsGenerateMhtmlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isGenerateMhtml', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsImportant() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isImportant', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByIsImportantDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isImportant', Sort.desc);
     });
   }
 
@@ -3770,6 +4779,30 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
 
 extension ArticleDbQuerySortThenBy
     on QueryBuilder<ArticleDb, ArticleDb, QSortThenBy> {
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByArticleDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'articleDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByArticleDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'articleDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByAuthor() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'author', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByAuthorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'author', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'content', Sort.asc);
@@ -3846,6 +4879,30 @@ extension ArticleDbQuerySortThenBy
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByDomain() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'domain', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByDomainDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'domain', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByExcerpt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'excerpt', Sort.asc);
@@ -3867,6 +4924,18 @@ extension ArticleDbQuerySortThenBy
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsArchived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isArchived', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsArchivedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isArchived', Sort.desc);
     });
   }
 
@@ -3904,6 +4973,18 @@ extension ArticleDbQuerySortThenBy
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsGenerateMhtmlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isGenerateMhtml', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsImportant() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isImportant', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByIsImportantDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isImportant', Sort.desc);
     });
   }
 
@@ -4131,6 +5212,19 @@ extension ArticleDbQuerySortThenBy
 
 extension ArticleDbQueryWhereDistinct
     on QueryBuilder<ArticleDb, ArticleDb, QDistinct> {
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByArticleDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'articleDate');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByAuthor(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'author', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByContent(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -4173,10 +5267,29 @@ extension ArticleDbQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByDomain(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'domain', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByExcerpt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'excerpt', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByIsArchived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isArchived');
     });
   }
 
@@ -4195,6 +5308,12 @@ extension ArticleDbQueryWhereDistinct
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByIsGenerateMhtml() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isGenerateMhtml');
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByIsImportant() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isImportant');
     });
   }
 
@@ -4324,6 +5443,18 @@ extension ArticleDbQueryProperty
     });
   }
 
+  QueryBuilder<ArticleDb, DateTime?, QQueryOperations> articleDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'articleDate');
+    });
+  }
+
+  QueryBuilder<ArticleDb, String, QQueryOperations> authorProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'author');
+    });
+  }
+
   QueryBuilder<ArticleDb, String?, QQueryOperations> contentProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'content');
@@ -4362,9 +5493,27 @@ extension ArticleDbQueryProperty
     });
   }
 
+  QueryBuilder<ArticleDb, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
+  QueryBuilder<ArticleDb, String, QQueryOperations> domainProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'domain');
+    });
+  }
+
   QueryBuilder<ArticleDb, String?, QQueryOperations> excerptProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'excerpt');
+    });
+  }
+
+  QueryBuilder<ArticleDb, bool, QQueryOperations> isArchivedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isArchived');
     });
   }
 
@@ -4383,6 +5532,12 @@ extension ArticleDbQueryProperty
   QueryBuilder<ArticleDb, bool, QQueryOperations> isGenerateMhtmlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isGenerateMhtml');
+    });
+  }
+
+  QueryBuilder<ArticleDb, bool, QQueryOperations> isImportantProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isImportant');
     });
   }
 

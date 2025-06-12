@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'article/article_db.dart';
 import 'annotation/annotation_db.dart';
 import 'tag/tag_db.dart';
+import 'category/category_db.dart';
+import 'sync_operation.dart';
 import '../basics/logger.dart';
 
 /// 数据库服务类
@@ -36,7 +38,7 @@ class DatabaseService extends GetxService {
       final dir = await getApplicationDocumentsDirectory();
       
       _isar = await Isar.open(
-        [ArticleDbSchema, AnnotationDbSchema, TagDbSchema],
+        [ArticleDbSchema, AnnotationDbSchema, TagDbSchema, CategoryDbSchema, SyncOperationSchema],
         directory: dir.path,
         name: 'inkwell_db',
       );
@@ -57,6 +59,13 @@ class DatabaseService extends GetxService {
 
   /// 获取标签集合
   IsarCollection<TagDb> get tags => _isar.tagDbs;
+
+  /// 获取分类集合
+  IsarCollection<CategoryDb> get categories => _isar.categoryDbs;
+
+  /// 获取同步操作集合
+  IsarCollection<SyncOperation> get syncOperations => _isar.syncOperations;
+
 
   @override
   void onClose() {

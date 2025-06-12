@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:isar/isar.dart';
 import 'package:get/get.dart';
+import 'package:uuid/uuid.dart';
 
 import 'article_db.dart';
 import '../database_service.dart';
 import '../../basics/logger.dart';
+import '../sync_operation.dart';
 
 /// 文章服务类
 class ArticleService extends GetxService {
@@ -30,13 +33,23 @@ class ArticleService extends GetxService {
       final now = DateTime.now();
       article.updatedAt = now;
       
-      // 如果是新文章，设置创建时间
-      if (article.id == Isar.autoIncrement) {
+      final isCreating = article.id == Isar.autoIncrement;
+      
+      // 如果是新文章，设置创建时间并生成唯一ID
+      if (isCreating) {
         article.createdAt = now;
+        // 如果没有服务端ID (代表是本地新建的), 则生成一个客户端唯一ID
+        if (article.serviceId.isEmpty) {
+          article.serviceId = const Uuid().v4();
+        }
       }
 
       await _dbService.isar.writeTxn(() async {
         await _dbService.articles.put(article);
+        await _logSyncOperation(
+          isCreating ? SyncOp.create : SyncOp.update,
+          article,
+        );
       });
 
       getLogger().i('✅ 文章保存成功，ID: ${article.id}');
@@ -159,7 +172,13 @@ class ArticleService extends GetxService {
       getLogger().i('🗑️ 删除文章，ID: $articleId');
       
       final success = await _dbService.isar.writeTxn(() async {
-        return await _dbService.articles.delete(articleId);
+        // 在删除前先记录操作
+        final articleToDelete = await _dbService.articles.get(articleId);
+        if (articleToDelete != null) {
+          await _logSyncOperation(SyncOp.delete, articleToDelete);
+          return await _dbService.articles.delete(articleId);
+        }
+        return false;
       });
 
       if (success) {
@@ -173,6 +192,26 @@ class ArticleService extends GetxService {
       getLogger().e('❌ 删除文章失败: $e');
       return false;
     }
+  }
+
+  /// 记录同步操作
+  Future<void> _logSyncOperation(SyncOp op, ArticleDb article) async {
+    final syncOp = SyncOperation()
+      ..operation = op
+      ..collectionName = 'ArticleDb' 
+      ..entityId = article.serviceId
+      ..timestamp = DateTime.now()
+      ..status = SyncStatus.pending;
+
+    // 对于非删除操作，我们存储文章的完整数据
+    if (op != SyncOp.delete) {
+      // 注意：这里需要一个方法将 ArticleDb 转换为 Map<String, dynamic>
+      // 暂时我们先假设有一个 toJson 方法，后续需要实现它
+      syncOp.data = jsonEncode(article.toJson());
+    }
+    
+    await _dbService.syncOperations.put(syncOp);
+    getLogger().i('📝 记录同步操作: ${op.name} for Article ${article.serviceId}');
   }
 
   /// 更新文章阅读状态
@@ -200,6 +239,7 @@ class ArticleService extends GetxService {
           }
           
           await _dbService.articles.put(article);
+          await _logSyncOperation(SyncOp.update, article);
           getLogger().i('📖 更新文章阅读状态: ${article.title}');
         }
       });
@@ -227,6 +267,22 @@ class ArticleService extends GetxService {
       return article;
     } catch (e) {
       getLogger().e('❌ 根据ID获取文章失败: $e');
+      return null;
+    }
+  }
+
+  /// 根据服务端ID查找文章
+  Future<ArticleDb?> findArticleByServiceId(String serviceId) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      // serviceId 字段需要有 @Index() 才能有效查询
+      return await _dbService.articles
+          .where()
+          .serviceIdEqualTo(serviceId)
+          .findFirst();
+    } catch (e) {
+      getLogger().e('❌ 根据服务端ID查找文章失败: $e');
       return null;
     }
   }
