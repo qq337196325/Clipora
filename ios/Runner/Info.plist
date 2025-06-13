@@ -87,5 +87,11 @@
 			</array>
 		</dict>
 	</array>
+	
+	<!-- App Groups for sharing data between main app and share extension -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.inkwell.shared</string>
+	</array>
 </dict>
 </plist>
