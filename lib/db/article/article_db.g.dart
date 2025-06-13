@@ -382,7 +382,7 @@ const ArticleDbSchema = CollectionSchema(
   getId: _articleDbGetId,
   getLinks: _articleDbGetLinks,
   attach: _articleDbAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _articleDbEstimateSize(

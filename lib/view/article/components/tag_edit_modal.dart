@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:inkwell/db/tag/tag_db.dart';
-import 'package:inkwell/services/tag_service.dart';
+import '/db/tag/tag_db.dart';
+import '/services/tag_service.dart';
 
 class TagEditModal extends StatefulWidget {
   final int articleId;

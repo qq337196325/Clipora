@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:inkwell/basics/logger.dart';
-import 'package:inkwell/controller/snapshot_service.dart';
-import 'package:inkwell/db/article/article_service.dart';
+import '/basics/logger.dart';
+import '/services/snapshot_service.dart';
+import '/db/article/article_service.dart';
 
 class SnapshotUtils {
   // 下载快照到用户可访问的目录

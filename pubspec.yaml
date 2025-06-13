@@ -1,4 +1,4 @@
-name: inkwell
+name: clipora
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -8,6 +8,8 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.8.1
+
+isar_version: &isar_version 3.1.8
 
 dependencies:
   flutter:
@@ -26,16 +28,22 @@ dependencies:
   path_provider: ^2.1.5                            # 获取文件路径
   permission_handler: ^12.0.0+1                    # 权限处理
   image: ^4.5.4                                    # 图片处理和拼接
-  isar: ^3.1.0+1                                   # NoSQL本地数据库
   receive_sharing_intent: ^1.8.1                   # 接收分享内容
   animated_segmented_tab_control: ^2.0.0           # 切换tab
   markdown_widget: ^2.3.2+8
   flutter_markdown_selectionarea: ^0.6.17+1        # 支持 SelectionArea 的 MarkdownWidget
-  isar_flutter_libs: ^3.1.0+1                      # Isar 原生库文件
   page_flip_builder: ^0.1.4
   modal_bottom_sheet: ^3.0.0
-  device_info_plus: 9.1.2                             # 设备信息
+  ## device_info_plus: ^9.1.2                             # 设备信息
+  # isar: ^3.1.0+1                                   # NoSQL本地数据库
+  # isar_flutter_libs: ^3.1.0+1                      # Isar 原生库文件
   uuid: ^4.5.1
+  isar: 
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
+  isar_flutter_libs: # contains Isar Core
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
 
 
 dev_dependencies:
@@ -45,7 +53,10 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   build_runner: ^2.4.7
   hive_generator: ^2.0.1
-  isar_generator: ^3.1.0+1
+  # isar_generator: ^3.1.0+1
+  isar_generator:
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
 
 flutter:
 

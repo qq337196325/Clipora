@@ -88,7 +88,7 @@ const SyncOperationSchema = CollectionSchema(
   getId: _syncOperationGetId,
   getLinks: _syncOperationGetLinks,
   attach: _syncOperationAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _syncOperationEstimateSize(

@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import 'article_db.dart';
 import '../database_service.dart';
+import '../category/category_db.dart';
 import '../../basics/logger.dart';
 import '../sync_operation.dart';
 
@@ -164,6 +165,17 @@ class ArticleService extends GetxService {
     }
   }
 
+  /// 根据ID获取文章
+  Future<ArticleDb?> getArticleById(int articleId) async {
+    await _ensureDatabaseInitialized();
+    try {
+      return await _dbService.articles.get(articleId);
+    } catch (e) {
+      getLogger().e('❌ 获取文章失败，ID: $articleId, error: $e');
+      return null;
+    }
+  }
+
   /// 删除文章
   Future<bool> deleteArticle(int articleId) async {
     await _ensureDatabaseInitialized();
@@ -214,6 +226,37 @@ class ArticleService extends GetxService {
     getLogger().i('📝 记录同步操作: ${op.name} for Article ${article.serviceId}');
   }
 
+  /// 更新文章分类
+  Future<void> updateArticleCategory(int articleId, CategoryDb? category) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      getLogger().i('📝 更新文章分类，文章ID: $articleId, 分类: ${category?.name ?? "未分类"}');
+      
+      await _dbService.isar.writeTxn(() async {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null) {
+          // 设置新的分类关系
+          article.category.value = category;
+          article.updatedAt = DateTime.now();
+          
+          // 保存文章和关系
+          await _dbService.articles.put(article);
+          await article.category.save();
+          
+          await _logSyncOperation(SyncOp.update, article);
+          getLogger().i('✅ 文章分类更新成功: ${article.title} -> ${category?.name ?? "未分类"}');
+        } else {
+          getLogger().w('⚠️ 未找到ID为 $articleId 的文章');
+          throw Exception('未找到文章');
+        }
+      });
+    } catch (e) {
+      getLogger().e('❌ 更新文章分类失败: $e');
+      rethrow;
+    }
+  }
+
   /// 更新文章阅读状态
   Future<void> updateReadStatus(int articleId, {
     bool isRead = true,
@@ -245,29 +288,6 @@ class ArticleService extends GetxService {
       });
     } catch (e) {
       getLogger().e('❌ 更新阅读状态失败: $e');
-    }
-  }
-
-  /// 根据ID获取单个文章
-  Future<ArticleDb?> getArticleById(int articleId) async {
-    await _ensureDatabaseInitialized();
-    
-    try {
-      getLogger().i('🔍 查询文章，ID: $articleId');
-      
-      final article = await _dbService.articles.get(articleId);
-      
-      if (article != null) {
-        final serviceIdInfo = article.serviceId.isEmpty ? '(未同步)' : article.serviceId;
-        getLogger().i('✅ 找到文章: ${article.title}, 服务端ID: $serviceIdInfo');
-      } else {
-        getLogger().w('⚠️ 未找到ID为 $articleId 的文章');
-      }
-      
-      return article;
-    } catch (e) {
-      getLogger().e('❌ 根据ID获取文章失败: $e');
-      return null;
     }
   }
 

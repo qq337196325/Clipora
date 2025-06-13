@@ -312,7 +312,7 @@ const CategoryDbSchema = CollectionSchema(
   getId: _categoryDbGetId,
   getLinks: _categoryDbGetLinks,
   attach: _categoryDbAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _categoryDbEstimateSize(

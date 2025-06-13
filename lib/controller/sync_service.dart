@@ -5,7 +5,7 @@ import '../basics/logger.dart';
 import '../db/article/article_db.dart';
 import '../db/article/article_service.dart';
 import '../api/user_api.dart';
-import 'markdown_service.dart';
+import '../services/markdown_service.dart';
 
 class SyncService extends GetxService {
   static SyncService get instance => Get.find<SyncService>();
@@ -73,7 +73,6 @@ class SyncService extends GetxService {
       };
       
       final response = await UserApi.createArticleApi(param);
-      getLogger().i('🌐 11111111111 $response');
       if (response['code'] == 0) {
         final serviceIdData = response['data'];
         String serviceId = '';

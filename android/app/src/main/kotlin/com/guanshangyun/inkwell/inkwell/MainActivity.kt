@@ -1,4 +1,4 @@
-package com.guanshangyun.inkwell.inkwell
+package com.guanshangyun.clipora
 
 import io.flutter.embedding.android.FlutterActivity
 

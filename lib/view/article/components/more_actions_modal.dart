@@ -1,6 +1,7 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
-import 'package:inkwell/view/article/components/tag_edit_modal.dart';
+import '/view/article/components/move_to_category_modal.dart';
+import '/view/article/components/tag_edit_modal.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class _ActionItem {
@@ -39,6 +40,14 @@ class MoreActionsModal extends StatelessWidget {
     );
   }
 
+  void _showMoveToCategoryModal(BuildContext context) {
+    showCupertinoModalBottomSheet(
+      context: context,
+      expand: true,
+      builder: (context) => MoveToCategoryModal(articleId: articleId),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -63,7 +72,7 @@ class MoreActionsModal extends StatelessWidget {
             }
           }),
       _ActionItem(icon: Icons.label_outline, label: '标签', onTap: () => _showTagEditModal(context)),
-      _ActionItem(icon: Icons.drive_file_move_outline, label: '移动', onTap: () => _showToast(context, '移动')),
+      _ActionItem(icon: Icons.drive_file_move_outline, label: '移动', onTap: () => _showMoveToCategoryModal(context)),
       _ActionItem(icon: Icons.star_border, label: '星标', onTap: () => _showToast(context, '星标')),
       _ActionItem(icon: Icons.archive_outlined, label: '归档', onTap: () => _showToast(context, '归档')),
       _ActionItem(icon: Icons.delete_outline, label: '删除', onTap: () => _showToast(context, '删除'), isDestructive: true),

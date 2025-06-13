@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
-import 'package:inkwell/db/article/article_db.dart';
-import 'package:inkwell/db/database_service.dart';
-import 'package:inkwell/db/tag/tag_db.dart';
+import '/db/article/article_db.dart';
+import '/db/database_service.dart';
+import '/db/tag/tag_db.dart';
 import 'package:isar/isar.dart';
 
 class TagService {

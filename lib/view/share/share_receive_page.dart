@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bot_toast/bot_toast.dart';
-import 'package:inkwell/controller/share_service.dart';
+import '/services/share_service.dart';
 import 'dart:async';
 
 /// 分享接收页面

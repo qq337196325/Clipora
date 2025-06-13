@@ -132,7 +132,7 @@ const AnnotationDbSchema = CollectionSchema(
   getId: _annotationDbGetId,
   getLinks: _annotationDbGetLinks,
   attach: _annotationDbAttach,
-  version: '3.1.0+1',
+  version: '3.1.8',
 );
 
 int _annotationDbEstimateSize(

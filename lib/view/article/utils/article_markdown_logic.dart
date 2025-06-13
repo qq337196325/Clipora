@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:inkwell/view/article/components/article_markdown_add_note_dialog.dart';
 
+import '/view/article/components/article_markdown_add_note_dialog.dart';
 import '../../../basics/logger.dart';
 import '../../../db/article/article_db.dart';
 import '../../../db/article/article_service.dart';

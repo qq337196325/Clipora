@@ -1,9 +1,9 @@
 import 'package:go_router/go_router.dart';
 import 'package:bot_toast/bot_toast.dart';
-import 'package:inkwell/route/route_name.dart';
-import 'package:inkwell/view/article/article_page.dart';
-import 'package:inkwell/view/demo/article_web.dart';
 
+import '/route/route_name.dart';
+import '/view/article/article_page.dart';
+import '/view/demo/article_web.dart';
 import '../view/home/index_page.dart';
 import '../view/home/screenshot_gallery_page.dart';
 import '../view/share/share_receive_page.dart';
