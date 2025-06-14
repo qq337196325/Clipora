@@ -47,17 +47,22 @@
 	<true/>
 	
 	<!-- 配置URL Schemes以接收分享内容 -->
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>inkwell.shareextension</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>ShareMedia-inkwell</string>
-			</array>
-		</dict>
-	</array>
+	<key>AppGroupId</key>
+    <string>$(CUSTOM_GROUP_ID)</string>
+    <key>CFBundleURLTypes</key>
+    	<array>
+    		<dict>
+    			<key>CFBundleTypeRole</key>
+    			<string>Editor</string>
+    			<key>CFBundleURLSchemes</key>
+    			<array>
+    				<string>ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    			</array>
+    		</dict>
+    	</array>
+
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>To upload photos, please allow permission to access your photo library.</string>
 	
 	<!-- 支持的文档类型 -->
 	<key>CFBundleDocumentTypes</key>
