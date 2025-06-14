@@ -1,63 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="j1y-V4-xli">
-    <device id="retina6_1" orientation="portrait" appearance="light"/>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13122.16" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="j1y-V4-xli">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13104.12"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="System colors in document" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--Share View Controller-->
         <scene sceneID="ceB-am-kn3">
             <objects>
-                <viewController id="j1y-V4-xli" customClass="ShareViewController" customModule="ShareExtension" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="j1y-V4-xli" customClass="ShareViewController" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" opaque="NO" contentMode="scaleToFill" id="wbc-yd-nQP">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NOA-Dm-cuz">
-                                <rect key="frame" x="0.0" y="44" width="414" height="44"/>
-                                <items>
-                                    <navigationItem title="分享到 Inkwell" id="3HZ-wt-9LC">
-                                        <barButtonItem key="leftBarButtonItem" title="取消" id="G0a-CO-Phx"/>
-                                        <barButtonItem key="rightBarButtonItem" title="发布" id="Z4g-fh-BwD"/>
-                                    </navigationItem>
-                                </items>
-                            </navigationBar>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="UV6-kj-8ob">
-                                <rect key="frame" x="8" y="96" width="398" height="758"/>
-                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                                <string key="text">正在处理分享内容...</string>
-                                <color key="textColor" systemColor="labelColor"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                            </textView>
-                        </subviews>
-                        <viewLayoutGuide key="safeArea" id="1Xl-BZ-Yxo"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                        <constraints>
-                            <constraint firstItem="NOA-Dm-cuz" firstAttribute="leading" secondItem="1Xl-BZ-Yxo" secondAttribute="leading" id="4Bz-H0-vVi"/>
-                            <constraint firstItem="NOA-Dm-cuz" firstAttribute="trailing" secondItem="1Xl-BZ-Yxo" secondAttribute="trailing" id="5d3-OC-Zeu"/>
-                            <constraint firstItem="UV6-kj-8ob" firstAttribute="top" secondItem="NOA-Dm-cuz" secondAttribute="bottom" constant="8" id="8CG-BQ-bYr"/>
-                            <constraint firstItem="1Xl-BZ-Yxo" firstAttribute="bottom" secondItem="UV6-kj-8ob" secondAttribute="bottom" constant="8" id="9QP-nD-l7A"/>
-                            <constraint firstItem="NOA-Dm-cuz" firstAttribute="top" secondItem="1Xl-BZ-Yxo" secondAttribute="top" id="LgG-Dr-TbG"/>
-                            <constraint firstItem="UV6-kj-8ob" firstAttribute="leading" secondItem="1Xl-BZ-Yxo" secondAttribute="leading" constant="8" id="Ukp-hF-PJ5"/>
-                            <constraint firstItem="1Xl-BZ-Yxo" firstAttribute="trailing" secondItem="UV6-kj-8ob" secondAttribute="trailing" constant="8" id="oee-3M-MwE"/>
-                        </constraints>
+                        <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                        <viewLayoutGuide key="safeArea" id="1Xd-am-t49"/>
                     </view>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="CEy-Cv-SGf" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="CEy-Cv-SGf" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="132" y="154"/>
         </scene>
     </scenes>
-    <resources>
-        <systemColor name="labelColor">
-            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGray"/>
-        </systemColor>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGray"/>
-        </systemColor>
-    </resources>
-</document> 
+</document>
