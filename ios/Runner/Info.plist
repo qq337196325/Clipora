@@ -73,17 +73,18 @@
 			<array>
 				<string>public.data</string>
 				<string>public.content</string>
+				<string>public.text</string>
+				<string>public.plain-text</string>
+				<string>public.url</string>
+				<string>public.file-url</string>
+				<string>public.image</string>
 				<string>public.audiovisual-content</string>
 				<string>public.movie</string>
-				<string>public.audiovisual-content</string>
 				<string>public.video</string>
 				<string>public.audio</string>
-				<string>public.text</string>
-				<string>public.data</string>
 				<string>public.zip-archive</string>
 				<string>com.pkware.zip-archive</string>
 				<string>public.composite-content</string>
-				<string>public.text</string>
 			</array>
 		</dict>
 	</array>
@@ -93,5 +94,9 @@
 	<array>
 		<string>group.inkwell.shared</string>
 	</array>
+	
+	<!-- 支持就地打开文档 -->
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 </dict>
 </plist>
