@@ -14,6 +14,7 @@ import '/view/article/components/markdown_webview_pool_manager.dart' as Markdown
 import '/view/article/components/web_webview_pool_manager.dart';
 import '/basics/logger.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+// import 'package:app_links/app_links.dart';
 
 import 'basics/app_theme.dart';
 import 'basics/apps_state.dart';

@@ -45,7 +45,8 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	
+
+
 	<!-- 配置URL Schemes以接收分享内容 -->
 	<key>AppGroupId</key>
     <string>group.com.guanshangyun.clipora</string>
@@ -56,7 +57,7 @@
             <string>Editor</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+                <string>ShareMedia-com.guanshangyun.clipora</string>
             </array>
         </dict>
     </array>

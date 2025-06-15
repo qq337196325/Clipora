@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../basics/logger.dart';
 import '../db/article/article_service.dart';
@@ -48,6 +51,9 @@ class ShareService extends GetxService {
 
   // 订阅
   StreamSubscription? _intentMediaStreamSubscription;
+  
+  // App Group 标识符
+  static const String appGroupId = 'group.com.guanshangyun.clipora';
 
   @override
   void onInit() {
@@ -56,6 +62,9 @@ class ShareService extends GetxService {
     // 延迟初始化，确保Flutter引擎完全启动
     // 移除不必要的100ms延迟，在onInit中初始化监听器是安全的。
     _initializeShareListeners();
+    
+    // 初始化Share Extension数据检查
+    _initializeShareExtensionListener();
   }
 
   @override
@@ -65,6 +74,9 @@ class ShareService extends GetxService {
     // 在这里检查初始分享内容，确保UI已经准备好
     // _checkInitialShare();
     // 初始分享内容的检查已移至 main.dart 以优化启动流程
+    
+    // 检查Share Extension的数据
+    _checkShareExtensionData();
   }
 
   /// 初始化分享监听器
@@ -467,6 +479,180 @@ class ShareService extends GetxService {
       getLogger().i('✅ 已清除分享内容');
     } catch (e) {
       getLogger().e('❌ 清除分享内容时出错: $e');
+    }
+  }
+
+  /// 初始化Share Extension监听器
+  void _initializeShareExtensionListener() {
+    try {
+      getLogger().i('===== 初始化Share Extension监听器 =====');
+      
+      // 设置定时器，每2秒检查一次Share Extension的数据
+      Timer.periodic(Duration(seconds: 2), (timer) {
+        _checkShareExtensionData();
+      });
+      
+      getLogger().i('✅ Share Extension监听器初始化完成');
+    } catch (e) {
+      getLogger().e('❌ 初始化Share Extension监听器失败: $e');
+    }
+  }
+
+  /// 检查Share Extension的数据
+  Future<void> _checkShareExtensionData() async {
+    try {
+      if (Platform.isIOS) {
+        // 在iOS上检查App Group共享数据
+        await _checkAppGroupSharedData();
+      }
+    } catch (e) {
+      getLogger().e('❌ 检查Share Extension数据失败: $e');
+    }
+  }
+
+  /// 检查App Group共享数据
+  Future<void> _checkAppGroupSharedData() async {
+    try {
+      // 获取App Group容器路径
+      final appGroupPath = await _getAppGroupPath();
+      if (appGroupPath == null) {
+        return;
+      }
+
+      final sharedDataFile = File('$appGroupPath/SharedData.json');
+      if (!await sharedDataFile.exists()) {
+        return;
+      }
+
+      // 读取共享数据
+      final jsonString = await sharedDataFile.readAsString();
+      final List<dynamic> sharedDataList = jsonDecode(jsonString);
+
+      if (sharedDataList.isEmpty) {
+        return;
+      }
+
+      getLogger().i('🎉 发现Share Extension数据: ${sharedDataList.length}个');
+
+      // 处理每个分享项
+      for (final item in sharedDataList) {
+        final Map<String, dynamic> data = Map<String, dynamic>.from(item);
+        await _handleShareExtensionData(data);
+      }
+
+      // 清空已处理的数据
+      await sharedDataFile.delete();
+      getLogger().i('✅ Share Extension数据处理完成并清空');
+
+    } catch (e) {
+      getLogger().e('❌ 处理App Group共享数据失败: $e');
+    }
+  }
+
+  /// 获取App Group路径
+  Future<String?> _getAppGroupPath() async {
+    try {
+      if (Platform.isIOS) {
+        // 在iOS上，App Group的路径通常是 /private/var/mobile/Containers/Shared/AppGroup/[GROUP_ID]
+        // 但Flutter无法直接访问，需要通过原生代码
+        // 这里我们尝试通过已知的路径结构来构建
+        final documentsPath = (await getApplicationDocumentsDirectory()).path;
+        final appGroupPath = documentsPath.replaceAll('/Documents', '/../../../Shared/AppGroup/$appGroupId');
+        
+        // 检查路径是否存在
+        final directory = Directory(appGroupPath);
+        if (await directory.exists()) {
+          return appGroupPath;
+        }
+        
+        // 如果上面的路径不存在，尝试其他可能的路径
+        final alternativePath = documentsPath.replaceAll('/var/mobile/Containers/Data/Application', '/var/mobile/Containers/Shared/AppGroup') + '/$appGroupId';
+        final alternativeDirectory = Directory(alternativePath);
+        if (await alternativeDirectory.exists()) {
+          return alternativePath;
+        }
+      }
+      return null;
+    } catch (e) {
+      getLogger().e('❌ 获取App Group路径失败: $e');
+      return null;
+    }
+  }
+
+  /// 处理Share Extension数据
+  Future<void> _handleShareExtensionData(Map<String, dynamic> data) async {
+    try {
+      final String type = data['type'] ?? 'text';
+      final String content = data['content'] ?? '';
+      final String? fileName = data['fileName'];
+      final double? timestamp = data['timestamp'];
+
+      getLogger().i('📦 处理Share Extension数据: type=$type, content=${content.length > 100 ? content.substring(0, 100) + '...' : content}');
+
+      SharedContent sharedContent;
+
+      switch (type) {
+        case 'text':
+          sharedContent = SharedContent(
+            type: ShareContentType.text,
+            text: content,
+            title: '分享的文本',
+          );
+          break;
+        case 'url':
+          sharedContent = SharedContent(
+            type: ShareContentType.url,
+            url: content,
+            text: content,
+            title: '分享的链接',
+          );
+          break;
+        case 'image':
+          sharedContent = SharedContent(
+            type: ShareContentType.image,
+            imagePath: content,
+            title: '分享的图片',
+          );
+          break;
+        case 'video':
+        case 'file':
+          sharedContent = SharedContent(
+            type: ShareContentType.file,
+            filePath: content,
+            title: fileName ?? '分享的文件',
+          );
+          break;
+        default:
+          sharedContent = SharedContent(
+            type: ShareContentType.text,
+            text: content,
+            title: '分享的内容',
+          );
+      }
+
+      // 添加到流中
+      _sharedContentController.add(sharedContent);
+
+      // 保存到数据库
+      await _saveSharedContentToDatabase(sharedContent, content);
+
+      getLogger().i('✅ Share Extension数据处理完成: ${sharedContent.title}');
+
+    } catch (e) {
+      getLogger().e('❌ 处理Share Extension数据失败: $e');
+    }
+  }
+
+  /// 处理URL Scheme打开
+  void handleUrlSchemeOpen(String url) {
+    getLogger().i('🔗 处理URL Scheme打开: $url');
+    
+    if (url.startsWith('ShareMedia-com.guanshangyun.clipora://')) {
+      getLogger().i('📱 收到Share Extension通知，检查共享数据');
+      // 延迟检查，确保数据已经写入
+      Future.delayed(Duration(milliseconds: 500), () {
+        _checkShareExtensionData();
+      });
     }
   }
 
