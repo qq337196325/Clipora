@@ -23,5 +23,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
 	</dict>
+	<key>NSAppGroupId</key>
+	<string>group.com.guanshangyun.clipora</string>
 </dict>
 </plist>

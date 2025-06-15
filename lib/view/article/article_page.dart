@@ -402,7 +402,14 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   /// 加载文章数据
   Future<void> _loadArticleData() async {
     await articleController.loadArticleById(widget.id);
-    
+
+
+    getLogger().i('✅ tabs更新完成 url: ${articleController.currentArticle?.url}');
+    getLogger().i('✅ tabs更新完成 shareOriginalContent: ${articleController.currentArticle?.shareOriginalContent}');
+
+    print('✅ tabs更新完成 url: ${articleController.currentArticle?.url}');
+    print('✅ tabs更新完成 shareOriginalContent: ${articleController.currentArticle?.shareOriginalContent}');
+
     if (articleController.hasArticle) {
       // 数据加载成功后，再初始化tabs
       _initializeTabs();

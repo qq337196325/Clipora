@@ -348,7 +348,7 @@ class WebWebViewPoolManager {
       allowFileAccessFromFileURLs: true,
       
       // ==== 用户代理 - 优化的移动版Chrome ====
-      userAgent: "Mozilla/5.0 (Linux; Android 12; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 EdgA/120.0.0.0",
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
       
       // ==== 视口和缩放设置 - 关键修改点 ====
       supportZoom: false,  // 禁用缩放避免布局问题
@@ -378,10 +378,28 @@ class WebWebViewPoolManager {
       // ==== URL拦截设置 ====
       useShouldOverrideUrlLoading: true,
       
-      // ==== GPU和渲染优化设置 - 新增 ====
-      hardwareAcceleration: true,  // 启用硬件加速
+      // ==== iOS特有设置 ====
       allowsInlineMediaPlayback: true,
       allowsAirPlayForMediaPlayback: false,
+      allowsBackForwardNavigationGestures: false,
+      allowsPictureInPictureMediaPlayback: false,
+      isFraudulentWebsiteWarningEnabled: false,
+      selectionGranularity: SelectionGranularity.DYNAMIC,
+      dataDetectorTypes: [DataDetectorTypes.NONE],
+      sharedCookiesEnabled: true,
+      automaticallyAdjustsScrollIndicatorInsets: false,
+      accessibilityIgnoresInvertColors: false,
+      decelerationRate: ScrollViewDecelerationRate.NORMAL,
+      alwaysBounceVertical: false,
+      alwaysBounceHorizontal: false,
+      scrollsToTop: true,
+      isPagingEnabled: false,
+      maximumZoomScale: 1.0,
+      minimumZoomScale: 1.0,
+      contentInsetAdjustmentBehavior: ScrollViewContentInsetAdjustmentBehavior.NEVER,
+      
+      // ==== GPU和渲染优化设置 - 新增 ====
+      hardwareAcceleration: true,  // 启用硬件加速
       
       // ==== 渲染优化 - 减少GPU缓冲区问题 ====
       disableDefaultErrorPage: false,

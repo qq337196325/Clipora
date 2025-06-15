@@ -129,6 +129,7 @@ class ShareService extends GetxService {
   /// 处理媒体文件分享 (包括文本、URL、图片、文件等所有类型)
   void _handleMediaShare(List<SharedMediaFile> mediaFiles) {
     getLogger().i('🔄 开始处理 ${mediaFiles.length} 个分享文件');
+    getLogger().i('🔄 当前平台: ${Platform.isIOS ? "iOS" : Platform.isAndroid ? "Android" : "Unknown"}');
     
     for (final mediaFile in mediaFiles) {
       SharedContent content;
@@ -139,14 +140,38 @@ class ShareService extends GetxService {
       getLogger().i('📄 消息内容: ${mediaFile.message}');
       getLogger().i('📄 文件路径长度: ${mediaFile.path.length}');
       getLogger().i('📄 消息是否为空: ${mediaFile.message?.isEmpty ?? 'null'}');
+      getLogger().i('📄 处理路径: ${Platform.isIOS ? "iOS标准路径" : "Android标准路径"}');
+
+      print('📄 文件路径: ${mediaFile.path}');
+      print('📄 文件类型: ${mediaFile.type}');
+      print('📄 消息内容: ${mediaFile.message}');
       
+      // iOS额外调试信息
+      if (Platform.isIOS) {
+        getLogger().i('🍎 iOS特别调试信息:');
+        getLogger().i('🍎 mediaFile.path 的详细内容: "${mediaFile.path}"');
+        getLogger().i('🍎 mediaFile.message 的详细内容: "${mediaFile.message}"');
+        getLogger().i('🍎 mediaFile.type 的详细内容: ${mediaFile.type}');
+        getLogger().i('🍎 path包含http检查: ${mediaFile.path.toLowerCase().contains('http')}');
+        getLogger().i('🍎 message包含http检查: ${mediaFile.message?.toLowerCase().contains('http') ?? false}');
+        
+        // 检查所有可能的URL位置
+        final allTexts = [mediaFile.path, mediaFile.message].where((t) => t != null && t.isNotEmpty);
+        for (final text in allTexts) {
+          getLogger().i('🍎 检查文本: "$text"');
+          getLogger().i('🍎 URL检查结果: ${_containsUrl(text!)}');
+        }
+      }
+
       // 判断分享类型
       if (mediaFile.type == SharedMediaType.text) {
         getLogger().i('🎯 进入文本类型处理分支');
         // 文本类型 - 优先使用message，如果没有则使用path
         final text = mediaFile.message?.isNotEmpty == true ? mediaFile.message! : mediaFile.path;
         getLogger().i('📝 最终使用的文本: ${text.substring(0, text.length > 100 ? 100 : text.length)}${text.length > 100 ? '...' : ''}');
-        
+
+        print('📄 消息内容: ${mediaFile.message}');
+
         // 检查文本中是否包含URL，而不是要求整个文本必须是URL
         getLogger().i('🔍 准备调用_containsUrl方法检查URL');
         if (_containsUrl(text)) {
@@ -165,6 +190,20 @@ class ShareService extends GetxService {
             title: '分享的文本',
           );
         }
+      } else if (mediaFile.type == SharedMediaType.url) {
+        // URL类型 - iOS经常使用这种类型，URL通常在path字段中
+        getLogger().i('🔗 进入URL类型处理分支');
+        final url = mediaFile.path; // iOS上URL存储在path字段中
+        final text = mediaFile.message?.isNotEmpty == true ? mediaFile.message! : url;
+        getLogger().i('🔗 URL内容: $url');
+        getLogger().i('🔗 文本内容: $text');
+        
+        content = SharedContent(
+          type: ShareContentType.url,
+          url: url,
+          text: text,
+          title: '分享的链接',
+        );
       } else if (mediaFile.type == SharedMediaType.image) {
         // 图片类型
         getLogger().i('识别为图片类型: ${mediaFile.path}');
@@ -184,6 +223,36 @@ class ShareService extends GetxService {
       } else {
         // 其他文件类型或者未知类型
         getLogger().i('识别为其他文件类型: ${mediaFile.path}');
+        
+        // iOS平台额外处理逻辑
+        if (Platform.isIOS) {
+          getLogger().i('🍎 iOS其他类型额外处理');
+          
+          // 检查所有可能包含文本的字段
+          final possibleTexts = [
+            mediaFile.path,
+            mediaFile.message,
+          ].where((text) => text != null && text.isNotEmpty && text.length < 2000);
+          
+          for (final text in possibleTexts) {
+            getLogger().i('🍎 检查可能的文本内容: "${text!.substring(0, text.length > 100 ? 100 : text.length)}..."');
+            if (_containsUrl(text)) {
+              getLogger().i('🍎 在其他类型中发现URL: ${_extractUrl(text)}');
+              content = SharedContent(
+                type: ShareContentType.url,
+                url: _extractUrl(text),
+                text: text,
+                title: '分享的链接',
+              );
+              break;
+            }
+          }
+          
+          // 如果没有找到URL，继续原有逻辑
+          if (!possibleTexts.any((text) => _containsUrl(text!))) {
+            getLogger().i('🍎 iOS其他类型中未发现URL，按原逻辑处理');
+          }
+        }
         
         // 如果path是文本内容（可能是一些应用传递的纯文本但类型标记错误）
         if (mediaFile.path.length < 500 && !mediaFile.path.contains('/') && !mediaFile.path.contains('\\')) {
@@ -261,6 +330,12 @@ class ShareService extends GetxService {
         getLogger().i('🔗 解析后的URL: $url');
       } else {
         getLogger().i('📝 处理文本类型内容');
+
+        print('📝 11处理文本类型内容: ${content.text}'  );
+        print('📝 22处理文本类型内容: ${content.url}'  );
+        print('📝 33处理文本类型内容: ${content.type}'  );
+        print('📝 33处理文本类型内容: ${content.title}'  );
+
         // 纯文本类型
         title = _extractTitleFromText(content.text ?? originalContent);
         url = '';
@@ -593,11 +668,27 @@ class ShareService extends GetxService {
 
       switch (type) {
         case 'text':
-          sharedContent = SharedContent(
-            type: ShareContentType.text,
-            text: content,
-            title: '分享的文本',
-          );
+          // iOS Share Extension的文本类型也需要检查URL，与Android保持一致
+          getLogger().i('🎯 iOS Share Extension: 进入文本类型处理分支');
+          getLogger().i('📝 文本内容: ${content.substring(0, content.length > 100 ? 100 : content.length)}${content.length > 100 ? '...' : ''}');
+          
+          // 检查文本中是否包含URL，与_handleMediaShare方法保持一致
+          if (_containsUrl(content)) {
+            getLogger().i('🔗 iOS Share Extension: 文本中包含URL，识别为URL类型');
+            sharedContent = SharedContent(
+              type: ShareContentType.url,
+              url: _extractUrl(content),
+              text: content,
+              title: '分享的链接',
+            );
+          } else {
+            getLogger().i('📝 iOS Share Extension: 文本中不包含URL，识别为纯文本类型');
+            sharedContent = SharedContent(
+              type: ShareContentType.text,
+              text: content,
+              title: '分享的文本',
+            );
+          }
           break;
         case 'url':
           sharedContent = SharedContent(
@@ -623,11 +714,24 @@ class ShareService extends GetxService {
           );
           break;
         default:
-          sharedContent = SharedContent(
-            type: ShareContentType.text,
-            text: content,
-            title: '分享的内容',
-          );
+          // 默认情况下也进行URL检测
+          getLogger().i('📦 iOS Share Extension: 未知类型，进行URL检测');
+          if (_containsUrl(content)) {
+            getLogger().i('🔗 iOS Share Extension: 未知类型中包含URL，识别为URL类型');
+            sharedContent = SharedContent(
+              type: ShareContentType.url,
+              url: _extractUrl(content),
+              text: content,
+              title: '分享的链接',
+            );
+          } else {
+            getLogger().i('📝 iOS Share Extension: 未知类型不包含URL，识别为文本类型');
+            sharedContent = SharedContent(
+              type: ShareContentType.text,
+              text: content,
+              title: '分享的内容',
+            );
+          }
       }
 
       // 添加到流中
