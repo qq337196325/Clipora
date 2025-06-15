@@ -13,7 +13,7 @@
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>NSExtensionActivationRule</key>
-			<string>TRUEPREDICATE</string>
+			<string>SUBQUERY (extensionItems, $extensionItem, ANY $extensionItem.attachments.registeredTypeIdentifiers UTI-CONFORMS-TO "public.image" OR ANY $extensionItem.attachments.registeredTypeIdentifiers UTI-CONFORMS-TO "public.movie" OR ANY $extensionItem.attachments.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url" OR ANY $extensionItem.attachments.registeredTypeIdentifiers UTI-CONFORMS-TO "public.plain-text" OR ANY $extensionItem.attachments.registeredTypeIdentifiers UTI-CONFORMS-TO "public.item").@count > 0</string>
 		</dict>
 		<key>NSExtensionMainStoryboard</key>
 		<string>MainInterface</string>
