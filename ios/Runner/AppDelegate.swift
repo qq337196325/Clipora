@@ -9,7 +9,7 @@ import UIKit
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
 
-    //ReceiveSharingIntentPlugin.setAppGroup("group.com.guanshangyun.clipora") // 添加这行
+    //ReceiveSharingIntentPlugin.setAppGroup("group.com.guanshangyun.clipora")
 
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
