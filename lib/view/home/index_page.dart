@@ -2,10 +2,12 @@ import 'package:animated_segmented_tab_control/animated_segmented_tab_control.da
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import 'group_widget.dart';
 import 'index_widget.dart';
 import 'components/my_page_modal.dart';
+import '../../route/route_name.dart';
 
 
 class IndexPage extends StatefulWidget {
@@ -26,6 +28,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
       //   elevation: 0,
       // ),
       body: SafeArea(
+        bottom :false,
         child: Column(
           children: [
             Container(
@@ -80,9 +83,9 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(width: 16),
-                  
+
                   // 中间的 SegmentedTabControl - 优化样式
                   Expanded(
                     child: Container(
@@ -144,9 +147,9 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(width: 16),
-                  
+
                   // 右边的"搜索"图标 - 突出显示并添加动画
                   Material(
                     color: Colors.transparent,
@@ -155,18 +158,8 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                       onTap: () {
                         // 添加触觉反馈
                         HapticFeedback.lightImpact();
-                        // TODO: 添加"搜索"页面路由
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('搜索功能'),
-                            backgroundColor: Colors.grey.shade700,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            margin: const EdgeInsets.all(16),
-                          ),
-                        );
+                        // 跳转到搜索页面
+                        context.push("/${RouteName.search}");
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
@@ -219,7 +212,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                   physics: const NeverScrollableScrollPhysics(), // 禁用默认滑动切换
                   clipBehavior: Clip.none, // 避免裁剪问题
                   children: [
-                    IndexWidget(), 
+                    IndexWidget(),
                     GroupPage(),
                   ],
                 ),

@@ -32,6 +32,7 @@ class _GroupPageState extends State<GroupPage>
           gradient: GroupConstants.backgroundGradient,
         ),
         child: SafeArea(
+          bottom :false,
           child: Column(
             children: [
               _buildCustomAppBar(),

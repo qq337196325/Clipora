@@ -1,13 +1,15 @@
 import 'package:go_router/go_router.dart';
 import 'package:bot_toast/bot_toast.dart';
 
+import '../view/login/login_page.dart';
 import '/route/route_name.dart';
 import '/view/article/article_page.dart';
 import '/view/demo/article_web.dart';
 import '../view/home/index_page.dart';
-import '../view/home/screenshot_gallery_page.dart';
+import '../view/demo/screenshot_gallery_page.dart';
 import '../view/share/share_receive_page.dart';
 import '../view/transfer_route.dart';
+import '../view/search/search_page.dart';
 
 getQueryParam(String param, GoRouterState state){
   String value = "";
@@ -26,6 +28,10 @@ List<RouteInfo> routeInfos = [
 
   RouteInfo(path: "/${RouteName.shareReceive}", name: RouteName.shareReceive, builder: (context, state) => ShareReceivePage()),
 
+  RouteInfo(path: "/${RouteName.search}", name: RouteName.search, builder: (context, state) => SearchPage()),
+
+  RouteInfo(path: "/${RouteName.login}", name: RouteName.login, builder: (context, state) => LoginPage()),
+
   // RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state) => ArticlePage()),
   RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state){
     final idStr = getQueryParam("id", state);
@@ -39,7 +45,7 @@ List<RouteInfo> routeInfos = [
 
 
 final GoRouter router = GoRouter(
-  initialLocation: "/${RouteName.index}",
+  initialLocation: "/${RouteName.login}",
   debugLogDiagnostics: true,
   observers: [BotToastNavigatorObserver()],
   routes: <RouteBase>[

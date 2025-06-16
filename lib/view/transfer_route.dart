@@ -20,7 +20,7 @@ class _TransferRouteState extends State<TransferRoute> {
   }
 
   void _init() async {
-    context.go('/index');
+    context.go('/login');
   }
 
   @override

@@ -8,6 +8,7 @@ import '../../basics/logger.dart';
 import 'components/web_webview_pool_manager.dart';
 import 'utils/auto_expander.dart';
 import 'utils/snapshot_utils.dart';
+import '../../db/article/article_service.dart';
 
 
 class ArticleWebWidget extends StatefulWidget {
@@ -120,6 +121,11 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 
                 // 页面加载完成后进行优化设置
                 _finalizeWebPageOptimization(url);
+                
+                // 检查是否需要自动生成MHTML快照（异步执行，不阻塞主线程）
+                _checkAndGenerateSnapshotIfNeeded().catchError((e) {
+                  getLogger().e('❌ 自动检查快照失败: $e');
+                });
               },
               onProgressChanged: (controller, progress) {
                 setState(() {
@@ -424,7 +430,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
               const loadTime = timing.loadEventEnd - timing.navigationStart;
               console.log('📊 页面加载耗时: ' + loadTime + 'ms');
             }
-          }, 500);
+          }, 200);
         })();
       ''');
       
@@ -480,5 +486,57 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         }
       },
     );
+  }
+
+  /// 检查是否需要自动生成MHTML快照
+  Future<void> _checkAndGenerateSnapshotIfNeeded() async {
+    // 检查是否有文章ID
+    if (articleId == null) {
+      getLogger().w('⚠️ 文章ID为空，跳过自动生成快照');
+      return;
+    }
+    
+    try {
+      // 等待3秒，确保网页完全加载稳定
+      await Future.delayed(const Duration(seconds: 3));
+      
+      // 再次检查WebView是否还存在（防止用户已经离开页面）
+      if (webViewController == null || !mounted) {
+        getLogger().w('⚠️ WebView已销毁或页面已离开，跳过自动生成快照');
+        return;
+      }
+      
+      getLogger().i('🔍 检查文章是否需要生成MHTML快照，文章ID: $articleId');
+      
+      // 从数据库获取文章信息
+      final article = await ArticleService.instance.getArticleById(articleId!);
+      
+      if (article == null) {
+        getLogger().w('⚠️ 未找到文章，ID: $articleId');
+        return;
+      }
+      
+      // 检查是否已经生成过快照
+      if (article.isGenerateMhtml) {
+        getLogger().i('✅ 文章已有MHTML快照，跳过自动生成: ${article.title}');
+        return;
+      }
+      
+      // 检查URL是否有效
+      if (article.url.isEmpty) {
+        getLogger().w('⚠️ 文章URL为空，无法生成快照: ${article.title}');
+        return;
+      }
+      
+      getLogger().i('🚀 开始自动生成MHTML快照: ${article.title}');
+      
+      // 生成快照（使用现有的方法）
+      await generateMHTMLSnapshot();
+      
+      getLogger().i('✅ 自动MHTML快照生成完成: ${article.title}');
+      
+    } catch (e) {
+      getLogger().e('❌ 检查和生成MHTML快照失败: $e');
+    }
   }
 }

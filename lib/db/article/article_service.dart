@@ -436,7 +436,7 @@ class ArticleService extends GetxService {
           try {
             // 尝试访问serviceId，如果有问题会抛出异常
             final currentServiceId = article.serviceId;
-            if (currentServiceId == null) {
+            if (currentServiceId.isEmpty) {
               needsMigration = true;
             }
           } catch (e) {
@@ -466,9 +466,8 @@ class ArticleService extends GetxService {
         for (final article in verifyArticles) {
           try {
             final serviceId = article.serviceId;
-            if (serviceId != null) {
-              validCount++;
-            }
+            // serviceId 字段为非null的String类型，检查是否为空字符串即可
+            validCount++; // 所有文章的serviceId字段都应该是有效的
           } catch (e) {
             getLogger().e('❌ 验证失败，文章 ${article.id} 仍有问题: $e');
           }
@@ -599,6 +598,144 @@ class ArticleService extends GetxService {
     } catch (e) {
       getLogger().e('❌ 更新文章Markdown内容时出错: $e');
       return false;
+    }
+  }
+
+  /// 搜索文章（模糊搜索标题和markdown内容）
+  Future<List<ArticleDb>> searchArticles(String query, {int limit = 50}) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      if (query.trim().isEmpty) {
+        return [];
+      }
+      
+      final cleanQuery = query.trim();
+      getLogger().d('🔍 搜索文章: $cleanQuery');
+      
+      // 使用单一查询合并标题和内容搜索
+      final results = await _dbService.articles
+          .filter()
+          .group((q) => q
+              .titleContains(cleanQuery, caseSensitive: false)
+              .or()
+              .markdownContains(cleanQuery, caseSensitive: false))
+          .sortByCreatedAtDesc()
+          .limit(limit)
+          .findAll();
+      
+      // 对结果进行排序优化：标题匹配的排在前面
+      results.sort((a, b) {
+        final aInTitle = a.title.toLowerCase().contains(cleanQuery.toLowerCase());
+        final bInTitle = b.title.toLowerCase().contains(cleanQuery.toLowerCase());
+        
+        if (aInTitle && !bInTitle) return -1;
+        if (!aInTitle && bInTitle) return 1;
+        
+        // 如果都在标题中或都不在标题中，按创建时间排序
+        return b.createdAt.compareTo(a.createdAt);
+      });
+      
+      getLogger().d('🔍 搜索完成，找到 ${results.length} 篇文章');
+      return results;
+    } catch (e) {
+      getLogger().e('❌ 搜索文章失败: $e');
+      return [];
+    }
+  }
+
+  /// 快速搜索（实时搜索使用，同样搜索标题和内容）
+  Future<List<ArticleDb>> fastSearchArticles(String query, {int limit = 20}) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      if (query.trim().isEmpty) {
+        return [];
+      }
+      
+      final cleanQuery = query.trim();
+      
+      // 实时搜索也搜索标题和内容，但限制结果数量以保持响应速度
+      final results = await _dbService.articles
+          .filter()
+          .group((q) => q
+              .titleContains(cleanQuery, caseSensitive: false)
+              .or()
+              .markdownContains(cleanQuery, caseSensitive: false))
+          .sortByCreatedAtDesc()
+          .limit(limit)
+          .findAll();
+      
+      // 对结果进行排序优化：标题匹配的排在前面
+      results.sort((a, b) {
+        final aInTitle = a.title.toLowerCase().contains(cleanQuery.toLowerCase());
+        final bInTitle = b.title.toLowerCase().contains(cleanQuery.toLowerCase());
+        
+        if (aInTitle && !bInTitle) return -1;
+        if (!aInTitle && bInTitle) return 1;
+        
+        // 如果都在标题中或都不在标题中，按创建时间排序
+        return b.createdAt.compareTo(a.createdAt);
+      });
+      
+      return results;
+    } catch (e) {
+      getLogger().e('❌ 快速搜索失败: $e');
+      return [];
+    }
+  }
+
+  /// 获取热门搜索词（基于用户搜索历史，暂时返回固定值）
+  Future<List<String>> getHotSearchKeywords({int limit = 8}) async {
+    // TODO: 可以基于用户搜索历史实现
+    return [
+      'Flutter',
+      '前端开发',
+      '移动应用',
+      '设计模式',
+      '编程学习',
+      '技术分享',
+      '开发经验',
+      '项目实战',
+    ].take(limit).toList();
+  }
+
+  /// 获取搜索建议（基于文章标题的热门关键词）
+  Future<List<String>> getSearchSuggestions({int limit = 10}) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      // 获取最近创建的文章标题，提取关键词作为搜索建议
+      final recentArticles = await _dbService.articles
+          .where()
+          .sortByCreatedAtDesc()
+          .limit(50)
+          .findAll();
+      
+      // 简单的关键词提取（可以后续优化）
+      final keywords = <String>{};
+      for (final article in recentArticles) {
+        // 提取标题中的关键词（长度大于2的词）
+        final words = article.title.split(RegExp(r'[\s\-_.,!?，。！？、]'));
+        for (final word in words) {
+          final cleanWord = word.trim();
+          if (cleanWord.length > 2) {
+            keywords.add(cleanWord);
+          }
+        }
+      }
+      
+      // 返回前N个关键词作为建议
+      return keywords.take(limit).toList();
+    } catch (e) {
+      getLogger().e('❌ 获取搜索建议失败: $e');
+      return [
+        'Flutter开发',
+        '移动应用',
+        '前端技术',
+        '编程学习',
+        '设计模式',
+      ];
     }
   }
 

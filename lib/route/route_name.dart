@@ -23,6 +23,10 @@ class RouteName {
   static String shareReceive = "share_receive";
   static String articlePage = "article_page";
   static String articlePage2 = "article_page2";
+  static String search = "search";
+  static String login = "login";
+  static String phoneLogin = "phone_login";
+  static String phoneVerify = "phone_verify";
 
 
 }
