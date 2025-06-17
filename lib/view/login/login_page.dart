@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluwx/fluwx.dart';
+import 'dart:async';
+import 'dart:io';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'phone_login_page.dart';
+import '../../api/user_api.dart';
+import '../../route/route_name.dart';
+import '../../basics/logger.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -229,6 +237,12 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
 
 mixin LoginPageBLoC on State<LoginPage> {
   
+  // Fluwx实例
+  final Fluwx _fluwx = Fluwx();
+  
+  // 微信授权响应流订阅
+  StreamSubscription<WeChatAuthResponse>? _authSubscription;
+  
   @override
   void initState() {
     super.initState();
@@ -238,6 +252,9 @@ mixin LoginPageBLoC on State<LoginPage> {
   void _init() {
     // 初始化登录页面
     // 可以在这里添加一些初始化逻辑，比如检查登录状态等
+    
+    // 监听微信授权响应
+    _listenWeChatAuthResponse();
   }
 
   // Apple登录
@@ -248,10 +265,28 @@ mixin LoginPageBLoC on State<LoginPage> {
   }
 
   // 微信登录
-  void onWechatLogin() {
-    // TODO: 实现微信登录逻辑
-    print('微信登录');
-    _showComingSoonDialog('微信登录');
+  void onWechatLogin() async {
+    try {
+      getLogger().i('用户点击微信登录按钮');
+      
+      // 检查微信是否已安装
+      bool isInstalled = await _fluwx.isWeChatInstalled;
+      if (!isInstalled) {
+        getLogger().w('微信未安装');
+        _showErrorDialog('微信未安装', '请先安装微信客户端后再试');
+        return;
+      }
+
+      getLogger().i('微信已安装，准备发起授权请求');
+
+      // 发起微信授权请求
+      await _fluwx.authBy(which: NormalAuth(scope: "snsapi_userinfo", state: "clipora_login"));
+      getLogger().i('📱 已发起微信授权请求，等待用户确认...');
+      
+    } catch (e) {
+      getLogger().e('❌ 发起微信授权失败: $e');
+      _showErrorDialog('微信登录失败', '发起授权请求失败，请重试');
+    }
   }
 
   // 手机号登录
@@ -260,6 +295,351 @@ mixin LoginPageBLoC on State<LoginPage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const PhoneLoginPage()),
+    );
+  }
+
+  /// 监听微信授权响应
+  void _listenWeChatAuthResponse() {
+    // _fluwx.addSubscriber((response) {
+    //   if (mounted) {
+    //     _handleWeChatAuthResponse(response);
+    //   }
+    // });
+    _fluwx.addSubscriber((response) {
+      if (response is WeChatAuthResponse) {
+        _handleWeChatAuthResponse(response);
+        // setState(() {
+        //   _result = 'state :${response.state} \n code:${response.code}';
+        // });
+      }
+    });
+  }
+
+  /// 处理微信授权响应
+  void _handleWeChatAuthResponse(WeChatAuthResponse response) {
+    getLogger().i('🔄 收到微信授权响应: ${response.toString()}');
+    getLogger().i('🔍 响应详情 - isSuccessful: ${response.isSuccessful}, code: ${response.code}, state: ${response.state}, errCode: ${response.errCode}, errStr: ${response.errStr}');
+    
+    if (response.isSuccessful) {
+      // 授权成功，获取到code
+      final String? code = response.code;
+      final String? state = response.state;
+      if (code != null && code.isNotEmpty) {
+        getLogger().i('✅ 微信授权成功');
+        getLogger().i('📱 获取到code: $code');
+        getLogger().i('📱 state参数: $state');
+        getLogger().i('📱 使用的AppID: wx629011ac595bee08');
+        _processWeChatLogin(code);
+      } else {
+        getLogger().e('❌ 微信授权成功但未获取到code');
+        _showErrorDialog('授权失败', '未能获取到有效的授权码，请重试');
+      }
+    } else {
+      // 授权失败
+      getLogger().w('❌ 微信授权失败: ${response.errCode} - ${response.errStr}');
+      String errorMessage = '授权失败';
+      
+      // 根据错误码显示具体错误信息
+      if (response.errCode != null) {
+        switch (response.errCode) {
+          case -4:
+            errorMessage = '用户拒绝授权';
+            break;
+          case -2:
+            errorMessage = '用户取消授权';
+            break;
+          case -1:
+            errorMessage = '发送授权请求失败';
+            break;
+          case -3:
+            errorMessage = '微信版本不支持';
+            break;
+          default:
+            errorMessage = '未知错误(${response.errCode})，请重试';
+            break;
+        }
+        
+        // 用户取消时不显示错误提示，只记录日志
+        if (response.errCode != -2) {
+          _showErrorDialog('微信登录失败', errorMessage);
+        } else {
+          getLogger().i('用户取消了微信授权');
+        }
+      } else {
+        _showErrorDialog('微信登录失败', errorMessage);
+      }
+    }
+  }
+
+  /// 处理微信登录
+  void _processWeChatLogin(String code) async {
+    getLogger().i('开始处理微信登录，code: $code');
+    
+    try {
+      // 显示登录中的加载状态
+      _showLoadingDialog('正在登录中...');
+      
+      // 准备请求参数
+      final params = {
+        'code': code,
+        'platform': Platform.isAndroid ? 'android' : 'ios',
+      };
+      
+      getLogger().i('🚀 调用微信登录API');
+      getLogger().i('📤 请求参数: $params');
+      getLogger().i('🔑 客户端使用的AppID: wx629011ac595bee08');
+      getLogger().i('⏰ 当前时间: ${DateTime.now().toIso8601String()}');
+      
+      // 调用微信登录API
+      final res = await UserApi.wechatLoginApi(params);
+      
+      // 关闭加载对话框
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      getLogger().i('微信登录API响应: $res');
+      
+      // 检查响应结果
+      if (res["code"] != 0) {
+        getLogger().e('微信登录失败: ${res["message"]}');
+        _showErrorDialog('微信登录失败', res['message'] ?? '登录失败，请重试');
+        return;
+      }
+      
+      // 获取token
+      final String? token = res['data']?['token'];
+      if (token == null || token.isEmpty) {
+        getLogger().e('微信登录成功但未获取到token');
+        _showErrorDialog('登录失败', '服务器未返回有效的登录凭证');
+        return;
+      }
+      
+      // 保存token到本地存储
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
+      
+      getLogger().i('✅ 微信登录成功，token已保存');
+      
+      // 登录成功，跳转到首页
+      if (mounted) {
+        // 清空导航栈并跳转到首页
+        context.go('/${RouteName.index}');
+        
+        // 可选：显示欢迎消息
+        // _showSuccessDialog('登录成功', '欢迎使用 Clipora！');
+      }
+      
+    } catch (e) {
+      getLogger().e('微信登录过程中发生异常: $e');
+      
+      // 关闭可能存在的加载对话框
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      
+      // 显示错误信息
+      _showErrorDialog('微信登录失败', '网络连接异常，请检查网络后重试');
+    }
+  }
+
+  /// 显示错误对话框
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: const Color(0xFFFEFDF8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                  child: const Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3C3C3C),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF5A5A5A),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      '知道了',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// 显示加载对话框
+  void _showLoadingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // 防止用户点击外部关闭
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: const Color(0xFFFEFDF8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF005A9C)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF3C3C3C),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// 显示成功对话框
+  void _showSuccessDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: const Color(0xFFFEFDF8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3C3C3C),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF5A5A5A),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      '知道了',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -344,6 +724,8 @@ mixin LoginPageBLoC on State<LoginPage> {
 
   @override
   void dispose() {
+    // 清理微信授权响应订阅
+    _authSubscription?.cancel();
     super.dispose();
   }
 }

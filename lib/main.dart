@@ -14,6 +14,7 @@ import '/view/article/components/markdown_webview_pool_manager.dart' as Markdown
 import '/view/article/components/web_webview_pool_manager.dart';
 import '/basics/logger.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:fluwx/fluwx.dart';
 // import 'package:app_links/app_links.dart';
 
 import 'basics/app_theme.dart';
@@ -51,6 +52,10 @@ void main() async {
 Future<void> _initServices({required bool isShareLaunch}) async {
   // --- 核心服务 (任何模式下都必须初始化) ---
   getLogger().i('🔧 初始化核心服务...');
+  
+  // 初始化微信SDK
+  await _initFluwx();
+  
   // 注册数据库服务（必须第一个初始化并等待完成）
   final dbService = Get.put(DatabaseService(), permanent: true);
   // 确保数据库初始化完成，这对于后续操作至关重要
@@ -76,7 +81,7 @@ Future<void> _initServices({required bool isShareLaunch}) async {
   getLogger().i('🔧 初始化附加服务 (正常启动模式)...');
   
   // 注册同步服务
-  Get.put(SyncService(), permanent: true);
+  // Get.put(SyncService(), permanent: true);
   
   // 注册快照服务
   // Get.put(SnapshotService(), permanent: true);
@@ -115,6 +120,24 @@ void _initWebViewOptimizers() {
   }).catchError((e) {
     getLogger().e('❌ WebView优化器预热过程中出错: $e');
   });
+}
+
+/// 初始化微信SDK
+Future<void> _initFluwx() async {
+  try {
+    // 创建Fluwx实例
+    Fluwx fluwx = Fluwx();
+    // 从pubspec.yaml中读取的app_id: wx629011ac595bee08
+    await fluwx.registerApi(
+      appId: "wx629011ac595bee08", 
+      doOnAndroid: true, 
+      doOnIOS: true,
+      universalLink: "https://flint-tools.guanshangyun.com", // iOS需要配置
+    );
+    getLogger().i('✅ 微信SDK初始化成功');
+  } catch (e) {
+    getLogger().e('❌ 微信SDK初始化失败: $e');
+  }
 }
 
 class MyApp extends StatelessWidget {

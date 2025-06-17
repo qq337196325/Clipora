@@ -29,13 +29,15 @@ dependencies:
   permission_handler: ^12.0.0+1                    # 权限处理
   image: ^4.5.4                                    # 图片处理和拼接
   receive_sharing_intent: ^1.8.1                   # 接收分享内容
-#  app_links: ^6.3.2                                # 处理URL Scheme和Universal Links
+  fluwx: ^5.5.5                                    # 微信集成库
+
   animated_segmented_tab_control: ^2.0.0           # 切换tab
   markdown_widget: ^2.3.2+8
   flutter_markdown_selectionarea: ^0.6.17+1        # 支持 SelectionArea 的 MarkdownWidget
   page_flip_builder: ^0.1.4
   modal_bottom_sheet: ^3.0.0
-  # device_info_plus: ^9.1.2                      # 设备信息
+  # app_links: ^6.3.2                              # 处理URL Scheme和Universal Links
+  # device_info_plus: ^9.1.2                       # 设备信息
   # isar: ^3.1.0+1                                 # NoSQL本地数据库
   # isar_flutter_libs: ^3.1.0+1                    # Isar 原生库文件
   uuid: ^4.5.1
@@ -67,6 +69,19 @@ flutter:
             - assets/
             - assets/js/ # 确保这行或 assets/js/html2canvas.min.js 被添加
 
+
+fluwx:
+  app_id: wx629011ac595bee08
+  # only debug in debug mode
+  debug_logging: true
+  android:
+  #      interrupt_wx_request: true # default is true
+  #      flutter_activity: MainActivity #Default to launch app's launcher
+  ios:
+    universal_link: https://flint-tools.guanshangyun.com
+    #    scene_delegate: true #default false
+    # payment is enabled by default
+    no_pay: false
 
 # flutter pub run flutter_launcher_icons:main
 flutter_icons:
