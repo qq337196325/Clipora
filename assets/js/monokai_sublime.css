@@ -1,0 +1,161 @@
+/* Monokai Sublime 代码高亮主题 - 针对文章阅读优化 */
+
+/* 基础样式 */
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 20px;
+  background: #23241f;
+  color: #f8f8f2;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  position: relative;
+  margin: 16px 0;
+}
+
+/* 注释 */
+.hljs-comment,
+.hljs-quote {
+  color: #75715e;
+  font-style: italic;
+}
+
+/* 关键字 */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #f92672;
+  font-weight: bold;
+}
+
+/* 数字和字面量 */
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: #ae81ff;
+}
+
+/* 字符串 */
+.hljs-string,
+.hljs-doctag {
+  color: #e6db74;
+}
+
+/* 标题和函数名 */
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.class_.inherited__,
+.hljs-title.function_ {
+  color: #a6e22e;
+  font-weight: bold;
+}
+
+/* 属性和元数据 */
+.hljs-attr,
+.hljs-attribute,
+.hljs-builtin-name,
+.hljs-meta,
+.hljs-name,
+.hljs-operator,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id {
+  color: #66d9ef;
+}
+
+/* 内置类型 */
+.hljs-built_in,
+.hljs-symbol {
+  color: #fd971f;
+}
+
+/* 正则表达式 */
+.hljs-regexp {
+  color: #f92672;
+}
+
+/* 删除和添加 */
+.hljs-addition {
+  background-color: #49483e;
+  color: #a6e22e;
+}
+
+.hljs-deletion {
+  background-color: #49483e;
+  color: #f92672;
+}
+
+/* 强调 */
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+
+/* 代码块装饰 */
+.hljs::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f92672, #fd971f, #a6e22e, #66d9ef, #ae81ff);
+  border-radius: 8px 8px 0 0;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .hljs {
+    padding: 16px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .hljs {
+    background: #000000;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+  }
+  
+  .hljs-comment,
+  .hljs-quote {
+    color: #888888;
+  }
+}
+
+/* 打印模式 */
+@media print {
+  .hljs {
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid #cccccc;
+    box-shadow: none;
+  }
+  
+  .hljs::before {
+    display: none;
+  }
+  
+  .hljs-comment,
+  .hljs-quote {
+    color: #666666;
+  }
+  
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-subst {
+    color: #000000;
+    font-weight: bold;
+  }
+} 

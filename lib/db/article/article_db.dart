@@ -27,10 +27,11 @@ class ArticleDb {
   
   @Index() bool isCreateService = false;       // 是否在服务端添加
   @Index() bool isGenerateMhtml = false;       // 是否生成了Mhtml文件
-  String mhtmlPath = "";              // mhtml快照路径【因为跨平台、这个要考虑下怎么保存】
+  String mhtmlPath = "";                       // mhtml快照路径【因为跨平台、这个要考虑下怎么保存】
   @Index() String markdown = "";               // Markdown文档
   @Index() bool isGenerateMarkdown = false;    // 是否生成了Markdown文档
-  String shareOriginalContent = "";   // 分享接收到的原始内容
+  int markdownStatus = 0;                      // markdown状态    0=待生成  1=已生成   2=生成失败
+  String shareOriginalContent = "";            // 分享接收到的原始内容
   @Index() String serviceId = ""; 
 
   // 用户行为数据

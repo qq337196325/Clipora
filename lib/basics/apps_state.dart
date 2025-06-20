@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controller/article_controller.dart';
-
+import '../services/snapshot_service.dart';
+import '../view/article/controller/article_controller.dart';
 
 
 class AppsState extends StatefulWidget {
@@ -23,7 +23,17 @@ class _MyHomePageState extends State<AppsState> {
 
   @override
   void initState() {
+    _init();
+    super.initState();
+  }
+
+  _init() async {
+
+
+
+
     Get.lazyPut(() => ArticleController());
+    Get.lazyPut(() => SnapshotService());
     // Get.lazyPut(() => FullCommodityCategoryController());
     // Get.lazyPut(() => FullCommodityUtilController());
     // Get.lazyPut(() => UserController());
@@ -35,7 +45,6 @@ class _MyHomePageState extends State<AppsState> {
     // Get.lazyPut(() => TransferRouteController());
     // Get.lazyPut(() => IndexController());
 
-    super.initState();
   }
 
 

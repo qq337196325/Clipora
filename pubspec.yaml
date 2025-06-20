@@ -7,7 +7,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.5.4
 
 isar_version: &isar_version 3.1.8
 
@@ -18,7 +18,7 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   dio: ^5.6.0
   get: ^4.7.2
-  get_storage: ^2.1.1
+  get_storage: ^2.1.1                             # 轻量级键值对存储库
   go_router: ^15.1.2
   intl: ^0.20.2
   logger: ^2.4.0
@@ -28,8 +28,14 @@ dependencies:
   path_provider: ^2.1.5                            # 获取文件路径
   permission_handler: ^12.0.0+1                    # 权限处理
   image: ^4.5.4                                    # 图片处理和拼接
-  receive_sharing_intent: ^1.8.1                   # 接收分享内容
+#  receive_sharing_intent: ^1.8.1                   # 接收分享内容
+  receive_sharing_intent:
+    git:
+      url: https://github.com/KasemJaffer/receive_sharing_intent.git
+      ref: master
   fluwx: ^5.5.5                                    # 微信集成库
+  url_launcher: ^6.3.1                             # 打开外部链接
+  device_info_plus: 11.3.0                        # 获取设备信息
 
   animated_segmented_tab_control: ^2.0.0           # 切换tab
   markdown_widget: ^2.3.2+8
@@ -66,8 +72,8 @@ flutter:
 
   uses-material-design: true
   assets:
-            - assets/
-            - assets/js/ # 确保这行或 assets/js/html2canvas.min.js 被添加
+      - assets/
+      - assets/js/ # 确保这行或 assets/js/html2canvas.min.js 被添加
 
 
 fluwx:

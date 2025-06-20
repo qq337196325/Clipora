@@ -14,6 +14,7 @@ class WebViewPoolManager {
   String? _cachedHighlightJS;
   String? _cachedGitHubCSS;
   String? _cachedHtmlTemplate;
+  String? _cachedEnhancedJS;
   
   // 预热状态
   bool _isInitialized = false;
@@ -45,7 +46,13 @@ class WebViewPoolManager {
       final futures = [
         rootBundle.loadString('assets/js/marked.min.js').then((content) => _cachedMarkedJS = content),
         rootBundle.loadString('assets/js/highlight.min.js').then((content) => _cachedHighlightJS = content),
-        rootBundle.loadString('assets/js/github.min.css').then((content) => _cachedGitHubCSS = content),
+        rootBundle.loadString('assets/js/typora_github.css').then((content) => _cachedGitHubCSS = content),
+        // 使用安全的Markdown脚本替代增强脚本
+        rootBundle.loadString('assets/js/markdown_safe.js').then((content) => _cachedEnhancedJS = content).catchError((e) {
+          getLogger().w('⚠️ 安全脚本加载失败，将使用基础功能: $e');
+          _cachedEnhancedJS = null;
+          return '';
+        }),
       ];
       
       await Future.wait(futures);
@@ -53,7 +60,7 @@ class WebViewPoolManager {
       // 生成优化的HTML模板
       _cachedHtmlTemplate = _generateOptimizedHtmlTemplate();
       
-      getLogger().i('✅ 资源预加载完成 - marked.js: ${_cachedMarkedJS?.length ?? 0}字符, highlight.js: ${_cachedHighlightJS?.length ?? 0}字符, CSS: ${_cachedGitHubCSS?.length ?? 0}字符');
+      getLogger().i('✅ 资源预加载完成 - marked.js: ${_cachedMarkedJS?.length ?? 0}字符, highlight.js: ${_cachedHighlightJS?.length ?? 0}字符, Typora CSS: ${_cachedGitHubCSS?.length ?? 0}字符');
     } catch (e) {
       getLogger().e('❌ 资源预加载失败: $e');
     }
@@ -103,37 +110,56 @@ class WebViewPoolManager {
           if (githubStyles) {
             githubStyles.textContent = `${_cachedGitHubCSS!.replaceAll('`', '\\`').replaceAll('\$', '\\\$')}`;
           }
-        ''').then((_) => getLogger().d('✅ GitHub CSS 注入完成'))
+        ''').then((_) => getLogger().d('✅ Typora GitHub CSS 注入完成'))
       );
     }
 
     // 等待所有资源注入完成
     await Future.wait(injectionFutures);
 
-    // 配置marked.js
-    await controller.evaluateJavascript(source: '''
-      if (typeof marked !== 'undefined') {
-        marked.setOptions({
-          highlight: function(code, lang) {
-            if (typeof hljs !== 'undefined') {
-              if (lang && hljs.getLanguage(lang)) {
-                try {
-                  return hljs.highlight(code, { language: lang }).value;
-                } catch (err) {
-                  return code;
-                }
-              }
-              return hljs.highlightAuto(code).value;
-            }
-            return code;
-          },
-          langPrefix: 'hljs language-',
-          breaks: true,
-          gfm: true
-        });
-        console.log('✅ marked.js 配置完成');
+    // 注入安全的Markdown脚本（如果可用）
+    if (_cachedEnhancedJS != null && _cachedEnhancedJS!.isNotEmpty) {
+      try {
+        await controller.evaluateJavascript(source: _cachedEnhancedJS!);
+        getLogger().d('✅ 安全的 Markdown 脚本注入完成');
+      } catch (e) {
+        getLogger().w('⚠️ 安全脚本注入失败，使用基础配置: $e');
+        await _setupBasicMarkdownConfig(controller);
       }
-    ''');
+    } else {
+      await _setupBasicMarkdownConfig(controller);
+    }
+  }
+
+  /// 设置基础的Markdown配置（备用方案）
+  Future<void> _setupBasicMarkdownConfig(InAppWebViewController controller) async {
+    try {
+      await controller.evaluateJavascript(source: '''
+        if (typeof marked !== 'undefined') {
+          marked.setOptions({
+            highlight: function(code, lang) {
+              if (typeof hljs !== 'undefined') {
+                if (lang && hljs.getLanguage(lang)) {
+                  try {
+                    return hljs.highlight(code, { language: lang }).value;
+                  } catch (err) {
+                    return code;
+                  }
+                }
+                return hljs.highlightAuto(code).value;
+              }
+              return code;
+            },
+            langPrefix: 'hljs language-',
+            breaks: true,
+            gfm: true
+          });
+          console.log('✅ 基础 Markdown 配置完成');
+        }
+      ''');
+    } catch (e) {
+      getLogger().e('❌ 基础Markdown配置失败: $e');
+    }
   }
 
   /// 检查资源是否已预热
@@ -151,6 +177,39 @@ class WebViewPoolManager {
   Future<void> renderMarkdownContent(InAppWebViewController controller, String markdownContent) async {
     if (markdownContent.isEmpty) return;
 
+    try {
+      // 首先尝试使用安全渲染函数
+      final result = await controller.evaluateJavascript(source: '''
+        (function() {
+          try {
+            if (typeof safeRenderMarkdown === 'function') {
+              console.log('🛡️ 使用安全渲染函数');
+              return safeRenderMarkdown(`${markdownContent.replaceAll('`', '\\`').replaceAll('\$', '\\\$')}`, 'content');
+            } else {
+              console.log('⚠️ 安全渲染函数不可用，使用基础渲染');
+              throw new Error('安全渲染函数不可用');
+            }
+          } catch (e) {
+            console.warn('安全渲染失败，降级到基础渲染:', e);
+            throw e;
+          }
+        })();
+      ''');
+
+      if (result == true) {
+        getLogger().i('✅ 使用安全渲染完成');
+        return;
+      }
+    } catch (e) {
+      getLogger().w('⚠️ 安全渲染失败，使用传统渲染: $e');
+    }
+
+    // 降级到传统渲染方法
+    await _renderTraditionalMarkdown(controller, markdownContent);
+  }
+
+  /// 传统的Markdown渲染方法（备用）
+  Future<void> _renderTraditionalMarkdown(InAppWebViewController controller, String markdownContent) async {
     try {
       await controller.evaluateJavascript(source: '''
         if (typeof marked !== 'undefined' && marked.parse) {
@@ -183,10 +242,10 @@ class WebViewPoolManager {
                 });
               });
               
-              console.log('✅ Markdown 内容渲染完成，包含 ' + images.length + ' 张图片');
+              console.log('✅ 传统 Markdown 渲染完成，包含 ' + images.length + ' 张图片');
             }
           } catch (error) {
-            console.error('❌ Markdown渲染失败:', error);
+            console.error('❌ 传统 Markdown渲染失败:', error);
             document.getElementById('content').innerHTML = '<div style="color: #e74c3c; padding: 20px; text-align: center;"><h3>⚠️ 内容解析失败</h3><p>' + error.message + '</p></div>';
           }
         } else {
@@ -195,7 +254,7 @@ class WebViewPoolManager {
         }
       ''');
     } catch (e) {
-      getLogger().e('❌ 渲染Markdown内容失败: $e');
+      getLogger().e('❌ 传统Markdown渲染失败: $e');
       rethrow;
     }
   }

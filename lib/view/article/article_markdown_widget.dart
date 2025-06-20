@@ -30,10 +30,8 @@ class ArticleMarkdownWidget extends StatefulWidget {
 }
 
 class _ArticlePageState extends State<ArticleMarkdownWidget> with ArticleMarkdownLogic {
-  @override
   final GlobalKey _webViewKey = GlobalKey();
 
-  @override
   String get markdownContent => widget.markdownContent;
   
   @override

@@ -17,6 +17,7 @@ class RouteInfo{
 
 class RouteName {
 
+  static String splash = "splash";
   static String transferRoute = "transfer_route";
   static String index = "index";
   static String screenshotGallery = "screenshot_gallery"; 

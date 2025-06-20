@@ -59,8 +59,7 @@ class ShareService extends GetxService {
   void onInit() {
     super.onInit();
     getLogger().i('ShareService onInit 被调用');
-    // 延迟初始化，确保Flutter引擎完全启动
-    // 移除不必要的100ms延迟，在onInit中初始化监听器是安全的。
+
     _initializeShareListeners();
     
     // 初始化Share Extension数据检查
@@ -128,19 +127,9 @@ class ShareService extends GetxService {
 
   /// 处理媒体文件分享 (包括文本、URL、图片、文件等所有类型)
   void _handleMediaShare(List<SharedMediaFile> mediaFiles) {
-    getLogger().i('🔄 开始处理 ${mediaFiles.length} 个分享文件');
-    getLogger().i('🔄 当前平台: ${Platform.isIOS ? "iOS" : Platform.isAndroid ? "Android" : "Unknown"}');
-    
+
     for (final mediaFile in mediaFiles) {
       SharedContent content;
-
-      getLogger().i('========== 处理单个分享文件 ==========');
-      getLogger().i('📄 文件路径: ${mediaFile.path}');
-      getLogger().i('📄 文件类型: ${mediaFile.type}');
-      getLogger().i('📄 消息内容: ${mediaFile.message}');
-      getLogger().i('📄 文件路径长度: ${mediaFile.path.length}');
-      getLogger().i('📄 消息是否为空: ${mediaFile.message?.isEmpty ?? 'null'}');
-      getLogger().i('📄 处理路径: ${Platform.isIOS ? "iOS标准路径" : "Android标准路径"}');
 
       print('📄 文件路径: ${mediaFile.path}');
       print('📄 文件类型: ${mediaFile.type}');
@@ -148,13 +137,6 @@ class ShareService extends GetxService {
       
       // iOS额外调试信息
       if (Platform.isIOS) {
-        getLogger().i('🍎 iOS特别调试信息:');
-        getLogger().i('🍎 mediaFile.path 的详细内容: "${mediaFile.path}"');
-        getLogger().i('🍎 mediaFile.message 的详细内容: "${mediaFile.message}"');
-        getLogger().i('🍎 mediaFile.type 的详细内容: ${mediaFile.type}');
-        getLogger().i('🍎 path包含http检查: ${mediaFile.path.toLowerCase().contains('http')}');
-        getLogger().i('🍎 message包含http检查: ${mediaFile.message?.toLowerCase().contains('http') ?? false}');
-        
         // 检查所有可能的URL位置
         final allTexts = [mediaFile.path, mediaFile.message].where((t) => t != null && t.isNotEmpty);
         for (final text in allTexts) {
@@ -165,17 +147,12 @@ class ShareService extends GetxService {
 
       // 判断分享类型
       if (mediaFile.type == SharedMediaType.text) {
-        getLogger().i('🎯 进入文本类型处理分支');
         // 文本类型 - 优先使用message，如果没有则使用path
         final text = mediaFile.message?.isNotEmpty == true ? mediaFile.message! : mediaFile.path;
-        getLogger().i('📝 最终使用的文本: ${text.substring(0, text.length > 100 ? 100 : text.length)}${text.length > 100 ? '...' : ''}');
 
-        print('📄 消息内容: ${mediaFile.message}');
 
         // 检查文本中是否包含URL，而不是要求整个文本必须是URL
-        getLogger().i('🔍 准备调用_containsUrl方法检查URL');
         if (_containsUrl(text)) {
-          getLogger().i('🔗 文本中包含URL，识别为URL类型');
           content = SharedContent(
             type: ShareContentType.url,
             url: _extractUrl(text),
@@ -183,7 +160,6 @@ class ShareService extends GetxService {
             title: '分享的链接',
           );
         } else {
-          getLogger().i('📝 文本中不包含URL，识别为纯文本类型');
           content = SharedContent(
             type: ShareContentType.text,
             text: text,
@@ -192,12 +168,9 @@ class ShareService extends GetxService {
         }
       } else if (mediaFile.type == SharedMediaType.url) {
         // URL类型 - iOS经常使用这种类型，URL通常在path字段中
-        getLogger().i('🔗 进入URL类型处理分支');
         final url = mediaFile.path; // iOS上URL存储在path字段中
         final text = mediaFile.message?.isNotEmpty == true ? mediaFile.message! : url;
-        getLogger().i('🔗 URL内容: $url');
-        getLogger().i('🔗 文本内容: $text');
-        
+
         content = SharedContent(
           type: ShareContentType.url,
           url: url,
@@ -206,7 +179,6 @@ class ShareService extends GetxService {
         );
       } else if (mediaFile.type == SharedMediaType.image) {
         // 图片类型
-        getLogger().i('识别为图片类型: ${mediaFile.path}');
         content = SharedContent(
           type: ShareContentType.image,
           imagePath: mediaFile.path,
@@ -214,20 +186,16 @@ class ShareService extends GetxService {
         );
       } else if (mediaFile.type == SharedMediaType.video) {
         // 视频类型（当作文件处理）
-        getLogger().i('识别为视频类型: ${mediaFile.path}');
         content = SharedContent(
           type: ShareContentType.file,
           filePath: mediaFile.path,
           title: '分享的视频',
         );
       } else {
-        // 其他文件类型或者未知类型
-        getLogger().i('识别为其他文件类型: ${mediaFile.path}');
-        
+
         // iOS平台额外处理逻辑
         if (Platform.isIOS) {
-          getLogger().i('🍎 iOS其他类型额外处理');
-          
+
           // 检查所有可能包含文本的字段
           final possibleTexts = [
             mediaFile.path,
@@ -286,7 +254,6 @@ class ShareService extends GetxService {
         }
       }
 
-      getLogger().i('📤 添加分享内容到流: $content');
       _sharedContentController.add(content);
       
       // 保存到数据库
@@ -297,10 +264,7 @@ class ShareService extends GetxService {
   /// 保存分享内容到数据库
   Future<void> _saveSharedContentToDatabase(SharedContent content, String originalContent) async {
     try {
-      getLogger().i('💾 开始保存分享内容到数据库');
-      getLogger().i('💾 分享内容类型: ${content.type}');
-      getLogger().i('💾 原始内容: ${originalContent.substring(0, originalContent.length > 100 ? 100 : originalContent.length)}...');
-      
+
       // 只处理文本和URL类型的分享内容
       if (content.type != ShareContentType.text && content.type != ShareContentType.url) {
         getLogger().i('🚫 跳过非文本类型的分享内容保存: ${content.type}');
@@ -321,15 +285,11 @@ class ShareService extends GetxService {
       String url = '';
 
       if (content.type == ShareContentType.url) {
-        getLogger().i('🔗 处理URL类型内容');
         // URL类型，需要解析标题和URL
         final parseResult = _parseSharedContent(originalContent);
         title = parseResult['title'] ?? '分享的链接';
         url = parseResult['url'] ?? content.url ?? '';
-        getLogger().i('🔗 解析后的标题: $title');
-        getLogger().i('🔗 解析后的URL: $url');
       } else {
-        getLogger().i('📝 处理文本类型内容');
 
         print('📝 11处理文本类型内容: ${content.text}'  );
         print('📝 22处理文本类型内容: ${content.url}'  );
@@ -344,30 +304,21 @@ class ShareService extends GetxService {
 
       // 检查是否已存在相同URL的文章（只对URL类型检查）
       if (url.isNotEmpty) {
-        getLogger().i('🔍 检查URL是否已存在: $url');
         final existingArticle = await ArticleService.instance.findArticleByUrl(url);
         if (existingArticle != null) {
           getLogger().i('⚠️ 文章已存在，跳过保存: ${existingArticle.title}');
           return;
         }
-        getLogger().i('✅ URL不存在，可以保存');
       }
 
       // 创建并保存文章
-      getLogger().i('📝 准备创建文章');
-      getLogger().i('📝 标题: $title');
-      getLogger().i('📝 URL: $url');
-      getLogger().i('📝 原始内容长度: ${originalContent.length}');
-      
       final article = await ArticleService.instance.createArticleFromShare(
         title: title,
         url: url,
         originalContent: originalContent,
         excerpt: _generateExcerpt(content.text ?? originalContent),
-        tags: ['分享内容'], // 可以根据内容类型添加不同标签
+        tags: [], // 可以根据内容类型添加不同标签
       );
-
-      getLogger().i('✅ 分享内容已保存到数据库: ${article.title}, ID: ${article.id}');
 
     } catch (e, stackTrace) {
       getLogger().e('❌ 保存分享内容到数据库失败: $e');
@@ -390,14 +341,10 @@ class ShareService extends GetxService {
       if (urlMatch != null) {
         final url = urlMatch.group(1)!;
         final urlStartIndex = urlMatch.start;
-        
-        getLogger().i('🔍 找到URL: $url');
-        getLogger().i('🔍 URL开始位置: $urlStartIndex');
-        
+
         // 提取URL前面的文本作为标题
         final title = content.substring(0, urlStartIndex).trim();
-        getLogger().i('🔍 提取的标题: $title');
-        
+
         final result = {
           'title': title.isNotEmpty ? title : '分享的链接',
           'url': url,
@@ -405,8 +352,7 @@ class ShareService extends GetxService {
         getLogger().i('🔍 解析结果: $result');
         return result;
       }
-      
-      getLogger().i('🔍 未找到URL，检查是否为纯URL');
+
       // 如果没有找到URL，可能整个内容就是一个URL
       if (_isUrl(content.trim())) {
         getLogger().i('🔍 识别为纯URL');
@@ -415,8 +361,7 @@ class ShareService extends GetxService {
           'url': content.trim(),
         };
       }
-      
-      getLogger().i('🔍 未识别为URL，当作纯文本处理');
+
       // 如果都不是，当作纯文本处理
       return {
         'title': _extractTitleFromText(content),
@@ -460,47 +405,6 @@ class ShareService extends GetxService {
     return content.substring(0, 200).trim() + '...';
   }
 
-  /// 手动处理分享内容 (测试方法)
-  void handleManualShare(String content, ShareContentType type) {
-    getLogger().i('🧪 手动测试分享: content=$content, type=$type');
-    
-    SharedContent sharedContent;
-    
-    switch (type) {
-      case ShareContentType.text:
-        sharedContent = SharedContent(
-          type: type,
-          text: content,
-          title: '测试分享的文本',
-        );
-        break;
-      case ShareContentType.url:
-        sharedContent = SharedContent(
-          type: type,
-          url: content,
-          text: content,
-          title: '测试分享的链接',
-        );
-        break;
-      case ShareContentType.image:
-        sharedContent = SharedContent(
-          type: type,
-          imagePath: content,
-          title: '测试分享的图片',
-        );
-        break;
-      case ShareContentType.file:
-        sharedContent = SharedContent(
-          type: type,
-          filePath: content,
-          title: '测试分享的文件',
-        );
-        break;
-    }
-
-    getLogger().i('📤 手动添加测试分享内容: $sharedContent');
-    _sharedContentController.add(sharedContent);
-  }
 
   /// 判断文本是否包含URL
   bool _containsUrl(String text) {
@@ -510,7 +414,6 @@ class ShareService extends GetxService {
       caseSensitive: false,
     );
     final hasUrl = urlRegex.hasMatch(text);
-    getLogger().i('🔍 URL检查结果: $hasUrl');
     if (hasUrl) {
       final match = urlRegex.firstMatch(text);
       getLogger().i('🔍 找到的URL: ${match?.group(0)}');
@@ -520,7 +423,6 @@ class ShareService extends GetxService {
 
   /// 从文本中提取URL
   String _extractUrl(String text) {
-    getLogger().i('🔗 从文本中提取URL: ${text.substring(0, text.length > 100 ? 100 : text.length)}...');
     final urlRegex = RegExp(
       r'(https?://[^\s]+)',
       caseSensitive: false,
@@ -547,21 +449,10 @@ class ShareService extends GetxService {
     return imageExtensions.contains('.$extension');
   }
 
-  /// 清除分享内容 (处理完成后调用)
-  void clearSharedContent() {
-    try {
-      ReceiveSharingIntent.instance.reset();
-      getLogger().i('✅ 已清除分享内容');
-    } catch (e) {
-      getLogger().e('❌ 清除分享内容时出错: $e');
-    }
-  }
-
   /// 初始化Share Extension监听器
   void _initializeShareExtensionListener() {
     try {
-      getLogger().i('===== 初始化Share Extension监听器 =====');
-      
+
       // 设置定时器，每2秒检查一次Share Extension的数据
       Timer.periodic(Duration(seconds: 2), (timer) {
         _checkShareExtensionData();
@@ -747,18 +638,7 @@ class ShareService extends GetxService {
     }
   }
 
-  /// 处理URL Scheme打开
-  void handleUrlSchemeOpen(String url) {
-    getLogger().i('🔗 处理URL Scheme打开: $url');
-    
-    if (url.startsWith('ShareMedia-com.guanshangyun.clipora://')) {
-      getLogger().i('📱 收到Share Extension通知，检查共享数据');
-      // 延迟检查，确保数据已经写入
-      Future.delayed(Duration(milliseconds: 500), () {
-        _checkShareExtensionData();
-      });
-    }
-  }
+
 
   @override
   void onClose() {

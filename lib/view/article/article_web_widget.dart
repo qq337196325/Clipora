@@ -1,14 +1,17 @@
+import 'package:clipora/view/article/utils/web_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'dart:async';
 import 'dart:collection';
+import 'package:get/get.dart';
 
 import '../../basics/logger.dart';
 import 'components/web_webview_pool_manager.dart';
-import 'utils/auto_expander.dart';
+import 'controller/article_controller.dart';
 import 'utils/snapshot_utils.dart';
 import '../../db/article/article_service.dart';
+import '../../api/user_api.dart';
 
 
 class ArticleWebWidget extends StatefulWidget {
@@ -17,6 +20,7 @@ class ArticleWebWidget extends StatefulWidget {
   final int? articleId;  // 添加文章ID参数
   final void Function(ScrollDirection direction, double scrollY)? onScroll;
   final EdgeInsetsGeometry contentPadding;
+  final VoidCallback? onMarkdownGenerated; // 添加 Markdown 生成成功回调
   
   const ArticleWebWidget({
     super.key,
@@ -25,6 +29,7 @@ class ArticleWebWidget extends StatefulWidget {
     this.articleId,  // 添加文章ID参数
     this.onScroll,
     this.contentPadding = EdgeInsets.zero,
+    this.onMarkdownGenerated, // 添加 Markdown 生成成功回调
   });
 
   @override
@@ -86,7 +91,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
         if (!hasError)
           Expanded(
             child: InAppWebView(
-              initialUrlRequest: URLRequest(url: WebUri(currentUrl)),
+              initialUrlRequest: URLRequest(url: WebUri(articleController.articleUrl)),
               initialSettings: WebWebViewPoolManager().getOptimizedSettings(),
               initialUserScripts: UnmodifiableListView(WebWebViewPoolManager().getOptimizedUserScripts()),
               onWebViewCreated: (controller) {
@@ -120,7 +125,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 ''');
                 
                 // 页面加载完成后进行优化设置
-                _finalizeWebPageOptimization(url);
+                finalizeWebPageOptimization(url,webViewController);
                 
                 // 检查是否需要自动生成MHTML快照（异步执行，不阻塞主线程）
                 _checkAndGenerateSnapshotIfNeeded().catchError((e) {
@@ -230,6 +235,9 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
 
 
 mixin ArticlePageBLoC on State<ArticleWebWidget> {
+
+  final ArticleController articleController = Get.find<ArticleController>();
+
   // WebView控制器
   InAppWebViewController? webViewController;
   
@@ -240,12 +248,6 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   // 错误状态
   bool hasError = false;
   String errorMessage = '';
-  
-  // URL
-  String get currentUrl => widget.url ?? '';
-  
-  // 获取文章ID
-  int? get articleId => widget.articleId;
 
   @override
   void initState() {
@@ -295,7 +297,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       getLogger().i('🔧 使用传统方式设置WebView...');
       
       // 注入传统CORS处理脚本
-      await controller.evaluateJavascript(source: _getTraditionalCorsScript());
+      await controller.evaluateJavascript(source: getTraditionalCorsScript());
       
       getLogger().i('✅ 传统WebView设置完成');
     } catch (e) {
@@ -303,180 +305,11 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     }
   }
 
-  /// 页面加载完成后的最终优化
-  Future<void> _finalizeWebPageOptimization(WebUri? url) async {
-    if (webViewController == null) return;
-    
-    try {
-      getLogger().i('🎨 执行页面加载完成后的优化...');
-      
-      // 注入页面完成后的优化脚本
-      await webViewController!.evaluateJavascript(source: '''
-        (function() {
-          console.log('🎨 执行页面完成后优化...');
-          
-          // 延迟执行，确保页面完全渲染
-          setTimeout(function() {
-            // 强制移除水平滚动条的终极方案
-            function eliminateHorizontalScroll() {
-              console.log('🔧 开始消除水平滚动条...');
-              
-              // 1. 强制设置body和html的样式
-              document.documentElement.style.overflowX = 'hidden';
-              document.documentElement.style.maxWidth = '100%';
-              document.body.style.overflowX = 'hidden';
-              document.body.style.maxWidth = '100%';
-              document.body.style.width = '100%';
-              
-              // 2. 检查并修复所有可能导致水平滚动的元素
-              const allElements = document.querySelectorAll('*');
-              let fixedCount = 0;
-              
-              allElements.forEach(function(el) {
-                const rect = el.getBoundingClientRect();
-                const computed = window.getComputedStyle(el);
-                
-                // 检查元素是否超出视口宽度
-                if (rect.width > window.innerWidth || 
-                    rect.right > window.innerWidth) {
-                  
-                  // 记录原始宽度用于调试
-                  const originalWidth = computed.width;
-                  
-                  // 应用修复样式
-                  el.style.maxWidth = '100%';
-                  el.style.boxSizing = 'border-box';
-                  
-                  // 特殊处理不同类型的元素
-                  const tagName = el.tagName.toLowerCase();
-                  
-                  if (tagName === 'img' || tagName === 'video') {
-                    el.style.width = '100%';
-                    el.style.height = 'auto';
-                  } else if (tagName === 'table') {
-                    el.style.width = '100%';
-                    el.style.tableLayout = 'fixed';
-                  } else if (tagName === 'pre' || tagName === 'code') {
-                    el.style.whiteSpace = 'pre-wrap';
-                    el.style.wordWrap = 'break-word';
-                    el.style.overflowX = 'auto';
-                  } else if (computed.position === 'fixed' || computed.position === 'absolute') {
-                    // 对于定位元素，确保不超出边界
-                    if (rect.right > window.innerWidth) {
-                      el.style.right = '0';
-                      el.style.left = 'auto';
-                      el.style.maxWidth = '100%';
-                    }
-                  }
-                  
-                  fixedCount++;
-                  console.log('🔧 修复超宽元素:', tagName, '原始宽度:', originalWidth);
-                }
-              });
-              
-              // 3. 强制刷新布局
-              document.body.offsetHeight; // 触发重排
-              
-              // 4. 最后检查是否还有水平滚动
-              const hasHorizontalScroll = document.documentElement.scrollWidth > document.documentElement.clientWidth;
-              
-              console.log('📊 优化结果:', {
-                '修复元素数量': fixedCount,
-                '视口宽度': window.innerWidth,
-                '文档宽度': document.documentElement.scrollWidth,
-                '是否还有水平滚动': hasHorizontalScroll
-              });
-              
-              if (hasHorizontalScroll) {
-                console.warn('⚠️ 仍存在水平滚动，应用强制CSS覆盖');
-                // 最后的强制手段
-                const forceStyle = document.createElement('style');
-                forceStyle.innerHTML = `
-                  * { 
-                    max-width: 100% !important; 
-                    box-sizing: border-box !important; 
-                  }
-                  html, body { 
-                    overflow-x: hidden !important; 
-                    width: 100% !important;
-                  }
-                `;
-                document.head.appendChild(forceStyle);
-              }
-              
-              return fixedCount;
-            }
-            
-            // 执行消除水平滚动
-            const fixedCount = eliminateHorizontalScroll();
-            
-            // 优化已加载的图片
-            const images = document.querySelectorAll('img');
-            let optimizedCount = 0;
-            
-            images.forEach(function(img) {
-              if (!img.style.maxWidth) {
-                img.style.maxWidth = '100%';
-                img.style.height = 'auto';
-                optimizedCount++;
-              }
-            });
-            
-            console.log('✅ 页面优化完成，修复了 ' + fixedCount + ' 个超宽元素，优化了 ' + optimizedCount + ' 张图片');
-            
-            // 触发性能统计
-            if (window.performance && window.performance.timing) {
-              const timing = window.performance.timing;
-              const loadTime = timing.loadEventEnd - timing.navigationStart;
-              console.log('📊 页面加载耗时: ' + loadTime + 'ms');
-            }
-          }, 200);
-        })();
-      ''');
-      
-      // 应用自动展开规则
-      if (url != null) {
-        AutoExpander.apply(webViewController!, url);
-      }
-      
-      // 输出性能统计
-      final stats = WebWebViewPoolManager().getPerformanceStats();
-      getLogger().i('📊 Web页面性能统计: $stats');
-      
-      getLogger().i('✅ 页面最终优化完成');
-    } catch (e) {
-      getLogger().e('❌ 页面最终优化失败: $e');
-    }
-  }
-
-  /// 获取传统CORS脚本（备用）
-  String _getTraditionalCorsScript() {
-    return '''
-    (function() {
-      console.log('🔧 注入传统CORS处理脚本...');
-      
-      const originalFetch = window.fetch;
-      window.fetch = function(url, options = {}) {
-        if (typeof url === 'string' && url.includes('api.juejin.cn')) {
-          options.mode = 'no-cors';
-          options.credentials = 'include';
-        }
-        return originalFetch.call(this, url, options).catch(error => {
-          console.warn('⚠️ Fetch请求失败:', error);
-          return Promise.resolve(new Response('{}', { status: 200 }));
-        });
-      };
-      
-      console.log('✅ 传统CORS处理脚本注入完成');
-    })();
-  ''';
-  }
-
-  // 生成MHTML快照并保存到本地
+  /// 生成MHTML快照并保存到本地
   Future<void> generateMHTMLSnapshot() async {
     await SnapshotUtils.generateAndProcessSnapshot(
       webViewController: webViewController,
-      articleId: articleId,
+      articleId: articleController.articleId,
       onSnapshotCreated: widget.onSnapshotCreated,
       onLoadingStateChanged: (loading) {
         if (mounted) {
@@ -485,20 +318,19 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
           });
         }
       },
+      onSuccess: (status) async { /// 生成快照并且上传到服务器以后执行的操作
+        getLogger().i('🎯 MHTML快照上传成功，开始获取Markdown内容');
+        await _fetchMarkdownFromServer();
+      }
     );
   }
 
   /// 检查是否需要自动生成MHTML快照
   Future<void> _checkAndGenerateSnapshotIfNeeded() async {
     // 检查是否有文章ID
-    if (articleId == null) {
-      getLogger().w('⚠️ 文章ID为空，跳过自动生成快照');
-      return;
-    }
-    
     try {
       // 等待3秒，确保网页完全加载稳定
-      await Future.delayed(const Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 2));
       
       // 再次检查WebView是否还存在（防止用户已经离开页面）
       if (webViewController == null || !mounted) {
@@ -506,13 +338,13 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         return;
       }
       
-      getLogger().i('🔍 检查文章是否需要生成MHTML快照，文章ID: $articleId');
+      getLogger().i('🔍 检查文章是否需要生成MHTML快照，文章ID: ${articleController.articleId}');
       
       // 从数据库获取文章信息
-      final article = await ArticleService.instance.getArticleById(articleId!);
+      final article = articleController.currentArticle;
       
       if (article == null) {
-        getLogger().w('⚠️ 未找到文章，ID: $articleId');
+        getLogger().w('⚠️ 未找到文章，ID: ${articleController.articleId}');
         return;
       }
       
@@ -537,6 +369,80 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       
     } catch (e) {
       getLogger().e('❌ 检查和生成MHTML快照失败: $e');
+    }
+  }
+
+  /// 从服务端获取Markdown内容
+  Future<void> _fetchMarkdownFromServer() async {
+    try {
+      // 获取当前文章
+      final article = articleController.currentArticle;
+      if (article == null) {
+        getLogger().w('⚠️ 当前文章为空，无法获取Markdown');
+        return;
+      }
+
+      // 检查是否有serviceId
+      if (article.serviceId.isEmpty) {
+        getLogger().w('⚠️ 文章serviceId为空，无法获取Markdown内容');
+        return;
+      }
+
+      // 检查是否有serviceId
+      if (article.markdownStatus != 0) {
+        getLogger().w('⚠️ article的markdownStatus状态非0，不自动获取');
+        return;
+      }
+
+      // 等待服务端处理MHTML转换为Markdown（延迟10秒让服务端有足够时间处理）
+      getLogger().i('⏳ 等待服务端处理MHTML转Markdown，延迟10秒...');
+      await Future.delayed(const Duration(seconds: 2));
+
+      // 重试机制：最多重试3次，每次间隔5秒
+      for (int retry = 0; retry < 3; retry++) {
+        try {
+          getLogger().i('🌐 第${retry + 1}次尝试从服务端获取Markdown内容，serviceId: ${article.serviceId}');
+          
+          final response = await UserApi.getArticleApi({
+            'service_article_id': article.serviceId,
+          });
+
+          if (response['code'] == 0 && response['data'] != null) {
+            final markdownContent = response['data']['markdown_content'] as String? ?? '';
+            
+            getLogger().i('📊 服务端返回： 内容长度=${markdownContent.length}');
+            
+            if (markdownContent.isNotEmpty) {
+              // Markdown已生成成功
+              getLogger().i('✅ Markdown获取成功，长度: ${markdownContent.length}');
+              await ArticleService.instance.updateArticleMarkdown(article.id, markdownContent);
+              
+              // 刷新当前文章数据
+              await articleController.refreshCurrentArticle();
+              
+              // 通知父组件刷新 tabs
+              widget.onMarkdownGenerated?.call();
+              
+              getLogger().i('🎉 Markdown内容已保存到本地数据库，已通知父组件刷新tabs');
+              return;
+            }
+          } else {
+            getLogger().e('❌ 获取Markdown失败: ${response['msg']}');
+          }
+        } catch (e) {
+          getLogger().e('❌ 第${retry + 1}次获取Markdown失败: $e');
+        }
+
+        // 如果不是最后一次重试，等待5秒后再试
+        if (retry < 2) {
+          await Future.delayed(const Duration(seconds: 5));
+        }
+      }
+
+      getLogger().w('⚠️ 多次重试后仍无法获取Markdown内容，放弃');
+      
+    } catch (e) {
+      getLogger().e('❌ _fetchMarkdownFromServer 失败: $e');
     }
   }
 }

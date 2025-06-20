@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -114,9 +113,8 @@ class SnapshotService extends GetxService {
     result = await _tryMhtmlSnapshot(article);
     
     if (!result.success) {
-      getLogger().w('⚠️ MHTML快照失败，尝试HTML内容保存...');
-      // 2. 尝试保存HTML内容
-      result = await _tryHtmlSnapshot(article);
+      getLogger().e('✅ 快照生成失败');
+      return;
     }
 
     if (result.success && result.filePath != null) {
@@ -276,129 +274,6 @@ class SnapshotService extends GetxService {
     }
   }
 
-  Future<SnapshotResult> _tryHtmlSnapshot(ArticleDb article) async {
-    final Completer<SnapshotResult> completer = Completer<SnapshotResult>();
-    HeadlessInAppWebView? headlessWebView;
-
-    const String userAgent = 'Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Mobile Safari/537.36';
-
-    final timeout = Timer(const Duration(seconds: 60), () {
-      if (!completer.isCompleted) {
-        completer.complete(SnapshotResult(
-          type: SnapshotType.html,
-          success: false,
-          error: 'HTML snapshot timeout',
-        ));
-      }
-    });
-
-    try {
-      final snapshotDir = await _getSnapshotDirectory();
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String htmlFileName = 'snapshot_${article.id}_$timestamp.html';
-      final String htmlPath = '$snapshotDir/$htmlFileName';
-
-      headlessWebView = HeadlessInAppWebView(
-        initialSettings: InAppWebViewSettings(
-          userAgent: userAgent,
-          javaScriptEnabled: true,
-          domStorageEnabled: true,
-        ),
-        initialUrlRequest: URLRequest(url: WebUri(article.url)),
-        onLoadStop: (controller, url) async {
-          // 如果任务已经完成（成功、失败或超时），则忽略后续的onLoadStop事件
-          if (completer.isCompleted) {
-            getLogger().d('HTML快照任务已完成，忽略后续 onLoadStop 事件: $url');
-            return;
-          }
-
-          try {
-            await Future.delayed(const Duration(seconds: 3));
-            
-            final htmlContent = await controller.evaluateJavascript(source: 'document.documentElement.outerHTML');
-            
-            if (htmlContent != null && htmlContent.toString().isNotEmpty) {
-              final file = File(htmlPath);
-              await file.parent.create(recursive: true);
-              
-              // 创建一个包含CSS和基本样式的完整HTML文档
-              final fullHtml = '''
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${article.title}</title>
-    <base href="${article.url}">
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        img { max-width: 100%; height: auto; }
-    </style>
-</head>
-<body>
-    <!-- 原始URL: ${article.url} -->
-    <!-- 快照时间: ${DateTime.now().toIso8601String()} -->
-    ${htmlContent.toString()}
-</body>
-</html>
-              ''';
-              
-              await file.writeAsString(fullHtml, encoding: utf8);
-              
-              getLogger().i('✅ HTML快照生成成功: $htmlPath');
-              
-              if (!completer.isCompleted) {
-                completer.complete(SnapshotResult(
-                  filePath: htmlPath,
-                  type: SnapshotType.html,
-                  success: true,
-                ));
-              }
-            } else {
-              if (!completer.isCompleted) {
-                completer.complete(SnapshotResult(
-                  type: SnapshotType.html,
-                  success: false,
-                  error: 'HTML content is empty',
-                ));
-              }
-            }
-          } catch (e) {
-            if (!completer.isCompleted) {
-              completer.complete(SnapshotResult(
-                type: SnapshotType.html,
-                success: false,
-                error: e.toString(),
-              ));
-            }
-          }
-        },
-        onReceivedError: (controller, request, error) {
-          if (!completer.isCompleted) {
-            completer.complete(SnapshotResult(
-              type: SnapshotType.html,
-              success: false,
-              error: 'Load error: ${error.description}',
-            ));
-          }
-        },
-      );
-
-      await headlessWebView.run();
-      return await completer.future;
-    } catch (e) {
-      return SnapshotResult(
-        type: SnapshotType.html,
-        success: false,
-        error: e.toString(),
-      );
-    } finally {
-      timeout.cancel();
-      if (headlessWebView != null && headlessWebView.isRunning()) {
-        await headlessWebView.dispose();
-      }
-    }
-  }
 
   Future<String> _getSnapshotDirectory() async {
     final Directory appDir = await getApplicationDocumentsDirectory();
@@ -481,58 +356,6 @@ class SnapshotService extends GetxService {
     }
   }
 
-  // 手动触发快照生成（用于测试和调试）
-  Future<void> manualTriggerSnapshot({int? articleId}) async {
-    getLogger().i('🔄 手动触发快照生成...');
-    
-    if (articleId != null) {
-      // 如果指定了文章ID，只处理该文章
-      final article = await ArticleService.instance.getArticleById(articleId);
-      if (article != null) {
-        await _generateAndUploadSnapshot(article);
-      } else {
-        getLogger().w('⚠️ 未找到ID为 $articleId 的文章');
-      }
-    } else {
-      // 否则处理所有未快照的文章
-      await processUnsnapshottedArticles();
-    }
-  }
-
-  // 获取快照统计信息
-  Future<Map<String, int>> getSnapshotStats() async {
-    try {
-      final allArticles = await ArticleService.instance.getAllArticles();
-      final snapshotDirectory = await _getSnapshotDirectory();
-      final snapshotDir = Directory(snapshotDirectory);
-      
-      int totalArticles = allArticles.length;
-      int snapshottedArticles = allArticles.where((article) => 
-        article.mhtmlPath.isNotEmpty).length;
-      int pendingArticles = totalArticles - snapshottedArticles;
-      
-      int totalSnapshotFiles = 0;
-      if (await snapshotDir.exists()) {
-        final files = await snapshotDir.list().toList();
-        totalSnapshotFiles = files.whereType<File>().length;
-      }
-      
-      return {
-        'totalArticles': totalArticles,
-        'snapshottedArticles': snapshottedArticles,
-        'pendingArticles': pendingArticles,
-        'totalSnapshotFiles': totalSnapshotFiles,
-      };
-    } catch (e) {
-      getLogger().e('❌ 获取快照统计信息失败: $e');
-      return {
-        'totalArticles': 0,
-        'snapshottedArticles': 0,
-        'pendingArticles': 0,
-        'totalSnapshotFiles': 0,
-      };
-    }
-  }
 
   /// 验证MongoDB ObjectID格式
   /// ObjectID应该是24位十六进制字符串，且不能是全0
@@ -559,35 +382,4 @@ class SnapshotService extends GetxService {
     return true;
   }
 
-  // 清理过期的快照文件
-  Future<void> cleanupOldSnapshots({int daysOld = 30}) async {
-    try {
-      final snapshotDirectory = await _getSnapshotDirectory();
-      final snapshotDir = Directory(snapshotDirectory);
-      
-      if (!await snapshotDir.exists()) {
-        getLogger().i('快照目录不存在，无需清理');
-        return;
-      }
-      
-      final cutoffDate = DateTime.now().subtract(Duration(days: daysOld));
-      final files = await snapshotDir.list().toList();
-      int deletedCount = 0;
-      
-      for (final file in files) {
-        if (file is File) {
-          final stat = await file.stat();
-          if (stat.modified.isBefore(cutoffDate)) {
-            await file.delete();
-            deletedCount++;
-            getLogger().d('删除过期快照文件: ${file.path}');
-          }
-        }
-      }
-      
-      getLogger().i('✅ 清理完成，删除了 $deletedCount 个过期快照文件');
-    } catch (e) {
-      getLogger().e('❌ 清理快照文件失败: $e');
-    }
-  }
 } 

@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'group_widget.dart';
 import 'index_widget.dart';
-import 'components/my_page_modal.dart';
+import 'my_page/my_page.dart';
 import '../../route/route_name.dart';
 
 
@@ -301,11 +301,12 @@ mixin IndexPageBLoC on State<IndexPage> {
   void _showMyPageModal() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext modalContext) {
-        return const MyPageModal();
+        return const MyPage();
       },
     );
   }

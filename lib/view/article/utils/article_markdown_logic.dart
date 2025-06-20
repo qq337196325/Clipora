@@ -288,8 +288,34 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
       await WebViewPoolManager().renderMarkdownContent(webViewController!, markdownContent);
       getLogger().d('✅ Markdown内容渲染完成');
     } catch (e) {
-      getLogger().e('❌ 优化渲染失败，尝试备用方法: $e');
-      // 备用渲染方法
+      getLogger().e('❌ 优化渲染失败，尝试安全渲染: $e');
+      // 尝试使用安全渲染函数
+      try {
+        final result = await webViewController!.evaluateJavascript(source: '''
+          (function() {
+            try {
+              if (typeof safeRenderMarkdown === 'function') {
+                console.log('🛡️ 使用安全渲染函数');
+                return safeRenderMarkdown(`${markdownContent.replaceAll('`', '\\`').replaceAll('\$', '\\\$')}`, 'content');
+              } else {
+                throw new Error('安全渲染函数不可用');
+              }
+            } catch (e) {
+              console.warn('安全渲染失败:', e);
+              throw e;
+            }
+          })();
+        ''');
+        
+        if (result == true) {
+          getLogger().d('✅ 安全渲染完成');
+          return;
+        }
+      } catch (safeError) {
+        getLogger().w('⚠️ 安全渲染也失败，使用传统方法: $safeError');
+      }
+      
+      // 最后的备用方法
       await _renderTraditionalMarkdownContent();
     }
   }
@@ -344,13 +370,19 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
       final List<Future> resourceFutures = [
         _loadAssetJs('assets/js/marked.min.js'),
         _loadAssetJs('assets/js/highlight.min.js'),
-        _loadAssetCss('assets/js/github.min.css', 'github-styles'),
+        _loadAssetCss('assets/js/typora_github.css', 'github-styles'),
+        // 尝试加载安全脚本
+        _loadAssetJs('assets/js/markdown_safe.js').catchError((e) {
+          getLogger().w('⚠️ 安全脚本加载失败，将使用基础配置: $e');
+          return _configureMarked();
+        }),
       ];
       await Future.wait(resourceFutures);
-      await _configureMarked();
       getLogger().i('✅ 传统方式资源加载完成');
     } catch (e) {
       getLogger().e('❌ 传统方式资源加载失败: $e');
+      // 最后的备用配置
+      await _configureMarked();
     }
   }
 

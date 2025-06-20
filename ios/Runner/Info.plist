@@ -116,6 +116,15 @@
 		<true/>
 	</dict>
 	
+	<!-- 允许查询的URL Schemes -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>itms-apps</string>
+		<string>itms</string>
+		<string>https</string>
+		<string>http</string>
+	</array>
+	
 	<!-- WebView相关权限 -->  
 	<key>NSCameraUsageDescription</key>
 	<string>网页内容可能需要访问相机</string>

@@ -1,11 +1,16 @@
 import 'package:get/get.dart';
 
-import '../db/article/article_db.dart';
-import '../db/article/article_service.dart';
-import '../basics/logger.dart';
+import '../../../db/article/article_db.dart';
+import '../../../db/article/article_service.dart';
+import '../../../basics/logger.dart';
 
 /// 文章控制器
 class ArticleController extends GetxController {
+
+  int articleId = 0;
+
+  /// ------------------------------------------------------------------------------
+
   // 获取文章服务实例
   final ArticleService _articleService = ArticleService.instance;
 
@@ -137,32 +142,6 @@ class ArticleController extends GetxController {
   /// 获取文章URL
   String get articleUrl => _currentArticle.value?.url ?? '';
 
-  /// 获取文章内容
-  String get articleContent => _currentArticle.value?.content ?? '';
-
-  /// 获取文章Markdown内容
-  String get articleMarkdown => _currentArticle.value?.markdown ?? '';
-
-  /// 获取分享的原始内容
-  String get shareOriginalContent => _currentArticle.value?.shareOriginalContent ?? '';
-
-  /// 获取文章摘要
-  String get articleExcerpt => _currentArticle.value?.excerpt ?? '';
-
-  /// 获取阅读进度
-  double get readProgress => _currentArticle.value?.readProgress ?? 0.0;
-
-  /// 获取阅读次数
-  int get readCount => _currentArticle.value?.readCount ?? 0;
-
-  /// 检查是否已读
-  bool get isRead => (_currentArticle.value?.isRead ?? 0) == 1;
-
-  /// 获取创建时间
-  DateTime? get createdAt => _currentArticle.value?.createdAt;
-
-  /// 获取更新时间
-  DateTime? get updatedAt => _currentArticle.value?.updatedAt;
 
   @override
   void onClose() {

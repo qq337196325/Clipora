@@ -1,4 +1,5 @@
 import 'package:bot_toast/bot_toast.dart';
+import 'package:clipora/view/article/utils/download_snapshot_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/rendering.dart';
@@ -10,12 +11,11 @@ import '/db/article/article_service.dart';
 import '/view/article/components/article_bottom_bar.dart';
 import '/view/article/components/article_loading_view.dart';
 import '/view/article/components/article_top_bar.dart';
-import '/view/article/utils/snapshot_utils.dart';
 
 import 'article_markdown_widget.dart';
 import 'article_mhtml_widget.dart';
 import 'article_web_widget.dart';
-import '../../controller/article_controller.dart';
+import 'controller/article_controller.dart';
 
 
 class ArticlePage extends StatefulWidget {
@@ -72,7 +72,7 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
               onBack: () => Navigator.of(context).pop(),
               onGenerateSnapshot: generateSnapshot,
               onDownloadSnapshot: downloadSnapshot,
-              onReGenerateSnapshot: () => (_webWidgetKey.currentState as ArticlePageState?)?.createSnapshot(),
+              onReGenerateSnapshot: () => (_webWidgetKey.currentState)?.createSnapshot(),
             ),
           ],
         ),
@@ -139,7 +139,6 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
 mixin ArticlePageBLoC on State<ArticlePage> {
 
   // 文章控制器
-  // final ArticleController articleController = Get.put(ArticleController());
    final ArticleController articleController = Get.find<ArticleController>();
 
   late TabController tabController;
@@ -162,7 +161,8 @@ mixin ArticlePageBLoC on State<ArticlePage> {
    @override
   void initState() {
     super.initState();
-    
+    articleController.articleId = widget.id;
+
     // 进入沉浸式模式，隐藏系统状态栏
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     
@@ -306,6 +306,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
           articleId: widget.id,
           onScroll: _handleScroll,
           contentPadding: padding,
+          onMarkdownGenerated: _onMarkdownGenerated, // 添加 Markdown 生成回调
         )),
       ];
       return;
@@ -338,6 +339,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
               articleId: widget.id,
               onScroll: _handleScroll,
               contentPadding: padding,
+              onMarkdownGenerated: _onMarkdownGenerated, // 添加 Markdown 生成回调
             ))
           );
           break;
@@ -530,6 +532,26 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     }
   }
 
+  /// Markdown 生成成功回调
+  void _onMarkdownGenerated() {
+    getLogger().i('🎯 收到 Markdown 生成成功通知，刷新 tabs');
+    
+    // 刷新当前文章数据
+    articleController.refreshCurrentArticle().then((_) {
+      // 刷新 tabs 显示
+      refreshTabs();
+      
+      // 更新 markdown 内容状态
+      final article = articleController.currentArticle;
+      if (article != null && article.markdown.isNotEmpty) {
+        _markdownContent.value = article.markdown;
+        getLogger().i('✅ Markdown 内容已更新到本地状态，长度: ${article.markdown.length}');
+      }
+    }).catchError((e) {
+      getLogger().e('❌ 刷新文章数据失败: $e');
+    });
+  }
+
   // 接收快照路径的回调方法
   void _onSnapshotCreated(String path) {
     setState(() {
@@ -616,7 +638,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
       BotToast.showText(text: '没有可下载的快照');
       return;
     }
-    await SnapshotUtils.downloadSnapshot(context, snapshotPath);
+    await DownloadSnapshotUtils.downloadSnapshot(context, snapshotPath);
   }
 
   @override

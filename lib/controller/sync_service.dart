@@ -5,7 +5,7 @@ import '../basics/logger.dart';
 import '../db/article/article_db.dart';
 import '../db/article/article_service.dart';
 import '../api/user_api.dart';
-import '../services/markdown_service.dart';
+
 
 class SyncService extends GetxService {
   static SyncService get instance => Get.find<SyncService>();
@@ -81,12 +81,12 @@ class SyncService extends GetxService {
           serviceId = serviceIdData.toString();
         }
         
-        if (serviceId.isNotEmpty && _isValidObjectId(serviceId)) {
+        if (serviceId.isNotEmpty) {
           // 假设 article_service 中有 markArticleAsSynced 方法
           await ArticleService.instance.markArticleAsSynced(article.id, serviceId);
           getLogger().i('✅ 文章同步成功。 服务端ID: $serviceId');
           // 触发Markdown生成
-          MarkdownService.instance.triggerMarkdownProcessing();
+          // MarkdownService.instance.triggerMarkdownProcessing();
         } else {
           getLogger().e('❌ 后端返回了无效的服务端ID: "$serviceId" (本地ID: ${article.id})');
         }
@@ -98,28 +98,4 @@ class SyncService extends GetxService {
     }
   }
 
-  /// 验证MongoDB ObjectID格式
-  /// ObjectID应该是24位十六进制字符串，且不能是全0
-  bool _isValidObjectId(String id) {
-    // 检查长度
-    if (id.length != 24) {
-      getLogger().w('ObjectID长度错误: ${id.length}, 期望: 24');
-      return false;
-    }
-    
-    // 检查是否为十六进制字符串
-    final hexPattern = RegExp(r'^[0-9a-fA-F]{24}$');
-    if (!hexPattern.hasMatch(id)) {
-      getLogger().w('ObjectID格式错误，应为24位十六进制字符串: "$id"');
-      return false;
-    }
-    
-    // 检查是否为全0（无效的ObjectID）
-    if (id == '000000000000000000000000') {
-      getLogger().w('ObjectID不能为全0: "$id"');
-      return false;
-    }
-    
-    return true;
-  }
 } 

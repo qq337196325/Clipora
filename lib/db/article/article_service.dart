@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:isar/isar.dart';
 import 'package:get/get.dart';
-import 'package:uuid/uuid.dart';
 
+import '../../api/user_api.dart';
 import 'article_db.dart';
 import '../database_service.dart';
 import '../category/category_db.dart';
@@ -41,7 +41,7 @@ class ArticleService extends GetxService {
         article.createdAt = now;
         // 如果没有服务端ID (代表是本地新建的), 则生成一个客户端唯一ID
         if (article.serviceId.isEmpty) {
-          article.serviceId = const Uuid().v4();
+          article.serviceId = "";
         }
       }
 
@@ -85,6 +85,34 @@ class ArticleService extends GetxService {
         ..readProgress = 0.0;
 
       final savedArticle = await saveArticle(article);
+
+      /// 将数据保存到服务端
+      final param = {
+        'client_article_id': savedArticle.id,
+        'title': savedArticle.title,
+        'url': savedArticle.url,
+        'share_original_content': savedArticle.shareOriginalContent,
+      };
+      final response = await UserApi.createArticleApi(param);
+      if (response['code'] == 0) {
+        final serviceIdData = response['data'];
+        String serviceId = '';
+
+        if (serviceIdData != null) {
+          serviceId = serviceIdData.toString();
+        }
+
+        if (serviceId.isNotEmpty) {
+          // 假设 article_service 中有 markArticleAsSynced 方法
+          await ArticleService.instance.markArticleAsSynced(article.id, serviceId);
+          getLogger().i('✅ 文章同步成功。 服务端ID: $serviceId');
+          // 触发Markdown生成
+          // MarkdownService.instance.triggerMarkdownProcessing();
+        } else {
+          getLogger().e('❌ 后端返回了无效的服务端ID: "$serviceId" (本地ID: ${article.id})');
+        }
+      }
+
       getLogger().i('📝 文章已创建，serviceId将在后端同步完成后设置');
       return savedArticle;
     } catch (e) {
@@ -587,6 +615,7 @@ class ArticleService extends GetxService {
         if (article != null) {
           article.markdown = markdown;
           article.isGenerateMarkdown = true;
+          article.markdownStatus = 1;
           article.updatedAt = DateTime.now();
           await _dbService.articles.put(article);
           getLogger().i('✅ 成功更新文章Markdown内容: ID $articleId');
