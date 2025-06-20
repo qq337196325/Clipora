@@ -25,6 +25,8 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
   GlobalKey get webViewKey;
   @protected
   late ArticleMarkdownJsManager jsManager;
+  @protected
+  EdgeInsetsGeometry get contentPadding;
 
   // === 内部状态 ===
   bool isLoading = true;
@@ -77,6 +79,8 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
     jsManager = ArticleMarkdownJsManager(controller);
     _setupWebView();
     _setupTextSelectionHandlers();
+    // WebView创建后，立即开始加载和渲染流程
+    onWebViewLoadStop();
   }
   
   Future<void> _setupWebView() async {
@@ -305,86 +309,31 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
   
   // === 内容渲染 ===
   Future<void> _renderMarkdownContent() async {
-    if (webViewController == null) return;
-    final markdownContent = (widget as dynamic).markdownContent;
-    try {
-      // 优先使用WebView池管理器的优化渲染方法
-      await WebViewPoolManager().renderMarkdownContent(webViewController!, markdownContent);
-      getLogger().d('✅ Markdown内容渲染完成');
-    } catch (e) {
-      getLogger().e('❌ 优化渲染失败，尝试安全渲染: $e');
-      // 尝试使用安全渲染函数
-      try {
-        final result = await webViewController!.evaluateJavascript(source: '''
-          (function() {
-            try {
-              if (typeof safeRenderMarkdown === 'function') {
-                console.log('🛡️ 使用安全渲染函数');
-                return safeRenderMarkdown(`${markdownContent.replaceAll('`', '\\`').replaceAll('\$', '\\\$')}`, 'content');
-              } else {
-                throw new Error('安全渲染函数不可用');
-              }
-            } catch (e) {
-              console.warn('安全渲染失败:', e);
-              throw e;
-            }
-          })();
-        ''');
-        
-        if (result == true) {
-          getLogger().d('✅ 安全渲染完成');
-          return;
-        }
-      } catch (safeError) {
-        getLogger().w('⚠️ 安全渲染也失败，使用传统方法: $safeError');
-      }
-      
-      // 最后的备用方法
-      await _renderTraditionalMarkdownContent();
-    }
+    final markdownContent = (this as dynamic).markdownContent as String;
+    if (markdownContent.isEmpty || !_isWebViewAvailable()) return;
+    
+    // 解析内边距
+    // final padding = contentPadding.resolve(Directionality.of(context));
+    // final paddingTop = padding.top + 100;
+    // final paddingBottom = padding.bottom;
+    // final paddingLeft = padding.left;
+    // final paddingRight = padding.right;
+    
+    // final paddingStyle = 'padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px;';
+    
+    // getLogger().i('🎨 使用内边距渲染Markdown: $paddingStyle');
+    //paddingStyle,
+    await WebViewPoolManager().renderMarkdownContent(
+      webViewController!,
+      markdownContent,
+      "",
+    );
   }
   
   String _escapeForJS(String content) {
     return '`${content.replaceAll('`', '\\`').replaceAll('\$', '\\\$')}`';
   }
 
-  Future<void> _renderTraditionalMarkdownContent() async {
-    if (webViewController == null) return;
-    final markdownContent = (widget as dynamic).markdownContent;
-    try {
-      await webViewController!.evaluateJavascript(source: '''
-        if (typeof marked !== 'undefined' && marked.parse) {
-          try {
-            var content = ${_escapeForJS(markdownContent)};
-            var htmlContent = marked.parse(content);
-            var contentDiv = document.getElementById('content');
-            if (contentDiv) {
-              contentDiv.innerHTML = '<div class="markdown-body">' + htmlContent + '</div>';
-              
-              var images = document.querySelectorAll('.markdown-body img');
-              images.forEach(function(img) {
-                img.style.maxWidth = '100%';
-                img.style.height = 'auto';
-                img.style.display = 'block';
-                img.style.margin = '16px auto';
-                img.style.cursor = 'pointer';
-              });
-              
-              console.log('✅ 传统方式Markdown渲染完成');
-            }
-          } catch (error) {
-            console.error('❌ 传统方式Markdown渲染失败:', error);
-            document.getElementById('content').innerHTML = '<div style="color: #e74c3c; padding: 20px; text-align: center;"><h3>⚠️ 内容解析失败</h3><p>' + error.message + '</p></div>';
-          }
-        } else {
-          console.error('❌ marked.js 未加载');
-          document.getElementById('content').innerHTML = '<div style="color: #e74c3c; padding: 20px; text-align: center;"><h3>⚠️ 解析器未就绪</h3><p>正在加载Markdown解析器，请稍后重试</p></div>';
-        }
-      ''');
-    } catch (e) {
-      getLogger().e('传统方式渲染Markdown内容失败: $e');
-    }
-  }
 
   /// 传统资源设置方法（备用）
   Future<void> _setupTraditionalResources() async {
@@ -635,41 +584,6 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
   // === 辅助方法 ===
   bool _isWebViewAvailable() => !_isDisposed && webViewController != null && mounted;
   bool _shouldSave() => _lastSaveTime == null || DateTime.now().difference(_lastSaveTime!) >= _minSaveInterval;
-
-  /// 动态更新WebView内边距
-  Future<void> updateContentPadding(EdgeInsets padding) async {
-    if (!_isWebViewAvailable()) return;
-    
-    try {
-      getLogger().i('🔄 动态更新内边距: $padding');
-      
-      await webViewController!.evaluateJavascript(source: '''
-        (function() {
-          try {
-            document.body.style.paddingTop = '${padding.top}px';
-            document.body.style.paddingBottom = '${padding.bottom}px';
-            document.body.style.paddingLeft = '${padding.left}px';
-            document.body.style.paddingRight = '${padding.right}px';
-            
-            console.log('✅ 动态内边距更新成功:', {
-              top: '${padding.top}px',
-              bottom: '${padding.bottom}px',
-              left: '${padding.left}px',
-              right: '${padding.right}px'
-            });
-            
-            return true;
-          } catch (e) {
-            console.error('❌ 动态内边距更新失败:', e);
-            return false;
-          }
-        })();
-      ''');
-      
-    } catch (e) {
-      getLogger().e('❌ 动态更新内边距失败: $e');
-    }
-  }
 
   Future<void> _ensureLatestArticleData() async {
     if (article?.id == null) return;

@@ -40,6 +40,9 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with ArticleMarkdow
   @override
   GlobalKey<State<StatefulWidget>> get webViewKey => _webViewKey;
 
+  @override
+  EdgeInsetsGeometry get contentPadding => widget.contentPadding;
+
   double _lastScrollY = 0.0;
 
   @override
@@ -54,13 +57,6 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with ArticleMarkdow
     webViewController?.dispose();
     getLogger().d('✅ ArticleMarkdownWidget销毁完成');
     super.dispose();
-  }
-
-  /// 动态更新内边距（供外部调用）
-  Future<void> updatePadding(EdgeInsets newPadding) async {
-    if (webViewController != null) {
-      await updateContentPadding(newPadding);
-    }
   }
 
   @override
@@ -200,11 +196,11 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with ArticleMarkdow
         ),
         onWebViewCreated: onWebViewCreated,
         onLoadStop: (controller, url) {
-          onWebViewLoadStop();
-
-          getLogger().i(' 开始注入内边距....');
-          // 设置背景透明并注入内边距
-          _applyContentPadding(controller);
+          // 仅用于确保背景在任何情况下都透明
+          controller.evaluateJavascript(source: '''
+            document.body.style.backgroundColor = 'transparent';
+            document.documentElement.style.backgroundColor = 'transparent';
+          ''');
         },
         onScrollChanged: (controller, x, y) {
           final scrollY = y.toDouble();
@@ -264,100 +260,5 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with ArticleMarkdow
         ),
       ),
     );
-  }
-
-  /// 应用内边距到WebView
-  Future<void> _applyContentPadding(InAppWebViewController controller) async {
-    try {
-      final padding = widget.contentPadding.resolve(Directionality.of(context));
-      getLogger().i('开始注入内边距: $padding');
-      
-      // 分别设置样式，确保每个属性都能正确应用
-      await controller.evaluateJavascript(source: '''
-        (function() {
-          try {
-            // 设置背景透明
-            document.body.style.backgroundColor = 'transparent';
-            document.documentElement.style.backgroundColor = 'transparent';
-            
-            // 设置内边距
-            document.body.style.paddingTop = '${padding.top}px';
-            document.body.style.paddingBottom = '${padding.bottom}px';
-            document.body.style.paddingLeft = '${padding.left}px';
-            document.body.style.paddingRight = '${padding.right}px';
-            
-            // 添加一个标记，表示内边距已设置
-            document.body.setAttribute('data-padding-applied', 'true');
-            
-            console.log('✅ 内边距设置成功:', {
-              top: '${padding.top}px',
-              bottom: '${padding.bottom}px',
-              left: '${padding.left}px',
-              right: '${padding.right}px'
-            });
-            
-            return true;
-          } catch (e) {
-            console.error('❌ 内边距设置失败:', e);
-            return false;
-          }
-        })();
-      ''');
-      
-      // 延迟再次检查并应用，确保在内容渲染后也能正确设置
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _ensurePaddingApplied(controller);
-      });
-      
-    } catch (e) {
-      getLogger().e('❌ 应用内边距失败: $e');
-    }
-  }
-
-  /// 确保内边距已正确应用
-  Future<void> _ensurePaddingApplied(InAppWebViewController controller) async {
-    try {
-      final result = await controller.evaluateJavascript(source: '''
-        (function() {
-          try {
-            const isPaddingApplied = document.body.getAttribute('data-padding-applied') === 'true';
-            const currentPaddingTop = window.getComputedStyle(document.body).paddingTop;
-            
-            console.log('🔍 检查内边距状态:', {
-              applied: isPaddingApplied,
-              currentTop: currentPaddingTop
-            });
-            
-            // 如果内边距未应用或丢失，重新设置
-            if (!isPaddingApplied || currentPaddingTop === '0px') {
-              const padding = {
-                top: '${widget.contentPadding.resolve(Directionality.of(context)).top}px',
-                bottom: '${widget.contentPadding.resolve(Directionality.of(context)).bottom}px',
-                left: '${widget.contentPadding.resolve(Directionality.of(context)).left}px',
-                right: '${widget.contentPadding.resolve(Directionality.of(context)).right}px'
-              };
-              
-              document.body.style.paddingTop = padding.top;
-              document.body.style.paddingBottom = padding.bottom;
-              document.body.style.paddingLeft = padding.left;
-              document.body.style.paddingRight = padding.right;
-              document.body.setAttribute('data-padding-applied', 'true');
-              
-              console.log('🔧 重新应用内边距:', padding);
-              return 'reapplied';
-            }
-            
-            return 'ok';
-          } catch (e) {
-            console.error('❌ 检查内边距失败:', e);
-            return 'error';
-          }
-        })();
-      ''');
-      
-      getLogger().d('内边距检查结果: $result');
-    } catch (e) {
-      getLogger().e('❌ 确保内边距应用失败: $e');
-    }
   }
 }
