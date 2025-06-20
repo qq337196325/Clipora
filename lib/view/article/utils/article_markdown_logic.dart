@@ -152,7 +152,7 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
         getLogger().w('⚠️ JavaScript追踪器不可用，重新注入...');
         if(!_isWebViewAvailable()) return;
         await jsManager.injectAllScripts(); // 尝试重新注入
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future.delayed(const Duration(milliseconds: 300));
       }
       
       final data = await jsManager.getCurrentVisibleElement();
@@ -227,36 +227,60 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
     _isRestoringPosition = true;
     try {
       getLogger().i('🔄 开始恢复阅读位置...');
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
       if (!_isWebViewAvailable()) return;
       
       for (int i = 0; i < 3; i++) {
         if (await jsManager.isPositionTrackerAvailable()) break;
         if (i < 2) {
           getLogger().d('⚠️ JavaScript追踪器未就绪，等待重试...');
-          await Future.delayed(const Duration(milliseconds: 300));
+          await Future.delayed(const Duration(milliseconds: 500));
         } else {
           getLogger().w('⚠️ JavaScript追踪器始终未就绪');
         }
       }
 
-      bool scrolled = false;
-      if (article!.currentElementId.isNotEmpty) {
-        final restored = await jsManager.scrollToElement(article!.currentElementId);
-        if (restored) {
-          getLogger().i('✅ 使用元素ID成功恢复阅读位置');
-          scrolled = true;
-        } else {
-          getLogger().w('⚠️ 元素ID定位失败，尝试滚动位置定位');
+      bool restored = false;
+      
+      // 🚀 优先使用智能定位（立即跳转）
+      if (article!.currentElementId.isNotEmpty && article!.markdownScrollY > 0) {
+        final smartResult = await jsManager.smartJumpToPosition(
+          article!.currentElementId, 
+          article!.markdownScrollY, 
+          article!.markdownScrollX
+        );
+        if (smartResult) {
+          getLogger().i('⚡ 智能定位成功：立即跳转到阅读位置');
+          restored = true;
         }
       }
       
-      if (!scrolled && article!.markdownScrollY > 0) {
-        await jsManager.scrollToPosition(article!.markdownScrollY, article!.markdownScrollX);
-        getLogger().i('✅ 使用滚动位置完成恢复');
+      // 🎯 备用方案1：立即跳转到元素
+      if (!restored && article!.currentElementId.isNotEmpty) {
+        final jumped = await jsManager.jumpToElement(article!.currentElementId);
+        if (jumped) {
+          getLogger().i('⚡ 立即跳转到元素成功');
+          restored = true;
+        } else {
+          getLogger().w('⚠️ 立即跳转失败，尝试平滑滚动');
+          final scrolled = await jsManager.scrollToElement(article!.currentElementId);
+          if (scrolled) {
+            getLogger().i('✅ 平滑滚动到元素成功');
+            restored = true;
+          }
+        }
+      }
+      
+      // 🎯 备用方案2：立即跳转到位置
+      if (!restored && article!.markdownScrollY > 0) {
+        await jsManager.jumpToPosition(article!.markdownScrollY, article!.markdownScrollX);
+        getLogger().i('⚡ 立即跳转到位置完成');
+        restored = true;
       }
 
-      await Future.delayed(const Duration(milliseconds: 800));
+      // 短暂等待页面稳定
+      await Future.delayed(const Duration(milliseconds: 200));
+      
       if (_isWebViewAvailable()) {
         final finalPosition = await jsManager.getFinalScrollPosition();
         getLogger().i('🎯 最终位置验证: $finalPosition');
@@ -611,6 +635,41 @@ mixin ArticleMarkdownLogic<T extends StatefulWidget> on State<T> {
   // === 辅助方法 ===
   bool _isWebViewAvailable() => !_isDisposed && webViewController != null && mounted;
   bool _shouldSave() => _lastSaveTime == null || DateTime.now().difference(_lastSaveTime!) >= _minSaveInterval;
+
+  /// 动态更新WebView内边距
+  Future<void> updateContentPadding(EdgeInsets padding) async {
+    if (!_isWebViewAvailable()) return;
+    
+    try {
+      getLogger().i('🔄 动态更新内边距: $padding');
+      
+      await webViewController!.evaluateJavascript(source: '''
+        (function() {
+          try {
+            document.body.style.paddingTop = '${padding.top}px';
+            document.body.style.paddingBottom = '${padding.bottom}px';
+            document.body.style.paddingLeft = '${padding.left}px';
+            document.body.style.paddingRight = '${padding.right}px';
+            
+            console.log('✅ 动态内边距更新成功:', {
+              top: '${padding.top}px',
+              bottom: '${padding.bottom}px',
+              left: '${padding.left}px',
+              right: '${padding.right}px'
+            });
+            
+            return true;
+          } catch (e) {
+            console.error('❌ 动态内边距更新失败:', e);
+            return false;
+          }
+        })();
+      ''');
+      
+    } catch (e) {
+      getLogger().e('❌ 动态更新内边距失败: $e');
+    }
+  }
 
   Future<void> _ensureLatestArticleData() async {
     if (article?.id == null) return;

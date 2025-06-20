@@ -99,6 +99,28 @@
     }
   }
   
+  // 立即跳转到指定元素（无动画）
+  function jumpToElement(elementId, offset = 0) {
+    try {
+      const element = document.getElementById(elementId);
+      if (element) {
+        const elementTop = element.getBoundingClientRect().top + window.scrollY;
+        const targetPosition = Math.max(0, elementTop - offset);
+        
+        window.scrollTo(0, targetPosition);
+        
+        console.log('⚡ 立即跳转到元素:', elementId, '位置:', targetPosition);
+        return true;
+      } else {
+        console.warn('⚠️ 未找到目标元素:', elementId);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ 立即跳转到元素失败:', error);
+      return false;
+    }
+  }
+  
   // 滚动到指定位置
   function scrollToPosition(scrollY, scrollX = 0) {
     try {
@@ -115,12 +137,104 @@
     }
   }
   
+  // 立即跳转到指定位置（无动画）
+  function jumpToPosition(scrollY, scrollX = 0) {
+    try {
+      window.scrollTo(Math.max(0, scrollX), Math.max(0, scrollY));
+      console.log('⚡ 立即跳转到位置: Y=' + scrollY + ', X=' + scrollX);
+      return true;
+    } catch (error) {
+      console.error('❌ 立即跳转到位置失败:', error);
+      return false;
+    }
+  }
+  
+  // 智能定位：结合元素和位置的混合定位策略
+  function smartJumpToPosition(elementId, scrollY, scrollX = 0, offset = 50) {
+    try {
+      console.log('🎯 开始智能定位...', { elementId, scrollY, offset });
+      
+      // 1. 优先尝试元素定位
+      if (elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          const elementTop = element.getBoundingClientRect().top + window.scrollY;
+          const viewportCenter = window.innerHeight / 2;
+          const targetPosition = Math.max(0, elementTop - viewportCenter + offset);
+          
+          window.scrollTo(0, targetPosition);
+          console.log('⚡ 智能定位成功（元素）:', elementId, '位置:', targetPosition);
+          return { success: true, method: 'element', position: targetPosition };
+        }
+      }
+      
+      // 2. 备用：使用精确位置定位
+      if (scrollY > 0) {
+        window.scrollTo(Math.max(0, scrollX), Math.max(0, scrollY));
+        console.log('⚡ 智能定位成功（位置）: Y=' + scrollY + ', X=' + scrollX);
+        return { success: true, method: 'position', position: scrollY };
+      }
+      
+      console.warn('⚠️ 智能定位失败：无有效定位数据');
+      return { success: false, method: 'none', position: 0 };
+    } catch (error) {
+      console.error('❌ 智能定位失败:', error);
+      return { success: false, method: 'error', position: 0, error: error.message };
+    }
+  }
+  
+  // 渐进式定位：先立即跳转，后微调
+  function progressiveJumpToElement(elementId, offset = 50) {
+    try {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        console.warn('⚠️ 渐进式定位失败：未找到元素', elementId);
+        return { success: false, phase: 'not_found' };
+      }
+      
+      // 阶段1：立即跳转到大致位置
+      const rect = element.getBoundingClientRect();
+      const elementTop = rect.top + window.scrollY;
+      const roughPosition = Math.max(0, elementTop - offset);
+      window.scrollTo(0, roughPosition);
+      
+      // 阶段2：使用requestAnimationFrame进行微调
+      requestAnimationFrame(() => {
+        try {
+          const newRect = element.getBoundingClientRect();
+          const viewportCenter = window.innerHeight / 2;
+          const elementCenter = newRect.top + (newRect.height / 2);
+          const adjustment = elementCenter - viewportCenter;
+          
+          if (Math.abs(adjustment) > 10) { // 只有偏差超过10px才微调
+            const finalPosition = Math.max(0, window.scrollY + adjustment);
+            window.scrollTo(0, finalPosition);
+            console.log('🎯 渐进式定位完成（已微调）:', elementId, '最终位置:', finalPosition);
+          } else {
+            console.log('🎯 渐进式定位完成（无需微调）:', elementId, '位置:', roughPosition);
+          }
+        } catch (error) {
+          console.error('❌ 渐进式定位微调失败:', error);
+        }
+      });
+      
+      return { success: true, phase: 'completed', position: roughPosition };
+    } catch (error) {
+      console.error('❌ 渐进式定位失败:', error);
+      return { success: false, phase: 'error', error: error.message };
+    }
+  }
+
   // 暴露给Flutter调用的方法
   window.flutter_reading_tracker = {
     addElementIds: addElementIds,
     getCurrentVisibleElement: getCurrentVisibleElement,
     scrollToElement: scrollToElement,
-    scrollToPosition: scrollToPosition
+    jumpToElement: jumpToElement,
+    scrollToPosition: scrollToPosition,
+    jumpToPosition: jumpToPosition,
+    smartJumpToPosition: smartJumpToPosition,
+    progressiveJumpToElement: progressiveJumpToElement
   };
   
   // 内容加载完成后自动添加元素ID
