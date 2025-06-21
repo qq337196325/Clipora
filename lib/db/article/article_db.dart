@@ -12,7 +12,7 @@ class ArticleDb {
   // 客户端数据有个问题，如果是登录不同账号的时候应该怎么处理数据；【前期可以预留相关的字段，暂时不处理功能】
 
   
-  @Index() late String title;
+  @Index() String title = "";
   String? excerpt;                  // 摘要/简介
   String? content;
   final tags = IsarLinks<TagDb>();
@@ -21,6 +21,7 @@ class ArticleDb {
   final category = IsarLink<CategoryDb>();
 
   String url = "";
+  @Index() String userId = "";
   @Index() String domain = "";                 // 域名
   @Index() String author = "";                 // 作者
   @Index() DateTime? articleDate;              // 文章日期 - 第三方平台创建日期
@@ -112,3 +113,4 @@ class ArticleDb {
 
 // 每次新增或修改模型后，一定要重新运行代码生成命令：
 // flutter pub run build_runner build --delete-conflicting-outputs
+// import 'package:isar/isar.dart';  // 记得在文件中插入

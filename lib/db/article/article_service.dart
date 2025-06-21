@@ -607,7 +607,7 @@ class ArticleService extends GetxService {
   }
 
   /// 更新文章的Markdown内容和状态
-  Future<bool> updateArticleMarkdown(int articleId, String markdown) async {
+  Future<bool> updateArticleMarkdown(int articleId, String markdown, String title) async {
     await _ensureDatabaseInitialized();
     try {
       return await _dbService.isar.writeTxn(() async {
@@ -617,6 +617,7 @@ class ArticleService extends GetxService {
           article.isGenerateMarkdown = true;
           article.markdownStatus = 1;
           article.updatedAt = DateTime.now();
+          article.title = title;
           await _dbService.articles.put(article);
           getLogger().i('✅ 成功更新文章Markdown内容: ID $articleId');
           return true;

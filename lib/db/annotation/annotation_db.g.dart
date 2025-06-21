@@ -42,10 +42,10 @@ const AnnotationDbSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'endOffset': PropertySchema(
+    r'highlightId': PropertySchema(
       id: 5,
-      name: r'endOffset',
-      type: IsarType.long,
+      name: r'highlightId',
+      type: IsarType.string,
     ),
     r'note': PropertySchema(
       id: 6,
@@ -57,13 +57,8 @@ const AnnotationDbSchema = CollectionSchema(
       name: r'selectedText',
       type: IsarType.string,
     ),
-    r'startOffset': PropertySchema(
-      id: 8,
-      name: r'startOffset',
-      type: IsarType.long,
-    ),
     r'updatedAt': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -84,6 +79,19 @@ const AnnotationDbSchema = CollectionSchema(
           name: r'articleId',
           type: IndexType.value,
           caseSensitive: false,
+        )
+      ],
+    ),
+    r'highlightId': IndexSchema(
+      id: -6411662984405488768,
+      name: r'highlightId',
+      unique: true,
+      replace: true,
+      properties: [
+        IndexPropertySchema(
+          name: r'highlightId',
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     ),
@@ -141,24 +149,10 @@ int _annotationDbEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.afterContext;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.beforeContext;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.note;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.afterContext.length * 3;
+  bytesCount += 3 + object.beforeContext.length * 3;
+  bytesCount += 3 + object.highlightId.length * 3;
+  bytesCount += 3 + object.note.length * 3;
   bytesCount += 3 + object.selectedText.length * 3;
   return bytesCount;
 }
@@ -174,11 +168,10 @@ void _annotationDbSerialize(
   writer.writeString(offsets[2], object.beforeContext);
   writer.writeLong(offsets[3], object.colorType);
   writer.writeDateTime(offsets[4], object.createdAt);
-  writer.writeLong(offsets[5], object.endOffset);
+  writer.writeString(offsets[5], object.highlightId);
   writer.writeString(offsets[6], object.note);
   writer.writeString(offsets[7], object.selectedText);
-  writer.writeLong(offsets[8], object.startOffset);
-  writer.writeDateTime(offsets[9], object.updatedAt);
+  writer.writeDateTime(offsets[8], object.updatedAt);
 }
 
 AnnotationDb _annotationDbDeserialize(
@@ -188,17 +181,16 @@ AnnotationDb _annotationDbDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AnnotationDb();
-  object.afterContext = reader.readStringOrNull(offsets[0]);
+  object.afterContext = reader.readString(offsets[0]);
   object.articleId = reader.readLong(offsets[1]);
-  object.beforeContext = reader.readStringOrNull(offsets[2]);
+  object.beforeContext = reader.readString(offsets[2]);
   object.colorType = reader.readLong(offsets[3]);
   object.createdAt = reader.readDateTime(offsets[4]);
-  object.endOffset = reader.readLong(offsets[5]);
+  object.highlightId = reader.readString(offsets[5]);
   object.id = id;
-  object.note = reader.readStringOrNull(offsets[6]);
+  object.note = reader.readString(offsets[6]);
   object.selectedText = reader.readString(offsets[7]);
-  object.startOffset = reader.readLong(offsets[8]);
-  object.updatedAt = reader.readDateTime(offsets[9]);
+  object.updatedAt = reader.readDateTime(offsets[8]);
   return object;
 }
 
@@ -210,24 +202,22 @@ P _annotationDbDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
       return (reader.readDateTime(offset)) as P;
     case 5:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 7:
       return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readLong(offset)) as P;
-    case 9:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -245,6 +235,62 @@ List<IsarLinkBase<dynamic>> _annotationDbGetLinks(AnnotationDb object) {
 void _annotationDbAttach(
     IsarCollection<dynamic> col, Id id, AnnotationDb object) {
   object.id = id;
+}
+
+extension AnnotationDbByIndex on IsarCollection<AnnotationDb> {
+  Future<AnnotationDb?> getByHighlightId(String highlightId) {
+    return getByIndex(r'highlightId', [highlightId]);
+  }
+
+  AnnotationDb? getByHighlightIdSync(String highlightId) {
+    return getByIndexSync(r'highlightId', [highlightId]);
+  }
+
+  Future<bool> deleteByHighlightId(String highlightId) {
+    return deleteByIndex(r'highlightId', [highlightId]);
+  }
+
+  bool deleteByHighlightIdSync(String highlightId) {
+    return deleteByIndexSync(r'highlightId', [highlightId]);
+  }
+
+  Future<List<AnnotationDb?>> getAllByHighlightId(
+      List<String> highlightIdValues) {
+    final values = highlightIdValues.map((e) => [e]).toList();
+    return getAllByIndex(r'highlightId', values);
+  }
+
+  List<AnnotationDb?> getAllByHighlightIdSync(List<String> highlightIdValues) {
+    final values = highlightIdValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'highlightId', values);
+  }
+
+  Future<int> deleteAllByHighlightId(List<String> highlightIdValues) {
+    final values = highlightIdValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'highlightId', values);
+  }
+
+  int deleteAllByHighlightIdSync(List<String> highlightIdValues) {
+    final values = highlightIdValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'highlightId', values);
+  }
+
+  Future<Id> putByHighlightId(AnnotationDb object) {
+    return putByIndex(r'highlightId', object);
+  }
+
+  Id putByHighlightIdSync(AnnotationDb object, {bool saveLinks = true}) {
+    return putByIndexSync(r'highlightId', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByHighlightId(List<AnnotationDb> objects) {
+    return putAllByIndex(r'highlightId', objects);
+  }
+
+  List<Id> putAllByHighlightIdSync(List<AnnotationDb> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'highlightId', objects, saveLinks: saveLinks);
+  }
 }
 
 extension AnnotationDbQueryWhereSort
@@ -445,6 +491,51 @@ extension AnnotationDbQueryWhere
         upper: [upperArticleId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterWhereClause>
+      highlightIdEqualTo(String highlightId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'highlightId',
+        value: [highlightId],
+      ));
+    });
+  }
+
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterWhereClause>
+      highlightIdNotEqualTo(String highlightId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'highlightId',
+              lower: [],
+              upper: [highlightId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'highlightId',
+              lower: [highlightId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'highlightId',
+              lower: [highlightId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'highlightId',
+              lower: [],
+              upper: [highlightId],
+              includeUpper: false,
+            ));
+      }
     });
   }
 
@@ -725,26 +816,8 @@ extension AnnotationDbQueryWhere
 extension AnnotationDbQueryFilter
     on QueryBuilder<AnnotationDb, AnnotationDb, QFilterCondition> {
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      afterContextIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'afterContext',
-      ));
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      afterContextIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'afterContext',
-      ));
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       afterContextEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -758,7 +831,7 @@ extension AnnotationDbQueryFilter
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       afterContextGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -774,7 +847,7 @@ extension AnnotationDbQueryFilter
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       afterContextLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -790,8 +863,8 @@ extension AnnotationDbQueryFilter
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       afterContextBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -935,26 +1008,8 @@ extension AnnotationDbQueryFilter
   }
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      beforeContextIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'beforeContext',
-      ));
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      beforeContextIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'beforeContext',
-      ));
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       beforeContextEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -968,7 +1023,7 @@ extension AnnotationDbQueryFilter
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       beforeContextGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -984,7 +1039,7 @@ extension AnnotationDbQueryFilter
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       beforeContextLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1000,8 +1055,8 @@ extension AnnotationDbQueryFilter
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       beforeContextBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1201,57 +1256,137 @@ extension AnnotationDbQueryFilter
   }
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      endOffsetEqualTo(int value) {
+      highlightIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'endOffset',
+        property: r'highlightId',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      endOffsetGreaterThan(
-    int value, {
+      highlightIdGreaterThan(
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'endOffset',
+        property: r'highlightId',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      endOffsetLessThan(
-    int value, {
+      highlightIdLessThan(
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'endOffset',
+        property: r'highlightId',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      endOffsetBetween(
-    int lower,
-    int upper, {
+      highlightIdBetween(
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'endOffset',
+        property: r'highlightId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
+      highlightIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'highlightId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
+      highlightIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'highlightId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
+      highlightIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'highlightId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
+      highlightIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'highlightId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
+      highlightIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'highlightId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
+      highlightIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'highlightId',
+        value: '',
       ));
     });
   }
@@ -1309,25 +1444,8 @@ extension AnnotationDbQueryFilter
     });
   }
 
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition> noteIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'note',
-      ));
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      noteIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'note',
-      ));
-    });
-  }
-
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition> noteEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1341,7 +1459,7 @@ extension AnnotationDbQueryFilter
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       noteGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1356,7 +1474,7 @@ extension AnnotationDbQueryFilter
   }
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition> noteLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1371,8 +1489,8 @@ extension AnnotationDbQueryFilter
   }
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition> noteBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1597,62 +1715,6 @@ extension AnnotationDbQueryFilter
   }
 
   QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      startOffsetEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'startOffset',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      startOffsetGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'startOffset',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      startOffsetLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'startOffset',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
-      startOffsetBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'startOffset',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterFilterCondition>
       updatedAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1779,15 +1841,16 @@ extension AnnotationDbQuerySortBy
     });
   }
 
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy> sortByEndOffset() {
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy> sortByHighlightId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'endOffset', Sort.asc);
+      return query.addSortBy(r'highlightId', Sort.asc);
     });
   }
 
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy> sortByEndOffsetDesc() {
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy>
+      sortByHighlightIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'endOffset', Sort.desc);
+      return query.addSortBy(r'highlightId', Sort.desc);
     });
   }
 
@@ -1813,19 +1876,6 @@ extension AnnotationDbQuerySortBy
       sortBySelectedTextDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'selectedText', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy> sortByStartOffset() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startOffset', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy>
-      sortByStartOffsetDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startOffset', Sort.desc);
     });
   }
 
@@ -1906,15 +1956,16 @@ extension AnnotationDbQuerySortThenBy
     });
   }
 
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy> thenByEndOffset() {
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy> thenByHighlightId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'endOffset', Sort.asc);
+      return query.addSortBy(r'highlightId', Sort.asc);
     });
   }
 
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy> thenByEndOffsetDesc() {
+  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy>
+      thenByHighlightIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'endOffset', Sort.desc);
+      return query.addSortBy(r'highlightId', Sort.desc);
     });
   }
 
@@ -1952,19 +2003,6 @@ extension AnnotationDbQuerySortThenBy
       thenBySelectedTextDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'selectedText', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy> thenByStartOffset() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startOffset', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QAfterSortBy>
-      thenByStartOffsetDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startOffset', Sort.desc);
     });
   }
 
@@ -2016,9 +2054,10 @@ extension AnnotationDbQueryWhereDistinct
     });
   }
 
-  QueryBuilder<AnnotationDb, AnnotationDb, QDistinct> distinctByEndOffset() {
+  QueryBuilder<AnnotationDb, AnnotationDb, QDistinct> distinctByHighlightId(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'endOffset');
+      return query.addDistinctBy(r'highlightId', caseSensitive: caseSensitive);
     });
   }
 
@@ -2033,12 +2072,6 @@ extension AnnotationDbQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'selectedText', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<AnnotationDb, AnnotationDb, QDistinct> distinctByStartOffset() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'startOffset');
     });
   }
 
@@ -2057,7 +2090,7 @@ extension AnnotationDbQueryProperty
     });
   }
 
-  QueryBuilder<AnnotationDb, String?, QQueryOperations> afterContextProperty() {
+  QueryBuilder<AnnotationDb, String, QQueryOperations> afterContextProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'afterContext');
     });
@@ -2069,8 +2102,7 @@ extension AnnotationDbQueryProperty
     });
   }
 
-  QueryBuilder<AnnotationDb, String?, QQueryOperations>
-      beforeContextProperty() {
+  QueryBuilder<AnnotationDb, String, QQueryOperations> beforeContextProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'beforeContext');
     });
@@ -2088,13 +2120,13 @@ extension AnnotationDbQueryProperty
     });
   }
 
-  QueryBuilder<AnnotationDb, int, QQueryOperations> endOffsetProperty() {
+  QueryBuilder<AnnotationDb, String, QQueryOperations> highlightIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'endOffset');
+      return query.addPropertyName(r'highlightId');
     });
   }
 
-  QueryBuilder<AnnotationDb, String?, QQueryOperations> noteProperty() {
+  QueryBuilder<AnnotationDb, String, QQueryOperations> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'note');
     });
@@ -2103,12 +2135,6 @@ extension AnnotationDbQueryProperty
   QueryBuilder<AnnotationDb, String, QQueryOperations> selectedTextProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'selectedText');
-    });
-  }
-
-  QueryBuilder<AnnotationDb, int, QQueryOperations> startOffsetProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'startOffset');
     });
   }
 

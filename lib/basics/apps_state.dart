@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../db/annotation/annotation_service.dart';
+import '../db/annotation/enhanced_annotation_service.dart';
 import '../services/snapshot_service.dart';
 import '../view/article/controller/article_controller.dart';
 
@@ -34,6 +36,8 @@ class _MyHomePageState extends State<AppsState> {
 
     Get.lazyPut(() => ArticleController());
     Get.lazyPut(() => SnapshotService());
+    Get.lazyPut(() => AnnotationService());
+    Get.lazyPut(() => EnhancedAnnotationService());
     // Get.lazyPut(() => FullCommodityCategoryController());
     // Get.lazyPut(() => FullCommodityUtilController());
     // Get.lazyPut(() => UserController());

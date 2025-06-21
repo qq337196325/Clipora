@@ -6,6 +6,7 @@ part 'category_db.g.dart';
 @collection
 class CategoryDb {
   Id id = Isar.autoIncrement;
+  @Index() String userId = "";
 
   /// 服务器端ID（同步后存储）
   @Index()

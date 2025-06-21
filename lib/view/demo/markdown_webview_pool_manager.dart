@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import '../../../basics/logger.dart';
+import '../../basics/logger.dart';
 
 /// WebView池管理器 - 预热资源以提升性能
 class WebViewPoolManager {
@@ -9,7 +9,7 @@ class WebViewPoolManager {
   factory WebViewPoolManager() => _instance;
   WebViewPoolManager._internal();
 
-  // 资源缓存
+  // 资源缓存 
   String? _cachedMarkedJS;
   String? _cachedHighlightJS;
   String? _cachedGitHubCSS;
@@ -181,11 +181,11 @@ class WebViewPoolManager {
   ) async {
     if (markdownContent.isEmpty) return;
 
+
     final escapedMarkdown = markdownContent.replaceAll('`', '\\`').replaceAll('\$', '\\\$');
-    
-    try {
-      // 尝试使用带内边距的安全渲染函数
-      final result = await controller.evaluateJavascript(source: '''
+
+    // 尝试使用带内边距的安全渲染函数
+    final result = await controller.evaluateJavascript(source: '''
         (function() {
           try {
             if (typeof safeRenderMarkdown === 'function') {
@@ -200,77 +200,21 @@ class WebViewPoolManager {
         })();
       ''');
 
-      if (result == true) {
-        getLogger().i('✅ 使用带内边距的安全渲染完成');
-        return;
-      } else {
-        getLogger().w('⚠️ 安全渲染函数不可用或失败，降级到传统渲染');
-        throw Exception('安全渲染函数不可用或失败');
-      }
+    if (result == true) {
+      getLogger().i('✅ 使用带内边距的安全渲染完成');
+      return;
+    } else {
+      getLogger().w('⚠️ 安全渲染函数不可用或失败，降级到传统渲染');
+      throw Exception('安全渲染函数不可用或失败');
+    }
+
+    try {
+
     } catch (e) {
       getLogger().w('⚠️ 安全渲染失败，使用传统渲染: $e');
-      // 降级到传统渲染方法
-      await _renderTraditionalMarkdown(controller, markdownContent, paddingStyle);
     }
   }
 
-  /// 传统的Markdown渲染方法（备用）
-  Future<void> _renderTraditionalMarkdown(
-    InAppWebViewController controller, 
-    String markdownContent, 
-    [String paddingStyle = '']
-  ) async {
-    try {
-      final escapedMarkdown = markdownContent.replaceAll('`', '\\`').replaceAll('\$', '\\\$');
-      await controller.evaluateJavascript(source: '''
-        if (typeof marked !== 'undefined' && marked.parse) {
-          try {
-            var content = `$escapedMarkdown`;
-            var htmlContent = marked.parse(content);
-            var contentDiv = document.getElementById('content');
-            if (contentDiv) {
-              // 应用内边距
-              var innerDiv = '<div class="markdown-body" style="$paddingStyle">' + htmlContent + '</div>';
-              contentDiv.innerHTML = innerDiv;
-              
-              // 处理图片
-              var images = document.querySelectorAll('.markdown-body img');
-              images.forEach(function(img) {
-                img.style.maxWidth = '100%';
-                img.style.height = 'auto';
-                img.style.display = 'block';
-                img.style.margin = '16px auto';
-                img.style.cursor = 'pointer';
-                
-                // 添加图片点击事件
-                img.addEventListener('click', function() {
-                  if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                    window.flutter_inappwebview.callHandler('onImageClicked', {
-                      src: img.src,
-                      alt: img.alt || '',
-                      width: img.naturalWidth || 0,
-                      height: img.naturalHeight || 0
-                    });
-                  }
-                });
-              });
-              
-              console.log('✅ 传统 Markdown 渲染完成，包含 ' + images.length + ' 张图片');
-            }
-          } catch (error) {
-            console.error('❌ 传统 Markdown渲染失败:', error);
-            document.getElementById('content').innerHTML = '<div style="color: #e74c3c; padding: 16px; text-align: center;"><h3>⚠️ 内容解析失败</h3><p>' + error.message + '</p></div>';
-          }
-        } else {
-          console.error('❌ marked.js 未加载');
-          document.getElementById('content').innerHTML = '<div style="color: #e74c3c; padding: 16px; text-align: center;"><h3>⚠️ 解析器未就绪</h3><p>Markdown解析器未加载，请稍后重试</p></div>';
-        }
-      ''');
-    } catch (e) {
-      getLogger().e('❌ 传统Markdown渲染失败: $e');
-      rethrow;
-    }
-  }
 
 
   /// 生成优化的HTML模板

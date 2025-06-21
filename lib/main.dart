@@ -8,7 +8,7 @@ import '/services/share_service.dart';
 import '/db/database_service.dart';
 import '/basics/translations/app_translations.dart';
 import '/controller/language_controller.dart';
-import '/view/article/components/markdown_webview_pool_manager.dart' as MarkdownPool;
+import 'view/demo/markdown_webview_pool_manager.dart' as MarkdownPool;
 import '/view/article/components/web_webview_pool_manager.dart';
 import '/basics/logger.dart';
 
@@ -32,6 +32,9 @@ void main() async {
 
   // 注册文章服务
   Get.put(ArticleService(), permanent: true);
+
+  // 注册标注服务  已经放到 AppsState 处理
+  // Get.put(AnnotationService(), permanent: true);
 
   // 注册语言控制器
   Get.put(LanguageController(), permanent: true);

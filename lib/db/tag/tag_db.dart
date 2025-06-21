@@ -6,6 +6,7 @@ part 'tag_db.g.dart';
 @collection
 class TagDb {
   Id id = Isar.autoIncrement;
+  @Index() String userId = "";
 
   @Index(unique: true, caseSensitive: false)
   late String name;

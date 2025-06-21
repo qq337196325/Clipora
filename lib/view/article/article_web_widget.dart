@@ -396,10 +396,10 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
 
       // 等待服务端处理MHTML转换为Markdown（延迟10秒让服务端有足够时间处理）
       getLogger().i('⏳ 等待服务端处理MHTML转Markdown，延迟10秒...');
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 4));
 
       // 重试机制：最多重试3次，每次间隔5秒
-      for (int retry = 0; retry < 3; retry++) {
+      for (int retry = 0; retry < 5; retry++) {
         try {
           getLogger().i('🌐 第${retry + 1}次尝试从服务端获取Markdown内容，serviceId: ${article.serviceId}');
           
@@ -409,13 +409,14 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
 
           if (response['code'] == 0 && response['data'] != null) {
             final markdownContent = response['data']['markdown_content'] as String? ?? '';
-            
+            final title = response['data']['title'] as String? ?? '';
+
             getLogger().i('📊 服务端返回： 内容长度=${markdownContent.length}');
             
             if (markdownContent.isNotEmpty) {
               // Markdown已生成成功
               getLogger().i('✅ Markdown获取成功，长度: ${markdownContent.length}');
-              await ArticleService.instance.updateArticleMarkdown(article.id, markdownContent);
+              await ArticleService.instance.updateArticleMarkdown(article.id, markdownContent,title);
               
               // 刷新当前文章数据
               await articleController.refreshCurrentArticle();

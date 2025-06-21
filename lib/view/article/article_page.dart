@@ -12,7 +12,7 @@ import '/view/article/components/article_bottom_bar.dart';
 import '/view/article/components/article_loading_view.dart';
 import '/view/article/components/article_top_bar.dart';
 
-import 'article_markdown_widget.dart';
+import 'article_markdown/article_markdown_widget.dart';
 import 'article_mhtml_widget.dart';
 import 'article_web_widget.dart';
 import 'controller/article_controller.dart';

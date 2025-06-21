@@ -122,68 +122,78 @@ const ArticleDbSchema = CollectionSchema(
       name: r'markdownScrollY',
       type: IsarType.long,
     ),
-    r'mhtmlPath': PropertySchema(
+    r'markdownStatus': PropertySchema(
       id: 21,
+      name: r'markdownStatus',
+      type: IsarType.long,
+    ),
+    r'mhtmlPath': PropertySchema(
+      id: 22,
       name: r'mhtmlPath',
       type: IsarType.string,
     ),
     r'readCount': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'readCount',
       type: IsarType.long,
     ),
     r'readDuration': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'readDuration',
       type: IsarType.long,
     ),
     r'readProgress': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'readProgress',
       type: IsarType.double,
     ),
     r'readingSessionId': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'readingSessionId',
       type: IsarType.string,
     ),
     r'readingStartTime': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'readingStartTime',
       type: IsarType.long,
     ),
     r'serviceId': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'serviceId',
       type: IsarType.string,
     ),
     r'serviceUpdatedAt': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'serviceUpdatedAt',
       type: IsarType.long,
     ),
     r'shareOriginalContent': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'shareOriginalContent',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 32,
+      id: 33,
       name: r'url',
       type: IsarType.string,
     ),
+    r'userId': PropertySchema(
+      id: 34,
+      name: r'userId',
+      type: IsarType.string,
+    ),
     r'viewportHeight': PropertySchema(
-      id: 33,
+      id: 35,
       name: r'viewportHeight',
       type: IsarType.long,
     )
@@ -202,6 +212,19 @@ const ArticleDbSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'title',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'userId': IndexSchema(
+      id: -2005826577402374815,
+      name: r'userId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'userId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -414,6 +437,7 @@ int _articleDbEstimateSize(
   bytesCount += 3 + object.shareOriginalContent.length * 3;
   bytesCount += 3 + object.title.length * 3;
   bytesCount += 3 + object.url.length * 3;
+  bytesCount += 3 + object.userId.length * 3;
   return bytesCount;
 }
 
@@ -444,19 +468,21 @@ void _articleDbSerialize(
   writer.writeString(offsets[18], object.markdown);
   writer.writeLong(offsets[19], object.markdownScrollX);
   writer.writeLong(offsets[20], object.markdownScrollY);
-  writer.writeString(offsets[21], object.mhtmlPath);
-  writer.writeLong(offsets[22], object.readCount);
-  writer.writeLong(offsets[23], object.readDuration);
-  writer.writeDouble(offsets[24], object.readProgress);
-  writer.writeString(offsets[25], object.readingSessionId);
-  writer.writeLong(offsets[26], object.readingStartTime);
-  writer.writeString(offsets[27], object.serviceId);
-  writer.writeLong(offsets[28], object.serviceUpdatedAt);
-  writer.writeString(offsets[29], object.shareOriginalContent);
-  writer.writeString(offsets[30], object.title);
-  writer.writeDateTime(offsets[31], object.updatedAt);
-  writer.writeString(offsets[32], object.url);
-  writer.writeLong(offsets[33], object.viewportHeight);
+  writer.writeLong(offsets[21], object.markdownStatus);
+  writer.writeString(offsets[22], object.mhtmlPath);
+  writer.writeLong(offsets[23], object.readCount);
+  writer.writeLong(offsets[24], object.readDuration);
+  writer.writeDouble(offsets[25], object.readProgress);
+  writer.writeString(offsets[26], object.readingSessionId);
+  writer.writeLong(offsets[27], object.readingStartTime);
+  writer.writeString(offsets[28], object.serviceId);
+  writer.writeLong(offsets[29], object.serviceUpdatedAt);
+  writer.writeString(offsets[30], object.shareOriginalContent);
+  writer.writeString(offsets[31], object.title);
+  writer.writeDateTime(offsets[32], object.updatedAt);
+  writer.writeString(offsets[33], object.url);
+  writer.writeString(offsets[34], object.userId);
+  writer.writeLong(offsets[35], object.viewportHeight);
 }
 
 ArticleDb _articleDbDeserialize(
@@ -488,19 +514,21 @@ ArticleDb _articleDbDeserialize(
   object.markdown = reader.readString(offsets[18]);
   object.markdownScrollX = reader.readLong(offsets[19]);
   object.markdownScrollY = reader.readLong(offsets[20]);
-  object.mhtmlPath = reader.readString(offsets[21]);
-  object.readCount = reader.readLong(offsets[22]);
-  object.readDuration = reader.readLong(offsets[23]);
-  object.readProgress = reader.readDouble(offsets[24]);
-  object.readingSessionId = reader.readString(offsets[25]);
-  object.readingStartTime = reader.readLong(offsets[26]);
-  object.serviceId = reader.readString(offsets[27]);
-  object.serviceUpdatedAt = reader.readLong(offsets[28]);
-  object.shareOriginalContent = reader.readString(offsets[29]);
-  object.title = reader.readString(offsets[30]);
-  object.updatedAt = reader.readDateTime(offsets[31]);
-  object.url = reader.readString(offsets[32]);
-  object.viewportHeight = reader.readLong(offsets[33]);
+  object.markdownStatus = reader.readLong(offsets[21]);
+  object.mhtmlPath = reader.readString(offsets[22]);
+  object.readCount = reader.readLong(offsets[23]);
+  object.readDuration = reader.readLong(offsets[24]);
+  object.readProgress = reader.readDouble(offsets[25]);
+  object.readingSessionId = reader.readString(offsets[26]);
+  object.readingStartTime = reader.readLong(offsets[27]);
+  object.serviceId = reader.readString(offsets[28]);
+  object.serviceUpdatedAt = reader.readLong(offsets[29]);
+  object.shareOriginalContent = reader.readString(offsets[30]);
+  object.title = reader.readString(offsets[31]);
+  object.updatedAt = reader.readDateTime(offsets[32]);
+  object.url = reader.readString(offsets[33]);
+  object.userId = reader.readString(offsets[34]);
+  object.viewportHeight = reader.readLong(offsets[35]);
   return object;
 }
 
@@ -554,30 +582,34 @@ P _articleDbDeserializeProp<P>(
     case 20:
       return (reader.readLong(offset)) as P;
     case 21:
-      return (reader.readString(offset)) as P;
-    case 22:
       return (reader.readLong(offset)) as P;
+    case 22:
+      return (reader.readString(offset)) as P;
     case 23:
       return (reader.readLong(offset)) as P;
     case 24:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 25:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 26:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 27:
-      return (reader.readString(offset)) as P;
-    case 28:
       return (reader.readLong(offset)) as P;
-    case 29:
+    case 28:
       return (reader.readString(offset)) as P;
+    case 29:
+      return (reader.readLong(offset)) as P;
     case 30:
       return (reader.readString(offset)) as P;
     case 31:
-      return (reader.readDateTime(offset)) as P;
-    case 32:
       return (reader.readString(offset)) as P;
+    case 32:
+      return (reader.readDateTime(offset)) as P;
     case 33:
+      return (reader.readString(offset)) as P;
+    case 34:
+      return (reader.readString(offset)) as P;
+    case 35:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -778,6 +810,51 @@ extension ArticleDbQueryWhere
               indexName: r'title',
               lower: [],
               upper: [title],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> userIdEqualTo(
+      String userId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'userId',
+        value: [userId],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> userIdNotEqualTo(
+      String userId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [],
+              upper: [userId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [userId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [userId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [],
+              upper: [userId],
               includeUpper: false,
             ));
       }
@@ -3089,6 +3166,62 @@ extension ArticleDbQueryFilter
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownStatusEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'markdownStatus',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownStatusGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'markdownStatus',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownStatusLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'markdownStatus',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      markdownStatusBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'markdownStatus',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> mhtmlPathEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -4224,6 +4357,136 @@ extension ArticleDbQueryFilter
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'userId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'userId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> userIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'userId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
       viewportHeightEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
@@ -4615,6 +4878,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownStatus', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMarkdownStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownStatus', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByMhtmlPath() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mhtmlPath', Sort.asc);
@@ -4761,6 +5036,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByUrlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'url', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
     });
   }
 
@@ -5048,6 +5335,18 @@ extension ArticleDbQuerySortThenBy
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownStatus', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMarkdownStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'markdownStatus', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByMhtmlPath() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mhtmlPath', Sort.asc);
@@ -5194,6 +5493,18 @@ extension ArticleDbQuerySortThenBy
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByUrlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'url', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
     });
   }
 
@@ -5348,6 +5659,12 @@ extension ArticleDbQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByMarkdownStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'markdownStatus');
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByMhtmlPath(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -5425,6 +5742,13 @@ extension ArticleDbQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'url', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByUserId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'userId', caseSensitive: caseSensitive);
     });
   }
 
@@ -5571,6 +5895,12 @@ extension ArticleDbQueryProperty
     });
   }
 
+  QueryBuilder<ArticleDb, int, QQueryOperations> markdownStatusProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'markdownStatus');
+    });
+  }
+
   QueryBuilder<ArticleDb, String, QQueryOperations> mhtmlPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'mhtmlPath');
@@ -5641,6 +5971,12 @@ extension ArticleDbQueryProperty
   QueryBuilder<ArticleDb, String, QQueryOperations> urlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'url');
+    });
+  }
+
+  QueryBuilder<ArticleDb, String, QQueryOperations> userIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'userId');
     });
   }
 
