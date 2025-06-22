@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'dart:io';
 import 'dart:async';
@@ -9,11 +10,15 @@ import '../../basics/logger.dart';
 class ArticleMhtmlWidget extends StatefulWidget {
   final String mhtmlPath;  // MHTML文件路径
   final String? title;     // 可选的标题显示
+  final void Function(ScrollDirection direction, double scrollY)? onScroll;
+  final EdgeInsetsGeometry contentPadding;
   
   const ArticleMhtmlWidget({
     super.key,
     required this.mhtmlPath,
     this.title,
+    this.onScroll,
+    this.contentPadding = EdgeInsets.zero,
   });
 
   @override
@@ -21,6 +26,7 @@ class ArticleMhtmlWidget extends StatefulWidget {
 }
 
 class _ArticlePageState extends State<ArticleMhtmlWidget> with ArticlePageBLoC {
+  double _lastScrollY = 0.0;
 
   @override
   Widget build(BuildContext context) {
@@ -85,11 +91,21 @@ class _ArticlePageState extends State<ArticleMhtmlWidget> with ArticlePageBLoC {
                     hasError = false;
                   });
                 },
-                onLoadStop: (controller, url) {
+                onLoadStop: (controller, url) async {
                   getLogger().i('MHTML加载完成: $url');
                   setState(() {
                     isLoading = false;
                   });
+                  
+                  // 注入内边距
+                  final padding = widget.contentPadding.resolve(Directionality.of(context));
+                  controller.evaluateJavascript(source: '''
+                    document.body.style.paddingTop = '${padding.top}px';
+                    document.body.style.paddingBottom = '${padding.bottom}px';
+                    document.body.style.paddingLeft = '${padding.left}px';
+                    document.body.style.paddingRight = '${padding.right}px';
+                    document.documentElement.style.scrollPaddingTop = '${padding.top}px';
+                  ''');
                 },
                 onProgressChanged: (controller, progress) {
                   setState(() {
@@ -113,6 +129,15 @@ class _ArticlePageState extends State<ArticleMhtmlWidget> with ArticlePageBLoC {
                     hasError = true;
                     errorMessage = 'HTTP错误: ${errorResponse.statusCode}\n${errorResponse.reasonPhrase}';
                   });
+                },
+                onScrollChanged: (controller, x, y) {
+                  final scrollY = y.toDouble();
+                  // 只有在滚动距离超过一个阈值时才触发，避免过于敏感
+                  if ((scrollY - _lastScrollY).abs() > 15) {
+                    final direction = scrollY > _lastScrollY ? ScrollDirection.reverse : ScrollDirection.forward;
+                    widget.onScroll?.call(direction, scrollY);
+                    _lastScrollY = scrollY;
+                  }
                 },
                 // 设置控制台消息处理
                 onConsoleMessage: (controller, consoleMessage) {

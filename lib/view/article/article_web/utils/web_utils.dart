@@ -76,7 +76,7 @@ Future<void> finalizeWebPageOptimization(WebUri? url,InAppWebViewController? web
                   }
                   
                   fixedCount++;
-                  console.log('🔧 修复超宽元素:', tagName, '原始宽度:', originalWidth);
+                  // console.log('🔧 修复超宽元素:', tagName, '原始宽度:', originalWidth);
                 }
               });
               

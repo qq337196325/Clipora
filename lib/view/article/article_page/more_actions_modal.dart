@@ -1,7 +1,7 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
-import '/view/article/components/move_to_category_modal.dart';
-import '/view/article/components/tag_edit_modal.dart';
+import 'move_to_category_modal.dart';
+import 'tag_edit_modal.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class _ActionItem {

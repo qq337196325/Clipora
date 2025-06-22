@@ -4,7 +4,7 @@ import 'package:bot_toast/bot_toast.dart';
 import '../view/splash/splash_page.dart';
 import '../view/login/login_page.dart';
 import '/route/route_name.dart';
-import '/view/article/article_page.dart';
+import '../view/article/article_page/article_page.dart';
 import '/view/demo/article_web.dart';
 import '../view/home/index_page.dart';
 import '../view/demo/screenshot_gallery_page.dart';

@@ -8,14 +8,14 @@ import '/api/user_api.dart';
 import '/basics/logger.dart';
 import '/basics/upload.dart';
 import '/db/article/article_service.dart';
-import '/view/article/components/article_bottom_bar.dart';
-import '/view/article/components/article_loading_view.dart';
-import '/view/article/components/article_top_bar.dart';
+import 'article_bottom_bar.dart';
+import 'article_loading_view.dart';
+import 'article_top_bar.dart';
 
-import 'article_markdown/article_markdown_widget.dart';
-import 'article_mhtml_widget.dart';
-import 'article_web/article_web_widget.dart';
-import 'controller/article_controller.dart';
+import '../article_markdown/article_markdown_widget.dart';
+import '../article_mhtml_widget.dart';
+import '../article_web/article_web_widget.dart';
+import '../controller/article_controller.dart';
 
 
 class ArticlePage extends StatefulWidget {
@@ -158,6 +158,10 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   // 用于控制UI显隐的状态
   bool _isBottomBarVisible = true;
 
+  // 添加缓存相关变量
+  final Map<String, Widget> _cachedTabWidgets = {}; // 缓存已创建的tab widgets
+  bool _isTabWidgetsCached = false; // 标记是否已缓存
+
    @override
   void initState() {
     super.initState();
@@ -193,9 +197,6 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     if (article.isGenerateMhtml) {
       tabs.add('快照');
     }
-    
-    // 快照图tab（暂时保留，可根据需要调整条件）
-    tabs.add('快照图');
     
     // 先初始化tabWidget，再更新TabController
     _initializeTabWidgets();
@@ -284,6 +285,9 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     
     getLogger().i('🔄 刷新tabs显示');
     
+    // 清理现有缓存，因为文章内容可能发生了变化
+    _clearTabWidgetsCache();
+    
     // 重新初始化tabs
     _initializeTabs();
     
@@ -295,86 +299,126 @@ mixin ArticlePageBLoC on State<ArticlePage> {
 
   void _updateTabWidgets(EdgeInsets padding) {
     if (!articleController.hasArticle) {
-      tabWidget = [
-        // 只显示网页tab
-        Obx(() => ArticleWebWidget(
-          key: _webWidgetKey,
-          onSnapshotCreated: _onSnapshotCreated,
-          url: articleController.articleUrl.isNotEmpty 
-            ? articleController.articleUrl 
-            : null,
-          articleId: widget.id,
-          onScroll: _handleScroll,
-          contentPadding: padding,
-          onMarkdownGenerated: _onMarkdownGenerated, // 添加 Markdown 生成回调
-        )),
-      ];
+      // 未加载文章时，只显示网页tab，但也需要缓存
+      if (!_cachedTabWidgets.containsKey('网页')) {
+        _cachedTabWidgets['网页'] = _KeepAliveWrapper(
+          child: Obx(() => ArticleWebWidget(
+            key: _webWidgetKey,
+            onSnapshotCreated: _onSnapshotCreated,
+            url: articleController.articleUrl.isNotEmpty 
+              ? articleController.articleUrl 
+              : null,
+            articleId: widget.id,
+            onScroll: _handleScroll,
+            contentPadding: padding,
+            onMarkdownGenerated: _onMarkdownGenerated,
+          )),
+        );
+      }
+      
+      tabWidget = [_cachedTabWidgets['网页']!];
       return;
     }
 
     final article = articleController.currentArticle!;
+    
+    // 如果已经缓存过且padding没有重大变化，直接使用缓存
+    if (_isTabWidgetsCached && _cachedTabWidgets.isNotEmpty) {
+      // 更新padding，但保持widget缓存
+      _updateCachedWidgetsPadding(padding);
+      _buildTabWidgetListFromCache();
+      return;
+    }
+
+    // 首次创建或需要重新创建时，清空旧缓存
+    _cachedTabWidgets.clear();
     tabWidget = [];
 
     // 确保tabWidget的生成顺序与tabs一致
     for (String tabName in tabs) {
-      switch (tabName) {
-        case '图文':
-          tabWidget.add(
-            Obx(() => ArticleMarkdownWidget(
-              markdownContent: _markdownContent.value,
-              article: articleController.currentArticle,
-              onScroll: _handleScroll,
-              contentPadding: padding,
-            ))
-          );
-          break;
-        case '网页':
-          tabWidget.add(
-            Obx(() => ArticleWebWidget(
-              key: _webWidgetKey,
-              onSnapshotCreated: _onSnapshotCreated,
-              url: articleController.articleUrl.isNotEmpty 
-                ? articleController.articleUrl 
-                : null,
-              articleId: widget.id,
-              onScroll: _handleScroll,
-              contentPadding: padding,
-              onMarkdownGenerated: _onMarkdownGenerated, // 添加 Markdown 生成回调
-            ))
-          );
-          break;
-        case '快照':
-          tabWidget.add(
-            ArticleMhtmlWidget(
-              mhtmlPath: article.mhtmlPath,
-              title: article.title,
-            )
-          );
-          break;
-        case '快照图':
-          tabWidget.add(Container(
-            child: const Center(
-              child: Text('快照图功能开发中...'),
-            ),
-          ));
-          break;
-      }
+      Widget cachedWidget = _createCachedTabWidget(tabName, padding, article);
+      _cachedTabWidgets[tabName] = cachedWidget;
+      tabWidget.add(cachedWidget);
     }
+
+    // 标记已缓存
+    _isTabWidgetsCached = true;
 
     // 确保tabWidget数量与tabs数量一致
     if (tabWidget.length != tabs.length) {
       getLogger().e('❌ tabWidget数量(${tabWidget.length})与tabs数量(${tabs.length})不一致');
       // 如果数量不一致，补充空容器
       while (tabWidget.length < tabs.length) {
-        tabWidget.add(Container(
-          child: const Center(
-            child: Text('内容加载中...'),
+        Widget placeholderWidget = _KeepAliveWrapper(
+          child: Container(
+            child: const Center(
+              child: Text('内容加载中...'),
+            ),
           ),
-        ));
+        );
+        tabWidget.add(placeholderWidget);
       }
     }
 
-    getLogger().i('✅ tabs更新完成: ${tabs.join(', ')}, 数量: ${tabs.length}');
+    getLogger().i('✅ tabs缓存完成: ${tabs.join(', ')}, 数量: ${tabs.length}');
+  }
+
+  /// 创建缓存的tab widget
+  Widget _createCachedTabWidget(String tabName, EdgeInsets padding, dynamic article) {
+    switch (tabName) {
+      case '图文':
+        return _KeepAliveWrapper(
+          child: Obx(() => ArticleMarkdownWidget(
+            markdownContent: _markdownContent.value,
+            article: articleController.currentArticle,
+            onScroll: _handleScroll,
+            contentPadding: padding,
+          )),
+        );
+      case '网页':
+        return _KeepAliveWrapper(
+          child: Obx(() => ArticleWebWidget(
+            key: _webWidgetKey,
+            onSnapshotCreated: _onSnapshotCreated,
+            url: articleController.articleUrl.isNotEmpty 
+              ? articleController.articleUrl 
+              : null,
+            articleId: widget.id,
+            onScroll: _handleScroll,
+            contentPadding: padding,
+            onMarkdownGenerated: _onMarkdownGenerated,
+          )),
+        );
+      case '快照':
+        return _KeepAliveWrapper(
+          child: ArticleMhtmlWidget(
+            mhtmlPath: article.mhtmlPath,
+            title: article.title,
+            onScroll: _handleScroll,
+            contentPadding: padding,
+          ),
+        );
+      default:
+        return _KeepAliveWrapper(
+          child: Container(
+            child: const Center(
+              child: Text('未知页面类型'),
+            ),
+          ),
+        );
+    }
+  }
+
+  /// 从缓存中构建tabWidget列表
+  void _buildTabWidgetListFromCache() {
+    tabWidget = tabs.map((tabName) => _cachedTabWidgets[tabName]!).toList();
+  }
+
+  /// 更新缓存widget的padding（这里主要是为了未来扩展，目前padding通过Obx响应式更新）
+  void _updateCachedWidgetsPadding(EdgeInsets padding) {
+    // 由于我们使用了Obx响应式编程，padding的更新会自动反映到UI上
+    // 这个方法保留用于未来可能的非响应式widget的padding更新
+    getLogger().d('🔄 更新缓存widget的padding: $padding');
   }
 
   /// 处理滚动事件，用于显示/隐藏UI元素
@@ -646,6 +690,9 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     // 退出页面时恢复系统默认UI，显示状态栏
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
+    // 清理tab widgets缓存
+    _clearTabWidgetsCache();
+    
     tabController.dispose();
     // 清理文章控制器
     articleController.clearCurrentArticle();
@@ -659,4 +706,35 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   
   /// 获取当前文章标题（便捷方法）
   String get currentArticleTitle => articleController.articleTitle;
-} 
+
+  /// 清理缓存的方法
+  void _clearTabWidgetsCache() {
+    _cachedTabWidgets.clear();
+    _isTabWidgetsCached = false;
+    getLogger().i('🗑️ 清理tab widgets缓存');
+  }
+}
+
+/// 用于保持widget状态的包装器
+class _KeepAliveWrapper extends StatefulWidget {
+  final Widget child;
+
+  const _KeepAliveWrapper({
+    required this.child,
+  });
+
+  @override
+  State<_KeepAliveWrapper> createState() => _KeepAliveWrapperState();
+}
+
+class _KeepAliveWrapperState extends State<_KeepAliveWrapper>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // 必须调用，以支持AutomaticKeepAliveClientMixin
+    return widget.child;
+  }
+}

@@ -418,11 +418,11 @@ mixin GroupPageBLoC on State<GroupPage> {
   }
 
   Future<void> _createSampleData() async {
-    final mobile = await _categoryService.createCategory(name: '从移动端开始吧', icon: '👋');
-    await _categoryService.createCategory(name: 'Flutter', icon: '🐦', parentId: mobile.id);
-    await _categoryService.createCategory(name: 'React Native', icon: '⚛️', parentId: mobile.id, sortOrder: 1);
-    await _categoryService.createCategory(name: '空军建军节', icon: '📄', sortOrder: 1);
-    await _categoryService.createCategory(name: '紧急集合', icon: '📄', sortOrder: 2);
+    final mobile = await _categoryService.createCategory(name: '默认分组', icon: '👋');
+    // await _categoryService.createCategory(name: 'Flutter', icon: '🐦', parentId: mobile.id);
+    // await _categoryService.createCategory(name: 'React Native', icon: '⚛️', parentId: mobile.id, sortOrder: 1);
+    // await _categoryService.createCategory(name: '空军建军节', icon: '📄', sortOrder: 1);
+    // await _categoryService.createCategory(name: '紧急集合', icon: '📄', sortOrder: 2);
   }
 
   void _toggleCategory(int categoryId) {

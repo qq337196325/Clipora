@@ -68,6 +68,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                   // 搜索输入框
                   Expanded(
                     child: Container(
+                      height: 38,
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(12),
@@ -111,8 +112,8 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                               : null,
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                            horizontal: 8,
+                            vertical: 10,
                           ),
                         ),
                       ),
@@ -130,8 +131,8 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                          horizontal: 14,
+                          vertical: 7,
                         ),
                         decoration: BoxDecoration(
                           gradient: searchText.isNotEmpty
@@ -183,9 +184,6 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
       );
     }
 
-    if (searchText.isEmpty) {
-      return _buildSearchSuggestions();
-    }
 
     if (searchResults.isEmpty) {
       return _buildEmptyResults();
@@ -194,135 +192,226 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
     return _buildSearchResults();
   }
 
-  Widget _buildSearchSuggestions() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '搜索建议',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade800,
-                ),
-              ),
-              // 测试按钮
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: _showTestMenu,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '测试',
-                      style: TextStyle(
-                        color: Colors.orange.shade700,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          
-          // 热门搜索
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: searchSuggestions.map((suggestion) => 
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () => _selectSuggestion(suggestion),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.grey.shade200,
-                        width: 0.5,
-                      ),
-                    ),
-                    child: searchText.isNotEmpty 
-                        ? HighlightText(
-                            text: suggestion,
-                            searchQuery: searchText,
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontSize: 14,
-                            ),
-                            highlightStyle: TextStyle(
-                              color: const Color(0xFF00BCF6),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              backgroundColor: const Color(0xFF00BCF6).withOpacity(0.1),
-                            ),
-                          )
-                        : Text(
-                            suggestion,
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontSize: 14,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            ).toList(),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildEmptyResults() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off_rounded,
-            size: 64,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '没有找到相关内容',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
+    final bool hasSearched = searchText.isNotEmpty;
+    
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 60),
+            
+            // 动画图标容器
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 800),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: 0.8 + (0.2 * value),
+                  child: Opacity(
+                    opacity: value,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blue.shade50,
+                            Colors.cyan.shade50,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(60),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.1),
+                            blurRadius: 20,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        hasSearched ? Icons.search_off_rounded : Icons.search_rounded,
+                        size: 48,
+                        color: const Color(0xFF00BCF6),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '试试其他关键词',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
+            
+            const SizedBox(height: 32),
+            
+            // 主标题
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 600),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Transform.translate(
+                  offset: Offset(0, 20 * (1 - value)),
+                  child: Opacity(
+                    opacity: value,
+                    child: Text(
+                      hasSearched ? '没有找到相关内容' : '开始搜索',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-        ],
+            
+            const SizedBox(height: 12),
+            
+            // 副标题
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 800),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Transform.translate(
+                  offset: Offset(0, 15 * (1 - value)),
+                  child: Opacity(
+                    opacity: value,
+                    child: Text(
+                      hasSearched 
+                          ? '试试调整关键词或使用其他搜索词'
+                          : '输入关键词搜索文章、标题',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey.shade500,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
+            ),
+            
+            const SizedBox(height: 40),
+            
+            // 搜索建议
+            // if (hasSearched) ...[
+            //   TweenAnimationBuilder<double>(
+            //     duration: const Duration(milliseconds: 1000),
+            //     tween: Tween(begin: 0.0, end: 1.0),
+            //     builder: (context, value, child) {
+            //       return Transform.translate(
+            //         offset: Offset(0, 20 * (1 - value)),
+            //         child: Opacity(
+            //           opacity: value,
+            //           child: Container(
+            //             padding: const EdgeInsets.all(20),
+            //             decoration: BoxDecoration(
+            //               color: Colors.white,
+            //               borderRadius: BorderRadius.circular(16),
+            //               boxShadow: [
+            //                 BoxShadow(
+            //                   color: Colors.black.withOpacity(0.05),
+            //                   blurRadius: 10,
+            //                   spreadRadius: 0,
+            //                   offset: const Offset(0, 4),
+            //                 ),
+            //               ],
+            //             ),
+            //             child: Column(
+            //               children: [
+            //                 Row(
+            //                   children: [
+            //                     Icon(
+            //                       Icons.lightbulb_outline_rounded,
+            //                       color: Colors.amber.shade600,
+            //                       size: 20,
+            //                     ),
+            //                     const SizedBox(width: 8),
+            //                     Text(
+            //                       '搜索建议',
+            //                       style: TextStyle(
+            //                         fontSize: 16,
+            //                         fontWeight: FontWeight.w600,
+            //                         color: Colors.grey.shade700,
+            //                       ),
+            //                     ),
+            //                   ],
+            //                 ),
+            //                 const SizedBox(height: 16),
+            //                 _buildSearchSuggestions(),
+            //               ],
+            //             ),
+            //           ),
+            //         ),
+            //       );
+            //     },
+            //   ),
+            // ] else ...[
+            //   // // 快速搜索标签
+            //   // TweenAnimationBuilder<double>(
+            //   //   duration: const Duration(milliseconds: 1000),
+            //   //   tween: Tween(begin: 0.0, end: 1.0),
+            //   //   builder: (context, value, child) {
+            //   //     return Transform.translate(
+            //   //       offset: Offset(0, 20 * (1 - value)),
+            //   //       child: Opacity(
+            //   //         opacity: value,
+            //   //         child: Container(
+            //   //           padding: const EdgeInsets.all(20),
+            //   //           decoration: BoxDecoration(
+            //   //             color: Colors.white,
+            //   //             borderRadius: BorderRadius.circular(16),
+            //   //             boxShadow: [
+            //   //               BoxShadow(
+            //   //                 color: Colors.black.withOpacity(0.05),
+            //   //                 blurRadius: 10,
+            //   //                 spreadRadius: 0,
+            //   //                 offset: const Offset(0, 4),
+            //   //               ),
+            //   //             ],
+            //   //           ),
+            //   //           child: Column(
+            //   //             children: [
+            //   //               Row(
+            //   //                 children: [
+            //   //                   Icon(
+            //   //                     Icons.flash_on_rounded,
+            //   //                     color: Colors.orange.shade600,
+            //   //                     size: 20,
+            //   //                   ),
+            //   //                   const SizedBox(width: 8),
+            //   //                   Text(
+            //   //                     '快速搜索',
+            //   //                     style: TextStyle(
+            //   //                       fontSize: 16,
+            //   //                       fontWeight: FontWeight.w600,
+            //   //                       color: Colors.grey.shade700,
+            //   //                     ),
+            //   //                   ),
+            //   //                 ],
+            //   //               ),
+            //   //               const SizedBox(height: 16),
+            //   //               _buildQuickSearchTags(),
+            //   //             ],
+            //   //           ),
+            //   //         ),
+            //   //       ),
+            //   //     );
+            //   //   },
+            //   // ),
+            // ],
+            
+            const SizedBox(height: 60),
+          ],
+        ),
       ),
     );
   }
@@ -437,17 +526,6 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                       text: _getDisplayContent(result),
                       searchQuery: searchText,
                     ),
-                    trailing: result.isRead == 1
-                        ? Icon(
-                      Icons.check_circle,
-                      color: Colors.green.shade400,
-                      size: 20,
-                    )
-                        : Icon(
-                      Icons.circle_outlined,
-                      color: Colors.grey.shade400,
-                      size: 20,
-                    ),
                     onTap: () => _onResultTap(result),
                   ),
                 ),
@@ -490,10 +568,7 @@ mixin SearchPageBLoC on State<SearchPage> {
         isSearchFocused = searchFocusNode.hasFocus;
       });
     });
-    
-    // 加载搜索建议
-    _loadSearchSuggestions();
-    
+
     // 自动聚焦到搜索框
     WidgetsBinding.instance.addPostFrameCallback((_) {
       searchFocusNode.requestFocus();
@@ -540,43 +615,6 @@ mixin SearchPageBLoC on State<SearchPage> {
       searchText = '';
       searchResults = [];
     });
-  }
-
-  void _selectSuggestion(String suggestion) {
-    searchController.text = suggestion;
-    setState(() {
-      searchText = suggestion;
-    });
-    _performSearch();
-  }
-
-  /// 加载搜索建议
-  Future<void> _loadSearchSuggestions() async {
-    try {
-      // 优先使用热门搜索词，如果没有再使用基于文章的建议
-      final hotKeywords = await ArticleService.instance.getHotSearchKeywords();
-      final suggestions = await ArticleService.instance.getSearchSuggestions();
-      
-      // 合并热门搜索词和智能建议
-      final allSuggestions = <String>{...hotKeywords, ...suggestions}.toList();
-      
-      setState(() {
-        searchSuggestions = allSuggestions.take(10).toList();
-      });
-    } catch (e) {
-      getLogger().e('加载搜索建议失败: $e');
-      // 使用默认建议
-      setState(() {
-        searchSuggestions = [
-          'Flutter',
-          '前端开发',
-          '移动应用',
-          '设计模式',
-          '编程学习',
-          '技术分享',
-        ];
-      });
-    }
   }
 
   /// 实时搜索（搜索标题和内容）
@@ -646,240 +684,10 @@ mixin SearchPageBLoC on State<SearchPage> {
   }
 
   void _onResultTap(ArticleDb result) {
-    // TODO: 跳转到文章详情页面
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('点击了: ${result.title}'),
-        backgroundColor: Colors.grey.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
+    context.push('/${RouteName.articlePage}?id=${result.id}');
   }
 
-  void _showTestMenu() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            
-            Text(
-              '测试功能',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade800,
-              ),
-            ),
-            const SizedBox(height: 20),
-            
-            // 创建测试数据按钮
-            _buildTestButton(
-              '创建测试文章',
-              Icons.add_circle_outline,
-              Colors.blue,
-              () async {
-                Navigator.pop(context);
-                await _createTestData();
-              },
-            ),
-            
-            const SizedBox(height: 12),
-            
-            // 测试搜索按钮
-            _buildTestButton(
-              '测试搜索功能',
-              Icons.search,
-              Colors.green,
-              () async {
-                Navigator.pop(context);
-                await _testSearchFunction();
-              },
-            ),
-            
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildTestButton(
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: color.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _createTestData() async {
-    try {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('正在创建测试文章...'),
-          backgroundColor: Colors.blue,
-        ),
-      );
-      
-      // 直接在这里创建测试文章
-      final articleService = ArticleService.instance;
-      
-      // 创建测试文章
-      final testArticles = [
-        ArticleDb()
-          ..title = 'Flutter开发实战指南'
-          ..markdown = 'Flutter是Google开发的跨平台移动应用开发框架。本文将详细介绍Flutter的基础知识和实战技巧。'
-          ..excerpt = 'Flutter跨平台开发框架介绍'
-          ..author = '张三'
-          ..url = 'https://example.com/flutter-guide'
-          ..domain = 'example.com'
-          ..createdAt = DateTime.now(),
-        
-        ArticleDb()
-          ..title = '前端技术趋势分析'
-          ..markdown = '随着Web技术的快速发展，前端开发技术也在不断演进。本文分析了当前前端技术的发展趋势。'
-          ..excerpt = '前端技术发展趋势分析'
-          ..author = '李四'
-          ..url = 'https://example.com/frontend-trends'
-          ..domain = 'example.com'
-          ..createdAt = DateTime.now(),
-        
-        ArticleDb()
-          ..title = '移动应用设计原则'
-          ..markdown = '移动应用设计需要考虑用户体验、界面设计和交互设计等多个方面。本文总结了移动应用设计的核心原则。'
-          ..excerpt = '移动应用设计核心原则'
-          ..author = '王五'
-          ..url = 'https://example.com/mobile-design'
-          ..domain = 'example.com'
-          ..createdAt = DateTime.now(),
-      ];
-      
-      // 保存测试文章
-      for (final article in testArticles) {
-        await articleService.saveArticle(article);
-      }
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('测试文章创建成功！'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      
-      // 重新加载搜索建议
-      await _loadSearchSuggestions();
-      
-    } catch (e) {
-      getLogger().e('创建测试数据失败: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('创建测试文章失败: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _testSearchFunction() async {
-    try {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('正在测试搜索功能...'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      
-      // 直接在这里测试搜索功能
-      final articleService = ArticleService.instance;
-      
-      // 测试搜索关键词
-      final searchQueries = ['Flutter', '前端', '设计'];
-      
-      for (final query in searchQueries) {
-        getLogger().i('🔍 搜索关键词: $query');
-        
-        final results = await articleService.searchArticles(query);
-        
-        getLogger().i('📊 搜索结果数量: ${results.length}');
-        for (final article in results) {
-          getLogger().i('  - ${article.title}');
-        }
-      }
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('搜索功能测试完成，查看控制台日志'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      
-    } catch (e) {
-      getLogger().e('测试搜索功能失败: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('搜索功能测试失败: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 
   /// 获取文章显示内容（优先显示包含搜索词的相关片段）
   String _getDisplayContent(ArticleDb article) {
@@ -890,7 +698,7 @@ mixin SearchPageBLoC on State<SearchPage> {
       if (searchQuery.isEmpty) {
         return article.excerpt!;
       }
-      
+
       // 检查摘要是否包含搜索词
       if (article.excerpt!.toLowerCase().contains(searchQuery.toLowerCase())) {
         return article.excerpt!;
@@ -916,4 +724,7 @@ mixin SearchPageBLoC on State<SearchPage> {
     
     return '无内容';
   }
+
+
+
 } 
