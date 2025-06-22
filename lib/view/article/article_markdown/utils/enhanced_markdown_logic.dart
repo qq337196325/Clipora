@@ -11,6 +11,7 @@ import '../../../../db/annotation/enhanced_annotation_service.dart';
 import 'basic_scripts_logic.dart';
 import 'simple_markdown_renderer.dart';
 import 'selection_menu_logic.dart';
+import 'highlight_menu_logic.dart';
 
 /// 增强版ArticleMarkdownWidget的业务逻辑核心
 /// 
@@ -72,6 +73,10 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
     
     disposeSelectionMenu();
+    // 清理标注菜单（通过dynamic调用，因为HighlightMenuLogic在State级别混入）
+    if (this is dynamic && (this as dynamic).disposeHighlightMenu != null) {
+      (this as dynamic).disposeHighlightMenu?.call();
+    }
     _positionSaveTimer?.cancel();
     
     if (webViewController != null && article != null) {
@@ -128,7 +133,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     basicScriptsLogic = BasicScriptsLogic(controller);
     getLogger().d('🎯 WebView控制器和JS管理器已设置');
     _setupEnhancedWebView();
-    getLogger().d('�� 增强WebView设置已启动');
+    getLogger().d('🎯 增强WebView设置已启动');
     
     // 注意：不在这里调用onEnhancedWebViewLoadStop，而是在onLoadStop回调中调用
     // 这样确保页面完全加载后再初始化增强功能
@@ -172,6 +177,8 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       final injectionSuccess = await basicScriptsLogic.injectRangeAnnotationScript();
       getLogger().d('🔥 Range引擎注入结果: $injectionSuccess');
       
+      // === 第一步：注入标注点击监听脚本 ===
+      await _injectHighlightClickListener();
 
       // 设置图片点击处理
       await _setupImageClickHandler();
@@ -190,6 +197,12 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       
       // 隐藏加载遮罩
       await _hideLoadingOverlay();
+      
+      // === 第一步：调试测试（仅在开发时启用） ===
+      // 延迟一下再测试，确保所有内容都已加载
+      Future.delayed(const Duration(seconds: 1), () {
+        debugTestHighlightClickListener();
+      });
       
       getLogger().i('✅ 增强WebView设置完成，页面已显示');
     } catch (e) {
@@ -234,6 +247,13 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       );
       getLogger().d('🔥 已注册: onHighlightCreated');
       
+      // === 第一步：添加标注点击监听Handler ===
+      webViewController!.addJavaScriptHandler(
+        handlerName: 'onHighlightClicked',
+        callback: handleHighlightClicked,
+      );
+      getLogger().d('🔥 已注册: onHighlightClicked');
+      
       getLogger().i('✅ 所有增强文本选择回调处理器注册完成');
       
       // 验证JavaScript桥接
@@ -241,6 +261,64 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       
     } catch (e) {
       getLogger().e('❌ 注册增强文本选择回调处理器失败: $e');
+    }
+  }
+
+  // === 第一步：标注点击处理方法 ===
+  void handleHighlightClicked(List<dynamic> args) {
+    try {
+      getLogger().d('🎯 handleHighlightClicked 被调用，参数: $args');
+      
+      final data = args[0] as Map<String, dynamic>;
+      getLogger().d('🎯 标注点击数据结构: ${data.keys.toList()}');
+      getLogger().d('🎯 标注点击详情: $data');
+      
+      // 提取基本信息
+      final highlightId = data['highlightId'] as String?;
+      final content = data['content'] as String?;
+      final highlightType = data['type'] as String?;
+      final position = data['position'] as Map<String, dynamic>?;
+      final boundingRect = data['boundingRect'] as Map<String, dynamic>?;
+      
+      // 验证数据完整性
+      if (_validateHighlightClickData(data)) {
+        getLogger().i('✅ 标注点击数据验证成功');
+        getLogger().i('📍 标注ID: $highlightId');
+        getLogger().i('📝 标注内容: ${content?.substring(0, (content?.length ?? 0) > 50 ? 50 : content?.length ?? 0)}${(content?.length ?? 0) > 50 ? '...' : ''}');
+        getLogger().i('🏷️ 标注类型: $highlightType');
+        getLogger().i('📐 位置信息: $position');
+        getLogger().i('📦 边界框: $boundingRect');
+        
+        // === 第二步：显示标注操作面板 ===
+        // 通过dynamic调用，因为HighlightMenuLogic在State级别混入
+        if (this is dynamic && (this as dynamic).showHighlightActionMenu != null) {
+          (this as dynamic).showHighlightActionMenu(data);
+        }
+        
+      } else {
+        getLogger().w('⚠️ 标注点击数据验证失败');
+        _logHighlightClickValidationDetails(data);
+      }
+      
+    } catch (e) {
+      getLogger().e('❌ 处理标注点击异常: $e');
+    }
+  }
+
+  // === 第一步：验证标注点击数据 ===
+  bool _validateHighlightClickData(Map<String, dynamic> data) {
+    final requiredFields = ['highlightId', 'content', 'type', 'position'];
+    return requiredFields.every((field) => 
+      data.containsKey(field) && data[field] != null);
+  }
+
+  void _logHighlightClickValidationDetails(Map<String, dynamic> data) {
+    final requiredFields = ['highlightId', 'content', 'type', 'position', 'boundingRect'];
+    getLogger().w('🔍 标注点击数据验证详情:');
+    for (final field in requiredFields) {
+      final hasField = data.containsKey(field);
+      final isNotNull = hasField ? data[field] != null : false;
+      getLogger().w('  - $field: 存在=$hasField, 非空=$isNotNull, 值=${data[field]}');
     }
   }
 
@@ -283,6 +361,102 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       
     } catch (e) {
       getLogger().e('❌ 验证JavaScript桥接失败: $e');
+    }
+  }
+
+  // === 第一步：注入标注点击监听脚本 ===
+  Future<void> _injectHighlightClickListener() async {
+    if (!_isWebViewAvailable()) return;
+    
+    try {
+      getLogger().d('🔄 开始注入标注点击监听脚本...');
+      
+      // 使用事件委托监听所有标注元素的点击
+      await webViewController!.evaluateJavascript(source: '''
+        (function() {
+          // 防止重复注册
+          if (window.highlightClickListenerInstalled) {
+            console.log('⚠️ 标注点击监听器已存在，跳过重复注册');
+            return;
+          }
+          
+          // 添加全局点击事件监听器（事件委托方式）
+          document.addEventListener('click', function(e) {
+            try {
+              // 查找点击的是否为标注元素或其子元素
+              const highlightElement = e.target.closest('[data-highlight-id]');
+              
+              if (highlightElement) {
+                // 阻止默认行为和事件冒泡
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🎯 检测到标注点击:', highlightElement);
+                
+                // 提取标注信息
+                const highlightId = highlightElement.dataset.highlightId;
+                const content = highlightElement.textContent || '';
+                const highlightType = highlightElement.dataset.type || 'highlight';
+                const colorClass = highlightElement.className || '';
+                
+                // 获取元素位置信息
+                const rect = highlightElement.getBoundingClientRect();
+                const position = {
+                  x: rect.x,
+                  y: rect.y,
+                  centerX: rect.x + rect.width / 2,
+                  centerY: rect.y + rect.height / 2
+                };
+                
+                const boundingRect = {
+                  x: rect.x,
+                  y: rect.y,
+                  width: rect.width,
+                  height: rect.height,
+                  top: rect.top,
+                  left: rect.left,
+                  bottom: rect.bottom,
+                  right: rect.right
+                };
+                
+                // 构造传递给Flutter的数据
+                const clickData = {
+                  highlightId: highlightId,
+                  content: content,
+                  type: highlightType,
+                  colorClass: colorClass,
+                  position: position,
+                  boundingRect: boundingRect,
+                  elementTag: highlightElement.tagName,
+                  timestamp: Date.now()
+                };
+                
+                console.log('📦 准备发送标注点击数据:', clickData);
+                
+                // 调用Flutter Handler
+                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                  window.flutter_inappwebview.callHandler('onHighlightClicked', clickData);
+                  console.log('✅ 标注点击数据已发送到Flutter');
+                } else {
+                  console.error('❌ Flutter桥接不可用，无法发送标注点击数据');
+                }
+              }
+            } catch (error) {
+              console.error('❌ 处理标注点击异常:', error);
+            }
+          }, true); // 使用capture阶段，确保能优先处理
+          
+          // 标记监听器已安装
+          window.highlightClickListenerInstalled = true;
+          console.log('✅ 标注点击监听器安装完成');
+          
+        })();
+      ''');
+      
+      getLogger().i('✅ 标注点击监听脚本注入成功');
+      
+    } catch (e) {
+      getLogger().e('❌ 注入标注点击监听脚本失败: $e');
     }
   }
 
@@ -659,6 +833,61 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       }
     } catch(e) {
       getLogger().e('❌ 刷新文章数据失败: $e');
+    }
+  }
+
+  // === 第一步：调试和测试方法 ===
+  
+  /// 调试：验证标注点击监听器是否正常工作
+  Future<void> debugTestHighlightClickListener() async {
+    if (!_isWebViewAvailable()) {
+      getLogger().w('⚠️ WebView不可用，无法进行标注点击测试');
+      return;
+    }
+    
+    try {
+      getLogger().d('🧪 开始测试标注点击监听器...');
+      
+      // 检查监听器是否已安装
+      final listenerInstalled = await webViewController!.evaluateJavascript(source: '''
+        (function() {
+          return !!window.highlightClickListenerInstalled;
+        })();
+      ''');
+      
+      getLogger().d('🧪 监听器安装状态: $listenerInstalled');
+      
+      // 检查页面中是否有标注元素
+      final highlightCount = await webViewController!.evaluateJavascript(source: '''
+        (function() {
+          const highlights = document.querySelectorAll('[data-highlight-id]');
+          console.log('🧪 找到标注元素:', highlights.length, '个');
+          
+                     // 打印前3个标注的信息
+           Array.from(highlights).slice(0, 3).forEach((el, index) => {
+             console.log('🧪 标注' + (index + 1) + ':', {
+               id: el.dataset.highlightId,
+               content: el.textContent?.substring(0, 50) + '...',
+               className: el.className,
+               tagName: el.tagName
+             });
+           });
+          
+          return highlights.length;
+        })();
+      ''');
+      
+      getLogger().d('🧪 页面中标注数量: $highlightCount');
+      
+      if ((highlightCount ?? 0) > 0) {
+        getLogger().i('✅ 第一步功能准备就绪：监听器已安装，页面中有 $highlightCount 个标注');
+        getLogger().i('🎯 现在可以点击任意标注来测试功能');
+      } else {
+        getLogger().w('⚠️ 页面中暂无标注，请先添加一些标注后再测试点击功能');
+      }
+      
+    } catch (e) {
+      getLogger().e('❌ 测试标注点击监听器失败: $e');
     }
   }
 

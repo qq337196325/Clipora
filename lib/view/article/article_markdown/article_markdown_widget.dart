@@ -9,6 +9,8 @@ import '../../../db/article/article_db.dart';
 import 'utils/simple_html_template.dart';
 import 'utils/enhanced_markdown_logic.dart';
 import 'utils/selection_menu_logic.dart';
+import 'utils/highlight_menu_logic.dart';
+import 'utils/basic_scripts_logic.dart';
 
 
 class ArticleMarkdownWidget extends StatefulWidget {
@@ -31,7 +33,7 @@ class ArticleMarkdownWidget extends StatefulWidget {
   State<ArticleMarkdownWidget> createState() => _ArticlePageState();
 }
 
-class _ArticlePageState extends State<ArticleMarkdownWidget> with SelectionMenuLogic<ArticleMarkdownWidget>, EnhancedMarkdownLogic<ArticleMarkdownWidget> {
+class _ArticlePageState extends State<ArticleMarkdownWidget> with SelectionMenuLogic<ArticleMarkdownWidget>, HighlightMenuLogic<ArticleMarkdownWidget>, EnhancedMarkdownLogic<ArticleMarkdownWidget> {
   final GlobalKey _webViewKey = GlobalKey();
 
   String get markdownContent => widget.markdownContent;
@@ -266,7 +268,7 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with SelectionMenuL
             //     window.SmoothLoading.updateText('正在加载内容...');
             //   }
             // ''').catchError((e) => getLogger().d('⚠️ 更新加载文本失败: $e'));
-            
+            print('menuX12222222222222222222:' );
             // getLogger().d('🎯 准备调用onEnhancedWebViewLoadStop');
             // 调用增强功能初始化
             await onEnhancedWebViewLoadStop();
