@@ -92,6 +92,35 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     }
   }
 
+  // === 平滑加载控制方法 ===
+  Future<void> _updateLoadingText(String message) async {
+    if (!_isWebViewAvailable()) return;
+    try {
+      await webViewController!.evaluateJavascript(source: '''
+        if (window.SmoothLoading) {
+          window.SmoothLoading.updateText('$message');
+        }
+      ''');
+      getLogger().d('🎭 更新加载文本: $message');
+    } catch (e) {
+      getLogger().d('⚠️ 更新加载文本失败: $e');
+    }
+  }
+
+  Future<void> _hideLoadingOverlay() async {
+    if (!_isWebViewAvailable()) return;
+    try {
+      await webViewController!.evaluateJavascript(source: '''
+        if (window.SmoothLoading) {
+          window.SmoothLoading.hide();
+        }
+      ''');
+      getLogger().d('🎭 隐藏加载遮罩');
+    } catch (e) {
+      getLogger().d('⚠️ 隐藏加载遮罩失败: $e');
+    }
+  }
+
   // === WebView 设置 ===
   void onEnhancedWebViewCreated(InAppWebViewController controller) {
     getLogger().d('🎯 onEnhancedWebViewCreated被调用');
@@ -129,12 +158,12 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     getLogger().d('🔥 增强文本选择回调处理器已注册11111');
     if (!_isWebViewAvailable()) return;
     try {
+      // 更新加载状态：正在注册处理器
+      await _updateLoadingText('加载中...');
+      
       // 【重要】首先立即注册回调处理器，确保JavaScript调用时Flutter已准备好
       _setupEnhancedTextSelectionHandlers();
       getLogger().d('🔥 增强文本选择回调处理器已注册');
-      
-      // 短暂延迟，确保Handler注册完成
-      await Future.delayed(const Duration(milliseconds: 150));
       
       // 注入基础脚本
       await basicScriptsLogic.injectBasicScripts(webViewController!);
@@ -146,22 +175,27 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
 
       // 设置图片点击处理
       await _setupImageClickHandler();
-      
+
       // 渲染Markdown内容
       await _renderMarkdownContent();
 
       // 恢复历史标注
       await _restoreEnhancedAnnotations();
-      
+
       // 恢复阅读位置
       await _restoreReadingPosition();
       
       // 开始周期性位置保存
       _startPeriodicPositionSaving();
       
+      // 隐藏加载遮罩
+      await _hideLoadingOverlay();
+      
       getLogger().i('✅ 增强WebView设置完成，页面已显示');
     } catch (e) {
       getLogger().e('❌ 增强WebView最终设置失败: $e');
+      // 确保隐藏加载遮罩
+      await _hideLoadingOverlay();
       if (mounted && !_isDisposed) {
         setState(() {
           isLoading = false;
@@ -399,6 +433,9 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     
     if (!hasPositionData) {
       getLogger().i('ℹ️ 无保存的阅读位置，从顶部开始');
+      // 延迟一下再隐藏加载遮罩，让用户看到加载完成的反馈
+      // await Future.delayed(const Duration(milliseconds: 50));
+      await _hideLoadingOverlay();
       if (mounted && !_isDisposed) {
         setState(() { isLoading = false; });
       }
@@ -417,7 +454,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       getLogger().i('🔄 开始恢复阅读位置到 X=${article!.markdownScrollX}, Y=${article!.markdownScrollY}...');
       
       // 等待DOM完全准备好
-      await Future.delayed(const Duration(milliseconds: 500));
+      // await Future.delayed(const Duration(milliseconds: 500));
       
       // 检查页面内容是否已加载
       final contentHeight = await webViewController!.evaluateJavascript(source: '''
@@ -434,7 +471,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
         );
         
         // 验证滚动是否成功
-        await Future.delayed(const Duration(milliseconds: 200));
+        // await Future.delayed(const Duration(milliseconds: 200));
         final actualY = await webViewController!.getScrollY();
         final actualX = await webViewController!.getScrollX();
         
@@ -454,6 +491,8 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
        }
     } finally {
       _isRestoringPosition = false;
+      // 确保在位置恢复完成后隐藏加载遮罩
+      await _hideLoadingOverlay();
       if (mounted && !_isDisposed) {
         setState(() {
           isVisuallyRestoring = false;
@@ -488,7 +527,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
         getLogger().i('✅ Markdown内容渲染成功');
         
         // 等待一下让DOM稳定
-        await Future.delayed(const Duration(milliseconds: 300));
+        // await Future.delayed(const Duration(milliseconds: 300));
         
         // 检查渲染后的页面高度
         final contentHeight = await webViewController!.evaluateJavascript(source: '''
@@ -496,7 +535,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
         ''');
         getLogger().d('📏 渲染后页面高度: $contentHeight');
         
-        // 渲染成功后更新加载状态
+        // 渲染成功后更新加载状态，但不隐藏遮罩（由位置恢复完成后处理）
         if (mounted && !_isDisposed) {
           setState(() {
             isLoading = false;
@@ -504,7 +543,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
         }
       } else {
         getLogger().w('⚠️ Markdown渲染失败，但继续执行');
-        // 即使渲染失败也要更新加载状态，避免一直显示加载中
+        // 即使渲染失败也要更新加载状态，遮罩由位置恢复流程统一处理
         if (mounted && !_isDisposed) {
           setState(() {
             isLoading = false;
@@ -513,7 +552,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       }
     } catch (e) {
       getLogger().e('❌ 渲染Markdown内容异常: $e');
-      // 确保即使出现异常也要更新加载状态
+      // 确保即使出现异常也要更新加载状态，遮罩由位置恢复流程统一处理
       if (mounted && !_isDisposed) {
         setState(() {
           isLoading = false;

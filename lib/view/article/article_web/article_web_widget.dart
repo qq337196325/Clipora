@@ -10,6 +10,7 @@ import '../../../basics/logger.dart';
 import '../controller/article_controller.dart';
 import 'browser_simulation/core/browser_simulation_manager.dart';
 import 'browser_simulation/utils/js_injector.dart';
+import 'utils/scroll_fix_utils.dart';
 
 
 class ArticleWebWidget extends StatefulWidget {
@@ -54,6 +55,60 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
       mounted: mounted,
       onMarkdownGenerated: widget.onMarkdownGenerated,
     );
+  }
+
+  // 公共方法：供外部调用修复滚动问题
+  Future<void> forceFixScrolling() async {
+    if (webViewController == null) {
+      getLogger().w('⚠️ WebView控制器不可用，无法修复滚动');
+      return;
+    }
+    
+    try {
+      getLogger().i('🔧 手动修复滚动功能...');
+      
+      // 先检测滚动问题
+      final detectionResult = await ScrollFixUtils.detectScrollIssues(webViewController!);
+      
+      if (detectionResult != null) {
+        final scrollTest = detectionResult['scrollTest'] as Map<String, dynamic>?;
+        final canScroll = scrollTest?['canScroll'] as bool? ?? false;
+        
+        if (!canScroll) {
+          getLogger().w('🚨 检测到滚动问题，开始修复...');
+          
+          // 应用综合修复
+          final success = await ScrollFixUtils.applyComprehensiveFix(webViewController!);
+          
+          if (success) {
+            getLogger().i('✅ 滚动问题修复成功');
+          } else {
+            getLogger().w('⚠️ 滚动修复可能未完全成功，尝试基础修复');
+            // 如果综合修复失败，尝试基础修复
+            await _injectMobilePopupHandler(webViewController!);
+          }
+        } else {
+          getLogger().i('✅ 滚动功能正常，无需修复');
+        }
+      } else {
+        // 如果检测失败，直接尝试修复
+        getLogger().w('⚠️ 滚动检测失败，直接尝试修复');
+        await _injectMobilePopupHandler(webViewController!);
+      }
+      
+    } catch (e) {
+      getLogger().e('❌ 手动修复滚动失败: $e');
+    }
+  }
+
+  // 公共方法：检测滚动问题（用于调试）
+  Future<Map<String, dynamic>?> detectScrollIssues() async {
+    if (webViewController == null) {
+      getLogger().w('⚠️ WebView控制器不可用，无法检测滚动问题');
+      return null;
+    }
+    
+    return await ScrollFixUtils.detectScrollIssues(webViewController!);
   }
 
   @override
@@ -139,6 +194,9 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                   document.body.style.paddingRight = '${padding.right}px';
                   document.documentElement.style.scrollPaddingTop = '${padding.top}px';
                 ''');
+                
+                // 注入移动端弹窗处理脚本 - 恢复滚动功能
+                await _injectMobilePopupHandler(controller);
                 
                 // 页面加载完成后进行优化设置
                 finalizeWebPageOptimization(url,webViewController);
@@ -312,6 +370,204 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       getLogger().i('✅ 存储仿真代码注入完成');
     } catch (e) {
       getLogger().e('❌ 注入存储仿真代码失败: $e');
+    }
+  }
+
+  /// 注入移动端弹窗处理脚本 - 恢复滚动功能
+  Future<void> _injectMobilePopupHandler(InAppWebViewController controller) async {
+    try {
+      getLogger().i('📱 开始注入移动端弹窗处理脚本...');
+      
+      const jsCode = '''
+      (function() {
+        console.log('📱 移动端弹窗处理脚本已启动');
+        
+        // 定时检查并修复滚动问题
+        const checkAndFixScrolling = function() {
+          try {
+            // 1. 强制恢复页面滚动
+            const html = document.documentElement;
+            const body = document.body;
+            
+            // 移除可能的滚动阻止样式
+            [html, body].forEach(el => {
+              if (el) {
+                el.style.overflow = '';
+                el.style.overflowY = '';
+                el.style.height = '';
+                el.style.position = '';
+                
+                // 移除data属性中的滚动锁定标记
+                el.removeAttribute('data-scroll-locked');
+                el.removeAttribute('data-body-scroll-lock');
+              }
+            });
+            
+            // 2. 检查并移除可能的遮罩层
+            const overlays = document.querySelectorAll(
+              '[style*="position: fixed"], [style*="position:fixed"], ' +
+              '.modal-backdrop, .overlay, .mask, .popup-mask, ' +
+              '[class*="modal"], [class*="popup"], [class*="overlay"], ' +
+              '[id*="modal"], [id*="popup"], [id*="overlay"]'
+            );
+            
+            overlays.forEach(overlay => {
+              const style = window.getComputedStyle(overlay);
+              const zIndex = parseInt(style.zIndex) || 0;
+              const position = style.position;
+              
+              // 检查是否是高层级的遮罩元素
+              if ((position === 'fixed' || position === 'absolute') && 
+                  zIndex > 1000 && 
+                  overlay.offsetWidth > window.innerWidth * 0.8 &&
+                  overlay.offsetHeight > window.innerHeight * 0.8) {
+                
+                console.log('🗑️ 移除可疑的遮罩层:', overlay.className || overlay.id);
+                
+                // 尝试隐藏而不是删除，避免破坏页面
+                overlay.style.display = 'none';
+                overlay.style.visibility = 'hidden';
+                overlay.style.zIndex = '-1';
+                overlay.style.pointerEvents = 'none';
+              }
+            });
+            
+            // 3. 恢复触摸事件
+            const events = ['touchstart', 'touchmove', 'touchend', 'scroll', 'wheel'];
+            events.forEach(eventType => {
+              // 移除所有可能的事件阻止器
+              const oldHandler = document['on' + eventType];
+              if (oldHandler) {
+                document['on' + eventType] = null;
+              }
+              
+              // 确保事件可以正常冒泡
+              document.addEventListener(eventType, function(e) {
+                // 不阻止默认行为，让滚动正常进行
+                if (eventType === 'touchmove' || eventType === 'scroll' || eventType === 'wheel') {
+                  e.stopImmediatePropagation = function() {}; // 禁用立即停止传播
+                }
+              }, { passive: true, capture: true });
+            });
+            
+            // 4. 特殊处理知名网站的APP引导弹窗
+            const hostname = window.location.hostname;
+            
+            // 知乎特殊处理
+            if (hostname.includes('zhihu.com')) {
+              const zhihuPopups = document.querySelectorAll(
+                '.AppBanner, .MobileAppBanner, .DownloadBanner, ' +
+                '[class*="AppBanner"], [class*="DownloadBanner"], ' +
+                '[data-zop*="app"], [data-zop*="banner"]'
+              );
+              
+              zhihuPopups.forEach(popup => {
+                popup.style.display = 'none';
+                console.log('🎯 隐藏知乎APP引导:', popup.className);
+              });
+            }
+            
+            // 今日头条/抖音特殊处理
+            if (hostname.includes('toutiao.com') || hostname.includes('douyin.com')) {
+              const ttPopups = document.querySelectorAll(
+                '.download-bar, .app-download-bar, .mobile-download-bar, ' +
+                '[class*="download"], [class*="app-bar"], [id*="download"]'
+              );
+              
+              ttPopups.forEach(popup => {
+                popup.style.display = 'none';
+                console.log('🎯 隐藏头条/抖音APP引导:', popup.className);
+              });
+            }
+            
+            // 微博特殊处理
+            if (hostname.includes('weibo.com')) {
+              const weiboPopups = document.querySelectorAll(
+                '.m-text-download, .m-download-app, .lite-iconfont-back, ' +
+                '[class*="download"], [class*="app-guide"]'
+              );
+              
+              weiboPopups.forEach(popup => {
+                popup.style.display = 'none';
+                console.log('🎯 隐藏微博APP引导:', popup.className);
+              });
+            }
+            
+            // 5. 强制启用滚动 - 最后的保险措施
+            html.style.overflow = 'auto !important';
+            body.style.overflow = 'auto !important';
+            html.style.position = 'static !important';
+            body.style.position = 'static !important';
+            
+            console.log('✅ 滚动功能检查修复完成');
+            
+            return true;
+          } catch (error) {
+            console.error('❌ 修复滚动功能时出错:', error);
+            return false;
+          }
+        };
+        
+        // 立即执行一次
+        checkAndFixScrolling();
+        
+        // 延迟执行，处理可能的异步弹窗
+        setTimeout(checkAndFixScrolling, 1000);
+        setTimeout(checkAndFixScrolling, 3000);
+        setTimeout(checkAndFixScrolling, 5000);
+        
+        // 监听页面变化，自动修复
+        if (typeof MutationObserver !== 'undefined') {
+          const observer = new MutationObserver(function(mutations) {
+            let shouldCheck = false;
+            
+            mutations.forEach(function(mutation) {
+              // 检查是否有样式或类的变化
+              if (mutation.type === 'attributes' && 
+                  (mutation.attributeName === 'style' || 
+                   mutation.attributeName === 'class')) {
+                shouldCheck = true;
+              }
+              
+              // 检查是否有新增的元素（可能是弹窗）
+              if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                mutation.addedNodes.forEach(function(node) {
+                  if (node.nodeType === 1) { // Element node
+                    const element = node;
+                    if (element.style && 
+                        (element.style.position === 'fixed' || 
+                         element.style.zIndex > 1000)) {
+                      shouldCheck = true;
+                    }
+                  }
+                });
+              }
+            });
+            
+            if (shouldCheck) {
+              setTimeout(checkAndFixScrolling, 500);
+            }
+          });
+          
+          observer.observe(document.body, {
+            attributes: true,
+            childList: true,
+            subtree: true,
+            attributeFilter: ['style', 'class']
+          });
+          
+          console.log('🔍 页面变化监听器已启动');
+        }
+        
+        console.log('✅ 移动端弹窗处理脚本初始化完成');
+      })();
+      ''';
+      
+      await controller.evaluateJavascript(source: jsCode);
+      getLogger().i('✅ 移动端弹窗处理脚本注入完成');
+      
+    } catch (e) {
+      getLogger().e('❌ 注入移动端弹窗处理脚本失败: $e');
     }
   }
 

@@ -13,6 +13,75 @@ class SimpleHtmlTemplate {
     <title>Markdown Content</title>
     <style id="github-styles"></style>
     <style>
+        /* 平滑加载遮罩样式 */
+        #smooth-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+            backdrop-filter: blur(8px);
+        }
+        
+        #smooth-loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        
+        /* 加载动画 */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(34, 150, 243, 0.1);
+            border-left: 3px solid #2196F3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 加载文本 */
+        .loading-text {
+            color: #2196F3;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        /* 暗色主题适配 */
+        @media (prefers-color-scheme: dark) {
+            #smooth-loading-overlay {
+                background-color: rgba(33, 33, 33, 0.95);
+            }
+            
+            .loading-text {
+                color: #64B5F6;
+            }
+            
+            .loading-spinner {
+                border: 3px solid rgba(100, 181, 246, 0.1);
+                border-left: 3px solid #64B5F6;
+            }
+        }
+
         /* 基础重置和主题适配 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -185,50 +254,17 @@ class SimpleHtmlTemplate {
                 font-size: 14px;
             }
         }
-        
-        /* 暗色主题适配 */
-        @media (prefers-color-scheme: dark) {
-            .markdown-body {
-                color: #e6edf3;
-            }
-            
-            .markdown-body blockquote {
-                color: #9198a1;
-                border-left-color: #3d444d;
-            }
-            
-            .markdown-body code {
-                background-color: rgba(110,118,129,0.4);
-            }
-            
-            .markdown-body pre {
-                background-color: #161b22;
-            }
-            
-            .markdown-body table th {
-                background-color: #21262d;
-            }
-            
-            .markdown-body table th,
-            .markdown-body table td {
-                border-color: #3d444d;
-            }
-            
-            .markdown-body hr {
-                background-color: #3d444d;
-            }
-            
-            .markdown-body a {
-                color: #4493f8;
-            }
-        }
-        
-        
-        
     </style>
 
 </head>
 <body>
+    <!-- 平滑加载遮罩 -->
+    <div id="smooth-loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在恢复阅读位置...</div>
+    </div>
+    
+    <!-- Markdown内容容器 -->
     <div id="content" class="markdown-body"></div>
     
     <!-- 基础Markdown解析器 - 使用本地资源，提供更可靠的加载 -->
@@ -318,6 +354,44 @@ class SimpleHtmlTemplate {
         window.renderMarkdown = renderMarkdown;
         
         console.log('✅ HTML模板初始化完成');
+    </script>
+    
+    <script>
+        // 平滑加载控制函数
+        window.SmoothLoading = {
+            // 显示加载遮罩
+            show: function(message) {
+                const overlay = document.getElementById('smooth-loading-overlay');
+                const text = overlay.querySelector('.loading-text');
+                if (message) {
+                    text.textContent = message;
+                }
+                overlay.classList.remove('hidden');
+                console.log('🎭 显示加载遮罩:', message || '正在加载...');
+            },
+            
+            // 隐藏加载遮罩
+            hide: function() {
+                const overlay = document.getElementById('smooth-loading-overlay');
+                overlay.classList.add('hidden');
+                console.log('🎭 隐藏加载遮罩');
+            },
+            
+            // 更新加载文本
+            updateText: function(message) {
+                const text = document.querySelector('.loading-text');
+                if (text) {
+                    text.textContent = message;
+                    console.log('🎭 更新加载文本:', message);
+                }
+            }
+        };
+        
+        // 页面初始化时显示加载遮罩
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM内容已加载，显示加载遮罩');
+            window.SmoothLoading.show('正在加载内容...');
+        });
     </script>
 </body>
 </html>''';

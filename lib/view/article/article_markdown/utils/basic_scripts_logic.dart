@@ -61,9 +61,6 @@ class BasicScriptsLogic {
       final script = await rootBundle.loadString('assets/js/range_annotation_engine.js');
       await controller.evaluateJavascript(source: script);
 
-      // 等待初始化完成
-      await Future.delayed(const Duration(milliseconds: 200));
-
       // 验证引擎是否可用
       final isAvailable = await isRangeEngineAvailable();
       if (isAvailable) {

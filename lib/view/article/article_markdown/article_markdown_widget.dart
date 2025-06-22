@@ -81,8 +81,6 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with SelectionMenuL
       body: Stack(
         children: [
           _buildOptimizedWebView(),
-          if (isLoading) _buildLoadingIndicator(),
-          if (isVisuallyRestoring) _buildRestoringIndicator(),
         ],
       ),
     );
@@ -207,12 +205,25 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with SelectionMenuL
         onWebViewCreated: onEnhancedWebViewCreated,
         onLoadStart: (controller, url) {
           getLogger().d('🚀 WebView开始加载: $url');
+          // 确保加载遮罩显示
+          controller.evaluateJavascript(source: '''
+            if (window.SmoothLoading) {
+              window.SmoothLoading.show('正在加载页面...');
+            }
+          ''').catchError((e) {
+            getLogger().d('⚠️ 加载开始时显示遮罩失败: $e');
+          });
         },
         onLoadStop: (controller, url) async {
-          getLogger().d('🎯 WebView加载完成: $url');
-          getLogger().d('🔥 onLoadStop被触发，开始初始化增强功能');
 
           try {
+            // 更新加载状态：正在初始化
+            // await controller.evaluateJavascript(source: '''
+            //   if (window.SmoothLoading) {
+            //     window.SmoothLoading.updateText('正在初始化页面...');
+            //   }
+            // ''').catchError((e) => getLogger().d('⚠️ 更新加载文本失败: $e'));
+
             // 确保DOM完全就绪
             await controller.evaluateJavascript(source: '''
               if (document.readyState !== 'complete') {
@@ -249,13 +260,25 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with SelectionMenuL
               document.documentElement.style.backgroundColor = 'transparent';
             ''');
             
+            // 更新加载状态：正在加载内容
+            // await controller.evaluateJavascript(source: '''
+            //   if (window.SmoothLoading) {
+            //     window.SmoothLoading.updateText('正在加载内容...');
+            //   }
+            // ''').catchError((e) => getLogger().d('⚠️ 更新加载文本失败: $e'));
+            
             // getLogger().d('🎯 准备调用onEnhancedWebViewLoadStop');
             // 调用增强功能初始化
             await onEnhancedWebViewLoadStop();
             // getLogger().d('✅ onEnhancedWebViewLoadStop执行完成');
           } catch (e) {
             getLogger().e('❌ WebView加载后初始化失败: $e');
-            // 即使初始化失败，也不阻止页面显示
+            // 即使初始化失败，也要隐藏加载遮罩
+            controller.evaluateJavascript(source: '''
+              if (window.SmoothLoading) {
+                window.SmoothLoading.hide();
+              }
+            ''').catchError((e) => getLogger().d('⚠️ 隐藏加载遮罩失败: $e'));
           }
         },
         onProgressChanged: (controller, progress) {
@@ -285,50 +308,5 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with SelectionMenuL
     );
   }
 
-  Widget _buildRestoringIndicator() {
-    return Container(
-      color: Colors.white.withOpacity(0.9),
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-            ),
-            SizedBox(height: 16),
-            Text(
-              '正在恢复阅读位置...',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildLoadingIndicator() {
-    return Container(
-      color: Colors.white.withOpacity(0.9),
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-            ),
-            SizedBox(height: 16),
-            Text(
-              '正在准备文章内容...',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '使用预热WebView提升性能',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

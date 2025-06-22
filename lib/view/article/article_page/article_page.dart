@@ -38,46 +38,58 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    // 使用Obx来监听文章加载状态
-    return Obx(() {
-      if (articleController.hasError) {
-        return Scaffold(body: _buildErrorView(context));
-      }
+    // 使用PopScope来监听返回事件，在返回前提前销毁WebView避免闪烁
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          getLogger().i('🔄 页面即将返回，开始预处理WebView销毁');
+          await _prepareForPageExit();
+        }
+      },
+      child: Obx(() {
+        if (articleController.hasError) {
+          return Scaffold(body: _buildErrorView(context));
+        }
 
-      // 在tabs初始化之前，始终显示加载视图
-      if (tabs.isEmpty) {
-        return Scaffold(body: _buildInitialLoadingView());
-      }
-      
-      // 主内容UI
-      return Scaffold(
-        body: Stack(
-          children: [
-            // 主要内容区域
-            _buildContentView(context),
-            
-            // 顶部操作栏
-            ArticleTopBar(
-              isVisible: _isBottomBarVisible,
-              topBarHeight: _topBarHeight,
-              tabController: tabController,
-              tabs: tabs,
-            ),
-            
-            // 底部操作栏
-            ArticleBottomBar(
-              articleId: widget.id,
-              isVisible: _isBottomBarVisible,
-              bottomBarHeight: _bottomBarHeight,
-              onBack: () => Navigator.of(context).pop(),
-              onGenerateSnapshot: generateSnapshot,
-              onDownloadSnapshot: downloadSnapshot,
-              onReGenerateSnapshot: () => (_webWidgetKey.currentState)?.createSnapshot(),
-            ),
-          ],
-        ),
-      );
-    });
+        // 在tabs初始化之前，始终显示加载视图
+        if (tabs.isEmpty) {
+          return Scaffold(body: _buildInitialLoadingView());
+        }
+        
+        // 主内容UI
+        return Scaffold(
+          body: Stack(
+            children: [
+              // 主要内容区域
+              _buildContentView(context),
+              
+              // 顶部操作栏
+              ArticleTopBar(
+                isVisible: _isBottomBarVisible,
+                topBarHeight: _topBarHeight,
+                tabController: tabController,
+                tabs: tabs,
+              ),
+              
+              // 底部操作栏
+              ArticleBottomBar(
+                articleId: widget.id,
+                isVisible: _isBottomBarVisible,
+                bottomBarHeight: _bottomBarHeight,
+                onBack: () async {
+                  await _prepareForPageExit();
+                  Navigator.of(context).pop();
+                },
+                onGenerateSnapshot: generateSnapshot,
+                onDownloadSnapshot: downloadSnapshot,
+                onReGenerateSnapshot: () => (_webWidgetKey.currentState)?.createSnapshot(),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
   }
 
   /// 构建主要内容视图
@@ -162,7 +174,10 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   final Map<String, Widget> _cachedTabWidgets = {}; // 缓存已创建的tab widgets
   bool _isTabWidgetsCached = false; // 标记是否已缓存
 
-   @override
+  // 添加页面销毁状态标识
+  bool _isPageDisposing = false;
+
+  @override
   void initState() {
     super.initState();
     articleController.articleId = widget.id;
@@ -298,10 +313,17 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   }
 
   void _updateTabWidgets(EdgeInsets padding) {
+    // 如果页面正在销毁，不再创建或更新WebView
+    if (_isPageDisposing) {
+      getLogger().i('⚠️ 页面正在销毁，跳过WebView更新');
+      return;
+    }
+    
     if (!articleController.hasArticle) {
       // 未加载文章时，只显示网页tab，但也需要缓存
       if (!_cachedTabWidgets.containsKey('网页')) {
         _cachedTabWidgets['网页'] = _KeepAliveWrapper(
+          shouldKeepAlive: () => !_isPageDisposing,
           child: Obx(() => ArticleWebWidget(
             key: _webWidgetKey,
             onSnapshotCreated: _onSnapshotCreated,
@@ -350,6 +372,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
       // 如果数量不一致，补充空容器
       while (tabWidget.length < tabs.length) {
         Widget placeholderWidget = _KeepAliveWrapper(
+          shouldKeepAlive: () => !_isPageDisposing,
           child: Container(
             child: const Center(
               child: Text('内容加载中...'),
@@ -368,6 +391,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     switch (tabName) {
       case '图文':
         return _KeepAliveWrapper(
+          shouldKeepAlive: () => !_isPageDisposing,
           child: Obx(() => ArticleMarkdownWidget(
             markdownContent: _markdownContent.value,
             article: articleController.currentArticle,
@@ -377,6 +401,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         );
       case '网页':
         return _KeepAliveWrapper(
+          shouldKeepAlive: () => !_isPageDisposing,
           child: Obx(() => ArticleWebWidget(
             key: _webWidgetKey,
             onSnapshotCreated: _onSnapshotCreated,
@@ -391,6 +416,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         );
       case '快照':
         return _KeepAliveWrapper(
+          shouldKeepAlive: () => !_isPageDisposing,
           child: ArticleMhtmlWidget(
             mhtmlPath: article.mhtmlPath,
             title: article.title,
@@ -400,6 +426,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         );
       default:
         return _KeepAliveWrapper(
+          shouldKeepAlive: () => !_isPageDisposing,
           child: Container(
             child: const Center(
               child: Text('未知页面类型'),
@@ -687,18 +714,73 @@ mixin ArticlePageBLoC on State<ArticlePage> {
 
   @override
   void dispose() {
+    getLogger().i('🔄 ArticlePage开始dispose');
+    
+    // 如果还没有执行过预处理，现在执行
+    if (!_isPageDisposing) {
+      getLogger().i('🔄 在dispose中执行WebView清理');
+      _isPageDisposing = true;
+      
+      // 同步清理WebView资源，避免异步导致的问题
+      _disposeAllWebViewsSync();
+    }
+    
     // 退出页面时恢复系统默认UI，显示状态栏
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     // 清理tab widgets缓存
     _clearTabWidgetsCache();
     
+    // 销毁TabController
     tabController.dispose();
+    
     // 清理文章控制器
     articleController.clearCurrentArticle();
-    // 注意：由于我们使用了Get.put，控制器会在其他地方被自动管理
-    // 如果需要立即销毁，可以使用 Get.delete<ArticleController>();
+    
+    getLogger().i('✅ ArticlePage dispose完成');
     super.dispose();
+  }
+
+  /// 同步方式销毁所有WebView组件（用于dispose中）
+  void _disposeAllWebViewsSync() {
+    try {
+      getLogger().i('🗑️ 同步销毁所有WebView组件');
+      
+      // 销毁网页WebView
+      final webWidgetState = _webWidgetKey.currentState;
+      if (webWidgetState != null) {
+        _disposeWebWidgetSync(webWidgetState);
+      }
+      
+      // 清理其他WebView组件的状态
+      _cachedTabWidgets.clear();
+      
+      getLogger().i('✅ 同步销毁WebView组件完成');
+    } catch (e) {
+      getLogger().e('❌ 同步销毁WebView组件时出错: $e');
+    }
+  }
+
+  /// 同步销毁网页WebView组件
+  void _disposeWebWidgetSync(dynamic webWidgetState) {
+    try {
+      getLogger().i('🌐 同步销毁网页WebView组件');
+      
+      if (webWidgetState.mounted) {
+        // 尝试获取webViewController并同步清理
+        final controller = (webWidgetState as dynamic).webViewController;
+        if (controller != null) {
+          // 同步调用清理方法
+          controller.stopLoading().catchError((e) {
+            getLogger().d('WebView stopLoading出错: $e');
+          });
+          
+          getLogger().i('✅ 网页WebView控制器同步清理完成');
+        }
+      }
+    } catch (e) {
+      getLogger().e('❌ 同步销毁网页WebView失败: $e');
+    }
   }
 
   /// 获取当前文章数据（便捷方法）
@@ -713,14 +795,125 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     _isTabWidgetsCached = false;
     getLogger().i('🗑️ 清理tab widgets缓存');
   }
+
+  /// 页面退出预处理，提前销毁WebView避免闪烁
+  Future<void> _prepareForPageExit() async {
+    if (_isPageDisposing) return;
+    
+    _isPageDisposing = true;
+    getLogger().i('🔄 开始页面退出预处理，准备销毁WebView资源');
+    
+    try {
+      // 1. 立即隐藏所有UI组件，避免视觉闪烁
+      if (mounted) {
+        setState(() {
+          // hideMain = true;
+          _isBottomBarVisible = false;
+        });
+      }
+      
+      // 2. 提前销毁所有缓存的WebView组件
+      await _disposeAllWebViews();
+      
+      // 3. 清理缓存
+      _clearTabWidgetsCache();
+      
+      // 4. 短暂延迟确保清理完成
+      await Future.delayed(const Duration(milliseconds: 50));
+      
+      getLogger().i('✅ 页面退出预处理完成');
+    } catch (e) {
+      getLogger().e('❌ 页面退出预处理失败: $e');
+    }
+  }
+
+  /// 销毁所有WebView组件
+  Future<void> _disposeAllWebViews() async {
+    try {
+      getLogger().i('🗑️ 开始销毁所有WebView组件');
+      
+      // 销毁网页WebView
+      final webWidgetState = _webWidgetKey.currentState;
+      if (webWidgetState != null) {
+        await _disposeWebWidget(webWidgetState);
+      }
+      
+      // 销毁图文WebView (ArticleMarkdownWidget)
+      await _disposeMarkdownWidgets();
+      
+      // 销毁快照WebView (ArticleMhtmlWidget)  
+      await _disposeMhtmlWidgets();
+      
+      getLogger().i('✅ 所有WebView组件销毁完成');
+    } catch (e) {
+      getLogger().e('❌ 销毁WebView组件时出错: $e');
+    }
+  }
+
+  /// 销毁网页WebView组件
+  Future<void> _disposeWebWidget(dynamic webWidgetState) async {
+    try {
+      getLogger().i('🌐 销毁网页WebView组件');
+      
+      // 通过反射调用dispose方法（如果存在）
+      if (webWidgetState.mounted) {
+        // 尝试获取webViewController并销毁
+        final controller = (webWidgetState as dynamic).webViewController;
+        if (controller != null) {
+          await controller.stopLoading();
+          await controller.clearCache();
+          await controller.clearHistory();
+          getLogger().i('✅ 网页WebView控制器已清理');
+        }
+      }
+    } catch (e) {
+      getLogger().e('❌ 销毁网页WebView失败: $e');
+    }
+  }
+
+  /// 销毁图文Markdown中的WebView组件
+  Future<void> _disposeMarkdownWidgets() async {
+    try {
+      // 遍历缓存的widget，找到ArticleMarkdownWidget并销毁其WebView
+      for (final entry in _cachedTabWidgets.entries) {
+        if (entry.key == '图文') {
+          getLogger().i('📄 找到图文WebView，准备销毁');
+          // 这里可以添加特定的销毁逻辑
+          // 由于ArticleMarkdownWidget有自己的dispose逻辑，我们主要是提前触发
+          break;
+        }
+      }
+    } catch (e) {
+      getLogger().e('❌ 销毁图文WebView失败: $e');
+    }
+  }
+
+  /// 销毁快照MHTML中的WebView组件
+  Future<void> _disposeMhtmlWidgets() async {
+    try {
+      // 遍历缓存的widget，找到ArticleMhtmlWidget并销毁其WebView
+      for (final entry in _cachedTabWidgets.entries) {
+        if (entry.key == '快照') {
+          getLogger().i('📸 找到快照WebView，准备销毁');
+          // 这里可以添加特定的销毁逻辑
+          // 由于ArticleMhtmlWidget有自己的dispose逻辑，我们主要是提前触发
+          break;
+        }
+      }
+    } catch (e) {
+      getLogger().e('❌ 销毁快照WebView失败: $e');
+    }
+  }
 }
 
 /// 用于保持widget状态的包装器
 class _KeepAliveWrapper extends StatefulWidget {
   final Widget child;
+  final bool Function()? shouldKeepAlive; // 添加条件判断函数
 
   const _KeepAliveWrapper({
     required this.child,
+    this.shouldKeepAlive,
   });
 
   @override
@@ -729,12 +922,37 @@ class _KeepAliveWrapper extends StatefulWidget {
 
 class _KeepAliveWrapperState extends State<_KeepAliveWrapper>
     with AutomaticKeepAliveClientMixin {
+  
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive {
+    // 如果提供了条件判断函数，使用它来决定是否保持存活
+    if (widget.shouldKeepAlive != null) {
+      return widget.shouldKeepAlive!();
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context); // 必须调用，以支持AutomaticKeepAliveClientMixin
     return widget.child;
+  }
+  
+  @override
+  void didUpdateWidget(_KeepAliveWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // 如果shouldKeepAlive函数改变了，更新KeepAlive状态
+    if (widget.shouldKeepAlive != oldWidget.shouldKeepAlive) {
+      // 强制更新KeepAlive状态
+      updateKeepAlive();
+    }
+  }
+  
+  @override
+  void dispose() {
+    // 在销毁时记录日志
+    getLogger().d('🗑️ _KeepAliveWrapper销毁');
+    super.dispose();
   }
 }
