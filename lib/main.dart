@@ -8,9 +8,6 @@ import '/services/share_service.dart';
 import '/db/database_service.dart';
 import '/basics/translations/app_translations.dart';
 import '/controller/language_controller.dart';
-import 'view/demo/markdown_webview_pool_manager.dart' as MarkdownPool;
-import '/view/article/components/web_webview_pool_manager.dart';
-import '/basics/logger.dart';
 
 import 'basics/app_theme.dart';
 import 'basics/apps_state.dart';
@@ -51,34 +48,6 @@ void main() async {
 }
 
 
-
-/// 初始化所有WebView优化器（异步，不阻塞应用启动）
-void _initWebViewOptimizers() {
-  getLogger().i('🔥 开始应用启动时预热所有WebView优化器...');
-  
-  // 并行初始化两个优化器
-  final futures = [
-    // Markdown页面优化器
-    MarkdownPool.WebViewPoolManager().initialize().then((_) {
-      getLogger().i('✅ Markdown WebView优化器预热完成');
-    }).catchError((e) {
-      getLogger().e('❌ Markdown WebView优化器预热失败: $e');
-    }),
-    
-    // Web页面优化器
-    WebWebViewPoolManager().initialize().then((_) {
-      getLogger().i('✅ Web页面优化器预热完成');
-    }).catchError((e) {
-      getLogger().e('❌ Web页面优化器预热失败: $e');
-    }),
-  ];
-  
-  Future.wait(futures).then((_) {
-    getLogger().i('🎉 所有WebView优化器预热完成，页面加载性能将显著提升');
-  }).catchError((e) {
-    getLogger().e('❌ WebView优化器预热过程中出错: $e');
-  });
-}
 
 
 

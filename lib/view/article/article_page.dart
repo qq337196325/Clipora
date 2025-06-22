@@ -14,7 +14,7 @@ import '/view/article/components/article_top_bar.dart';
 
 import 'article_markdown/article_markdown_widget.dart';
 import 'article_mhtml_widget.dart';
-import 'article_web_widget.dart';
+import 'article_web/article_web_widget.dart';
 import 'controller/article_controller.dart';
 
 

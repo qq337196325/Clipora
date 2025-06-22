@@ -6,9 +6,8 @@
 
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
-import '../../../basics/logger.dart';
-import '../components/web_webview_pool_manager.dart';
-import 'auto_expander.dart';
+import '../../../../basics/logger.dart';
+import '../../utils/auto_expander.dart';
 
 /// 页面加载完成后的最终优化
 Future<void> finalizeWebPageOptimization(WebUri? url,InAppWebViewController? webViewController) async {
@@ -146,10 +145,6 @@ Future<void> finalizeWebPageOptimization(WebUri? url,InAppWebViewController? web
       AutoExpander.apply(webViewController!, url);
     }
 
-    // 输出性能统计
-    final stats = WebWebViewPoolManager().getPerformanceStats();
-    getLogger().i('📊 Web页面性能统计: $stats');
-
     getLogger().i('✅ 页面最终优化完成');
   } catch (e) {
     getLogger().e('❌ 页面最终优化失败: $e');
@@ -157,25 +152,3 @@ Future<void> finalizeWebPageOptimization(WebUri? url,InAppWebViewController? web
 }
 
 
-/// 获取传统CORS脚本（备用）
-String getTraditionalCorsScript() {
-  return '''
-    (function() {
-      console.log('🔧 注入传统CORS处理脚本...');
-      
-      const originalFetch = window.fetch;
-      window.fetch = function(url, options = {}) {
-        if (typeof url === 'string' && url.includes('api.juejin.cn')) {
-          options.mode = 'no-cors';
-          options.credentials = 'include';
-        }
-        return originalFetch.call(this, url, options).catch(error => {
-          console.warn('⚠️ Fetch请求失败:', error);
-          return Promise.resolve(new Response('{}', { status: 200 }));
-        });
-      };
-      
-      console.log('✅ 传统CORS处理脚本注入完成');
-    })();
-  ''';
-}
