@@ -21,9 +21,6 @@ void main() async {
   // 初始化GetStorage，确保后续服务可用
   await GetStorage.init();
 
-
-
-
   // 注册分享服务
   Get.put(ShareService(), permanent: true);
 

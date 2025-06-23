@@ -32,7 +32,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      height: MediaQuery.of(context).size.height * 0.85,
+      height: MediaQuery.of(context).size.height * 0.65,
       child: Column(
         children: [
           // 优化的顶部区域
@@ -53,15 +53,15 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                   const SizedBox(height: 12),
                   _buildPrivacySection(),
                   
-                  const SizedBox(height: 24),
-                  
-                  // 应用功能
-                  _buildSectionHeader('应用功能', Icons.apps),
-                  const SizedBox(height: 12),
-                  _buildFunctionSection(),
-                  
-                  const SizedBox(height: 24),
-                  
+                  const SizedBox(height: 54),
+
+                  // // 应用功能
+                  // _buildSectionHeader('应用功能', Icons.apps),
+                  // const SizedBox(height: 12),
+                  // _buildFunctionSection(),
+                  //
+                  // const SizedBox(height: 24),
+                  //
                   // 退出登录按钮
                   _buildLogoutButton(),
                   
@@ -229,17 +229,17 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
             onTap: () => _handleAboutUs(),
             isExternalLink: false,
           ),
-          _buildDivider(),
-          _buildModernSettingItem(
-            icon: Icons.bug_report,
-            title: '应用商店测试',
-            subtitle: '测试应用商店跳转功能',
-            iconColor: const Color(0xFFFF9500),
-            iconBgColor: const Color(0xFFFF9500).withOpacity(0.1),
-            onTap: () => _handleAppStoreTest(),
-            isLast: true,
-            isExternalLink: false,
-          ),
+          // _buildDivider(),
+          // _buildModernSettingItem(
+          //   icon: Icons.bug_report,
+          //   title: '应用商店测试',
+          //   subtitle: '测试应用商店跳转功能',
+          //   iconColor: const Color(0xFFFF9500),
+          //   iconBgColor: const Color(0xFFFF9500).withOpacity(0.1),
+          //   onTap: () => _handleAppStoreTest(),
+          //   isLast: true,
+          //   isExternalLink: false,
+          // ),
         ],
       ),
     );

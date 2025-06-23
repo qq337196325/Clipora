@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:bot_toast/bot_toast.dart';
 
-import '../view/splash/splash_page.dart';
+import '../view/home/search/search_page.dart';
 import '../view/login/login_page.dart';
 import '/route/route_name.dart';
 import '../view/article/article_page/article_page.dart';
@@ -9,7 +9,7 @@ import '/view/demo/article_web.dart';
 import '../view/home/index_page.dart';
 import '../view/demo/screenshot_gallery_page.dart';
 import '../view/transfer_route.dart';
-import '../view/search/search_page.dart';
+
 
 getQueryParam(String param, GoRouterState state){
   String value = "";
@@ -20,8 +20,7 @@ getQueryParam(String param, GoRouterState state){
 }
 
 List<RouteInfo> routeInfos = [
-  RouteInfo(path: "/${RouteName.splash}", name: RouteName.splash, builder: (context, state) => SplashPage()),
-  
+
   RouteInfo(path: "/${RouteName.transferRoute}", name: RouteName.transferRoute, builder: (context, state) => TransferRoute()),
 
   RouteInfo(path: "/${RouteName.index}", name: RouteName.index, builder: (context, state) => IndexPage()),

@@ -463,43 +463,43 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.note_add_rounded,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '添加笔记',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      Text(
-                        '记录思考与感悟',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            // title: Row(
+            //   children: [
+            //     Container(
+            //       padding: const EdgeInsets.all(8),
+            //       decoration: BoxDecoration(
+            //         color: Theme.of(context).colorScheme.primary,
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //       child: Icon(
+            //         Icons.note_add_rounded,
+            //         color: Theme.of(context).colorScheme.onPrimary,
+            //         size: 20,
+            //       ),
+            //     ),
+            //     const SizedBox(width: 12),
+            //     Expanded(
+            //       child: Column(
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         children: [
+            //           Text(
+            //             '添加笔记',
+            //             style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            //               fontWeight: FontWeight.w600,
+            //               color: Theme.of(context).colorScheme.onSurface,
+            //             ),
+            //           ),
+            //           Text(
+            //             '记录思考与感悟',
+            //             style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            //               color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ],
+            // ),
             content: ConstrainedBox(
               constraints: BoxConstraints(
                 maxHeight: dialogMaxHeight,
@@ -511,6 +511,7 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(height: 10),
                     _buildSelectedTextCard(),
                     const SizedBox(height: 16),
                     _buildNoteInputSection(),

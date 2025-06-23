@@ -11,7 +11,7 @@ import '../../../../db/annotation/enhanced_annotation_service.dart';
 import 'basic_scripts_logic.dart';
 import 'simple_markdown_renderer.dart';
 import 'selection_menu_logic.dart';
-import 'highlight_menu_logic.dart';
+
 
 /// 增强版ArticleMarkdownWidget的业务逻辑核心
 /// 
@@ -491,7 +491,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
 
       // 如果有失败的标注，尝试逐个恢复
       if (stats['failCount']! > 0) {
-        await _restoreFailedAnnotationsOneByOne(annotations);
+        // await _restoreFailedAnnotationsOneByOne(annotations);
       }
 
     } catch (e) {

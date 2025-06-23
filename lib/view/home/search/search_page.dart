@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../db/article/article_service.dart';
-import '../../db/article/article_db.dart';
-import '../../basics/logger.dart';
-import '../../route/route_name.dart';
+import '../../../basics/logger.dart';
+import '../../../db/article/article_db.dart';
+import '../../../db/article/article_service.dart';
+import '../../../route/route_name.dart';
 import 'components/highlight_text.dart';
 
 class SearchPage extends StatefulWidget {
