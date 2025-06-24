@@ -14,7 +14,6 @@ class ArticleBottomBar extends StatefulWidget {
   final double bottomBarHeight;
   final VoidCallback onBack;
   final VoidCallback onGenerateSnapshot;
-  final VoidCallback onDownloadSnapshot;
   final VoidCallback onReGenerateSnapshot;
   final int articleId;
 
@@ -24,7 +23,6 @@ class ArticleBottomBar extends StatefulWidget {
     required this.bottomBarHeight,
     required this.onBack,
     required this.onGenerateSnapshot,
-    required this.onDownloadSnapshot,
     required this.onReGenerateSnapshot,
     required this.articleId,
   });

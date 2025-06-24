@@ -88,7 +88,7 @@ class SnapshotService extends GetxService {
         // 一次只处理一个，避免过多资源消耗
         await _generateAndUploadSnapshot(article);
         // 添加间隔，避免资源冲突
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 3));
       }
     } catch (e) {
       getLogger().e('❌ 执行快照任务时出错: $e');

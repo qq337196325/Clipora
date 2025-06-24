@@ -46,7 +46,7 @@ class GenerateMhtmlUtils {
     // 检查是否有文章ID
     try {
       // 等待3秒，确保网页完全加载稳定
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 3));
 
       // 再次检查WebView是否还存在（防止用户已经离开页面）
       if (webViewController == null || !mounted) {

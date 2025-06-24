@@ -1,9 +1,9 @@
 import 'package:bot_toast/bot_toast.dart';
-import 'package:clipora/view/article/utils/download_snapshot_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+
 import '/api/user_api.dart';
 import '/basics/logger.dart';
 import '/basics/upload.dart';
@@ -11,7 +11,6 @@ import '/db/article/article_service.dart';
 import 'components/article_bottom_bar.dart';
 import 'components/article_loading_view.dart';
 import 'components/article_top_bar.dart';
-
 import '../article_markdown/article_markdown_widget.dart';
 import '../article_mhtml_widget.dart';
 import '../article_web/article_web_widget.dart';
@@ -82,7 +81,6 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
                   Navigator.of(context).pop();
                 },
                 onGenerateSnapshot: generateSnapshot,
-                onDownloadSnapshot: downloadSnapshot,
                 onReGenerateSnapshot: () => (_webWidgetKey.currentState)?.createSnapshot(),
               ),
             ],
@@ -701,15 +699,6 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     final article = articleController.currentArticle!;
     // 如果有图文tab，网页tab索引为1，否则为0
     return article.isGenerateMarkdown ? 1 : 0;
-  }
-
-  // 下载快照到用户可访问的目录
-  Future<void> downloadSnapshot() async {
-    if (snapshotPath.isEmpty) {
-      BotToast.showText(text: '没有可下载的快照');
-      return;
-    }
-    await DownloadSnapshotUtils.downloadSnapshot(context, snapshotPath);
   }
 
   @override

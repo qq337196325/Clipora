@@ -10,7 +10,6 @@ import '../../../basics/logger.dart';
 import '../controller/article_controller.dart';
 import 'browser_simulation/core/browser_simulation_manager.dart';
 import 'browser_simulation/utils/js_injector.dart';
-import 'utils/scroll_fix_utils.dart';
 
 
 class ArticleWebWidget extends StatefulWidget {
@@ -57,59 +56,6 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
     );
   }
 
-  // 公共方法：供外部调用修复滚动问题
-  Future<void> forceFixScrolling() async {
-    if (webViewController == null) {
-      getLogger().w('⚠️ WebView控制器不可用，无法修复滚动');
-      return;
-    }
-    
-    try {
-      getLogger().i('🔧 手动修复滚动功能...');
-      
-      // 先检测滚动问题
-      final detectionResult = await ScrollFixUtils.detectScrollIssues(webViewController!);
-      
-      if (detectionResult != null) {
-        final scrollTest = detectionResult['scrollTest'] as Map<String, dynamic>?;
-        final canScroll = scrollTest?['canScroll'] as bool? ?? false;
-        
-        if (!canScroll) {
-          getLogger().w('🚨 检测到滚动问题，开始修复...');
-          
-          // 应用综合修复
-          final success = await ScrollFixUtils.applyComprehensiveFix(webViewController!);
-          
-          if (success) {
-            getLogger().i('✅ 滚动问题修复成功');
-          } else {
-            getLogger().w('⚠️ 滚动修复可能未完全成功，尝试基础修复');
-            // 如果综合修复失败，尝试基础修复
-            await _injectMobilePopupHandler(webViewController!);
-          }
-        } else {
-          getLogger().i('✅ 滚动功能正常，无需修复');
-        }
-      } else {
-        // 如果检测失败，直接尝试修复
-        getLogger().w('⚠️ 滚动检测失败，直接尝试修复');
-        await _injectMobilePopupHandler(webViewController!);
-      }
-      
-    } catch (e) {
-      getLogger().e('❌ 手动修复滚动失败: $e');
-    }
-  }
-
-  // 公共方法：检测滚动问题（用于调试）
-  Future<Map<String, dynamic>?> detectScrollIssues() async {
-    if (webViewController == null) {
-      getLogger().w('⚠️ WebView控制器不可用，无法检测滚动问题');
-      return null;
-    }
-    
-    return await ScrollFixUtils.detectScrollIssues(webViewController!);
-  }
 
   @override
   Widget build(BuildContext context) {
