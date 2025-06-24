@@ -26,8 +26,10 @@ class RouteName {
   static String articlePage2 = "article_page2";
   static String search = "search";
   static String login = "login";
+  static String sharePage = "share_page";
   static String phoneLogin = "phone_login";
   static String phoneVerify = "phone_verify";
+  static String articleList = "article_list";
 
 
 }

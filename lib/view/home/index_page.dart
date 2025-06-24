@@ -4,7 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
-import 'group_widget.dart';
+import 'group/group_widget.dart';
 import 'index_widget.dart';
 import 'my_page/my_page.dart';
 import '../../route/route_name.dart';

@@ -3,12 +3,14 @@ import 'package:bot_toast/bot_toast.dart';
 
 import '../view/home/search/search_page.dart';
 import '../view/login/login_page.dart';
+import '../view/share/share_page.dart';
 import '/route/route_name.dart';
 import '../view/article/article_page/article_page.dart';
 import '/view/demo/article_web.dart';
 import '../view/home/index_page.dart';
 import '../view/demo/screenshot_gallery_page.dart';
 import '../view/transfer_route.dart';
+import '../view/article_list/article_list_page.dart';
 
 
 getQueryParam(String param, GoRouterState state){
@@ -20,6 +22,8 @@ getQueryParam(String param, GoRouterState state){
 }
 
 List<RouteInfo> routeInfos = [
+
+  RouteInfo(path: "/${RouteName.sharePage}", name: RouteName.sharePage, builder: (context, state) => SharePage()),
 
   RouteInfo(path: "/${RouteName.transferRoute}", name: RouteName.transferRoute, builder: (context, state) => TransferRoute()),
 
@@ -39,6 +43,23 @@ List<RouteInfo> routeInfos = [
   }),
 
   RouteInfo(path: "/${RouteName.articlePage2}", name: RouteName.articlePage2, builder: (context, state) => ArticlePage2()), 
+
+  // 文章列表页路由
+  RouteInfo(path: "/${RouteName.articleList}", name: RouteName.articleList, builder: (context, state) {
+    final typeStr = getQueryParam("type", state);
+    final title = getQueryParam("title", state);
+    final categoryIdStr = getQueryParam("categoryId", state);
+    final categoryName = getQueryParam("categoryName", state);
+    
+    final categoryId = categoryIdStr.isNotEmpty ? int.tryParse(categoryIdStr) : null;
+    
+    return ArticleListPage(
+      type: typeStr.isNotEmpty ? typeStr : 'all',
+      title: title.isNotEmpty ? title : '文章列表',
+      categoryId: categoryId,
+      categoryName: categoryName.isNotEmpty ? categoryName : null,
+    );
+  }),
 
 ];
 

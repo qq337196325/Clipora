@@ -221,6 +221,20 @@ class CategoryService extends GetxService {
     return await category.articles.count();
   }
 
+  /// 批量获取多个分类的文章数量
+  Future<Map<int, int>> getBatchArticleCountsByCategories(List<int> categoryIds) async {
+    await _ensureDatabaseInitialized();
+
+    final Map<int, int> result = {};
+    
+    for (final categoryId in categoryIds) {
+      final count = await getArticleCountByCategory(categoryId);
+      result[categoryId] = count;
+    }
+    
+    return result;
+  }
+
   /// 获取分类统计信息
   Future<CategoryStats> getCategoryStats(int categoryId) async {
     final category = await getCategoryById(categoryId);

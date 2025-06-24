@@ -27,7 +27,7 @@ dependencies:
   screenshot: ^3.0.0                               # 将widget内容保存为图片
   path_provider: ^2.1.5                            # 获取文件路径
   permission_handler: ^12.0.0+1                    # 权限处理
-  image: ^4.5.4                                    # 图片处理和拼接
+
 #  receive_sharing_intent: ^1.8.1                   # 接收分享内容
   receive_sharing_intent:
     git:
@@ -36,12 +36,15 @@ dependencies:
   fluwx: ^5.5.5                                    # 微信集成库
   url_launcher: ^6.3.1                             # 打开外部链接
   device_info_plus: 11.3.0                        # 获取设备信息
+  image: ^4.3.0                                    # 图片处理和拼接
+  lottie: ^3.1.0                                   # 动画效果库
 
   animated_segmented_tab_control: ^2.0.0           # 切换tab
   markdown_widget: ^2.3.2+8
   flutter_markdown_selectionarea: ^0.6.17+1        # 支持 SelectionArea 的 MarkdownWidget
   page_flip_builder: ^0.1.4
   modal_bottom_sheet: ^3.0.0
+  infinite_scroll_pagination: ^5.1.0               # 无限翻页
   # app_links: ^6.3.2                              # 处理URL Scheme和Universal Links
   # device_info_plus: ^9.1.2                       # 设备信息
   # isar: ^3.1.0+1                                 # NoSQL本地数据库

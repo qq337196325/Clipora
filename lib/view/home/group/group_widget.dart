@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../db/category/category_db.dart';
-import '../../db/category/category_service.dart';
+import '../../../route/route_name.dart';
+import '../../../db/category/category_db.dart';
+import '../../../db/category/category_service.dart';
 import 'components/add_category_dialog.dart';
 import 'components/group_loading_widget.dart';
 import 'components/group_empty_widget.dart';
@@ -32,18 +35,38 @@ class _GroupPageState extends State<GroupPage>
           gradient: GroupConstants.backgroundGradient,
         ),
         child: SafeArea(
-          bottom :false,
+          bottom: false,
           child: Column(
             children: [
-              _buildCustomAppBar(),
+              // _buildCustomAppBar(),
               Expanded(
-                child: Padding(
-                  padding: GroupConstants.pagePadding,
-                  child: isLoading
-                      ? const GroupLoadingWidget()
-                      : _buildCategoriesCard(),
+                child: RefreshIndicator(
+                  onRefresh: _handleRefresh,
+                  color: const Color(0xFF007AFF),
+                  backgroundColor: Colors.white,
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: _buildCustomAppBar(),
+                      ),
+                      SliverFillRemaining(
+                        child: Padding(
+                          padding: GroupConstants.pagePadding,
+                          child: isLoading
+                              ? const GroupLoadingWidget()
+                              : _buildCategoriesCard(),
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: _buildCustomAppBar(),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              )
             ],
           ),
         ),
@@ -114,6 +137,7 @@ class _GroupPageState extends State<GroupPage>
 
   Widget _buildCategoriesCard() {
     return Container(
+      margin: EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(GroupConstants.cardRadius),
@@ -132,6 +156,27 @@ class _GroupPageState extends State<GroupPage>
       ),
     );
   }
+
+  /// 处理下拉刷新
+  Future<void> _handleRefresh() async {
+    try {
+      // 清除所有缓存
+      _refreshCategoryCount();
+      
+      // 重新加载分类数据
+      await _loadCategories(forceRefresh: true);
+      
+      // 显示刷新成功提示
+      if (mounted) {
+        GroupUtils.showSuccessMessage('刷新成功');
+      }
+    } catch (e) {
+      // 显示刷新失败提示
+      if (mounted) {
+        GroupUtils.showErrorMessage('刷新失败: $e');
+      }
+    }
+  }
 }
 
 mixin GroupPageBLoC on State<GroupPage> {
@@ -145,18 +190,45 @@ mixin GroupPageBLoC on State<GroupPage> {
   DateTime? _lastLoadTime;
   static const Duration _cacheValidDuration = Duration(minutes: 5); // 缓存有效期5分钟
 
+  // 分类文章数量缓存
+  final Map<int, int> _categoryCountCache = {};
+  DateTime? _countCacheTime;
+  static const Duration _countCacheValidDuration = Duration(seconds: 30); // 计数缓存30秒
+
+  // 定时刷新相关
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     super.initState();
     _loadCategories();
+    _startRefreshTimer();
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     for (var controller in _animationControllers.values) {
       controller.dispose();
     }
     super.dispose();
+  }
+
+  /// 启动定时刷新
+  void _startRefreshTimer() {
+    _refreshTimer = Timer.periodic(_countCacheValidDuration, (timer) {
+      if (mounted) {
+        _refreshCategoryCount();
+      }
+    });
+  }
+
+  /// 刷新分类文章数量缓存
+  void _refreshCategoryCount() {
+    setState(() {
+      _categoryCountCache.clear();
+      _countCacheTime = null;
+    });
   }
 
   /// 显示添加顶级分类对话框
@@ -429,7 +501,7 @@ mixin GroupPageBLoC on State<GroupPage> {
     setState(() {
       _expandedState[categoryId] = !(_expandedState[categoryId] ?? false);
     });
-    
+
     // 创建动画控制器
     if (_animationControllers[categoryId] == null) {
       _animationControllers[categoryId] = AnimationController(
@@ -437,7 +509,7 @@ mixin GroupPageBLoC on State<GroupPage> {
         vsync: this as TickerProvider,
       );
     }
-    
+
     final controller = _animationControllers[categoryId]!;
     if (_expandedState[categoryId] ?? false) {
       controller.forward();
@@ -496,13 +568,78 @@ mixin GroupPageBLoC on State<GroupPage> {
   }
 
   void _handleCategoryTap(CategoryDb category) {
-    // TODO: Navigate to category detail page
-    // context.push('/category/${category.id}');
+    // 导航到分类文章列表页
+    context.push('/${RouteName.articleList}?type=category&title=${Uri.encodeComponent(category.name)}&categoryId=${category.id}&categoryName=${Uri.encodeComponent(category.name)}');
   }
 
   Future<int> _getCategoryItemCount(int categoryId) async {
-    // TODO: Implement actual count from database
-    return 0;
+    // 检查缓存是否有效
+    if (_categoryCountCache.containsKey(categoryId) && _isCacheValid()) {
+      return _categoryCountCache[categoryId]!;
+    }
+
+    try {
+      // 获取分类信息，判断是否有子分类
+      final hasChildren = (_categoriesByParentId[categoryId] ?? []).isNotEmpty;
+      
+      int totalCount;
+      if (hasChildren) {
+        // 如果有子分类，计算包含所有子分类的文章总数
+        totalCount = await _calculateTotalArticleCount(categoryId);
+      } else {
+        // 如果没有子分类，只获取直接文章数量
+        totalCount = await _categoryService.getArticleCountByCategory(categoryId);
+      }
+      
+      // 更新缓存
+      _categoryCountCache[categoryId] = totalCount;
+      _countCacheTime = DateTime.now();
+      
+      return totalCount;
+    } catch (e) {
+      // 查询失败时返回缓存值或0
+      return _categoryCountCache[categoryId] ?? 0;
+    }
+  }
+
+  /// 计算分类及其所有子分类的文章总数
+  Future<int> _calculateTotalArticleCount(int categoryId) async {
+    // 获取该分类及其所有子分类的ID列表
+    final allCategoryIds = _getAllChildCategoryIds(categoryId);
+    allCategoryIds.insert(0, categoryId); // 包含自己
+    
+    // 批量获取所有分类的直接文章数量
+    final countMap = await _categoryService.getBatchArticleCountsByCategories(allCategoryIds);
+    
+    // 计算总数
+    int totalCount = 0;
+    for (final id in allCategoryIds) {
+      totalCount += countMap[id] ?? 0;
+    }
+    
+    return totalCount;
+  }
+
+  /// 获取分类的所有子分类ID（包括嵌套子分类）
+  List<int> _getAllChildCategoryIds(int categoryId) {
+    final List<int> allChildIds = [];
+    
+    void collectChildren(int parentId) {
+      final children = _categoriesByParentId[parentId] ?? [];
+      for (final child in children) {
+        allChildIds.add(child.id);
+        collectChildren(child.id); // 递归收集子分类
+      }
+    }
+    
+    collectChildren(categoryId);
+    return allChildIds;
+  }
+
+  /// 检查计数缓存是否有效
+  bool _isCacheValid() {
+    if (_countCacheTime == null) return false;
+    return DateTime.now().difference(_countCacheTime!) < _countCacheValidDuration;
   }
 
   void _showMoreActions(BuildContext context, CategoryDb category) {

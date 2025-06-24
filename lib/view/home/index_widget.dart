@@ -120,6 +120,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
   List<ArticleDb> unreadArticles = [];
   List<ArticleDb> recentlyReadArticles = [];
   List<TagWithCount> tagsWithCount = [];
+  int unreadArticlesCount = 0; // 未读文章总数量
 
   // 数据缓存时间戳，用于智能刷新
   DateTime? _lastLoadTime;
@@ -201,38 +202,31 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
         ArticleService.instance.getUnreadArticles(limit: 5),
         ArticleService.instance.getRecentlyReadArticles(limit: 5),
         TagService.instance.getTagsWithArticleCount(),
+        ArticleService.instance.getUnreadArticlesCount(), // 获取未读文章总数量
       ]);
       final articleList = results[0] as List<ArticleDb>;
       final unreadList = results[1] as List<ArticleDb>;
       final recentlyReadList = results[2] as List<ArticleDb>;
       final tagsList = results[3] as List<TagWithCount>;
+      final unreadCount = results[4] as int;
 
-      print('📋 查询结果数量: ${articleList.length}');
-      print('📚 未读文章数量: ${unreadList.length}');
-      print('📖 最近阅读数量: ${recentlyReadList.length}');
-      print('🏷️ 标签数量: ${tagsList.length}');
 
       if (articleList.isNotEmpty) {
-        print('📄 第一篇文章信息:');
         final firstArticle = articleList.first;
-        print('  - ID: ${firstArticle.id}, 标题: ${firstArticle.title}, 创建时间: ${firstArticle.createdAt}');
       }
 
       setState(() {
-        print('🔄 setState 前: articles.length = ${articles.length}');
         articles = articleList;
         unreadArticles = unreadList;
         recentlyReadArticles = recentlyReadList;
         tagsWithCount = tagsList;
+        unreadArticlesCount = unreadCount; // 使用真实的未读文章总数量
         isLoading = false;
         _lastLoadTime = DateTime.now(); // 更新缓存时间
-        print('🔄 setState 后: articles.length = ${articles.length}');
       });
 
-      print('✅ 文章列表加载完成: ${articles.length} 篇文章');
     } catch (e, stackTrace) {
-      print('❌ 获取文章列表失败: $e');
-      print('堆栈跟踪: $stackTrace');
+      print('❌ 获取文章列表失败: $e   堆栈跟踪: $stackTrace');
       setState(() {
         isLoading = false;
         hasError = true;
@@ -429,26 +423,6 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // 打印详细的文章信息
-            print('📰 ==========  文章详细信息  ==========');
-            print('📋 文章ID: ${article.id}');
-            print('📝 标题: ${article.title}');
-            print('🔗 URL: ${article.url}');
-            print('📄 摘要: ${article.excerpt ?? "无摘要"}');
-            print('📖 内容: ${article.content ?? "无内容"}');
-            print('📑 Markdown: ${article.markdown}');
-            print('💾 MHTML路径: ${article.mhtmlPath}');
-            print('📤 分享原始内容: ${article.shareOriginalContent}');
-            print('🏷️ 标签: ${article.tags}');
-            print('📚 是否已读: ${article.isRead == 1 ? "已读" : "未读"}');
-            print('🔢 阅读次数: ${article.readCount}');
-            print('⏱️ 阅读时长: ${article.readDuration}秒');
-            print('📊 阅读进度: ${(article.readProgress * 100).toStringAsFixed(1)}%');
-            print('📅 创建时间: ${article.createdAt}');
-            print('🔄 更新时间: ${article.updatedAt}');
-            print('========================================');
-
-            // TODO: 跳转到文章详情页
             context.push('/${RouteName.articlePage}?id=${article.id}');
           },
           borderRadius: BorderRadius.circular(16),
@@ -494,18 +468,6 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    // 操作按钮
-                    GestureDetector(
-                      onTap: () => _showDeleteDialog(article),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        child: const Icon(
-                          Icons.more_horiz_rounded,
-                          size: 20,
-                          color: Color(0xFF8E8E93),
-                        ),
                       ),
                     ),
                   ],
@@ -572,58 +534,6 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
     );
   }
 
-  /// 显示删除确认对话框
-  void _showDeleteDialog(ArticleDb article) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            '删除文章',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF1D1D1F),
-            ),
-          ),
-          content: Text(
-            '确定要删除「${article.title}」吗？',
-            style: const TextStyle(
-              color: Color(0xFF6D6D70),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF8E8E93),
-              ),
-              child: const Text('取消'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _deleteArticle(article);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFFF3B30),
-                backgroundColor: const Color(0xFFFF3B30).withOpacity(0.1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                '删除',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   /// 构建最近阅读文章区域
   Widget _buildRecentlyReadSection() {
@@ -657,7 +567,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -703,7 +613,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                 return [
                   if (index > 0)
                     Container(
-                      margin: const EdgeInsets.symmetric(vertical: 16),
+                      margin: const EdgeInsets.symmetric(vertical: 14),
                       height: 1,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -724,7 +634,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                       borderRadius: BorderRadius.circular(8),
                       splashColor: const Color(0xFF34C759).withOpacity(0.1),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
                         child: Row(
                           children: [
                             Container(
@@ -804,7 +714,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Wrap(
             spacing: 10.0,
             runSpacing: 10.0,
@@ -827,7 +737,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                   borderRadius: BorderRadius.circular(20),
                   splashColor: const Color(0xFFFF9500).withOpacity(0.2),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -846,7 +756,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                       children: [
                         Icon(
                           Icons.tag_rounded,
-                          size: 16,
+                          size: 14,
                           color: const Color(0xFFFF9500),
                         ),
                         const SizedBox(width: 6),
@@ -863,7 +773,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFF9500),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
                             '${tagWithCount.count}',
@@ -893,49 +803,60 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF007AFF).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.bookmark_rounded,
-                  size: 20,
-                  color: Color(0xFF007AFF),
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                '稍后阅读',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1D1D1F),
-                ),
-              ),
-              const Spacer(),
-              if (unreadArticles.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF007AFF),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${unreadArticles.length}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
+          InkWell(
+            onTap: () => _navigateToReadLaterList(),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF007AFF).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.bookmark_rounded,
+                      size: 20,
+                      color: Color(0xFF007AFF),
                     ),
                   ),
-                ),
-            ],
+                  const SizedBox(width: 12),
+                  const Text(
+                    '稍后阅读',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1D1D1F),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (unreadArticlesCount > 0)
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: Container(
+                        key: ValueKey(unreadArticlesCount),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF007AFF).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '共 $unreadArticlesCount 篇',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF007AFF),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -953,7 +874,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
             child: unreadArticles.isEmpty
                 ? const Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 32.0),
+                padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: Column(
                   children: [
                     Icon(
@@ -981,7 +902,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                 return [
                   if (index > 0)
                     Container(
-                      margin: const EdgeInsets.symmetric(vertical: 16),
+                      margin: const EdgeInsets.symmetric(vertical: 14),
                       height: 1,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -993,47 +914,44 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                         ),
                       ),
                     ),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        context.push('/${RouteName.articlePage}?id=${article.id}');
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      splashColor: const Color(0xFF007AFF).withOpacity(0.1),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 4,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF007AFF),
-                                shape: BoxShape.circle,
+                  InkWell(
+                    onTap: () {
+                      context.push('/${RouteName.articlePage}?id=${article.id}');
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    splashColor: const Color(0xFF007AFF).withOpacity(0.1),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF007AFF),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              article.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Color(0xFF1D1D1F),
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                article.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFF1D1D1F),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 14,
-                              color: Color(0xFFD1D1D6),
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: Color(0xFFD1D1D6),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -1046,56 +964,9 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
     );
   }
 
-  /// 删除文章
-  Future<void> _deleteArticle(ArticleDb article) async {
-    try {
-      final success = await ArticleService.instance.deleteArticle(article.id);
-      if (success) {
-        setState(() {
-          articles.removeWhere((item) => item.id == article.id);
-          unreadArticles.removeWhere((item) => item.id == article.id);
-          recentlyReadArticles.removeWhere((item) => item.id == article.id);
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('文章删除成功'),
-              backgroundColor: const Color(0xFF34C759),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('删除失败'),
-              backgroundColor: const Color(0xFFFF3B30),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('删除失败：$e'),
-            backgroundColor: const Color(0xFFFF3B30),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
-    }
+  /// 导航到稍后阅读列表页
+  void _navigateToReadLaterList() {
+    context.push('/${RouteName.articleList}?type=read-later&title=稍后阅读');
   }
 
 

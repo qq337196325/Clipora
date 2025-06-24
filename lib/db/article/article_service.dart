@@ -175,6 +175,22 @@ class ArticleService extends GetxService {
     }
   }
 
+  /// 获取未读文章总数量
+  Future<int> getUnreadArticlesCount() async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      return await _dbService.articles
+          .where()
+          .filter()
+          .isReadEqualTo(0)
+          .count();
+    } catch (e) {
+      getLogger().e('❌ 获取未读文章数量失败: $e');
+      return 0;
+    }
+  }
+
   /// 获取最近阅读的文章
   Future<List<ArticleDb>> getRecentlyReadArticles({int limit = 5}) async {
     await _ensureDatabaseInitialized();
@@ -408,106 +424,7 @@ class ArticleService extends GetxService {
     }
   }
 
-  /// 调试方法：检查文章的serviceId字段
-  Future<void> debugCheckServiceId(int articleId) async {
-    await _ensureDatabaseInitialized();
-    
-    try {
-      getLogger().i('🔍 [调试] 检查文章serviceId，ID: $articleId');
-      
-      final article = await _dbService.articles.get(articleId);
-      if (article != null) {
-        getLogger().i('🔍 [调试] 文章信息:');
-        getLogger().i('  - 标题: ${article.title}');
-        getLogger().i('  - serviceId: "${article.serviceId}"');
-        getLogger().i('  - serviceId.length: ${article.serviceId.length}');
-        getLogger().i('  - serviceId.isEmpty: ${article.serviceId.isEmpty}');
-        getLogger().i('  - 更新时间: ${article.updatedAt}');
-        
-        // 直接从数据库查询所有字段
-        final rawQuery = await _dbService.articles
-            .filter()
-            .idEqualTo(articleId)
-            .findAll();
-        
-        if (rawQuery.isNotEmpty) {
-          final rawArticle = rawQuery.first;
-          getLogger().i('🔍 [调试] 原始查询结果: serviceId="${rawArticle.serviceId}"');
-        }
-      } else {
-        getLogger().w('⚠️ [调试] 未找到ID为 $articleId 的文章');
-      }
-    } catch (e) {
-      getLogger().e('❌ [调试] 检查serviceId失败: $e');
-    }
-  }
 
-  /// 数据库迁移：修复serviceId字段
-  Future<void> migrateServiceIdField() async {
-    await _ensureDatabaseInitialized();
-    
-    try {
-      getLogger().i('🔄 开始数据库迁移：修复serviceId字段');
-      
-      // 查找所有文章
-      final allArticles = await _dbService.articles.where().findAll();
-      getLogger().i('📊 共找到 ${allArticles.length} 篇文章需要检查');
-      
-      int migratedCount = 0;
-      
-      await _dbService.isar.writeTxn(() async {
-        for (final article in allArticles) {
-          // 检查serviceId是否为null或需要初始化
-          // 注意：在Dart中，如果字段后加入且有默认值，旧记录可能仍然有问题
-          bool needsMigration = false;
-          
-          try {
-            // 尝试访问serviceId，如果有问题会抛出异常
-            final currentServiceId = article.serviceId;
-            if (currentServiceId.isEmpty) {
-              needsMigration = true;
-            }
-          } catch (e) {
-            // 如果访问serviceId出错，说明字段确实有问题
-            needsMigration = true;
-            getLogger().w('⚠️ 文章 ${article.id} 的serviceId字段有问题: $e');
-          }
-          
-          if (needsMigration) {
-            article.serviceId = ""; // 设置为空字符串默认值
-            article.updatedAt = DateTime.now();
-            await _dbService.articles.put(article);
-            migratedCount++;
-            getLogger().i('✅ 已修复文章 ${article.id}: ${article.title}');
-          }
-        }
-      });
-      
-      getLogger().i('✅ 数据库迁移完成，共修复 $migratedCount 篇文章');
-      
-      if (migratedCount > 0) {
-        // 验证迁移结果
-        getLogger().i('🔍 验证迁移结果...');
-        final verifyArticles = await _dbService.articles.where().findAll();
-        int validCount = 0;
-        
-        for (final article in verifyArticles) {
-          try {
-            final serviceId = article.serviceId;
-            // serviceId 字段为非null的String类型，检查是否为空字符串即可
-            validCount++; // 所有文章的serviceId字段都应该是有效的
-          } catch (e) {
-            getLogger().e('❌ 验证失败，文章 ${article.id} 仍有问题: $e');
-          }
-        }
-        
-        getLogger().i('📊 验证结果: ${validCount}/${verifyArticles.length} 篇文章serviceId字段正常');
-      }
-      
-    } catch (e) {
-      getLogger().e('❌ 数据库迁移失败: $e');
-    }
-  }
 
   /// 获取所有未同步到服务端的文章
   Future<List<ArticleDb>> getUnsyncedArticles() async {
@@ -715,74 +632,348 @@ class ArticleService extends GetxService {
     }
   }
 
-  /// 获取热门搜索词（基于用户搜索历史，暂时返回固定值）
-  Future<List<String>> getHotSearchKeywords({int limit = 8}) async {
-    // TODO: 可以基于用户搜索历史实现
-    return [
-      'Flutter',
-      '前端开发',
-      '移动应用',
-      '设计模式',
-      '编程学习',
-      '技术分享',
-      '开发经验',
-      '项目实战',
-    ].take(limit).toList();
-  }
+  // ==================== 分页查询方法 ====================
 
-  /// 获取搜索建议（基于文章标题的热门关键词）
-  Future<List<String>> getSearchSuggestions({int limit = 10}) async {
+  /// 分页获取所有文章
+  Future<List<ArticleDb>> getArticlesWithPaging({
+    required int offset,
+    required int limit,
+    String? sortBy,
+    bool isDescending = true,
+  }) async {
     await _ensureDatabaseInitialized();
     
     try {
-      // 获取最近创建的文章标题，提取关键词作为搜索建议
-      final recentArticles = await _dbService.articles
-          .where()
-          .sortByCreatedAtDesc()
-          .limit(50)
-          .findAll();
-      
-      // 简单的关键词提取（可以后续优化）
-      final keywords = <String>{};
-      for (final article in recentArticles) {
-        // 提取标题中的关键词（长度大于2的词）
-        final words = article.title.split(RegExp(r'[\s\-_.,!?，。！？、]'));
-        for (final word in words) {
-          final cleanWord = word.trim();
-          if (cleanWord.length > 2) {
-            keywords.add(cleanWord);
-          }
-        }
+      // 根据排序类型排序
+      switch (sortBy) {
+        case 'createTime':
+          return await _dbService.articles
+              .where()
+              .anyId()
+              .sortByCreatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'modifyTime':
+          return await _dbService.articles
+              .where()
+              .anyId()
+              .sortByUpdatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'name':
+          return await _dbService.articles
+              .where()
+              .anyId()
+              .sortByTitle()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        default:
+          return await _dbService.articles
+              .where()
+              .sortByCreatedAtDesc()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+      }
+    } catch (e) {
+      getLogger().e('❌ 分页获取文章失败: $e');
+      return [];
+    }
+  }
+
+  /// 分页获取未读文章（稍后阅读）
+  Future<List<ArticleDb>> getUnreadArticlesWithPaging({
+    required int offset,
+    required int limit,
+    String? sortBy,
+    bool isDescending = true,
+  }) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      // 根据排序类型排序
+      switch (sortBy) {
+        case 'createTime':
+          return await _dbService.articles
+              .filter()
+              .isReadEqualTo(0)
+              .sortByCreatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'modifyTime':
+          return await _dbService.articles
+              .filter()
+              .isReadEqualTo(0)
+              .sortByUpdatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'name':
+          return await _dbService.articles
+              .filter()
+              .isReadEqualTo(0)
+              .sortByTitle()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        default:
+          return await _dbService.articles
+              .filter()
+              .isReadEqualTo(0)
+              .sortByCreatedAtDesc()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+      }
+    } catch (e) {
+      getLogger().e('❌ 分页获取未读文章失败: $e');
+      return [];
+    }
+  }
+
+  /// 分页获取重要文章（收藏）
+  Future<List<ArticleDb>> getImportantArticlesWithPaging({
+    required int offset,
+    required int limit,
+    String? sortBy,
+    bool isDescending = true,
+  }) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      // 根据排序类型排序
+      switch (sortBy) {
+        case 'createTime':
+          return await _dbService.articles
+              .filter()
+              .isImportantEqualTo(true)
+              .sortByCreatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'modifyTime':
+          return await _dbService.articles
+              .filter()
+              .isImportantEqualTo(true)
+              .sortByUpdatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'name':
+          return await _dbService.articles
+              .filter()
+              .isImportantEqualTo(true)
+              .sortByTitle()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        default:
+          return await _dbService.articles
+              .filter()
+              .isImportantEqualTo(true)
+              .sortByCreatedAtDesc()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+      }
+    } catch (e) {
+      getLogger().e('❌ 分页获取重要文章失败: $e');
+      return [];
+    }
+  }
+
+  /// 分页获取分类文章
+  Future<List<ArticleDb>> getCategoryArticlesWithPaging({
+    required int categoryId,
+    required int offset,
+    required int limit,
+    String? sortBy,
+    bool isDescending = true,
+  }) async {
+    await _ensureDatabaseInitialized();
+    
+    print('🔍 [ArticleService] 开始查询分类文章 - categoryId: $categoryId, offset: $offset, limit: $limit');
+    
+    try {
+      // 先检查该分类是否存在
+      final categoryExists = await _dbService.categories.filter().idEqualTo(categoryId).findFirst();
+      print('🔍 [ArticleService] 分类是否存在: ${categoryExists != null ? '是' : '否'}');
+      if (categoryExists != null) {
+        print('🔍 [ArticleService] 分类名称: ${categoryExists.name}');
       }
       
-      // 返回前N个关键词作为建议
-      return keywords.take(limit).toList();
+      // 检查有多少文章关联了这个分类
+      final totalArticlesInCategory = await _dbService.articles
+          .filter()
+          .category((q) => q.idEqualTo(categoryId))
+          .count();
+      print('🔍 [ArticleService] 该分类下总文章数: $totalArticlesInCategory');
+      
+      // 根据排序类型排序
+      List<ArticleDb> results;
+      switch (sortBy) {
+        case 'createTime':
+          results = await _dbService.articles
+              .filter()
+              .category((q) => q.idEqualTo(categoryId))
+              .sortByCreatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+          if (isDescending) results = results.reversed.toList();
+          break;
+        case 'modifyTime':
+          results = await _dbService.articles
+              .filter()
+              .category((q) => q.idEqualTo(categoryId))
+              .sortByUpdatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+          if (isDescending) results = results.reversed.toList();
+          break;
+        case 'name':
+          results = await _dbService.articles
+              .filter()
+              .category((q) => q.idEqualTo(categoryId))
+              .sortByTitle()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+          if (isDescending) results = results.reversed.toList();
+          break;
+        default:
+          results = await _dbService.articles
+              .filter()
+              .category((q) => q.idEqualTo(categoryId))
+              .sortByCreatedAtDesc()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+      }
+      
+      print('🔍 [ArticleService] 查询结果: ${results.length} 篇文章');
+      if (results.isNotEmpty) {
+        print('🔍 [ArticleService] 第一篇文章: ${results.first.title}');
+        // 检查第一篇文章的分类信息
+        await results.first.category.load();
+        print('🔍 [ArticleService] 第一篇文章的分类: ${results.first.category.value?.name ?? '未设置'}');
+      }
+      
+      return results;
     } catch (e) {
-      getLogger().e('❌ 获取搜索建议失败: $e');
-      return [
-        'Flutter开发',
-        '移动应用',
-        '前端技术',
-        '编程学习',
-        '设计模式',
-      ];
+      getLogger().e('❌ 分页获取分类文章失败: $e');
+      print('❌ [ArticleService] 分页获取分类文章失败: $e');
+      return [];
     }
   }
 
-  /// 清空所有文章数据（慎用！）
-  Future<void> clearAllArticles() async {
+  /// 分页搜索文章
+  Future<List<ArticleDb>> searchArticlesWithPaging({
+    required String query,
+    required int offset,
+    required int limit,
+    String? sortBy,
+    bool isDescending = true,
+  }) async {
     await _ensureDatabaseInitialized();
     
     try {
-      getLogger().w('⚠️ 开始清空所有文章数据...');
+      if (query.trim().isEmpty) {
+        return [];
+      }
       
-      await _dbService.isar.writeTxn(() async {
-        await _dbService.articles.clear();
-      });
+      final cleanQuery = query.trim();
       
-      getLogger().i('✅ 所有文章数据已清空');
+      // 根据排序类型排序
+      List<ArticleDb> results;
+      switch (sortBy) {
+        case 'createTime':
+          results = await _dbService.articles
+              .filter()
+              .group((q) => q
+                  .titleContains(cleanQuery, caseSensitive: false)
+                  .or()
+                  .markdownContains(cleanQuery, caseSensitive: false))
+              .sortByCreatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+          if (isDescending) results = results.reversed.toList();
+          break;
+        case 'modifyTime':
+          results = await _dbService.articles
+              .filter()
+              .group((q) => q
+                  .titleContains(cleanQuery, caseSensitive: false)
+                  .or()
+                  .markdownContains(cleanQuery, caseSensitive: false))
+              .sortByUpdatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+          if (isDescending) results = results.reversed.toList();
+          break;
+        case 'name':
+          results = await _dbService.articles
+              .filter()
+              .group((q) => q
+                  .titleContains(cleanQuery, caseSensitive: false)
+                  .or()
+                  .markdownContains(cleanQuery, caseSensitive: false))
+              .sortByTitle()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+          if (isDescending) results = results.reversed.toList();
+          break;
+        default:
+          results = await _dbService.articles
+              .filter()
+              .group((q) => q
+                  .titleContains(cleanQuery, caseSensitive: false)
+                  .or()
+                  .markdownContains(cleanQuery, caseSensitive: false))
+              .sortByCreatedAtDesc()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+      }
+      
+      // 对结果进行排序优化：标题匹配的排在前面
+      if (sortBy == null || sortBy == 'createTime') {
+        results.sort((a, b) {
+          final aInTitle = a.title.toLowerCase().contains(cleanQuery.toLowerCase());
+          final bInTitle = b.title.toLowerCase().contains(cleanQuery.toLowerCase());
+          
+          if (aInTitle && !bInTitle) return -1;
+          if (!aInTitle && bInTitle) return 1;
+          
+          // 如果都在标题中或都不在标题中，按创建时间排序
+          return isDescending 
+              ? b.createdAt.compareTo(a.createdAt)
+              : a.createdAt.compareTo(b.createdAt);
+        });
+      }
+      
+      return results;
     } catch (e) {
-      getLogger().e('❌ 清空文章数据失败: $e');
+      getLogger().e('❌ 分页搜索文章失败: $e');
+      return [];
     }
   }
+
 }

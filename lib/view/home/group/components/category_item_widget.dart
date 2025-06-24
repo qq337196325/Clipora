@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../db/category/category_db.dart';
+import '../../../../db/category/category_db.dart';
 import '../utils/group_constants.dart';
 
 /// 分类项组件
@@ -125,16 +125,64 @@ class CategoryItemWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          category.name,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: GroupConstants.itemText,
-            height: 1.2,
+        // 根据分类级别显示不同的布局
+        if (category.level == 0) ...[
+          // 一级分类：保持原有样式
+          Text(
+            category.name,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: GroupConstants.itemText,
+              height: 1.2,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
-          overflow: TextOverflow.ellipsis,
-        ),
+        ] else ...[
+          // 二级分类：名称 + 数量标签
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  category.name,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: GroupConstants.itemText,
+                    height: 1.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              FutureBuilder<int>(
+                future: getCategoryItemCount(category.id),
+                builder: (context, snapshot) {
+                  final count = snapshot.data ?? 0;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: GroupConstants.primaryGradientStart.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: GroupConstants.primaryGradientStart.withOpacity(0.2),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Text(
+                      '$count',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: GroupConstants.primaryGradientStart,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
         if (category.level == 0) ...[
           const SizedBox(height: 1),
           FutureBuilder<int>(

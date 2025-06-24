@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../db/category/category_db.dart';
+import '../../../../db/category/category_db.dart';
 
 /// 添加/编辑分类对话框
 class AddCategoryDialog extends StatefulWidget {

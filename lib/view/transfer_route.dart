@@ -3,11 +3,9 @@ import 'package:fluwx/fluwx.dart';
 import 'package:go_router/go_router.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:get/get.dart';
 
 import '../basics/logger.dart';
 import '../route/route_name.dart';
-import '../services/share_service.dart';
 
 
 /// 页面初始时跳转
@@ -43,7 +41,10 @@ class _TransferRouteState extends State<TransferRoute> {
     // 如果是从分享启动，立即处理分享内容
     if (isShareLaunch) {
       // ShareService 已被初始化，可以直接找到并调用
-      Get.find<ShareService>().processInitialShare(initialMedia);
+      if (mounted) {
+        context.go('/${RouteName.sharePage}');
+        return;
+      }
     }
 
 

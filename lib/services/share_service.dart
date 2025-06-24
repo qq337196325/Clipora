@@ -108,7 +108,7 @@ class ShareService extends GetxService {
 
   /// 处理从 main.dart 传递的初始分享内容
   /// 应用冷启动时，由 main.dart 调用此方法来处理分享
-  void processInitialShare(List<SharedMediaFile> initialMedia) {
+  processInitialShare(List<SharedMediaFile> initialMedia) async {
     getLogger().i('===== 开始处理初始分享内容 (由main传递) =====');
 
     if (initialMedia.isEmpty) {
@@ -120,13 +120,13 @@ class ShareService extends GetxService {
     for (var file in initialMedia) {
       getLogger().i('初始分享文件: path=${file.path}, type=${file.type}, message=${file.message}');
     }
-    _handleMediaShare(initialMedia);
+    await _handleMediaShare(initialMedia);
     // 处理完成后清除，避免重复处理
     ReceiveSharingIntent.instance.reset();
   }
 
   /// 处理媒体文件分享 (包括文本、URL、图片、文件等所有类型)
-  void _handleMediaShare(List<SharedMediaFile> mediaFiles) {
+  _handleMediaShare(List<SharedMediaFile> mediaFiles) async {
 
     for (final mediaFile in mediaFiles) {
       SharedContent content;
@@ -257,7 +257,7 @@ class ShareService extends GetxService {
       _sharedContentController.add(content);
       
       // 保存到数据库
-      _saveSharedContentToDatabase(content, mediaFile.path);
+      await _saveSharedContentToDatabase(content, mediaFile.path);
     }
   }
 
