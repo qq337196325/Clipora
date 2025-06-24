@@ -179,6 +179,173 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
     }
   }
 
+  Future<void> _toggleArchiveStatus(BuildContext context) async {
+    if (_article == null) {
+      BotToast.showText(text: '文章信息加载中，请稍后重试');
+      return;
+    }
+
+    try {
+      final newStatus = await ArticleService.instance.toggleArchiveStatus(widget.articleId);
+      
+      if (mounted) {
+        setState(() {
+          _article!.isArchived = newStatus;
+        });
+        
+        Navigator.of(context).pop();
+        BotToast.showText(
+          text: newStatus ? '已归档' : '已取消归档',
+        );
+      }
+    } catch (e) {
+      Navigator.of(context).pop();
+      BotToast.showText(text: '操作失败：$e');
+    }
+  }
+
+  /// 显示删除确认对话框
+  Future<void> _showDeleteConfirmDialog(BuildContext context) async {
+    if (_article == null) {
+      BotToast.showText(text: '文章信息加载中，请稍后重试');
+      return;
+    }
+
+    // 先关闭当前的底部弹窗
+    Navigator.of(context).pop();
+
+    // 显示确认对话框
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        
+        return AlertDialog(
+          backgroundColor: theme.dialogBackgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_rounded,
+                color: Colors.red,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '确认删除',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '确定要删除这篇文章吗？',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: theme.colorScheme.onSurface.withOpacity(0.8),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.article_outlined,
+                      size: 16,
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _article!.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: theme.colorScheme.onSurface.withOpacity(0.8),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '删除后的文章可以在回收站中找到。',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.onSurface.withOpacity(0.7),
+              ),
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+                Navigator.of(context).pop(true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('删除'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // 如果用户确认删除
+    if (confirmed == true) {
+      await _deleteArticle(context);
+    }
+  }
+
+  /// 执行删除操作
+  Future<void> _deleteArticle(BuildContext context) async {
+    try {
+      await ArticleService.instance.softDeleteArticle(widget.articleId);
+      
+      if (mounted) {
+        BotToast.showText(text: '文章已删除');
+        
+        // 返回到文章列表页面
+        // 确认对话框已经通过pop(true)关闭，这里只需要返回到文章列表
+        Navigator.of(context).pop(); // 返回到文章列表页面
+      }
+    } catch (e) {
+      BotToast.showText(text: '删除失败：$e');
+      getLogger().e('❌ 删除文章失败: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -187,6 +354,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
 
     // 根据文章的重要状态动态设置图标和文字
     final isImportant = _article?.isImportant ?? false;
+    final isArchived = _article?.isArchived ?? false;
     
     // 检查文章URL是否存在
     final hasUrl = articleController.articleUrl.isNotEmpty;
@@ -218,13 +386,17 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
           }),
       _ActionItem(icon: Icons.label_outline, label: '标签', onTap: () => _showTagEditModal(context)),
       _ActionItem(icon: Icons.drive_file_move_outline, label: '移动', onTap: () => _showMoveToCategoryModal(context)),
-      _ActionItem(
-        icon: isImportant ? Icons.star : Icons.star_border, 
-        label: isImportant ? '取消重要' : '标为重要', 
-        onTap: () => _toggleImportantStatus(context)
-      ),
-      _ActionItem(icon: Icons.archive_outlined, label: '归档', onTap: () => _showToast(context, '归档')),
-      _ActionItem(icon: Icons.delete_outline, label: '删除', onTap: () => _showToast(context, '删除'), isDestructive: true),
+             _ActionItem(
+         icon: isImportant ? Icons.star : Icons.star_border, 
+         label: isImportant ? '取消重要' : '标为重要', 
+         onTap: () => _toggleImportantStatus(context)
+       ),
+       _ActionItem(
+         icon: isArchived ? Icons.unarchive : Icons.archive_outlined, 
+         label: isArchived ? '取消归档' : '归档', 
+         onTap: () => _toggleArchiveStatus(context)
+       ),
+      _ActionItem(icon: Icons.delete_outline, label: '删除', onTap: () => _showDeleteConfirmDialog(context), isDestructive: true),
     ];
 
     return Material(
@@ -297,7 +469,9 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
   Widget _buildActionGridItem(BuildContext context, _ActionItem item) {
     final onSurfaceColor = Theme.of(context).colorScheme.onSurface;
     final isImportant = _article?.isImportant ?? false;
+    final isArchived = _article?.isArchived ?? false;
     final isImportantAction = item.label.contains('重要');
+    final isArchiveAction = item.label.contains('归档');
     
     Color color;
     if (!item.isEnabled) {
@@ -307,6 +481,9 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
     } else if (isImportantAction && isImportant) {
       // 如果是重要操作且当前已标记为重要，使用橙色
       color = Colors.orange;
+    } else if (isArchiveAction && isArchived) {
+      // 如果是归档操作且当前已归档，使用灰色
+      color = Colors.grey;
     } else {
       color = onSurfaceColor;
     }

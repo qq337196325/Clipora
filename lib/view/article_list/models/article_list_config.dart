@@ -5,6 +5,8 @@ enum ArticleListType {
   bookmark('bookmark', '我的收藏'),
   search('search', '搜索结果'),
   tag('tag', '标签文章'),
+  archived('archived', '归档文章'),
+  deleted('deleted', '回收站'),
   all('all', '全部文章');
 
   const ArticleListType(this.value, this.title);
@@ -73,6 +75,22 @@ class ArticleListConfig {
     return const ArticleListConfig(
       type: ArticleListType.bookmark,
       title: '我的收藏',
+    );
+  }
+
+  /// 工厂构造函数：归档文章
+  factory ArticleListConfig.archived() {
+    return const ArticleListConfig(
+      type: ArticleListType.archived,
+      title: '归档文章',
+    );
+  }
+
+  /// 工厂构造函数：回收站
+  factory ArticleListConfig.deleted() {
+    return const ArticleListConfig(
+      type: ArticleListType.deleted,
+      title: '回收站',
     );
   }
 

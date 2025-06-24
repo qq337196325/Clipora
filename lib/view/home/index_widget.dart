@@ -82,10 +82,11 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
     // 确保UI完全初始化后再加载数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 添加额外延迟确保GetX服务完全就绪
-      Future.delayed(const Duration(milliseconds: 500), () {
-        print('🚀 开始加载文章列表 (延迟后)');
-        _loadArticles();
-      });
+      _loadArticles();
+      // Future.delayed(const Duration(milliseconds: 200), () {
+      //   print('🚀 开始加载文章列表 (延迟后)');
+      //
+      // });
     });
   }
 
@@ -265,8 +266,11 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                   Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: () {
-                        context.push('/${RouteName.articlePage}?id=${article.id}');
+                      onTap: () async {
+                        final routeStatus = await context.push('/${RouteName.articlePage}?id=${article.id}');
+                        if(routeStatus == true) {
+                          _refreshArticles();
+                        }
                       },
                       borderRadius: BorderRadius.circular(8),
                       splashColor: const Color(0xFF34C759).withOpacity(0.1),

@@ -64,6 +64,9 @@ class _GroupPageState extends State<GroupPage>
                               : _buildCategoriesCard(),
                         ),
                       ),
+                      // SliverToBoxAdapter(
+                      //   child: _buildManageTagsRow(),
+                      // ),
                     ],
                   ),
                 ),
@@ -78,41 +81,48 @@ class _GroupPageState extends State<GroupPage>
   Widget _buildQuickEntries() {
     return Container(
       padding: GroupConstants.appBarPadding,
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: _buildQuickEntryItem(
-              icon: Icons.library_books_rounded,
-              title: '全部',
-              subtitle: '所有内容',
-              gradient: const LinearGradient(
-                colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickEntryItem(
+                  icon: Icons.library_books_rounded,
+                  title: '全部',
+                  subtitle: '所有内容',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  onTap: () {
+                    // 跳转到全部文章列表页面
+                    context.push('/${RouteName.articleList}?type=all&title=${Uri.encodeComponent('全部文章')}');
+                  },
+                ),
               ),
-              onTap: () {
-                // 跳转到全部文章列表页面
-                context.push('/${RouteName.articleList}?type=all&title=${Uri.encodeComponent('全部文章')}');
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildQuickEntryItem(
-              icon: Icons.star_rounded,
-              title: '重要',
-              subtitle: '标记重要',
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFF8A65), Color(0xFFFF7043)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickEntryItem(
+                  icon: Icons.star_rounded,
+                  title: '重要',
+                  subtitle: '标记重要',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF8A65), Color(0xFFFF7043)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  onTap: () {
+                    // 跳转到重要文章列表页面
+                    context.push('/${RouteName.articleList}?type=bookmark&title=${Uri.encodeComponent('重要文章')}');
+                  },
+                ),
               ),
-              onTap: () {
-                // 跳转到重要文章列表页面
-                context.push('/${RouteName.articleList}?type=bookmark&title=${Uri.encodeComponent('重要文章')}');
-              },
-            ),
+            ],
           ),
+
+          const SizedBox(height: 16),
+          _buildManageTagsRow(),
         ],
       ),
     );
@@ -196,36 +206,110 @@ class _GroupPageState extends State<GroupPage>
     );
   }
 
+
+
   Widget _buildCustomAppBar() {
     return Container(
-      padding: GroupConstants.appBarPadding,
-      child: Row(
+      padding:  EdgeInsets.fromLTRB(20, 2, 16, 12),
+      child: Column(
         children: [
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '分组管理',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: GroupConstants.primaryText,
-                  ),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '分组管理',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: GroupConstants.primaryText,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      '管理你的内容分类',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: GroupConstants.secondaryText,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 2),
-                Text(
-                  '管理你的内容分类',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: GroupConstants.secondaryText,
-                  ),
-                ),
-              ],
+              ),
+              _buildAddButton(),
+            ],
+          ),
+
+        ],
+      ),
+    );
+  }
+
+  Widget _buildManageTagsRow() {
+    return Row(
+      children: [
+        _buildManageTag(
+          icon: Icons.archive_outlined,
+          label: '归档',
+          onTap: () {
+            context.push('/${RouteName.articleList}?type=archived&title=${Uri.encodeComponent('归档文章')}');
+          },
+        ),
+        const SizedBox(width: 8),
+        _buildManageTag(
+          icon: Icons.delete_outline,
+          label: '回收站',
+          onTap: () {
+            context.push('/${RouteName.articleList}?type=deleted&title=${Uri.encodeComponent('回收站')}');
+          },
+        ),
+        const Spacer(),
+      ],
+    );
+  }
+
+  Widget _buildManageTag({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: GroupConstants.secondaryText.withOpacity(0.2),
+              width: 0.5,
             ),
           ),
-          _buildAddButton(),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 14,
+                color: GroupConstants.secondaryText,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: GroupConstants.secondaryText,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -199,6 +199,7 @@ class ArticleService extends GetxService {
       return await _dbService.articles
           .where()
           .filter()
+          .deletedAtIsNull() // 过滤未删除的文章
           .isReadEqualTo(1)
           .sortByLastReadTimeDesc()
           .limit(limit)
@@ -362,6 +363,65 @@ class ArticleService extends GetxService {
       return newImportantStatus;
     } catch (e) {
       getLogger().e('❌ 切换重要状态失败: $e');
+      rethrow;
+    }
+  }
+
+  /// 切换文章归档状态
+  Future<bool> toggleArchiveStatus(int articleId) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      bool newArchiveStatus = false;
+      
+      await _dbService.isar.writeTxn(() async {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null) {
+          // 切换归档状态
+          article.isArchived = !article.isArchived;
+          newArchiveStatus = article.isArchived;
+          article.updatedAt = DateTime.now();
+          
+          await _dbService.articles.put(article);
+          await _logSyncOperation(SyncOp.update, article);
+          
+          getLogger().i('📦 切换文章归档状态: ${article.title} -> ${newArchiveStatus ? '已归档' : '未归档'}');
+        } else {
+          throw Exception('未找到文章');
+        }
+      });
+      
+      return newArchiveStatus;
+    } catch (e) {
+      getLogger().e('❌ 切换归档状态失败: $e');
+      rethrow;
+    }
+  }
+
+  /// 软删除文章（设置deletedAt字段）
+  Future<bool> softDeleteArticle(int articleId) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      await _dbService.isar.writeTxn(() async {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null) {
+          // 设置删除时间
+          article.deletedAt = DateTime.now();
+          article.updatedAt = DateTime.now();
+          
+          await _dbService.articles.put(article);
+          await _logSyncOperation(SyncOp.update, article);
+          
+          getLogger().i('🗑️ 软删除文章: ${article.title}');
+        } else {
+          throw Exception('未找到文章');
+        }
+      });
+      
+      return true;
+    } catch (e) {
+      getLogger().e('❌ 软删除文章失败: $e');
       rethrow;
     }
   }
@@ -675,12 +735,12 @@ class ArticleService extends GetxService {
     await _ensureDatabaseInitialized();
     
     try {
-      // 根据排序类型排序
+      // 根据排序类型排序，过滤未删除的文章
       switch (sortBy) {
         case 'createTime':
           return await _dbService.articles
-              .where()
-              .anyId()
+              .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
               .sortByCreatedAt()
               .offset(offset)
               .limit(limit)
@@ -688,8 +748,8 @@ class ArticleService extends GetxService {
               .then((list) => isDescending ? list.reversed.toList() : list);
         case 'modifyTime':
           return await _dbService.articles
-              .where()
-              .anyId()
+              .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
               .sortByUpdatedAt()
               .offset(offset)
               .limit(limit)
@@ -697,8 +757,8 @@ class ArticleService extends GetxService {
               .then((list) => isDescending ? list.reversed.toList() : list);
         case 'name':
           return await _dbService.articles
-              .where()
-              .anyId()
+              .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
               .sortByTitle()
               .offset(offset)
               .limit(limit)
@@ -706,7 +766,8 @@ class ArticleService extends GetxService {
               .then((list) => isDescending ? list.reversed.toList() : list);
         default:
           return await _dbService.articles
-              .where()
+              .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
               .sortByCreatedAtDesc()
               .offset(offset)
               .limit(limit)
@@ -728,11 +789,13 @@ class ArticleService extends GetxService {
     await _ensureDatabaseInitialized();
     
     try {
-      // 根据排序类型排序
+      // 根据排序类型排序，过滤未删除和未读的文章
       switch (sortBy) {
         case 'createTime':
           return await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .isReadEqualTo(0)
               .sortByCreatedAt()
               .offset(offset)
@@ -742,6 +805,8 @@ class ArticleService extends GetxService {
         case 'modifyTime':
           return await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .isReadEqualTo(0)
               .sortByUpdatedAt()
               .offset(offset)
@@ -751,6 +816,8 @@ class ArticleService extends GetxService {
         case 'name':
           return await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .isReadEqualTo(0)
               .sortByTitle()
               .offset(offset)
@@ -760,6 +827,8 @@ class ArticleService extends GetxService {
         default:
           return await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .isReadEqualTo(0)
               .sortByCreatedAtDesc()
               .offset(offset)
@@ -782,11 +851,13 @@ class ArticleService extends GetxService {
     await _ensureDatabaseInitialized();
     
     try {
-      // 根据排序类型排序
+      // 根据排序类型排序，过滤未删除和重要的文章
       switch (sortBy) {
         case 'createTime':
           return await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .isImportantEqualTo(true)
               .sortByCreatedAt()
               .offset(offset)
@@ -796,6 +867,8 @@ class ArticleService extends GetxService {
         case 'modifyTime':
           return await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .isImportantEqualTo(true)
               .sortByUpdatedAt()
               .offset(offset)
@@ -805,6 +878,8 @@ class ArticleService extends GetxService {
         case 'name':
           return await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .isImportantEqualTo(true)
               .sortByTitle()
               .offset(offset)
@@ -814,6 +889,8 @@ class ArticleService extends GetxService {
         default:
           return await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .isImportantEqualTo(true)
               .sortByCreatedAtDesc()
               .offset(offset)
@@ -846,19 +923,23 @@ class ArticleService extends GetxService {
         print('🔍 [ArticleService] 分类名称: ${categoryExists.name}');
       }
       
-      // 检查有多少文章关联了这个分类
+      // 检查有多少文章关联了这个分类且未删除
       final totalArticlesInCategory = await _dbService.articles
           .filter()
+          .deletedAtIsNull() // 过滤未删除的文章
+          .and()
           .category((q) => q.idEqualTo(categoryId))
           .count();
-      print('🔍 [ArticleService] 该分类下总文章数: $totalArticlesInCategory');
+      print('🔍 [ArticleService] 该分类下未删除文章总数: $totalArticlesInCategory');
       
-      // 根据排序类型排序
+      // 根据排序类型排序，过滤未删除和分类的文章
       List<ArticleDb> results;
       switch (sortBy) {
         case 'createTime':
           results = await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .category((q) => q.idEqualTo(categoryId))
               .sortByCreatedAt()
               .offset(offset)
@@ -869,6 +950,8 @@ class ArticleService extends GetxService {
         case 'modifyTime':
           results = await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .category((q) => q.idEqualTo(categoryId))
               .sortByUpdatedAt()
               .offset(offset)
@@ -879,6 +962,8 @@ class ArticleService extends GetxService {
         case 'name':
           results = await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .category((q) => q.idEqualTo(categoryId))
               .sortByTitle()
               .offset(offset)
@@ -889,6 +974,8 @@ class ArticleService extends GetxService {
         default:
           results = await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .category((q) => q.idEqualTo(categoryId))
               .sortByCreatedAtDesc()
               .offset(offset)
@@ -896,7 +983,7 @@ class ArticleService extends GetxService {
               .findAll();
       }
       
-      print('🔍 [ArticleService] 查询结果: ${results.length} 篇文章');
+      print('🔍 [ArticleService] 查询结果: ${results.length} 篇未删除文章');
       if (results.isNotEmpty) {
         print('🔍 [ArticleService] 第一篇文章: ${results.first.title}');
         // 检查第一篇文章的分类信息
@@ -908,6 +995,68 @@ class ArticleService extends GetxService {
     } catch (e) {
       getLogger().e('❌ 分页获取分类文章失败: $e');
       print('❌ [ArticleService] 分页获取分类文章失败: $e');
+      return [];
+    }
+  }
+
+  /// 分页获取归档文章
+  Future<List<ArticleDb>> getArchivedArticlesWithPaging({
+    required int offset,
+    required int limit,
+    String? sortBy,
+    bool isDescending = true,
+  }) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      // 根据排序类型排序，过滤未删除且归档的文章
+      switch (sortBy) {
+        case 'createTime':
+          return await _dbService.articles
+              .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
+              .isArchivedEqualTo(true)
+              .sortByCreatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'modifyTime':
+          return await _dbService.articles
+              .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
+              .isArchivedEqualTo(true)
+              .sortByUpdatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'name':
+          return await _dbService.articles
+              .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
+              .isArchivedEqualTo(true)
+              .sortByTitle()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        default:
+          return await _dbService.articles
+              .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
+              .isArchivedEqualTo(true)
+              .sortByCreatedAtDesc()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+      }
+    } catch (e) {
+      getLogger().e('❌ 分页获取归档文章失败: $e');
       return [];
     }
   }
@@ -929,12 +1078,14 @@ class ArticleService extends GetxService {
       
       final cleanQuery = query.trim();
       
-      // 根据排序类型排序
+      // 根据排序类型排序，过滤未删除的文章
       List<ArticleDb> results;
       switch (sortBy) {
         case 'createTime':
           results = await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .group((q) => q
                   .titleContains(cleanQuery, caseSensitive: false)
                   .or()
@@ -948,6 +1099,8 @@ class ArticleService extends GetxService {
         case 'modifyTime':
           results = await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .group((q) => q
                   .titleContains(cleanQuery, caseSensitive: false)
                   .or()
@@ -961,6 +1114,8 @@ class ArticleService extends GetxService {
         case 'name':
           results = await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .group((q) => q
                   .titleContains(cleanQuery, caseSensitive: false)
                   .or()
@@ -974,6 +1129,8 @@ class ArticleService extends GetxService {
         default:
           results = await _dbService.articles
               .filter()
+              .deletedAtIsNull() // 过滤未删除的文章
+              .and()
               .group((q) => q
                   .titleContains(cleanQuery, caseSensitive: false)
                   .or()
@@ -1031,10 +1188,13 @@ class ArticleService extends GetxService {
       await tag.articles.load();
       final allTagArticles = tag.articles.toList();
       
-      print('🔍 [ArticleService] 标签 "${tag.name}" 下共有 ${allTagArticles.length} 篇文章');
+      // 过滤未删除的文章
+      final undeleted = allTagArticles.where((article) => article.deletedAt == null).toList();
+      
+      print('🔍 [ArticleService] 标签 "${tag.name}" 下共有 ${allTagArticles.length} 篇文章，其中 ${undeleted.length} 篇未删除');
       
       // 根据排序类型排序
-      List<ArticleDb> sortedArticles = List.from(allTagArticles);
+      List<ArticleDb> sortedArticles = List.from(undeleted);
       switch (sortBy) {
         case 'createTime':
           sortedArticles.sort((a, b) => isDescending 
@@ -1065,7 +1225,7 @@ class ArticleService extends GetxService {
       
       final results = sortedArticles.sublist(startIndex, endIndex);
       
-      print('🔍 [ArticleService] 分页后返回 ${results.length} 篇文章 (offset: $offset, limit: $limit)');
+      print('🔍 [ArticleService] 分页后返回 ${results.length} 篇未删除文章 (offset: $offset, limit: $limit)');
       if (results.isNotEmpty) {
         print('🔍 [ArticleService] 第一篇文章: ${results.first.title}');
       }
@@ -1075,6 +1235,131 @@ class ArticleService extends GetxService {
       getLogger().e('❌ 分页获取标签文章失败: $e');
       print('❌ [ArticleService] 分页获取标签文章失败: $e');
       return [];
+    }
+  }
+
+  /// 分页获取已删除文章（回收站）
+  Future<List<ArticleDb>> getDeletedArticlesWithPaging({
+    required int offset,
+    required int limit,
+    String? sortBy,
+    bool isDescending = true,
+  }) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      // 根据排序类型排序，只查询已删除的文章
+      switch (sortBy) {
+        case 'createTime':
+          return await _dbService.articles
+              .filter()
+              .deletedAtIsNotNull() // 只查询已删除的文章
+              .sortByCreatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'modifyTime':
+          return await _dbService.articles
+              .filter()
+              .deletedAtIsNotNull() // 只查询已删除的文章
+              .sortByUpdatedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'deleteTime':
+          return await _dbService.articles
+              .filter()
+              .deletedAtIsNotNull() // 只查询已删除的文章
+              .sortByDeletedAt()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        case 'name':
+          return await _dbService.articles
+              .filter()
+              .deletedAtIsNotNull() // 只查询已删除的文章
+              .sortByTitle()
+              .offset(offset)
+              .limit(limit)
+              .findAll()
+              .then((list) => isDescending ? list.reversed.toList() : list);
+        default:
+          // 默认按删除时间排序
+          return await _dbService.articles
+              .filter()
+              .deletedAtIsNotNull() // 只查询已删除的文章
+              .sortByDeletedAtDesc()
+              .offset(offset)
+              .limit(limit)
+              .findAll();
+      }
+    } catch (e) {
+      getLogger().e('❌ 分页获取已删除文章失败: $e');
+      return [];
+    }
+  }
+
+  /// 恢复已删除的文章
+  Future<bool> restoreDeletedArticle(int articleId) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      await _dbService.isar.writeTxn(() async {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null) {
+          // 清除删除时间，恢复文章
+          article.deletedAt = null;
+          article.updatedAt = DateTime.now();
+          
+          await _dbService.articles.put(article);
+          await _logSyncOperation(SyncOp.update, article);
+          
+          getLogger().i('♻️ 恢复已删除文章: ${article.title}');
+        } else {
+          throw Exception('未找到文章');
+        }
+      });
+      
+      return true;
+    } catch (e) {
+      getLogger().e('❌ 恢复文章失败: $e');
+      rethrow;
+    }
+  }
+
+  /// 清空回收站（永久删除所有已删除的文章）
+  Future<int> clearRecycleBin() async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      int deletedCount = 0;
+      
+      await _dbService.isar.writeTxn(() async {
+        // 获取所有已删除的文章
+        final deletedArticles = await _dbService.articles
+            .filter()
+            .deletedAtIsNotNull()
+            .findAll();
+        
+        // 记录删除操作
+        for (final article in deletedArticles) {
+          await _logSyncOperation(SyncOp.delete, article);
+        }
+        
+        // 批量删除
+        final articleIds = deletedArticles.map((article) => article.id).toList();
+        deletedCount = await _dbService.articles.deleteAll(articleIds);
+        
+        getLogger().i('🗑️ 清空回收站，永久删除 $deletedCount 篇文章');
+      });
+      
+      return deletedCount;
+    } catch (e) {
+      getLogger().e('❌ 清空回收站失败: $e');
+      rethrow;
     }
   }
 

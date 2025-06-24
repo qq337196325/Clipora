@@ -116,6 +116,26 @@ mixin ArticleListPageBLoC<T extends StatefulWidget> on State<T> {
         );
         break;
 
+      case ArticleListType.archived:
+        print('📱 [ArticleList] 获取归档文章...');
+        result = await ArticleService.instance.getArchivedArticlesWithPaging(
+          offset: offset,
+          limit: limit,
+          sortBy: sortBy,
+          isDescending: isDescending,
+        );
+        break;
+
+      case ArticleListType.deleted:
+        print('📱 [ArticleList] 获取回收站文章...');
+        result = await ArticleService.instance.getDeletedArticlesWithPaging(
+          offset: offset,
+          limit: limit,
+          sortBy: sortBy,
+          isDescending: isDescending,
+        );
+        break;
+
       case ArticleListType.search:
         final keyword = config.filters['keyword'] as String?;
         if (keyword == null || keyword.isEmpty) {
@@ -233,5 +253,21 @@ mixin ArticleListPageBLoC<T extends StatefulWidget> on State<T> {
   /// 检查是否有错误
   bool get hasError {
     return errorMessage != null;
+  }
+
+  /// 清空回收站
+  Future<bool> clearRecycleBin() async {
+    try {
+      final deletedCount = await ArticleService.instance.clearRecycleBin();
+      if (deletedCount > 0) {
+        // 刷新列表
+        refreshList();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('❌ [ArticleList] 清空回收站失败: $e');
+      return false;
+    }
   }
 } 

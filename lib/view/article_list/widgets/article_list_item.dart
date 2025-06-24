@@ -203,6 +203,35 @@ class _ArticleListItemState extends State<ArticleListItem>
                                   ),
                                 ),
                               ],
+                              
+                              // 归档标记 - 现代化设计
+                              if (widget.article.isArchived) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.grey.shade400,
+                                        Colors.grey.shade600,
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.3),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.archive_rounded,
+                                    size: 12,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                           
