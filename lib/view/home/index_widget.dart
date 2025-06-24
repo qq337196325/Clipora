@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:go_router/go_router.dart';
@@ -74,6 +75,9 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
   DateTime? _lastLoadTime;
   static const Duration _cacheValidDuration = Duration(minutes: 5); // 缓存有效期5分钟
 
+  // 定时器，用于定时刷新文章列表
+  Timer? _refreshTimer;
+
 
   @override
   void initState() {
@@ -87,7 +91,31 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
       //   print('🚀 开始加载文章列表 (延迟后)');
       //
       // });
+      
+      // 启动定时器，每6秒刷新一次文章列表
+      _startRefreshTimer();
     });
+  }
+
+  @override
+  void dispose() {
+    // 清理定时器
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  /// 启动定时刷新定时器 
+  void _startRefreshTimer() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
+      print('🔄 定时器触发，开始刷新文章列表');
+      _refreshArticles();
+    });
+  }
+
+  /// 停止定时刷新定时器
+  void _stopRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
   }
 
 

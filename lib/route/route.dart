@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:bot_toast/bot_toast.dart';
 
+import '../view/guide/guide_page.dart';
 import '../view/home/search/search_page.dart';
 import '../view/login/login_page.dart';
 import '../view/share/share_page.dart';
@@ -34,6 +35,7 @@ List<RouteInfo> routeInfos = [
   RouteInfo(path: "/${RouteName.search}", name: RouteName.search, builder: (context, state) => SearchPage()),
 
   RouteInfo(path: "/${RouteName.login}", name: RouteName.login, builder: (context, state) => LoginPage()),
+  RouteInfo(path: "/${RouteName.guide}", name: RouteName.guide, builder: (context, state) => GuidePage()),
 
   // RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state) => ArticlePage()),
   RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state){

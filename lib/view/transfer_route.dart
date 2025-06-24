@@ -51,7 +51,8 @@ class _TransferRouteState extends State<TransferRoute> {
     if (token == null || token.isEmpty) {
       getLogger().i('📱 未找到本地token，跳转到登录页面');
       if (mounted) {
-        context.go('/${RouteName.login}');
+        // context.go('/${RouteName.login}');
+        context.go('/${RouteName.guide}');
       }
       return;
     }
