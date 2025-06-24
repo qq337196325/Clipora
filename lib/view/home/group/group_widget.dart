@@ -50,9 +50,13 @@ class _GroupPageState extends State<GroupPage>
                     ),
                     slivers: [
                       SliverToBoxAdapter(
+                        child: _buildQuickEntries(),
+                      ),
+                      SliverToBoxAdapter(
                         child: _buildCustomAppBar(),
                       ),
-                      SliverFillRemaining(
+
+                      SliverToBoxAdapter(
                         child: Padding(
                           padding: GroupConstants.pagePadding,
                           child: isLoading
@@ -60,14 +64,132 @@ class _GroupPageState extends State<GroupPage>
                               : _buildCategoriesCard(),
                         ),
                       ),
-                      SliverToBoxAdapter(
-                        child: _buildCustomAppBar(),
-                      ),
                     ],
                   ),
                 ),
               )
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickEntries() {
+    return Container(
+      padding: GroupConstants.appBarPadding,
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildQuickEntryItem(
+              icon: Icons.library_books_rounded,
+              title: '全部',
+              subtitle: '所有内容',
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              onTap: () {
+                // 跳转到全部文章列表页面
+                context.push('/${RouteName.articleList}?type=all&title=${Uri.encodeComponent('全部文章')}');
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildQuickEntryItem(
+              icon: Icons.star_rounded,
+              title: '重要',
+              subtitle: '标记重要',
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFF8A65), Color(0xFFFF7043)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              onTap: () {
+                // 跳转到重要文章列表页面
+                context.push('/${RouteName.articleList}?type=bookmark&title=${Uri.encodeComponent('重要文章')}');
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickEntryItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required LinearGradient gradient,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(GroupConstants.cardRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(GroupConstants.cardRadius),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: GroupConstants.primaryText,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: GroupConstants.secondaryText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: GroupConstants.secondaryText,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -127,7 +249,7 @@ class _GroupPageState extends State<GroupPage>
             child: Icon(
               Icons.add_rounded,
               color: Colors.white,
-              size: 20,
+              size: 18,
             ),
           ),
         ),
@@ -145,13 +267,10 @@ class _GroupPageState extends State<GroupPage>
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(GroupConstants.cardRadius),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              ..._buildCategoryWidgets(),
-            ],
-          ),
+        child: Column(
+          children: [
+            ..._buildCategoryWidgets(),
+          ],
         ),
       ),
     );

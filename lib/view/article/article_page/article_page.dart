@@ -8,9 +8,9 @@ import '/api/user_api.dart';
 import '/basics/logger.dart';
 import '/basics/upload.dart';
 import '/db/article/article_service.dart';
-import 'article_bottom_bar.dart';
-import 'article_loading_view.dart';
-import 'article_top_bar.dart';
+import 'components/article_bottom_bar.dart';
+import 'components/article_loading_view.dart';
+import 'components/article_top_bar.dart';
 
 import '../article_markdown/article_markdown_widget.dart';
 import '../article_mhtml_widget.dart';

@@ -5,7 +5,7 @@ import '/db/article/article_service.dart';
 import '/db/category/category_db.dart';
 import '/db/category/category_service.dart';
 
-class MoveToCategoryModal extends StatefulWidget {
+class MoveToCategoryModal extends StatefulWidget { 
   final int articleId;
 
   const MoveToCategoryModal({super.key, required this.articleId});
@@ -119,14 +119,13 @@ class _MoveToCategoryModalState extends State<MoveToCategoryModal> {
      widgets.add(
       _buildCategoryTile(
         context: context,
-        title: "未分类",
+        title: "设为未分类",
         icon: Icon(Icons.folder_off_outlined, color: isUncategorized ? selectedColor: theme.iconTheme.color),
         level: 0,
         isSelected: isUncategorized,
         onTap: () => _moveArticleToCategory(null),
       )
     );
-    widgets.add(const Divider(height: 1, indent: 16, endIndent: 16, thickness: 0.5));
 
     final topLevelCategories = _categoriesByParentId[null] ?? [];
     buildCategoryWidgets(topLevelCategories, 0);
@@ -199,7 +198,7 @@ class _MoveToCategoryModalState extends State<MoveToCategoryModal> {
               height: 5,
               margin: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: theme.dividerColor,
+                color: theme.dividerColor.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -220,7 +219,7 @@ class _MoveToCategoryModalState extends State<MoveToCategoryModal> {
                 ],
               ),
             ),
-            const Divider(height: 1),
+            // const Divider(height: 1),
             // Content
             if (_isLoading)
               const Padding(

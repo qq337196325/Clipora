@@ -4,6 +4,7 @@ enum ArticleListType {
   category('category', '分类文章'),
   bookmark('bookmark', '我的收藏'),
   search('search', '搜索结果'),
+  tag('tag', '标签文章'),
   all('all', '全部文章');
 
   const ArticleListType(this.value, this.title);
@@ -25,6 +26,8 @@ class ArticleListConfig {
   final String title;
   final int? categoryId;
   final String? categoryName;
+  final int? tagId;
+  final String? tagName;
   final Map<String, dynamic> filters;
 
   const ArticleListConfig({
@@ -32,6 +35,8 @@ class ArticleListConfig {
     required this.title,
     this.categoryId,
     this.categoryName,
+    this.tagId,
+    this.tagName,
     this.filters = const {},
   });
 
@@ -50,6 +55,16 @@ class ArticleListConfig {
       title: categoryName,
       categoryId: categoryId,
       categoryName: categoryName,
+    );
+  }
+
+  /// 工厂构造函数：标签文章
+  factory ArticleListConfig.tag(int tagId, String tagName) {
+    return ArticleListConfig(
+      type: ArticleListType.tag,
+      title: '标签: $tagName',
+      tagId: tagId,
+      tagName: tagName,
     );
   }
 
@@ -84,6 +99,8 @@ class ArticleListConfig {
     String? title,
     int? categoryId,
     String? categoryName,
+    int? tagId,
+    String? tagName,
     Map<String, dynamic>? filters,
   }) {
     final type = ArticleListType.fromValue(typeValue);
@@ -93,6 +110,8 @@ class ArticleListConfig {
       title: title ?? type.title,
       categoryId: categoryId,
       categoryName: categoryName,
+      tagId: tagId,
+      tagName: tagName,
       filters: filters ?? {},
     );
   }
@@ -109,6 +128,12 @@ class ArticleListConfig {
     }
     if (categoryName != null) {
       params['categoryName'] = categoryName!;
+    }
+    if (tagId != null) {
+      params['tagId'] = tagId.toString();
+    }
+    if (tagName != null) {
+      params['tagName'] = tagName!;
     }
 
     // 添加其他过滤条件
@@ -127,6 +152,8 @@ class ArticleListConfig {
     String? title,
     int? categoryId,
     String? categoryName,
+    int? tagId,
+    String? tagName,
     Map<String, dynamic>? filters,
   }) {
     return ArticleListConfig(
@@ -134,6 +161,8 @@ class ArticleListConfig {
       title: title ?? this.title,
       categoryId: categoryId ?? this.categoryId,
       categoryName: categoryName ?? this.categoryName,
+      tagId: tagId ?? this.tagId,
+      tagName: tagName ?? this.tagName,
       filters: filters ?? this.filters,
     );
   }
@@ -145,7 +174,9 @@ class ArticleListConfig {
         other.type == type &&
         other.title == title &&
         other.categoryId == categoryId &&
-        other.categoryName == categoryName;
+        other.categoryName == categoryName &&
+        other.tagId == tagId &&
+        other.tagName == tagName;
   }
 
   @override
@@ -153,11 +184,13 @@ class ArticleListConfig {
     return type.hashCode ^
         title.hashCode ^
         categoryId.hashCode ^
-        categoryName.hashCode;
+        categoryName.hashCode ^
+        tagId.hashCode ^
+        tagName.hashCode;
   }
 
   @override
   String toString() {
-    return 'ArticleListConfig(type: $type, title: $title, categoryId: $categoryId, categoryName: $categoryName)';
+    return 'ArticleListConfig(type: $type, title: $title, categoryId: $categoryId, categoryName: $categoryName, tagId: $tagId, tagName: $tagName)';
   }
 } 

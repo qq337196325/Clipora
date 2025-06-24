@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 
 import '../../../route/route_name.dart';
@@ -48,64 +47,13 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
             _buildUnreadSection(),
             _buildRecentlyReadSection(),
             _buildTagsSection(),
-            _buildArticleHeader(),
-            _buildArticleList(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  /// 构建文章标题栏
-  Widget _buildArticleHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.only(left: 4),
-            decoration: const BoxDecoration(
-              border: Border(
-                left: BorderSide(
-                  color: Color(0xFF007AFF),
-                  width: 3,
-                ),
-              ),
-            ),
-            child: const Text(
-              '我的文章',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1D1D1F),
-              ),
-            ),
-          ),
-          const Spacer(),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: Container(
-              key: ValueKey(articles.length),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF007AFF).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '共 ${articles.length} 篇',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF007AFF),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
 }
 
@@ -192,31 +140,20 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
         print('✅ 数据库初始化完成');
       }
 
-      // 直接查询数据库中的文章总数
-      final totalCount = await dbService.articles.count();
-      print('📊 数据库中文章总数: $totalCount');
-
       // 执行正常的查询
       final results = await Future.wait([
-        ArticleService.instance.getAllArticles(),
         ArticleService.instance.getUnreadArticles(limit: 5),
         ArticleService.instance.getRecentlyReadArticles(limit: 5),
         TagService.instance.getTagsWithArticleCount(),
         ArticleService.instance.getUnreadArticlesCount(), // 获取未读文章总数量
       ]);
-      final articleList = results[0] as List<ArticleDb>;
-      final unreadList = results[1] as List<ArticleDb>;
-      final recentlyReadList = results[2] as List<ArticleDb>;
-      final tagsList = results[3] as List<TagWithCount>;
-      final unreadCount = results[4] as int;
+      final unreadList = results[0] as List<ArticleDb>;
+      final recentlyReadList = results[1] as List<ArticleDb>;
+      final tagsList = results[2] as List<TagWithCount>;
+      final unreadCount = results[3] as int;
 
-
-      if (articleList.isNotEmpty) {
-        final firstArticle = articleList.first;
-      }
 
       setState(() {
-        articles = articleList;
         unreadArticles = unreadList;
         recentlyReadArticles = recentlyReadList;
         tagsWithCount = tagsList;
@@ -234,306 +171,6 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
       });
     }
   }
-
-  /// 构建文章列表
-  Widget _buildArticleList() {
-
-    if (isLoading) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 60),
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
-                ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                '加载中...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF8E8E93),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (hasError) {
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 40),
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF3B30).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: const Icon(
-                Icons.error_outline_rounded,
-                size: 32,
-                color: Color(0xFFFF3B30),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              '加载失败',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1D1D1F),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              errorMessage,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF8E8E93),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _loadArticles,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF007AFF),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text('重试'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (articles.isEmpty) {
-      print('📝 显示空状态 - articles.isEmpty=${articles.isEmpty}');
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 40),
-        padding: const EdgeInsets.all(48),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF007AFF).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: const Icon(
-                Icons.article_outlined,
-                size: 40,
-                color: Color(0xFF007AFF),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              '暂无文章',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1D1D1F),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '分享内容到应用即可自动保存',
-              style: TextStyle(
-                color: Color(0xFF8E8E93),
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: articles.length,
-      itemBuilder: (context, index) {
-        final article = articles[index];
-        return AnimatedContainer(
-          duration: Duration(milliseconds: 300 + (index * 50)),
-          curve: Curves.easeOutCubic,
-          child: _buildArticleItem(article),
-        );
-      },
-    );
-  }
-
-  /// 构建文章列表项
-  Widget _buildArticleItem(ArticleDb article) {
-    final hasUrl = article.url.isNotEmpty;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            context.push('/${RouteName.articlePage}?id=${article.id}');
-          },
-          borderRadius: BorderRadius.circular(16),
-          splashColor: const Color(0xFF007AFF).withOpacity(0.1),
-          highlightColor: const Color(0xFF007AFF).withOpacity(0.05),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 标题行
-                Row(
-                  children: [
-                    // URL 指示器
-                    if (hasUrl)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF007AFF), Color(0xFF5856D6)],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          '链接',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    if (hasUrl) const SizedBox(width: 12),
-                    // 标题
-                    Expanded(
-                      child: Text(
-                        article.title,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1D1D1F),
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // 摘要
-                if (article.excerpt?.isNotEmpty == true) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    article.excerpt!,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: Color(0xFF6D6D70),
-                      height: 1.4,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-
-                const SizedBox(height: 16),
-
-                // 底部信息
-                Row(
-                  children: [
-                    Icon(
-                      Icons.schedule_rounded,
-                      size: 14,
-                      color: const Color(0xFF8E8E93).withOpacity(0.8),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      DateFormat('MM-dd HH:mm').format(article.createdAt),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF8E8E93),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const Spacer(),
-                    if (article.isRead == 1)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF34C759).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          '已读',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF34C759),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
 
   /// 构建最近阅读文章区域
   Widget _buildRecentlyReadSection() {
@@ -723,16 +360,8 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('筛选标签: ${tagWithCount.tag.name}'),
-                        backgroundColor: const Color(0xFF007AFF),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    );
+                    // 跳转到标签文章列表页面
+                    context.push('/${RouteName.articleList}?type=tag&title=${Uri.encodeComponent('标签: ${tagWithCount.tag.name}')}&tagId=${tagWithCount.tag.id}&tagName=${Uri.encodeComponent(tagWithCount.tag.name)}');
                   },
                   borderRadius: BorderRadius.circular(20),
                   splashColor: const Color(0xFFFF9500).withOpacity(0.2),

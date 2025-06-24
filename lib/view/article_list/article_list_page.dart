@@ -12,6 +12,8 @@ class ArticleListPage extends StatefulWidget {
   final String title;
   final int? categoryId;
   final String? categoryName;
+  final int? tagId;
+  final String? tagName;
 
   const ArticleListPage({
     super.key,
@@ -19,6 +21,8 @@ class ArticleListPage extends StatefulWidget {
     required this.title,
     this.categoryId,
     this.categoryName,
+    this.tagId,
+    this.tagName,
   });
 
   @override
@@ -36,6 +40,8 @@ class _ArticleListPageState extends State<ArticleListPage>
       title: widget.title,
       categoryId: widget.categoryId,
       categoryName: widget.categoryName,
+      tagId: widget.tagId,
+      tagName: widget.tagName,
     );
     
     print('📱 [ArticleListPage] 页面初始化，配置: $config');
@@ -50,6 +56,8 @@ class _ArticleListPageState extends State<ArticleListPage>
         return Icons.bookmark_rounded;
       case ArticleListType.category:
         return Icons.folder_rounded;
+      case ArticleListType.tag:
+        return Icons.label_rounded;
       case ArticleListType.bookmark:
         return Icons.favorite_rounded;
       case ArticleListType.search:
@@ -65,6 +73,8 @@ class _ArticleListPageState extends State<ArticleListPage>
         return '待阅读的文章';
       case ArticleListType.category:
         return '分类中的文章';
+      case ArticleListType.tag:
+        return '标签中的文章';
       case ArticleListType.bookmark:
         return '已收藏的文章';
       case ArticleListType.search:

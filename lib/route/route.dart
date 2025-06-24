@@ -50,14 +50,19 @@ List<RouteInfo> routeInfos = [
     final title = getQueryParam("title", state);
     final categoryIdStr = getQueryParam("categoryId", state);
     final categoryName = getQueryParam("categoryName", state);
+    final tagIdStr = getQueryParam("tagId", state);
+    final tagName = getQueryParam("tagName", state);
     
     final categoryId = categoryIdStr.isNotEmpty ? int.tryParse(categoryIdStr) : null;
+    final tagId = tagIdStr.isNotEmpty ? int.tryParse(tagIdStr) : null;
     
     return ArticleListPage(
       type: typeStr.isNotEmpty ? typeStr : 'all',
       title: title.isNotEmpty ? title : '文章列表',
       categoryId: categoryId,
       categoryName: categoryName.isNotEmpty ? categoryName : null,
+      tagId: tagId,
+      tagName: tagName.isNotEmpty ? tagName : null,
     );
   }),
 

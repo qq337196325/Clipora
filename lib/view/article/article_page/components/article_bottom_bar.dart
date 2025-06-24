@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:bot_toast/bot_toast.dart';
 import 'dart:ui';
 
 import 'more_actions_modal.dart';
+import '../../controller/article_controller.dart';
+import '../../../../basics/logger.dart';
 
-class ArticleBottomBar extends StatelessWidget {
+class ArticleBottomBar extends StatefulWidget {
   final bool isVisible;
   final double bottomBarHeight;
   final VoidCallback onBack;
@@ -24,6 +30,39 @@ class ArticleBottomBar extends StatelessWidget {
   });
 
   @override
+  State<ArticleBottomBar> createState() => _ArticleBottomBarState();
+}
+
+class _ArticleBottomBarState extends State<ArticleBottomBar> {
+  // 文章控制器
+  final ArticleController articleController = Get.find<ArticleController>();
+
+  /// 浏览器访问功能
+  Future<void> _openInBrowser() async {
+    final url = articleController.articleUrl;
+    
+    if (url.isEmpty) {
+      BotToast.showText(text: '文章链接不存在');
+      return;
+    }
+
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        getLogger().i('✅ 成功在浏览器中打开: $url');
+        // BotToast.showText(text: '已在浏览器中打开');
+      } else {
+        BotToast.showText(text: '无法打开该链接');
+        getLogger().w('⚠️ 无法打开链接: $url');
+      }
+    } catch (e) {
+      BotToast.showText(text: '打开链接失败: $e');
+      getLogger().e('❌ 打开链接失败: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -36,10 +75,10 @@ class ArticleBottomBar extends StatelessWidget {
       child: AnimatedSlide(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeOutBack,
-        offset: isVisible ? Offset.zero : const Offset(0, 2.0),
+        offset: widget.isVisible ? Offset.zero : const Offset(0, 2.0),
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 300),
-          opacity: isVisible ? 1.0 : 0.0,
+          opacity: widget.isVisible ? 1.0 : 0.0,
           child: Container(
             height: 64,
             decoration: BoxDecoration(
@@ -97,30 +136,30 @@ class ArticleBottomBar extends StatelessWidget {
                         icon: Icons.keyboard_arrow_left_rounded,
                         label: '返回',
                         isPrimary: true,
-                        onPressed: onBack,
+                        onPressed: widget.onBack,
                       ),
                       
                       // 中间 - 操作按钮组
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildFloatingButton(
+                          Obx(() => _buildFloatingButton(
                             context,
-                            icon: Icons.bookmark_outline_rounded,
-                            tooltip: '收藏',
-                            onPressed: () {
-                              // TODO: 实现收藏功能
-                            },
-                          ),
-                          const SizedBox(width: 12),
-                          _buildFloatingButton(
-                            context,
-                            icon: Icons.share_rounded,
-                            tooltip: '分享',
-                            onPressed: () {
-                              // TODO: 实现分享功能
-                            },
-                          ),
+                            icon: Icons.explore_outlined,
+                            tooltip: '浏览器打开',
+                            onPressed: _openInBrowser,
+                            isEnabled: articleController.articleUrl.isNotEmpty,
+                          )),
+                          // const SizedBox(width: 12),
+                          // _buildFloatingButton(
+                          //   context,
+                          //   icon: Icons.share_rounded,
+                          //   tooltip: '分享',
+                          //   onPressed: () {
+                          //     // TODO: 实现分享功能
+                          //   },
+                          //   isEnabled: true,
+                          // ),
                         ],
                       ),
                       
@@ -138,8 +177,8 @@ class ArticleBottomBar extends StatelessWidget {
                             useRootNavigator: true,
                             builder: (BuildContext context) {
                               return MoreActionsModal(
-                                articleId: articleId,
-                                onReGenerateSnapshot: onReGenerateSnapshot,
+                                articleId: widget.articleId,
+                                onReGenerateSnapshot: widget.onReGenerateSnapshot,
                               );
                             },
                           );
@@ -220,6 +259,7 @@ class ArticleBottomBar extends StatelessWidget {
     required IconData icon,
     required String tooltip,
     required VoidCallback onPressed,
+    required bool isEnabled,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -229,28 +269,38 @@ class ArticleBottomBar extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onPressed,
+          onTap: isEnabled ? onPressed : null,
           borderRadius: BorderRadius.circular(20),
           splashColor: colorScheme.primary.withOpacity(0.1),
           child: Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isDark 
-                  ? Colors.white.withOpacity(0.08)
-                  : Colors.black.withOpacity(0.04),
+              color: isEnabled 
+                  ? (isDark 
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.black.withOpacity(0.04))
+                  : (isDark 
+                      ? Colors.white.withOpacity(0.03)
+                      : Colors.black.withOpacity(0.02)),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isDark 
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.black.withOpacity(0.06),
+                color: isEnabled 
+                    ? (isDark 
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.06))
+                    : (isDark 
+                        ? Colors.white.withOpacity(0.05)
+                        : Colors.black.withOpacity(0.03)),
                 width: 0.5,
               ),
             ),
             child: Icon(
               icon,
               size: 18,
-              color: colorScheme.onSurface.withOpacity(0.8),
+              color: isEnabled 
+                  ? colorScheme.onSurface.withOpacity(0.8)
+                  : colorScheme.onSurface.withOpacity(0.3),
             ),
           ),
         ),

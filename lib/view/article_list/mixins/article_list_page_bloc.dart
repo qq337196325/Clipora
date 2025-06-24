@@ -56,7 +56,7 @@ mixin ArticleListPageBLoC<T extends StatefulWidget> on State<T> {
     final isDescending = currentSort.isDescending;
 
     print('📱 [ArticleList] 开始获取数据 - type: ${config.type}, offset: $offset, limit: $limit');
-    print('📱 [ArticleList] 配置信息 - categoryId: ${config.categoryId}, categoryName: ${config.categoryName}');
+    print('📱 [ArticleList] 配置信息 - categoryId: ${config.categoryId}, categoryName: ${config.categoryName}, tagId: ${config.tagId}, tagName: ${config.tagName}');
 
     // 特殊情况：如果是分类查询，先做一些数据库状态检查
     if (config.type == ArticleListType.category && config.categoryId != null) {
@@ -84,6 +84,21 @@ mixin ArticleListPageBLoC<T extends StatefulWidget> on State<T> {
         print('📱 [ArticleList] 获取分类文章，categoryId: ${config.categoryId}');
         result = await ArticleService.instance.getCategoryArticlesWithPaging(
           categoryId: config.categoryId!,
+          offset: offset,
+          limit: limit,
+          sortBy: sortBy,
+          isDescending: isDescending,
+        );
+        break;
+
+      case ArticleListType.tag:
+        if (config.tagId == null) {
+          print('❌ [ArticleList] 标签ID为空!');
+          throw Exception('标签ID不能为空');
+        }
+        print('📱 [ArticleList] 获取标签文章，tagId: ${config.tagId}');
+        result = await ArticleService.instance.getTagArticlesWithPaging(
+          tagId: config.tagId!,
           offset: offset,
           limit: limit,
           sortBy: sortBy,

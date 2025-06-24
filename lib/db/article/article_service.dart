@@ -335,6 +335,37 @@ class ArticleService extends GetxService {
     }
   }
 
+  /// 切换文章重要状态
+  Future<bool> toggleImportantStatus(int articleId) async {
+    await _ensureDatabaseInitialized();
+    
+    try {
+      bool newImportantStatus = false;
+      
+      await _dbService.isar.writeTxn(() async {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null) {
+          // 切换重要状态
+          article.isImportant = !article.isImportant;
+          newImportantStatus = article.isImportant;
+          article.updatedAt = DateTime.now();
+          
+          await _dbService.articles.put(article);
+          await _logSyncOperation(SyncOp.update, article);
+          
+          getLogger().i('⭐ 切换文章重要状态: ${article.title} -> ${newImportantStatus ? '重要' : '普通'}');
+        } else {
+          throw Exception('未找到文章');
+        }
+      });
+      
+      return newImportantStatus;
+    } catch (e) {
+      getLogger().e('❌ 切换重要状态失败: $e');
+      rethrow;
+    }
+  }
+
   /// 根据服务端ID查找文章
   Future<ArticleDb?> findArticleByServiceId(String serviceId) async {
     await _ensureDatabaseInitialized();
@@ -972,6 +1003,77 @@ class ArticleService extends GetxService {
       return results;
     } catch (e) {
       getLogger().e('❌ 分页搜索文章失败: $e');
+      return [];
+    }
+  }
+
+  /// 分页获取标签文章
+  Future<List<ArticleDb>> getTagArticlesWithPaging({
+    required int tagId,
+    required int offset,
+    required int limit,
+    String? sortBy,
+    bool isDescending = true,
+  }) async {
+    await _ensureDatabaseInitialized();
+    
+    print('🔍 [ArticleService] 开始查询标签文章 - tagId: $tagId, offset: $offset, limit: $limit');
+    
+    try {
+      // 首先获取标签
+      final tag = await _dbService.tags.get(tagId);
+      if (tag == null) {
+        print('❌ [ArticleService] 标签不存在: $tagId');
+        return [];
+      }
+      
+      // 加载标签关联的所有文章
+      await tag.articles.load();
+      final allTagArticles = tag.articles.toList();
+      
+      print('🔍 [ArticleService] 标签 "${tag.name}" 下共有 ${allTagArticles.length} 篇文章');
+      
+      // 根据排序类型排序
+      List<ArticleDb> sortedArticles = List.from(allTagArticles);
+      switch (sortBy) {
+        case 'createTime':
+          sortedArticles.sort((a, b) => isDescending 
+              ? b.createdAt.compareTo(a.createdAt)
+              : a.createdAt.compareTo(b.createdAt));
+          break;
+        case 'modifyTime':
+          sortedArticles.sort((a, b) => isDescending 
+              ? b.updatedAt.compareTo(a.updatedAt)
+              : a.updatedAt.compareTo(b.updatedAt));
+          break;
+        case 'name':
+          sortedArticles.sort((a, b) => isDescending 
+              ? b.title.compareTo(a.title)
+              : a.title.compareTo(b.title));
+          break;
+        default:
+          sortedArticles.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      }
+      
+      // 应用分页
+      final startIndex = offset;
+      final endIndex = (offset + limit).clamp(0, sortedArticles.length);
+      
+      if (startIndex >= sortedArticles.length) {
+        return [];
+      }
+      
+      final results = sortedArticles.sublist(startIndex, endIndex);
+      
+      print('🔍 [ArticleService] 分页后返回 ${results.length} 篇文章 (offset: $offset, limit: $limit)');
+      if (results.isNotEmpty) {
+        print('🔍 [ArticleService] 第一篇文章: ${results.first.title}');
+      }
+      
+      return results;
+    } catch (e) {
+      getLogger().e('❌ 分页获取标签文章失败: $e');
+      print('❌ [ArticleService] 分页获取标签文章失败: $e');
       return [];
     }
   }
