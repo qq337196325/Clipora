@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dio/dio.dart' as dio;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,7 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../basics/logger.dart';
 import '../db/article/article_db.dart';
 import '../db/article/article_service.dart';
-import '../api/user_api.dart';
+
 
 enum SnapshotType {
   mhtml,
@@ -117,21 +116,21 @@ class SnapshotService extends GetxService {
       return;
     }
 
-    if (result.success && result.filePath != null) {
-      getLogger().i('✅ 快照已生成 (${result.type.name}): ${result.filePath}');
-      
-      // 调用上传服务器的逻辑
-      final uploadSuccess = await uploadSnapshotToServer(result.filePath!);
-      if (uploadSuccess) {
-        // 更新数据库
-        await ArticleService.instance.updateArticleSnapshotInfo(article.id, result.filePath!);
-        getLogger().i('✅ 文章 "${article.title}" 快照处理完成');
-      } else {
-        getLogger().w('⚠️ 快照生成成功但上传失败，文章: "${article.title}"');
-      }
-    } else {
-      getLogger().e('❌ 所有快照方式都失败了，文章: "${article.title}", 错误: ${result.error}');
-    }
+    // if (result.success && result.filePath != null) {
+    //   getLogger().i('✅ 快照已生成 (${result.type.name}): ${result.filePath}');
+    //
+    //   // 调用上传服务器的逻辑
+    //   final uploadSuccess = await uploadSnapshotToServer(result.filePath!);
+    //   if (uploadSuccess) {
+    //     // 更新数据库
+    //     await ArticleService.instance.updateArticleSnapshotInfo(article.id, result.filePath!);
+    //     getLogger().i('✅ 文章 "${article.title}" 快照处理完成');
+    //   } else {
+    //     getLogger().w('⚠️ 快照生成成功但上传失败，文章: "${article.title}"');
+    //   }
+    // } else {
+    //   getLogger().e('❌ 所有快照方式都失败了，文章: "${article.title}", 错误: ${result.error}');
+    // }
   }
 
   Future<SnapshotResult> _tryMhtmlSnapshot(ArticleDb article) async {
@@ -282,104 +281,6 @@ class SnapshotService extends GetxService {
     return snapshotDir;
   }
 
-  // 实现上传快照到服务器的逻辑
-  Future<bool> uploadSnapshotToServer(String snapshotPath) async {
-    try {
-      getLogger().i('🔄 开始上传快照到服务器: $snapshotPath');
 
-      // 1. 从文件路径中提取文章ID
-      final fileName = snapshotPath.split('/').last;
-      final parts = fileName.split('_');
-      if (parts.length < 2 || parts[0] != 'snapshot') {
-        getLogger().e('上传失败：无效的快照文件名格式: $fileName');
-        return false;
-      }
-      final articleId = int.tryParse(parts[1]);
-      if (articleId == null) {
-        getLogger().e('上传失败：无法从文件名中解析文章ID: $fileName');
-        return false;
-      }
-
-      // 2. 根据ID从数据库获取文章信息
-      final article = await ArticleService.instance.getArticleById(articleId);
-      if (article == null) {
-        getLogger().e('上传失败：未找到ID为 $articleId 的文章');
-        return false;
-      }
-
-      final serviceArticleId = article.serviceId;
-
-      // 3. 检查文件和文章服务器ID的有效性
-      if (snapshotPath.isEmpty) {
-        getLogger().e('上传失败：文件路径为空');
-        return false;
-      }
-
-      if (serviceArticleId.isEmpty) {
-        getLogger().e('上传失败：文章尚未同步到服务器，无法上传快照');
-        return false;
-      }
-
-      if (!_isValidObjectId(serviceArticleId)) {
-        getLogger().e('上传失败：无效的文章服务端ID格式: "$serviceArticleId"');
-        return false;
-      }
-
-      // 4. 准备并执行上传
-      final File file = File(snapshotPath);
-      if (!await file.exists()) {
-        getLogger().e('上传失败：快照文件不存在于 $snapshotPath');
-        return false;
-      }
-
-      final uploadFileName = snapshotPath.split('/').last;
-      final dio.FormData formData = dio.FormData.fromMap({
-        "service_article_id": serviceArticleId,
-        'file': await dio.MultipartFile.fromFile(
-          snapshotPath,
-          filename: uploadFileName,
-        ),
-      });
-
-      final response = await UserApi.uploadMhtmlApi(formData);
-
-      if (response['code'] == 0) {
-        getLogger().i('✅ 快照上传成功！');
-        return true;
-      } else {
-        getLogger().e('❌ 快照上传失败: ${response['message'] ?? '未知错误'}');
-        return false;
-      }
-    } catch (e) {
-      getLogger().e('❌ 快照上传过程中发生异常: $e');
-      return false;
-    }
-  }
-
-
-  /// 验证MongoDB ObjectID格式
-  /// ObjectID应该是24位十六进制字符串，且不能是全0
-  bool _isValidObjectId(String id) {
-    // 检查长度
-    if (id.length != 24) {
-      getLogger().w('ObjectID长度错误: ${id.length}, 期望: 24');
-      return false;
-    }
-
-    // 检查是否为十六进制字符串
-    final hexPattern = RegExp(r'^[0-9a-fA-F]{24}$');
-    if (!hexPattern.hasMatch(id)) {
-      getLogger().w('ObjectID格式错误，应为24位十六进制字符串: "$id"');
-      return false;
-    }
-
-    // 检查是否为全0（无效的ObjectID）
-    if (id == '000000000000000000000000') {
-      getLogger().w('ObjectID不能为全0: "$id"');
-      return false;
-    }
-
-    return true;
-  }
 
 } 

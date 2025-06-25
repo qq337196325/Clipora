@@ -15,7 +15,11 @@ class ArticleBottomBar extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onGenerateSnapshot;
   final VoidCallback onReGenerateSnapshot;
+  final VoidCallback onReGenerateMarkdown;
   final int articleId;
+  final TabController currentTab;
+  final int? webTabIndex;
+  final List<String>? tabs;
 
   const ArticleBottomBar({
     super.key,
@@ -24,7 +28,11 @@ class ArticleBottomBar extends StatefulWidget {
     required this.onBack,
     required this.onGenerateSnapshot,
     required this.onReGenerateSnapshot,
+    required this.onReGenerateMarkdown,
     required this.articleId,
+    required this.currentTab,
+    this.webTabIndex,
+    this.tabs,
   });
 
   @override
@@ -148,16 +156,6 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
                             onPressed: _openInBrowser,
                             isEnabled: articleController.articleUrl.isNotEmpty,
                           )),
-                          // const SizedBox(width: 12),
-                          // _buildFloatingButton(
-                          //   context,
-                          //   icon: Icons.share_rounded,
-                          //   tooltip: '分享',
-                          //   onPressed: () {
-                          //     // TODO: 实现分享功能
-                          //   },
-                          //   isEnabled: true,
-                          // ),
                         ],
                       ),
                       
@@ -177,6 +175,10 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
                               return MoreActionsModal(
                                 articleId: widget.articleId,
                                 onReGenerateSnapshot: widget.onReGenerateSnapshot,
+                                onReGenerateMarkdown: widget.onReGenerateMarkdown,
+                                currentTab: widget.currentTab,
+                                webTabIndex: widget.webTabIndex,
+                                tabs: widget.tabs,
                               );
                             },
                           );

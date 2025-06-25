@@ -1,42 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import '../../../../basics/logger.dart';
 import '../../controller/article_controller.dart';
-import '../../utils/snapshot_utils.dart';
+import '../../utils/snapshot_base_utils.dart';
 import '../../../../db/article/article_service.dart';
 import '../../../../api/user_api.dart';
+import '../../../../db/annotation/enhanced_annotation_service.dart';
 
 /// MHTML快照生成工具类
-class GenerateMhtmlUtils {
-  
-  /// 生成MHTML快照并保存到本地
-  static Future<void> generateMHTMLSnapshot({
-    required InAppWebViewController? webViewController,
-    required ArticleController articleController,
-    required Function(String)? onSnapshotCreated,
-    required Function(bool) onLoadingStateChanged,
-    required bool mounted,
-    required VoidCallback? onMarkdownGenerated,
-  }) async {
-    await SnapshotUtils.generateAndProcessSnapshot(
-        webViewController: webViewController,
-        articleId: articleController.articleId,
-        onSnapshotCreated: onSnapshotCreated,
-        onLoadingStateChanged: onLoadingStateChanged,
-        onSuccess: (status) async { /// 生成快照并且上传到服务器以后执行的操作
-          getLogger().i('🎯 MHTML快照上传成功，开始获取Markdown内容');
-          await fetchMarkdownFromServer(
-            articleController: articleController,
-            onMarkdownGenerated: onMarkdownGenerated,
-          );
-        }
-    );
-  }
+class GenerateMhtmlUtils extends SnapshotBaseUtils {
 
   /// 检查是否需要自动生成MHTML快照
-  static Future<void> checkAndGenerateSnapshotIfNeeded({
-    required InAppWebViewController? webViewController,
+  Future<void> checkAndGenerateSnapshotIfNeeded({
     required ArticleController articleController,
     required Function(String)? onSnapshotCreated,
     required Function(bool) onLoadingStateChanged,
@@ -78,15 +53,16 @@ class GenerateMhtmlUtils {
 
       getLogger().i('🚀 开始自动生成MHTML快照: ${article.title}');
 
-      // 生成快照（使用现有的方法）
-      await generateMHTMLSnapshot(
-        webViewController: webViewController,
-        articleController: articleController,
-        onSnapshotCreated: onSnapshotCreated,
-        onLoadingStateChanged: onLoadingStateChanged,
-        mounted: mounted,
-        onMarkdownGenerated: onMarkdownGenerated,
-      );
+      // 生成快照
+      final filePath = await generateSnapshot();
+      updateArticleSnapshot(filePath,articleController.articleId); // 将快照目录更新到数据库
+      final uploadStatus = await uploadSnapshotToServer(filePath,articleController.articleId); // 上传快照到服务器
+      if(uploadStatus){
+        await fetchMarkdownFromServer(
+          articleController: articleController,
+          onMarkdownGenerated: onMarkdownGenerated,
+        );
+      }
 
       getLogger().i('✅ 自动MHTML快照生成完成: ${article.title}');
 
@@ -96,9 +72,10 @@ class GenerateMhtmlUtils {
   }
 
   /// 从服务端获取Markdown内容
-  static Future<void> fetchMarkdownFromServer({
+  Future<void> fetchMarkdownFromServer({
     required ArticleController articleController,
     required VoidCallback? onMarkdownGenerated,
+    bool isReCreate = false,
   }) async {
     try {
       // 获取当前文章
@@ -115,14 +92,14 @@ class GenerateMhtmlUtils {
       }
 
       // 检查是否有serviceId
-      if (article.markdownStatus != 0) {
+      if (!isReCreate && article.markdownStatus != 0) {
         getLogger().w('⚠️ article的markdownStatus状态非0，不自动获取');
         return;
       }
 
       // 等待服务端处理MHTML转换为Markdown（延迟10秒让服务端有足够时间处理）
-      getLogger().i('⏳ 等待服务端处理MHTML转Markdown，延迟10秒...');
-      await Future.delayed(const Duration(seconds: 4));
+      getLogger().i('⏳ 等待服务端处理MHTML转Markdown，延迟3秒...');
+      await Future.delayed(const Duration(seconds: 3));
 
       // 重试机制：最多重试3次，每次间隔5秒
       for (int retry = 0; retry < 5; retry++) {
@@ -137,11 +114,20 @@ class GenerateMhtmlUtils {
             final markdownContent = response['data']['markdown_content'] as String? ?? '';
             final title = response['data']['title'] as String? ?? '';
 
-            getLogger().i('📊 服务端返回： 内容长度=${markdownContent.length}');
-
             if (markdownContent.isNotEmpty) {
               // Markdown已生成成功
               getLogger().i('✅ Markdown获取成功，长度: ${markdownContent.length}');
+              
+              // 如果是重新生成，先删除所有标注和高亮
+              if (isReCreate) {
+                try {
+                  final deletedCount = await EnhancedAnnotationService.instance.clearArticleAnnotations(article.id);
+                  getLogger().i('🗑️ 重新生成时已删除 $deletedCount 个标注和高亮');
+                } catch (e) {
+                  getLogger().e('❌ 删除标注失败: $e');
+                }
+              }
+              
               await ArticleService.instance.updateArticleMarkdown(article.id, markdownContent, title);
 
               // 刷新当前文章数据
@@ -161,9 +147,7 @@ class GenerateMhtmlUtils {
         }
 
         // 如果不是最后一次重试，等待5秒后再试
-        if (retry < 2) {
-          await Future.delayed(const Duration(seconds: 5));
-        }
+        await Future.delayed(const Duration(seconds: 3));
       }
 
       getLogger().w('⚠️ 多次重试后仍无法获取Markdown内容，放弃');

@@ -81,7 +81,76 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
                   Navigator.of(context).pop();
                 },
                 onGenerateSnapshot: generateSnapshot,
-                onReGenerateSnapshot: () => (_webWidgetKey.currentState)?.createSnapshot(),
+                onReGenerateSnapshot: () async {
+                  getLogger().i('🎯 开始重新生成快照');
+                  
+                  try {
+                    // 1. 首先生成新的快照
+                    await (_webWidgetKey.currentState)?.createSnapshot();
+                    
+                    // 2. 等待一短时间，确保快照生成完成
+                    await Future.delayed(const Duration(milliseconds: 500));
+                    
+                    // 3. 获取最新的文章数据（包含新的mhtmlPath）
+                    await articleController.refreshCurrentArticle();
+                    
+                    // 4. 直接调用 ArticleMhtmlWidget 的方法加载新快照
+                    final mhtmlState = _mhtmlWidgetKey.currentState;
+
+                    if (mhtmlState != null && articleController.hasArticle) {
+                      final currentArticle = articleController.currentArticle!;
+
+                      if (currentArticle.mhtmlPath.isNotEmpty) {
+                        await mhtmlState.loadNewSnapshot(currentArticle.mhtmlPath);
+                      } else {
+                        await mhtmlState.reloadSnapshot();
+                      }
+                    } else {
+                      getLogger().w('⚠️ 无法获取快照widget状态或文章数据');
+                      getLogger().w('   mhtmlState: ${mhtmlState?.runtimeType}');
+                      getLogger().w('   hasArticle: ${articleController.hasArticle}');
+                    }
+                    
+                    BotToast.showText(text: '快照更新成功');
+                  } catch (e) {
+                    getLogger().e('❌ 重新生成快照失败: $e');
+                    BotToast.showText(text: '快照更新失败: $e');
+                  }
+                },
+                onReGenerateMarkdown: () async {
+                  getLogger().i('🎯 开始重新生成Markdown');
+                  
+                  try {
+                    // 1. 首先生成新的Markdown
+                    await (_webWidgetKey.currentState)?.createMarkdown();
+
+                    // 3. 获取最新的文章数据（包含新的markdown内容）
+                    await articleController.refreshCurrentArticle();
+                    
+                    // 4. 更新本地Markdown内容状态
+                    final currentArticle = articleController.currentArticle;
+                    if (currentArticle != null && currentArticle.markdown.isNotEmpty) {
+
+                      // 5. 直接调用 ArticleMarkdownWidget 的方法重新加载内容
+                      final markdownState = _markdownWidgetKey.currentState;
+                      if (markdownState != null) {
+                        getLogger().i('📄 调用Markdown组件重新加载方法');
+                        await markdownState.reloadMarkdownContent();
+                      }
+
+                      BotToast.showText(text: '图文更新成功');
+                    } else {
+                      getLogger().w('⚠️ 未获取到新的Markdown内容');
+                      BotToast.showText(text: 'Markdown生成中，请稍后查看');
+                    }
+                  } catch (e) {
+                    getLogger().e('❌ 重新生成Markdown失败: $e');
+                    BotToast.showText(text: 'Markdown更新失败: $e');
+                  }
+                },
+                currentTab: tabController,
+                webTabIndex: _getWebTabIndex(),
+                tabs: tabs,
               ),
             ],
           ),
@@ -157,6 +226,9 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   
   // 用于存储ArticleWebWidget的GlobalKey，以便调用其方法
   final GlobalKey<ArticlePageState> _webWidgetKey = GlobalKey<ArticlePageState>();
+  final GlobalKey<ArticleMhtmlWidgetState> _mhtmlWidgetKey = GlobalKey<ArticleMhtmlWidgetState>();
+  final GlobalKey<_KeepAliveWrapperState> _mhtmlWidgetKey2 = GlobalKey<_KeepAliveWrapperState>();
+  final GlobalKey<ArticleMarkdownWidgetState> _markdownWidgetKey = GlobalKey<ArticleMarkdownWidgetState>();
 
   String snapshotPath = "";
   bool isUploading = false; // 添加上传状态标识
@@ -179,9 +251,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   void initState() {
     super.initState();
     articleController.articleId = widget.id;
-
-    // 进入沉浸式模式，隐藏系统状态栏
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive); // 进入沉浸式模式，隐藏系统状态栏
     
     // 初始化一个临时的空控制器，它将在数据加载后被替换
     tabController = TabController(
@@ -205,7 +275,9 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     if (article.isGenerateMarkdown) {
       tabs.insert(0, '图文');
     }
-    
+
+
+
     // 根据isGenerateMhtml决定是否显示快照tab
     if (article.isGenerateMhtml) {
       tabs.add('快照');
@@ -391,6 +463,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         return _KeepAliveWrapper(
           shouldKeepAlive: () => !_isPageDisposing,
           child: Obx(() => ArticleMarkdownWidget(
+            key: _markdownWidgetKey,
             markdownContent: _markdownContent.value,
             article: articleController.currentArticle,
             onScroll: _handleScroll,
@@ -414,8 +487,10 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         );
       case '快照':
         return _KeepAliveWrapper(
+          key: _mhtmlWidgetKey2,
           shouldKeepAlive: () => !_isPageDisposing,
           child: ArticleMhtmlWidget(
+            key: _mhtmlWidgetKey,
             mhtmlPath: article.mhtmlPath,
             title: article.title,
             onScroll: _handleScroll,
@@ -446,6 +521,20 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     getLogger().d('🔄 更新缓存widget的padding: $padding');
   }
 
+  /// 强制刷新图文tab的缓存
+  void _forceRefreshMarkdownTab() {
+    getLogger().i('🔄 强制刷新图文tab缓存');
+    
+    // 移除图文tab的缓存
+    _cachedTabWidgets.remove('图文');
+    
+    // 重新构建tabWidget列表（如果当前有图文tab）
+    if (tabs.contains('图文')) {
+      _buildTabWidgetListFromCache();
+      getLogger().i('✅ 图文tab缓存刷新完成');
+    }
+  }
+
   /// 处理滚动事件，用于显示/隐藏UI元素
   void _handleScroll(ScrollDirection direction, double scrollY) {
     // 滚动到顶部，总是显示
@@ -473,13 +562,6 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   /// 加载文章数据
   Future<void> _loadArticleData() async {
     await articleController.loadArticleById(widget.id);
-
-
-    getLogger().i('✅ tabs更新完成 url: ${articleController.currentArticle?.url}');
-    getLogger().i('✅ tabs更新完成 shareOriginalContent: ${articleController.currentArticle?.shareOriginalContent}');
-
-    print('✅ tabs更新完成 url: ${articleController.currentArticle?.url}');
-    print('✅ tabs更新完成 shareOriginalContent: ${articleController.currentArticle?.shareOriginalContent}');
 
     if (articleController.hasArticle) {
       // 数据加载成功后，再初始化tabs
@@ -730,6 +812,9 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     super.dispose();
   }
 
+
+  
+
   /// 同步方式销毁所有WebView组件（用于dispose中）
   void _disposeAllWebViewsSync() {
     try {
@@ -893,24 +978,28 @@ mixin ArticlePageBLoC on State<ArticlePage> {
       getLogger().e('❌ 销毁快照WebView失败: $e');
     }
   }
+
+
 }
 
 /// 用于保持widget状态的包装器
 class _KeepAliveWrapper extends StatefulWidget {
   final Widget child;
   final bool Function()? shouldKeepAlive; // 添加条件判断函数
+  final bool Function()? keepAlive; // 添加条件判断函数
 
   const _KeepAliveWrapper({
+    super.key,
     required this.child,
     this.shouldKeepAlive,
+    this.keepAlive,
   });
 
   @override
   State<_KeepAliveWrapper> createState() => _KeepAliveWrapperState();
 }
 
-class _KeepAliveWrapperState extends State<_KeepAliveWrapper>
-    with AutomaticKeepAliveClientMixin {
+class _KeepAliveWrapperState extends State<_KeepAliveWrapper> with AutomaticKeepAliveClientMixin {
   
   @override
   bool get wantKeepAlive {
@@ -937,6 +1026,10 @@ class _KeepAliveWrapperState extends State<_KeepAliveWrapper>
       updateKeepAlive();
     }
   }
+
+
+
+
   
   @override
   void dispose() {

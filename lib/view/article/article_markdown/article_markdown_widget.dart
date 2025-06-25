@@ -10,7 +10,6 @@ import 'utils/simple_html_template.dart';
 import 'utils/enhanced_markdown_logic.dart';
 import 'utils/selection_menu_logic.dart';
 import 'utils/highlight_menu_logic.dart';
-import 'utils/basic_scripts_logic.dart';
 
 
 class ArticleMarkdownWidget extends StatefulWidget {
@@ -30,10 +29,10 @@ class ArticleMarkdownWidget extends StatefulWidget {
   });
 
   @override
-  State<ArticleMarkdownWidget> createState() => _ArticlePageState();
+  State<ArticleMarkdownWidget> createState() => ArticleMarkdownWidgetState();
 }
 
-class _ArticlePageState extends State<ArticleMarkdownWidget> with SelectionMenuLogic<ArticleMarkdownWidget>, HighlightMenuLogic<ArticleMarkdownWidget>, EnhancedMarkdownLogic<ArticleMarkdownWidget> {
+class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with SelectionMenuLogic<ArticleMarkdownWidget>, HighlightMenuLogic<ArticleMarkdownWidget>, EnhancedMarkdownLogic<ArticleMarkdownWidget> {
   final GlobalKey _webViewKey = GlobalKey();
 
   String get markdownContent => widget.markdownContent;
@@ -49,6 +48,68 @@ class _ArticlePageState extends State<ArticleMarkdownWidget> with SelectionMenuL
 
   double _lastScrollY = 0.0;
   Timer? _savePositionTimer;
+
+  /// 重新加载Markdown内容
+  /// 供外部调用的公开方法
+  Future<void> reloadMarkdownContent() async {
+    getLogger().i('🔄 重新加载Markdown内容');
+    
+    if (webViewController != null) {
+      try {
+        // 方式1：直接重新加载WebView（简单直接）
+        await webViewController!.reload();
+        getLogger().i('✅ WebView重新加载完成');
+        
+        // 注意：reload后会触发onLoadStop，在那里会重新渲染新的Markdown内容
+      } catch (e) {
+        getLogger().e('❌ 重新加载WebView失败，尝试直接更新内容: $e');
+        
+        // 方式2：如果reload失败，尝试直接更新内容
+        try {
+          await _renderMarkdownContent();
+          getLogger().i('✅ 直接更新Markdown内容完成');
+        } catch (e2) {
+          getLogger().e('❌ 直接更新Markdown内容也失败: $e2');
+        }
+      }
+    } else {
+      getLogger().w('⚠️ WebView控制器不存在，无法重新加载');
+    }
+  }
+
+  /// 渲染Markdown内容到WebView
+  Future<void> _renderMarkdownContent() async {
+    if (webViewController == null || markdownContent.isEmpty) return;
+    
+    try {
+      // 安全地转义Markdown内容
+      final escapedMarkdown = markdownContent
+          .replaceAll('\\', '\\\\')    // 转义反斜杠
+          .replaceAll('`', '\\`')      // 转义反引号
+          .replaceAll('\$', '\\\$')    // 转义美元符号
+          .replaceAll('\n', '\\n')     // 转义换行符
+          .replaceAll('\r', '\\r');    // 转义回车符
+      
+      // 使用JavaScript直接更新Markdown内容
+      await webViewController!.evaluateJavascript(source: '''
+        if (typeof renderMarkdown === 'function') {
+          const markdownText = `$escapedMarkdown`;
+          const success = renderMarkdown(markdownText);
+          if (success) {
+            console.log('✅ Markdown内容更新成功，长度: ' + markdownText.length);
+          } else {
+            console.error('❌ Markdown渲染失败');
+          }
+        } else {
+          console.error('❌ renderMarkdown函数不存在');
+        }
+      ''');
+      
+      getLogger().i('📄 Markdown内容已重新渲染到WebView，长度: ${markdownContent.length}');
+    } catch (e) {
+      getLogger().e('❌ 渲染Markdown内容失败: $e');
+    }
+  }
 
   @override
   void initState() {

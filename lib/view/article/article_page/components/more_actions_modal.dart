@@ -2,7 +2,6 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../controller/article_controller.dart';
 import 'move_to_category_modal.dart';
@@ -31,14 +30,22 @@ class _ActionItem {
 
 class MoreActionsModal extends StatefulWidget {
   final VoidCallback? onReGenerateSnapshot;
+  final VoidCallback? onReGenerateMarkdown;
   final int articleId;
   final ArticleDb? article;
+  final TabController currentTab;
+  final int? webTabIndex;
+  final List<String>? tabs;
 
   const MoreActionsModal({
     super.key, 
     this.onReGenerateSnapshot, 
+    this.onReGenerateMarkdown,
     required this.articleId,
     this.article,
+    required this.currentTab,
+    this.webTabIndex,
+    this.tabs,
   });
 
   @override
@@ -87,33 +94,6 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
   void _showToast(BuildContext context, String message) {
     Navigator.of(context).pop();
     BotToast.showText(text: '$message 功能待开发');
-  }
-
-  /// 浏览器访问功能
-  Future<void> _openInBrowser(BuildContext context) async {
-    final url = articleController.articleUrl;
-    
-    if (url.isEmpty) {
-      BotToast.showText(text: '文章链接不存在');
-      return;
-    }
-
-    try {
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        Navigator.of(context).pop();
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        getLogger().i('✅ 成功在浏览器中打开: $url');
-      } else {
-        Navigator.of(context).pop();
-        BotToast.showText(text: '无法打开该链接');
-        getLogger().w('⚠️ 无法打开链接: $url');
-      }
-    } catch (e) {
-      Navigator.of(context).pop();
-      BotToast.showText(text: '打开链接失败: $e');
-      getLogger().e('❌ 打开链接失败: $e');
-    }
   }
 
   /// 复制链接功能
@@ -202,6 +182,29 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
       Navigator.of(context).pop();
       BotToast.showText(text: '操作失败：$e');
     }
+  }
+
+  /// 检查是否在网页tab
+  bool _isInWebTab() {
+    if (widget.webTabIndex == null) {
+      return true; // 如果无法获取tab信息，默认允许操作
+    }
+
+    if(widget.tabs?[widget.currentTab.index] == "网页"){
+      return true;
+    }
+    return false;
+    // return widget.currentTabIndex == widget.webTabIndex;
+  }
+
+
+  /// 显示需要切换到网页tab的提示
+  void _showSwitchToWebTabHint(BuildContext context, String actionName) {
+    Navigator.of(context).pop();
+    BotToast.showText(
+      text: '请切换到"网页"标签页进行$actionName操作',
+      duration: const Duration(seconds: 3),
+    );
   }
 
   /// 显示删除确认对话框
@@ -372,18 +375,39 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
         onTap: () => _copyLink(context),
         isEnabled: hasUrl,
       ),
-      _ActionItem(icon: Icons.refresh, label: '刷新解析', onTap: () => _showToast(context, '刷新文章解析')),
-      _ActionItem(
-          icon: Icons.camera_alt_outlined,
-          label: '重新生成快照',
-          onTap: () {
-            if (widget.onReGenerateSnapshot != null) {
-              Navigator.of(context).pop();
-              widget.onReGenerateSnapshot!();
-            } else {
-              _showToast(context, '重新生成快照');
-            }
-          }),
+            _ActionItem(
+        icon: Icons.refresh,
+        label: '刷新解析',
+        onTap: () {
+          if (!_isInWebTab()) {
+            _showSwitchToWebTabHint(context, '刷新解析');
+            return;
+          }
+          
+          if (widget.onReGenerateMarkdown != null) {
+            Navigator.of(context).pop();
+            widget.onReGenerateMarkdown!();
+          } else {
+            _showToast(context, '重新刷新解析');
+          }
+        },
+    ),
+    _ActionItem(
+        icon: Icons.camera_alt_outlined,
+        label: '重新生成快照',
+        onTap: () {
+          if (!_isInWebTab()) {
+            _showSwitchToWebTabHint(context, '重新生成快照');
+            return;
+          }
+          
+          if (widget.onReGenerateSnapshot != null) {
+            Navigator.of(context).pop();
+            widget.onReGenerateSnapshot!();
+          } else {
+            _showToast(context, '重新生成快照');
+          }
+        }),
       _ActionItem(icon: Icons.label_outline, label: '标签', onTap: () => _showTagEditModal(context)),
       _ActionItem(icon: Icons.drive_file_move_outline, label: '移动', onTap: () => _showMoveToCategoryModal(context)),
              _ActionItem(

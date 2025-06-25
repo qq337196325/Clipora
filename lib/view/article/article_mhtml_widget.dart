@@ -6,6 +6,50 @@ import 'dart:async';
 
 import '../../basics/logger.dart';
 
+/// ArticleMhtmlWidget - 快照文章显示组件
+/// 
+/// 使用示例：
+/// ```dart
+/// class ParentPage extends StatefulWidget {
+///   @override
+///   State<ParentPage> createState() => _ParentPageState();
+/// }
+/// 
+/// class _ParentPageState extends State<ParentPage> {
+///   final GlobalKey<_ArticlePageState> _articleKey = GlobalKey();
+///   String currentMhtmlPath = 'path/to/snapshot.mhtml';
+/// 
+///   // 重新加载当前快照
+///   Future<void> _reloadCurrentSnapshot() async {
+///     await _articleKey.currentState?.reloadSnapshot();
+///   }
+/// 
+///   // 加载新的快照文件
+///   Future<void> _loadNewSnapshot(String newPath) async {
+///     await _articleKey.currentState?.loadNewSnapshot(newPath);
+///   }
+/// 
+///   // 检查加载状态
+///   bool get isLoading => _articleKey.currentState?.isSnapshotLoading ?? false;
+/// 
+///   @override
+///   Widget build(BuildContext context) {
+///     return Scaffold(
+///       body: ArticleMhtmlWidget(
+///         key: _articleKey,
+///         mhtmlPath: currentMhtmlPath,
+///         onScroll: (direction, scrollY) {
+///           // 处理滚动事件
+///         },
+///       ),
+///       floatingActionButton: FloatingActionButton(
+///         onPressed: _reloadCurrentSnapshot,
+///         child: Icon(Icons.refresh),
+///       ),
+///     );
+///   }
+/// }
+/// ```
 
 class ArticleMhtmlWidget extends StatefulWidget {
   final String mhtmlPath;  // MHTML文件路径
@@ -22,11 +66,68 @@ class ArticleMhtmlWidget extends StatefulWidget {
   });
 
   @override
-  State<ArticleMhtmlWidget> createState() => _ArticlePageState();
+  State<ArticleMhtmlWidget> createState() => ArticleMhtmlWidgetState();
 }
 
-class _ArticlePageState extends State<ArticleMhtmlWidget> with ArticlePageBLoC {
+class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePageBLoC {
   double _lastScrollY = 0.0;
+
+  /// 重新加载当前快照
+  /// 供外部调用的公开方法
+  Future<void> reloadSnapshot() async {
+    await _reloadMhtml();
+  }
+
+  /// 加载新的快照文件
+  /// [newMhtmlPath] 新的MHTML文件路径
+  /// 供外部调用的公开方法，用于加载新生成的快照
+  Future<void> loadNewSnapshot(String newMhtmlPath) async {
+    getLogger().i('🔄 加载新的快照文件: $newMhtmlPath');
+    
+    // 重置状态
+    setState(() {
+      hasError = false;
+      errorMessage = '';
+      isLoading = true;
+    });
+    
+    // 先验证新的快照文件
+    final isValid = await validateSnapshotFile(newMhtmlPath);
+    if (!isValid) {
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+    
+    // 如果路径相同，直接重新加载
+    if (newMhtmlPath == widget.mhtmlPath) {
+      await _reloadMhtml();
+      return;
+    }
+    
+    // 如果路径不同，需要重新加载新的URL
+    if (webViewController != null) {
+      final newUrl = 'file://$newMhtmlPath';
+      getLogger().i('📄 加载新快照URL: $newUrl');
+      await webViewController!.loadUrl(urlRequest: URLRequest(url: WebUri(newUrl)));
+    } else {
+      // 如果WebView控制器不存在，重新初始化
+      await _initializeMhtmlView();
+    }
+  }
+
+  /// 获取当前快照的加载状态
+  /// 供外部查询使用
+  bool get isSnapshotLoading => isLoading;
+  
+  /// 获取当前快照是否有错误
+  /// 供外部查询使用
+  bool get hasSnapshotError => hasError;
+  
+  /// 获取当前快照的错误信息
+  /// 供外部查询使用
+  String get snapshotErrorMessage => errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -287,6 +388,46 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
     } else {
       // 如果WebView控制器不存在，重新初始化
       await _initializeMhtmlView();
+    }
+    setState(() {});
+  }
+
+  // 验证快照文件是否有效
+  Future<bool> validateSnapshotFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      
+      // 检查文件是否存在
+      if (!file.existsSync()) {
+        getLogger().e('❌ 快照文件不存在: $filePath');
+        setState(() {
+          hasError = true;
+          errorMessage = '快照文件不存在\n路径: $filePath';
+        });
+        return false;
+      }
+      
+      // 检查文件大小
+      final fileSize = await file.length();
+      if (fileSize == 0) {
+        getLogger().e('❌ 快照文件为空: $filePath');
+        setState(() {
+          hasError = true;
+          errorMessage = '快照文件为空\n路径: $filePath';
+        });
+        return false;
+      }
+      
+      getLogger().i('✅ 快照文件验证通过: $filePath (${(fileSize / 1024).toStringAsFixed(2)} KB)');
+      return true;
+      
+    } catch (e) {
+      getLogger().e('❌ 验证快照文件失败: $e');
+      setState(() {
+        hasError = true;
+        errorMessage = '验证快照文件失败: $e';
+      });
+      return false;
     }
   }
 

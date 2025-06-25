@@ -1,5 +1,6 @@
+import 'package:bot_toast/bot_toast.dart';
+import 'package:clipora/view/article/article_web/utils/auto_generate_utils.dart';
 import 'package:clipora/view/article/article_web/utils/web_utils.dart';
-import 'package:clipora/view/article/article_web/utils/generate_mhtml_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -38,23 +39,7 @@ class ArticleWebWidget extends StatefulWidget {
 class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
   double _lastScrollY = 0.0;
 
-  // 公共方法：供外部调用生成快照
-  Future<void> createSnapshot() async {
-    await GenerateMhtmlUtils.generateMHTMLSnapshot(
-      webViewController: webViewController,
-      articleController: articleController,
-      onSnapshotCreated: widget.onSnapshotCreated,
-      onLoadingStateChanged: (loading) {
-        if (mounted) {
-          setState(() {
-            isLoading = loading;
-          });
-        }
-      },
-      mounted: mounted,
-      onMarkdownGenerated: widget.onMarkdownGenerated,
-    );
-  }
+
 
 
   @override
@@ -148,8 +133,8 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 finalizeWebPageOptimization(url,webViewController);
                 
                 // 检查是否需要自动生成MHTML快照（异步执行，不阻塞主线程）
-                GenerateMhtmlUtils.checkAndGenerateSnapshotIfNeeded(
-                  webViewController: webViewController,
+                generateMhtmlUtils.webViewController = webViewController;
+                generateMhtmlUtils.checkAndGenerateSnapshotIfNeeded(
                   articleController: articleController,
                   onSnapshotCreated: widget.onSnapshotCreated,
                   onLoadingStateChanged: (loading) {
@@ -225,11 +210,6 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
     return NavigationActionPolicy.ALLOW;
   }
 
-
-
-
-
-
 }
 
 
@@ -237,6 +217,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
 mixin ArticlePageBLoC on State<ArticleWebWidget> {
 
   final ArticleController articleController = Get.find<ArticleController>();
+  GenerateMhtmlUtils generateMhtmlUtils = GenerateMhtmlUtils();
 
   // WebView控制器
   InAppWebViewController? webViewController;
@@ -257,6 +238,40 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   void initState() {
     super.initState();
     _initializeBrowserSimulation();
+  }
+
+  /// 公共方法：供外部调用生成快照
+  Future<void> createSnapshot() async {
+    final filePath = await generateMhtmlUtils.generateSnapshot();
+    if(filePath.isEmpty){
+      BotToast.showText(text: '保存快照失败');
+      return;
+    }
+    final updateStatus = await generateMhtmlUtils.updateArticleSnapshot(filePath,articleController.articleId);
+    if(!updateStatus){
+      BotToast.showText(text: '保存快照到数据库失败');
+    }
+
+
+  }
+
+
+  /// 公共方法：供外部调用生成Markdown
+  Future<void> createMarkdown() async {
+    final filePath = await generateMhtmlUtils.generateSnapshot();
+    if(filePath.isEmpty){
+      BotToast.showText(text: '保存快照失败');
+      return;
+    }
+
+    final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath,articleController.articleId); // 上传快照到服务器
+    if(uploadStatus){
+      await generateMhtmlUtils.fetchMarkdownFromServer(
+        articleController: articleController,
+        onMarkdownGenerated: widget.onMarkdownGenerated,
+        isReCreate: true,
+      );
+    }
   }
 
   /// 初始化浏览器仿真功能
