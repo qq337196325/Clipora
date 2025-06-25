@@ -43,6 +43,7 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) {
           getLogger().i('🔄 页面即将返回，开始预处理WebView销毁');
+
           await _prepareForPageExit();
         }
       },
@@ -78,6 +79,7 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
                 bottomBarHeight: _bottomBarHeight,
                 onBack: () async {
                   await _prepareForPageExit();
+                  await (_markdownWidgetKey.currentState)?.manualSavePosition();
                   Navigator.of(context).pop();
                 },
                 onGenerateSnapshot: generateSnapshot,
@@ -521,19 +523,6 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     getLogger().d('🔄 更新缓存widget的padding: $padding');
   }
 
-  /// 强制刷新图文tab的缓存
-  void _forceRefreshMarkdownTab() {
-    getLogger().i('🔄 强制刷新图文tab缓存');
-    
-    // 移除图文tab的缓存
-    _cachedTabWidgets.remove('图文');
-    
-    // 重新构建tabWidget列表（如果当前有图文tab）
-    if (tabs.contains('图文')) {
-      _buildTabWidgetListFromCache();
-      getLogger().i('✅ 图文tab缓存刷新完成');
-    }
-  }
 
   /// 处理滚动事件，用于显示/隐藏UI元素
   void _handleScroll(ScrollDirection direction, double scrollY) {
@@ -878,6 +867,8 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     getLogger().i('🔄 开始页面退出预处理，准备销毁WebView资源');
     
     try {
+
+      await (_markdownWidgetKey.currentState)?.manualSavePosition();
       // 1. 立即隐藏所有UI组件，避免视觉闪烁
       if (mounted) {
         setState(() {

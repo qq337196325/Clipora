@@ -39,9 +39,6 @@ class ArticleWebWidget extends StatefulWidget {
 class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
   double _lastScrollY = 0.0;
 
-
-
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -54,36 +51,119 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
           ),
         // 错误信息显示
-        // if (hasError)
-        //   Container(
-        //     width: double.infinity,
-        //     padding: const EdgeInsets.all(16),
-        //     color: Colors.red[50],
-        //     child: Column(
-        //       children: [
-        //         Icon(Icons.error_outline, color: Colors.red[600], size: 48),
-        //         const SizedBox(height: 8),
-        //         Text(
-        //           '网页加载失败',
-        //           style: TextStyle(
-        //             color: Colors.red[600],
-        //             fontSize: 16,
-        //             fontWeight: FontWeight.bold,
-        //           ),
-        //         ),
-        //         const SizedBox(height: 4),
-        //         Text(
-        //           errorMessage,
-        //           style: TextStyle(
-        //             color: Colors.red[600],
-        //             fontSize: 14,
-        //           ),
-        //           textAlign: TextAlign.center,
-        //         ),
-        //         const SizedBox(height: 12),
-        //       ],
-        //     ),
-        //   ),
+        if (hasError)
+          Container(
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height - 
+                   (isLoading ? kToolbarHeight : 0) - 
+                   MediaQuery.of(context).padding.top - 
+                   MediaQuery.of(context).padding.bottom,
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 320),
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      offset: const Offset(0, 4),
+                      blurRadius: 16,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                  border: Border.all(
+                    color: Colors.red[100]!,
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 错误图标
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.wifi_off_rounded,
+                        color: Colors.red[500],
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // 错误标题
+                    Text(
+                      '网页加载失败',
+                      style: TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // 错误详情
+                    Text(
+                      errorMessage,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // 重试按钮
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            hasError = false;
+                            isLoading = true;
+                          });
+                          webViewController?.reload();
+                        },
+                        icon: const Icon(
+                          Icons.refresh_rounded,
+                          size: 18,
+                        ),
+                        label: const Text(
+                          '重新加载',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[600],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         // WebView
         if (!hasError)
           Expanded(
@@ -108,6 +188,12 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 });
               },
               onLoadStop: (controller, url) async {
+
+                if(hasError){
+                  return;
+                }
+
+
                 getLogger().i('🌐 Web页面加载完成: $url');
                 setState(() {
                   isLoading = false;
@@ -562,7 +648,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       setState(() {
         isLoading = false;
         hasError = true;
-        errorMessage = '页面加载失败 ($statusCode)\n${errorResponse.reasonPhrase ?? 'Unknown Error'}\n\n这可能是网络问题或网站反爬虫保护。\n请稍后重试或检查网络连接。';
+        errorMessage = '页面加载失败 ($statusCode)\n${errorResponse.reasonPhrase ?? 'Unknown Error'}\n\n部分网站可能会限制在第三方应用打开。';
       });
     }
   }
