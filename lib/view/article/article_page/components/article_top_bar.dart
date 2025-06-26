@@ -23,12 +23,16 @@ class ArticleTopBar extends StatelessWidget {
       child: AnimatedSlide(
         duration: const Duration(milliseconds: 300),
         curve: Curves.fastOutSlowIn,
-        offset: isVisible ? Offset.zero : const Offset(0, -1.5),
-        child: Center(
-          child: Container(
-            width: 220, // 固定宽度，不占满
-            height: topBarHeight,
-            child: _buildCustomTabBar(context),
+        offset: isVisible ? Offset.zero : const Offset(0, -3.0),
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 300),
+          opacity: isVisible ? 1.0 : 0.0,
+          child: Center(
+            child: Container(
+              width: 220, // 固定宽度，不占满
+              height: topBarHeight,
+              child: _buildCustomTabBar(context),
+            ),
           ),
         ),
       ),

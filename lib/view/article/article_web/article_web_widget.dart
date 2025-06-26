@@ -176,9 +176,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 
                 // 设置浏览器仿真功能
                 await _setupBrowserSimulation(controller);
-                
-                // 使用优化的WebView配置
-                // _setupOptimizedWebView(controller);
+
               },
               onLoadStart: (controller, url) {
                 getLogger().i('🌐 开始加载Web页面: $url');
@@ -202,14 +200,85 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 // 注入存储仿真代码
                 await _injectStorageSimulation(controller);
                 
-                // 注入内边距
+                // 注入内边距和修复页面宽度
                 final padding = widget.contentPadding.resolve(Directionality.of(context));
                 controller.evaluateJavascript(source: '''
+                  // 设置内边距
                   document.body.style.paddingTop = '${padding.top}px';
                   document.body.style.paddingBottom = '${padding.bottom}px';
                   document.body.style.paddingLeft = '${padding.left}px';
                   document.body.style.paddingRight = '${padding.right}px';
                   document.documentElement.style.scrollPaddingTop = '${padding.top}px';
+                  
+                  // 修复页面宽度和防止水平滚动
+                  (function() {
+                    console.log('🔧 开始修复页面宽度设置...');
+                    
+                    // 1. 设置或更新viewport meta标签
+                    let viewport = document.querySelector('meta[name="viewport"]');
+                    if (!viewport) {
+                      viewport = document.createElement('meta');
+                      viewport.name = 'viewport';
+                      document.head.appendChild(viewport);
+                    }
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no';
+                    
+                    // 2. 强制设置HTML和body样式
+                    const style = document.createElement('style');
+                    style.textContent = `
+                      html, body {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        min-width: 100% !important;
+                        overflow-x: hidden !important;
+                        overflow-y: auto !important;
+                        box-sizing: border-box !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                      }
+                      
+                      * {
+                        max-width: 100% !important;
+                        box-sizing: border-box !important;
+                      }
+                      
+                      /* 防止图片和视频溢出 */
+                      img, video, iframe, object, embed {
+                        max-width: 100% !important;
+                        height: auto !important;
+                      }
+                      
+                      /* 防止表格溢出 */
+                      table {
+                        max-width: 100% !important;
+                        table-layout: fixed !important;
+                        word-wrap: break-word !important;
+                      }
+                      
+                      /* 防止预格式化文本溢出 */
+                      pre, code {
+                        max-width: 100% !important;
+                        overflow-x: auto !important;
+                        word-wrap: break-word !important;
+                        white-space: pre-wrap !important;
+                      }
+                      
+                      /* 防止容器溢出 */
+                      div, section, article, main, aside, nav, header, footer {
+                        max-width: 100% !important;
+                        overflow-x: hidden !important;
+                      }
+                    `;
+                    document.head.appendChild(style);
+                    
+                    // 3. 重新应用内边距（确保样式重置后仍然生效）
+                    document.body.style.paddingTop = '${padding.top}px';
+                    document.body.style.paddingBottom = '${padding.bottom}px';
+                    document.body.style.paddingLeft = '${padding.left}px';
+                    document.body.style.paddingRight = '${padding.right}px';
+                    
+                    console.log('✅ 页面宽度修复完成');
+                  })();
                 ''');
                 
                 // 注入移动端弹窗处理脚本 - 恢复滚动功能
@@ -514,37 +583,15 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
               });
             }
             
-            // 今日头条/抖音特殊处理
-            if (hostname.includes('toutiao.com') || hostname.includes('douyin.com')) {
-              const ttPopups = document.querySelectorAll(
-                '.download-bar, .app-download-bar, .mobile-download-bar, ' +
-                '[class*="download"], [class*="app-bar"], [id*="download"]'
-              );
-              
-              ttPopups.forEach(popup => {
-                popup.style.display = 'none';
-                console.log('🎯 隐藏头条/抖音APP引导:', popup.className);
-              });
-            }
-            
-            // 微博特殊处理
-            if (hostname.includes('weibo.com')) {
-              const weiboPopups = document.querySelectorAll(
-                '.m-text-download, .m-download-app, .lite-iconfont-back, ' +
-                '[class*="download"], [class*="app-guide"]'
-              );
-              
-              weiboPopups.forEach(popup => {
-                popup.style.display = 'none';
-                console.log('🎯 隐藏微博APP引导:', popup.className);
-              });
-            }
-            
-            // 5. 强制启用滚动 - 最后的保险措施
-            html.style.overflow = 'auto !important';
-            body.style.overflow = 'auto !important';
+            // 5. 强制启用滚动并固定页面宽度 - 最后的保险措施
+            html.style.overflow = 'hidden auto !important';  // 禁用水平滚动，启用垂直滚动
+            body.style.overflow = 'hidden auto !important';  // 禁用水平滚动，启用垂直滚动
             html.style.position = 'static !important';
             body.style.position = 'static !important';
+            html.style.width = '100% !important';
+            body.style.width = '100% !important';
+            html.style.maxWidth = '100% !important';
+            body.style.maxWidth = '100% !important';
             
             console.log('✅ 滚动功能检查修复完成');
             
@@ -828,12 +875,12 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       supportMultipleWindows: true,
       allowsInlineMediaPlayback: true,
       disableLongPressContextMenuOnLinks: true,
-      // [增强浏览器仿真] 启用缩放支持，更像真实浏览器
-      supportZoom: true,
-      builtInZoomControls: true,
-      // [增强浏览器仿真] 隐藏缩放控件，但保持功能启用
+      // [增强浏览器仿真] 禁用缩放功能，避免页面拖动问题
+      supportZoom: false,
+      builtInZoomControls: false,
+      // [增强浏览器仿真] 隐藏缩放控件
       displayZoomControls: false,
-      disableHorizontalScroll: false,
+      disableHorizontalScroll: true,
       disableVerticalScroll: false,
       // [深度反爬虫] 使用稳定的设备配置（将在onWebViewCreated中动态设置）
       userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
