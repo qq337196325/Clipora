@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'dart:async';
+import 'dart:io'; // 添加平台检测
 import 'package:get/get.dart';
 
 import '../../../basics/logger.dart';
@@ -199,6 +200,9 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 
                 // 注入存储仿真代码
                 await _injectStorageSimulation(controller);
+                
+                // 注入平台特定的反检测代码
+                await _injectPlatformSpecificAntiDetection(controller);
                 
                 // 注入内边距和修复页面宽度
                 final padding = widget.contentPadding.resolve(Directionality.of(context));
@@ -553,6 +557,114 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     }
   }
 
+  /// 注入平台特定的反检测代码
+  Future<void> _injectPlatformSpecificAntiDetection(InAppWebViewController controller) async {
+    try {
+      getLogger().i('🛡️ 开始注入平台特定反检测代码 - 平台: ${Platform.isAndroid ? 'Android' : 'iOS'}');
+      
+      String antiDetectionScript;
+      
+      if (Platform.isAndroid) {
+        // Android WebView 特有的反检测代码
+        antiDetectionScript = '''
+        (function() {
+          console.log('🤖 Android WebView 反检测脚本启动');
+          
+          // 1. 隐藏 Android WebView 特征
+          try {
+            // 删除 Android WebView 的特有属性
+            delete window.AndroidBridge;
+            delete window.android;
+            delete window.prompt;
+            
+            // 伪装 Chrome 浏览器特征
+            Object.defineProperty(navigator, 'webdriver', {
+              get: () => undefined,
+              configurable: true
+            });
+            
+            // 隐藏 automation 标记
+            Object.defineProperty(navigator, 'webdriver', {
+              get: () => false,
+              configurable: true
+            });
+            
+            // 模拟 Chrome 的 plugins
+            Object.defineProperty(navigator, 'plugins', {
+              get: () => [
+                {name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer'},
+                {name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai'},
+                {name: 'Native Client', filename: 'internal-nacl-plugin'}
+              ],
+              configurable: true
+            });
+            
+            // 模拟 Chrome 的语言设置
+            Object.defineProperty(navigator, 'languages', {
+              get: () => ['zh-CN', 'zh', 'en-US', 'en'],
+              configurable: true
+            });
+            
+            // 设置正确的设备内存（如果存在）
+            if ('deviceMemory' in navigator) {
+              Object.defineProperty(navigator, 'deviceMemory', {
+                get: () => 8,
+                configurable: true
+              });
+            }
+            
+            // 设置硬件并发数
+            Object.defineProperty(navigator, 'hardwareConcurrency', {
+              get: () => 8,
+              configurable: true
+            });
+            
+            console.log('✅ Android WebView 反检测完成');
+            
+          } catch (e) {
+            console.warn('⚠️ Android 反检测部分失败:', e);
+          }
+        })();
+        ''';
+      } else {
+        // iOS WebView 特有的反检测代码
+        antiDetectionScript = '''
+        (function() {
+          console.log('🍎 iOS WebView 反检测脚本启动');
+          
+          try {
+            // 删除 iOS WebView 的特有属性
+            delete window.webkit;
+            
+            // 确保 Safari 特征正确
+            Object.defineProperty(navigator, 'vendor', {
+              get: () => 'Apple Computer, Inc.',
+              configurable: true
+            });
+            
+            // 模拟 Safari 的 plugins
+            Object.defineProperty(navigator, 'plugins', {
+              get: () => [],
+              configurable: true
+            });
+            
+            console.log('✅ iOS WebView 反检测完成');
+            
+          } catch (e) {
+            console.warn('⚠️ iOS 反检测部分失败:', e);
+          }
+        })();
+        ''';
+      }
+      
+      await controller.evaluateJavascript(source: antiDetectionScript);
+      getLogger().i('✅ 平台特定反检测代码注入完成');
+      
+    } catch (e) {
+      getLogger().e('❌ 注入平台特定反检测代码失败: $e');
+    }
+  }
+
   /// 注入移动端弹窗处理脚本 - 恢复滚动功能
   Future<void> _injectMobilePopupHandler(InAppWebViewController controller) async {
     try {
@@ -840,10 +952,10 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   /// 针对知乎的特殊重试策略
   Future<void> _retryZhihuPage(InAppWebViewController controller, String url) async {
     try {
-      getLogger().i('🎯 执行知乎特定重试策略');
+      getLogger().i('🎯 执行知乎特定重试策略 - 平台: ${Platform.isAndroid ? 'Android' : 'iOS'}');
       
-      // 更新User-Agent为更真实的移动端浏览器
-      final enhancedUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1";
+      // 根据平台使用对应的User-Agent
+      final enhancedUserAgent = _getPlatformOptimizedUserAgent();
       
       await controller.setSettings(settings: InAppWebViewSettings(
         userAgent: enhancedUserAgent,
@@ -854,8 +966,47 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         thirdPartyCookiesEnabled: true,
       ));
       
-      // 添加常见的浏览器请求头
-      final headers = {
+      // 根据平台添加对应的浏览器请求头
+      final headers = _getPlatformOptimizedHeaders();
+      
+      // 重新加载页面
+      await controller.loadUrl(
+        urlRequest: URLRequest(
+          url: WebUri(url),
+          headers: headers,
+        ),
+      );
+      
+      getLogger().i('✅ 知乎页面重试请求已发送 (${Platform.isAndroid ? 'Android Chrome' : 'iOS Safari'} 模式)');
+      
+    } catch (e) {
+      getLogger().e('❌ 知乎重试策略失败: $e');
+      rethrow;
+    }
+  }
+  
+  /// 获取平台优化的请求头 
+  Map<String, String> _getPlatformOptimizedHeaders() {
+    if (Platform.isAndroid) {
+      // Android Chrome 的典型请求头
+      return {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Cache-Control': 'max-age=0',
+        'sec-ch-ua': '"Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+        'sec-ch-ua-mobile': '?1',
+        'sec-ch-ua-platform': '"Android"',
+      };
+    } else {
+      // iOS Safari 的典型请求头
+      return {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -866,36 +1017,20 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         'Sec-Fetch-Site': 'none',
         'Cache-Control': 'max-age=0',
       };
-      
-      // 重新加载页面
-      await controller.loadUrl(
-        urlRequest: URLRequest(
-          url: WebUri(url),
-          headers: headers,
-        ),
-      );
-      
-      getLogger().i('✅ 知乎页面重试请求已发送');
-      
-    } catch (e) {
-      getLogger().e('❌ 知乎重试策略失败: $e');
-      rethrow;
     }
   }
   
   /// 使用增强请求头重试
   Future<void> _retryWithEnhancedHeaders(InAppWebViewController controller, String url) async {
     try {
-      getLogger().i('🔧 使用增强请求头重试');
+      getLogger().i('🔧 使用增强请求头重试 - 平台: ${Platform.isAndroid ? 'Android' : 'iOS'}');
       
-      final headers = {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Accept-Encoding': 'gzip, deflate, br',
+      // 使用平台优化的请求头，并添加一些缓存控制头
+      final headers = _getPlatformOptimizedHeaders();
+      headers.addAll({
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache',
-        'Upgrade-Insecure-Requests': '1',
-      };
+      });
       
       await controller.loadUrl(
         urlRequest: URLRequest(
@@ -904,7 +1039,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         ),
       );
       
-      getLogger().i('✅ 增强请求头重试请求已发送');
+      getLogger().i('✅ 增强请求头重试请求已发送 (${Platform.isAndroid ? 'Android Chrome' : 'iOS Safari'} 模式)');
       
     } catch (e) {
       getLogger().e('❌ 增强请求头重试失败: $e');
@@ -1101,9 +1236,10 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     // 比如重试策略、用户提示等
   }
 
-  /// 获取优化的WebView设置
+  /// 获取平台优化的WebView设置
   InAppWebViewSettings _getWebViewSettings() {
-    return InAppWebViewSettings(
+    // 基础设置
+    final settings = InAppWebViewSettings(
       // 基础JavaScript支持
       javaScriptEnabled: true,
       javaScriptCanOpenWindowsAutomatically: true,
@@ -1113,8 +1249,8 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       databaseEnabled: true,
       thirdPartyCookiesEnabled: true,
       
-      // 使用更新的iOS User-Agent以减少检测概率
-      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1",
+      // 根据平台使用对应的User-Agent - 关键优化点
+      userAgent: _getPlatformOptimizedUserAgent(),
       
       // 网络和安全设置
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
@@ -1145,12 +1281,32 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       // 文件访问权限
       allowFileAccess: true,
       allowContentAccess: true,
-      
-      // iOS特定设置
-      disableInputAccessoryView: true,
-      suppressesIncrementalRendering: false,
     );
+    
+    // 添加平台特定设置
+    if (Platform.isIOS) {
+      settings.disableInputAccessoryView = true;
+      settings.suppressesIncrementalRendering = false;
+    }
+    
+    return settings;
   }
+  
+  /// 获取平台优化的User-Agent
+  String _getPlatformOptimizedUserAgent() {
+    if (Platform.isAndroid) {
+      // Android Chrome User-Agent - 使用最新版本
+      return "Mozilla/5.0 (Linux; Android 14; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36";
+    } else if (Platform.isIOS) {
+      // iOS Safari User-Agent - 使用最新版本
+      return "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1";
+    } else {
+      // 默认使用通用移动端User-Agent
+      return "Mozilla/5.0 (Mobile; rv:109.0) Gecko/109.0 Firefox/119.0";
+    }
+  }
+  
+  
 
   @override
   void dispose() {
