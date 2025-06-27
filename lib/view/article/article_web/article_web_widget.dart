@@ -353,7 +353,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
     
     // 检查是否是应用内跳转scheme
     if (url.startsWith('snssdk') || 
-        url.startsWith('sslocal') || 
+        url.startsWith('sslocal') ||
         url.startsWith('toutiao') ||
         url.startsWith('newsarticle')) {
       getLogger().w('⚠️ 拦截应用跳转scheme: $url');

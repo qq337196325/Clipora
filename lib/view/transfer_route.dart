@@ -3,9 +3,11 @@ import 'package:fluwx/fluwx.dart';
 import 'package:go_router/go_router.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart';
 
 import '../basics/logger.dart';
 import '../route/route_name.dart';
+import '../services/snapshot_service.dart';
 
 
 /// 页面初始时跳转
@@ -23,6 +25,8 @@ class _TransferRouteState extends State<TransferRoute> {
     _init();
     super.initState();
   }
+
+  final SnapshotService snapshotService = Get.find<SnapshotService>();
 
   void _init() async {
 
@@ -47,6 +51,7 @@ class _TransferRouteState extends State<TransferRoute> {
       }
     }
 
+    // SnapshotService
 
     if (token == null || token.isEmpty) {
       getLogger().i('📱 未找到本地token，跳转到登录页面');
