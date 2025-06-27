@@ -132,7 +132,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                             hasError = false;
                             isLoading = true;
                           });
-                          webViewController?.reload();
+                          _retryLoadPage();
                         },
                         icon: const Icon(
                           Icons.refresh_rounded,
@@ -169,7 +169,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
           Expanded(
             child: InAppWebView(
               initialUrlRequest: URLRequest(url: WebUri(articleController.articleUrl)),
-              // initialSettings: _getWebViewSettings(),
+              initialSettings: _getWebViewSettings(),
               onWebViewCreated: (controller) async {
                 webViewController = controller;
                 getLogger().i('🌐 Web页面WebView创建成功');
@@ -385,6 +385,9 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   bool hasError = false;
   String errorMessage = '';
 
+  // 重试计数器 - 记录每个URL的重试次数
+  final Map<String, int> _retryCountMap = {};
+
   // 浏览器仿真管理器
   BrowserSimulationManager? _simulationManager;
   JSInjector? _jsInjector;
@@ -406,8 +409,69 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     if(!updateStatus){
       BotToast.showText(text: '保存快照到数据库失败');
     }
+  }
 
-
+  /// 安全的重试加载页面方法
+  Future<void> _retryLoadPage() async {
+    try {
+      getLogger().i('🔄 开始重试加载页面...');
+      
+      // 清理当前URL的重试计数器，给手动重试一个全新的机会
+      _retryCountMap.remove(articleController.articleUrl);
+      
+      // 检查WebView控制器是否可用
+      if (webViewController == null) {
+        getLogger().w('⚠️ WebView控制器为空，等待重新创建...');
+        // 如果控制器为空，等待一下让WebView重新创建
+        await Future.delayed(const Duration(milliseconds: 500));
+        return;
+      }
+      
+      // 对于知乎等高防护网站，使用增强的重试策略
+      final domain = Uri.parse(articleController.articleUrl).host;
+      if (_isHighProtectionSite(domain)) {
+        getLogger().i('🛡️ 检测到高防护网站，使用增强重试策略');
+        await _retryZhihuPage(webViewController!, articleController.articleUrl);
+        return;
+      }
+      
+      // 直接使用loadUrl方法重新加载页面，避免iOS上的reload问题
+      try {
+        await webViewController!.loadUrl(
+          urlRequest: URLRequest(url: WebUri(articleController.articleUrl))
+        );
+        getLogger().i('✅ 使用loadUrl方法重试成功');
+      } catch (loadUrlError) {
+        getLogger().e('❌ loadUrl方法失败: $loadUrlError');
+        
+        // 如果loadUrl也失败，尝试使用reload方法（作为备选）
+        try {
+          await webViewController!.reload();
+          getLogger().i('✅ 使用reload方法重试成功');
+        } catch (reloadError) {
+          getLogger().e('❌ reload方法也失败: $reloadError');
+          
+          // 如果两种方法都失败，显示更详细的错误信息
+          if (mounted) {
+            setState(() {
+              hasError = true;
+              isLoading = false;
+              errorMessage = '重新加载失败\n\n请稍后再试或重启应用。\n\n错误详情：$reloadError';
+            });
+          }
+        }
+      }
+    } catch (e) {
+      getLogger().e('❌ 重试加载页面时发生未知错误: $e');
+      
+      if (mounted) {
+        setState(() {
+          hasError = true;
+          isLoading = false;
+          errorMessage = '重新加载时发生错误\n\n请重启应用后再试。\n\n错误详情：$e';
+        });
+      }
+    }
   }
 
 
@@ -682,7 +746,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       getLogger().i('📡 API请求失败，但不影响主页面: $url');
       
       // 检查是否是知乎等高防护网站的API
-      if (domain.contains('zhihu.com') && statusCode == 400) {
+      if (domain.contains('zhihu.com') && (statusCode == 400 || statusCode == 403)) {
         getLogger().i('🛡️ 检测到知乎反爬虫拦截，这是预期行为');
         _handleZhihuAntiCrawler(controller, url);
       }
@@ -690,13 +754,187 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       return; // 不设置hasError，让页面继续正常显示
     }
     
-    // 只有主要页面加载失败才显示错误
+    // 主页面请求的特殊处理
     if (isMainFrameRequest) {
+      // 对知乎等高防护网站的403错误进行特殊处理
+      if (statusCode == 403 && _isHighProtectionSite(domain)) {
+        getLogger().w('🛡️ 检测到高防护网站403错误，尝试智能重试');
+        _handleHighProtectionSite403Error(controller, url, domain);
+        return;
+      }
+      
+      // 其他HTTP错误的处理
       setState(() {
         isLoading = false;
         hasError = true;
-        errorMessage = '页面加载失败 ($statusCode)\n${errorResponse.reasonPhrase ?? 'Unknown Error'}\n\n部分网站可能会限制在第三方应用打开。';
+        errorMessage = _generateHttpErrorMessage(statusCode, errorResponse.reasonPhrase, domain);
       });
+    }
+  }
+  
+  /// 检查是否是高防护网站
+  bool _isHighProtectionSite(String domain) {
+    final highProtectionSites = [
+      'zhihu.com',
+      'weibo.com', 
+      'douban.com',
+      'jianshu.com',
+      'csdn.net',
+    ];
+    
+    return highProtectionSites.any((site) => domain.contains(site));
+  }
+  
+  /// 处理高防护网站的403错误
+  Future<void> _handleHighProtectionSite403Error(InAppWebViewController controller, String url, String domain) async {
+    try {
+      getLogger().i('🔄 开始处理高防护网站403错误: $domain');
+      
+      // 增加重试计数器
+      if (!_retryCountMap.containsKey(url)) {
+        _retryCountMap[url] = 0;
+      }
+      
+      final retryCount = _retryCountMap[url]!;
+      const maxRetries = 3;
+      
+      if (retryCount >= maxRetries) {
+        getLogger().w('⚠️ 已达到最大重试次数，显示错误页面');
+        setState(() {
+          isLoading = false;
+          hasError = true;
+          errorMessage = '网站访问被限制 (403)\n\n该网站检测到非常规访问模式。\n\n建议：\n• 稍后重试\n• 使用浏览器直接访问\n• 检查网络环境';
+        });
+        return;
+      }
+      
+      _retryCountMap[url] = retryCount + 1;
+      
+      // 延迟重试，避免被检测为机器人行为
+      final delaySeconds = (retryCount + 1) * 2; // 递增延迟：2s, 4s, 6s
+      getLogger().i('⏰ 延迟 ${delaySeconds}s 后重试 (第${retryCount + 1}/$maxRetries次)');
+      
+      await Future.delayed(Duration(seconds: delaySeconds));
+      
+      // 检查组件是否仍然挂载
+      if (!mounted) return;
+      
+      // 针对知乎的特殊处理
+      if (domain.contains('zhihu.com')) {
+        await _retryZhihuPage(controller, url);
+      } else {
+        // 其他高防护网站的通用重试策略
+        await _retryWithEnhancedHeaders(controller, url);
+      }
+      
+    } catch (e) {
+      getLogger().e('❌ 处理高防护网站403错误失败: $e');
+      setState(() {
+        isLoading = false;
+        hasError = true;
+        errorMessage = '重试失败\n\n请稍后手动重试或使用浏览器访问。';
+      });
+    }
+  }
+  
+  /// 针对知乎的特殊重试策略
+  Future<void> _retryZhihuPage(InAppWebViewController controller, String url) async {
+    try {
+      getLogger().i('🎯 执行知乎特定重试策略');
+      
+      // 更新User-Agent为更真实的移动端浏览器
+      final enhancedUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1";
+      
+      await controller.setSettings(settings: InAppWebViewSettings(
+        userAgent: enhancedUserAgent,
+        // 启用更多浏览器特性来减少检测
+        javaScriptEnabled: true,
+        domStorageEnabled: true,
+        databaseEnabled: true,
+        thirdPartyCookiesEnabled: true,
+      ));
+      
+      // 添加常见的浏览器请求头
+      final headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Cache-Control': 'max-age=0',
+      };
+      
+      // 重新加载页面
+      await controller.loadUrl(
+        urlRequest: URLRequest(
+          url: WebUri(url),
+          headers: headers,
+        ),
+      );
+      
+      getLogger().i('✅ 知乎页面重试请求已发送');
+      
+    } catch (e) {
+      getLogger().e('❌ 知乎重试策略失败: $e');
+      rethrow;
+    }
+  }
+  
+  /// 使用增强请求头重试
+  Future<void> _retryWithEnhancedHeaders(InAppWebViewController controller, String url) async {
+    try {
+      getLogger().i('🔧 使用增强请求头重试');
+      
+      final headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Upgrade-Insecure-Requests': '1',
+      };
+      
+      await controller.loadUrl(
+        urlRequest: URLRequest(
+          url: WebUri(url),
+          headers: headers,
+        ),
+      );
+      
+      getLogger().i('✅ 增强请求头重试请求已发送');
+      
+    } catch (e) {
+      getLogger().e('❌ 增强请求头重试失败: $e');
+      rethrow;
+    }
+  }
+  
+  /// 生成HTTP错误消息
+  String _generateHttpErrorMessage(int statusCode, String? reasonPhrase, String domain) {
+    switch (statusCode) {
+      case 403:
+        if (_isHighProtectionSite(domain)) {
+          return '访问被限制 (403)\n\n该网站具有反爬虫保护。\n\n建议：\n• 稍后重试\n• 使用浏览器直接访问';
+        }
+        return '访问被拒绝 (403)\n\n您没有权限访问此页面。';
+        
+      case 404:
+        return '页面不存在 (404)\n\n请检查链接是否正确。';
+        
+      case 429:
+        return '请求过于频繁 (429)\n\n请稍后再试。';
+        
+      case 500:
+        return '服务器内部错误 (500)\n\n网站服务器出现问题，请稍后重试。';
+        
+      case 503:
+        return '服务不可用 (503)\n\n网站暂时无法访问，请稍后重试。';
+        
+      default:
+        return '页面加载失败 ($statusCode)\n${reasonPhrase ?? 'Unknown Error'}\n\n请稍后重试或检查网络连接。';
     }
   }
   
@@ -866,35 +1104,51 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   /// 获取优化的WebView设置
   InAppWebViewSettings _getWebViewSettings() {
     return InAppWebViewSettings(
+      // 基础JavaScript支持
       javaScriptEnabled: true,
+      javaScriptCanOpenWindowsAutomatically: true,
+      
+      // 存储和数据支持 - 重要：让网站认为是真实浏览器
       domStorageEnabled: true,
-      disableContextMenu: true,
-      disableDefaultErrorPage: true,
-      textZoom: 100,
-      // [增强浏览器仿真] 启用多窗口支持，某些网站可能需要
-      supportMultipleWindows: true,
+      databaseEnabled: true,
+      thirdPartyCookiesEnabled: true,
+      
+      // 使用更新的iOS User-Agent以减少检测概率
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1",
+      
+      // 网络和安全设置
+      mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
       allowsInlineMediaPlayback: true,
-      disableLongPressContextMenuOnLinks: true,
-      // [增强浏览器仿真] 禁用缩放功能，避免页面拖动问题
-      supportZoom: false,
-      builtInZoomControls: false,
-      // [增强浏览器仿真] 隐藏缩放控件
-      displayZoomControls: false,
-      disableHorizontalScroll: true,
-      disableVerticalScroll: false,
-      // [深度反爬虫] 使用稳定的设备配置（将在onWebViewCreated中动态设置）
-      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-      allowFileAccess: true,
-      allowContentAccess: true,
+      allowsBackForwardNavigationGestures: true,
+      
+      // 禁用一些可能暴露身份的特性
+      disableDefaultErrorPage: true,
+      disableContextMenu: false, // 保持启用以模拟真实浏览器
+      
+      // 缓存策略 - 使用默认缓存策略
       cacheMode: CacheMode.LOAD_DEFAULT,
       clearCache: false,
-      // disableInputAccessoryView: true,
-      // [反爬虫优化] 启用第三方Cookie支持
-      // thirdPartyCookiesEnabled: true,
-      // [反爬虫优化] 启用混合内容模式
-      // mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-      // [反爬虫优化] 启用数据库存储
-      // databaseEnabled: true,
+      
+      // 布局和交互
+      textZoom: 100,
+      supportZoom: false, // 禁用缩放避免页面拖动问题
+      builtInZoomControls: false,
+      displayZoomControls: false,
+      
+      // 滚动控制
+      disableHorizontalScroll: true,
+      disableVerticalScroll: false,
+      
+      // 多媒体支持
+      mediaPlaybackRequiresUserGesture: false,
+      
+      // 文件访问权限
+      allowFileAccess: true,
+      allowContentAccess: true,
+      
+      // iOS特定设置
+      disableInputAccessoryView: true,
+      suppressesIncrementalRendering: false,
     );
   }
 
@@ -902,6 +1156,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   void dispose() {
     webViewController?.dispose();
     _simulationManager?.dispose();
+    _retryCountMap.clear(); // 清理重试计数器
     super.dispose();
   }
 
