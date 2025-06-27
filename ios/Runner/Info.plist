@@ -95,8 +95,6 @@
 		<true/>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
 		<true/>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>网页内容可能需要访问相机</string>
