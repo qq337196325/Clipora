@@ -5,6 +5,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:clipora-api.guanshangyun.com</string>
+		<string>applinks:jxc5admin0809.guanshangyun.com</string>
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
