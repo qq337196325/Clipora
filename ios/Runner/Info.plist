@@ -104,6 +104,8 @@
 	<string>网页内容可能需要访问麦克风</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>To upload photos, please allow permission to access your photo library.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>应用需要访问本地网络以优化网页内容加载和缓存功能</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

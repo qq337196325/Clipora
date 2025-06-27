@@ -86,6 +86,8 @@ fluwx:
   android:
   #      interrupt_wx_request: true # default is true
   #      flutter_activity: MainActivity #Default to launch app's launcher
+  # https://juejin.cn/post/6937614343840202766
+  # https://juejin.cn/post/7254809601873690681
   ios:
     universal_link: https://clipora-api.guanshangyun.com/wechat/app/
     #    scene_delegate: true #default false

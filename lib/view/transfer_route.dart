@@ -78,7 +78,7 @@ class _TransferRouteState extends State<TransferRoute> {
         appId: "wx629011ac595bee08",
         doOnAndroid: true,
         doOnIOS: true,
-        universalLink: "https://flint-tools.guanshangyun.com", // iOS需要配置
+        universalLink: "https://clipora-api.guanshangyun.com/wechat/app/", // 与pubspec.yaml保持一致
       );
       getLogger().i('✅ 微信SDK初始化成功');
     } catch (e) {
