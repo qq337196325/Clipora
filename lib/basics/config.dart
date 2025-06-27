@@ -18,6 +18,6 @@ const bool isDevelop = true;
 const String apiVersion = "/v100";
 String version = "v1.0.0";
 int clientVersion = 100;
-const String apiHost = "http://clipora-api.guanshangyun.com";
+const String apiHost = "https://clipora-api.guanshangyun.com";
 
 

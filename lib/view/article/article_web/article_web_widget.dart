@@ -169,13 +169,13 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
           Expanded(
             child: InAppWebView(
               initialUrlRequest: URLRequest(url: WebUri(articleController.articleUrl)),
-              initialSettings: _getWebViewSettings(),
+              // initialSettings: _getWebViewSettings(),
               onWebViewCreated: (controller) async {
                 webViewController = controller;
                 getLogger().i('🌐 Web页面WebView创建成功');
                 
                 // 设置浏览器仿真功能
-                await _setupBrowserSimulation(controller);
+                // await _setupBrowserSimulation(controller);
 
               },
               onLoadStart: (controller, url) {
@@ -888,13 +888,13 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       allowContentAccess: true,
       cacheMode: CacheMode.LOAD_DEFAULT,
       clearCache: false,
-      disableInputAccessoryView: true,
+      // disableInputAccessoryView: true,
       // [反爬虫优化] 启用第三方Cookie支持
-      thirdPartyCookiesEnabled: true,
+      // thirdPartyCookiesEnabled: true,
       // [反爬虫优化] 启用混合内容模式
       // mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
       // [反爬虫优化] 启用数据库存储
-      databaseEnabled: true,
+      // databaseEnabled: true,
     );
   }
 
