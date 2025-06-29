@@ -111,7 +111,7 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
           });
 
           if (response['code'] == 0 && response['data'] != null) {
-            final markdownContent = response['data']['markdown_content'] as String? ?? '';
+            final markdownContent = response['data']['markdown'] as String? ?? '';
             final title = response['data']['title'] as String? ?? '';
 
             if (markdownContent.isNotEmpty) {

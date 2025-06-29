@@ -169,8 +169,11 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
         if (!hasError)
           Expanded(
             child: InAppWebView(
+              // 【初始化URL请求】: WebView启动时加载的第一个页面请求。
               initialUrlRequest: URLRequest(url: WebUri(articleController.articleUrl)),
+              // 【初始化设置】: WebView的各项详细配置，通过下面的 _getWebViewSettings 方法统一定义。
               initialSettings: _getWebViewSettings(),
+              // 【WebView创建完成回调】: 当WebView实例创建成功后调用，通常在这里获取WebView控制器。
               onWebViewCreated: (controller) async {
                 webViewController = controller;
                 getLogger().i('🌐 Web页面WebView创建成功');
@@ -179,13 +182,20 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 // await _setupBrowserSimulation(controller);
 
               },
+              // 【页面开始加载回调】: 当一个页面开始加载时触发。
               onLoadStart: (controller, url) {
                 getLogger().i('🌐 开始加载Web页面: $url');
                 setState(() {
                   isLoading = true;
-                  hasError = false;
+
+                  // 修复了一个bug：在预热跳转时，错误的URL（如zhihu://）可能导致错误页面闪现。
+                  // 现在，只有在加载http/https协议时才重置错误状态。
+                  if (url != null && (url.scheme == 'http' || url.scheme == 'https')) {
+                    hasError = false;
+                  }
                 });
               },
+              // 【页面加载完成回调】: 当一个页面加载结束后触发，是执行JS注入等操作的最佳时机。
               onLoadStop: (controller, url) async {
 
                 if(hasError){
@@ -291,6 +301,11 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 // 页面加载完成后进行优化设置
                 finalizeWebPageOptimization(url,webViewController);
                 
+                // 检查是否是预热首页加载完成，如果是，则跳转到目标URL
+                if (await _handleWarmupRedirect(url, webViewController!)) {
+                  return; // 如果是预热跳转，则中止后续操作，等待目标页面加载
+                }
+                
                 // 检查是否需要自动生成MHTML快照（异步执行，不阻塞主线程）
                 generateMhtmlUtils.webViewController = webViewController;
                 generateMhtmlUtils.checkAndGenerateSnapshotIfNeeded(
@@ -309,17 +324,21 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                   getLogger().e('❌ 自动检查快照失败: $e');
                 });
               },
+              // 【加载进度变化回调】: 当页面加载进度更新时调用，可用于显示进度条。
               onProgressChanged: (controller, progress) {
                 setState(() {
                   loadingProgress = progress / 100;
                 });
               },
+              // 【通用错误回调】: 捕获各种加载错误，如网络问题、SSL证书问题、未知URL协议等。
               onReceivedError: (controller, request, error) {
                 _handleWebViewError(controller, request, error);
               },
+              // 【HTTP错误回调】: 专门捕获HTTP层面的错误（如403, 404, 500等）。
               onReceivedHttpError: (controller, request, errorResponse) {
                 _handleHttpError(controller, request, errorResponse);
               },
+              // 【页面滚动回调】: 当用户在WebView中滚动页面时触发。
               onScrollChanged: (controller, x, y) {
                 final scrollY = y.toDouble();
                 // 只有在滚动距离超过一个阈值时才触发，避免过于敏感
@@ -329,9 +348,9 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                   _lastScrollY = scrollY;
                 }
               },
-              // 使用优化的URL跳转处理
+              // 【URL加载拦截回调】: 在WebView尝试加载任何新URL之前调用，可以决定是允许、取消还是交由其他应用处理。
               shouldOverrideUrlLoading: _handleOptimizedUrlNavigation,
-              // 使用优化的资源请求拦截 - 增强反爬虫处理
+              // 【资源请求拦截回调】: (已注释) 可以拦截页面中的所有资源请求（如图片, css, js），用于广告拦截或替换资源，功能强大但消耗性能。
               // shouldInterceptRequest: _handleAntiCrawlerResourceRequest,
             ),
           ),
@@ -359,7 +378,8 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
     if (url.startsWith('snssdk') || 
         url.startsWith('sslocal') ||
         url.startsWith('toutiao') ||
-        url.startsWith('newsarticle')) {
+        url.startsWith('newsarticle') ||
+        url.startsWith('zhihu')) { // 明确拦截知乎的App拉起协议
       getLogger().w('⚠️ 拦截应用跳转scheme: $url');
       return NavigationActionPolicy.CANCEL;
     }
@@ -391,6 +411,10 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
 
   // 重试计数器 - 记录每个URL的重试次数
   final Map<String, int> _retryCountMap = {};
+  
+  // 会话预热状态
+  String? _urlToLoadAfterWarmup;
+  final Map<String, bool> _warmupAttemptedForUrl = {};
 
   // 浏览器仿真管理器
   BrowserSimulationManager? _simulationManager;
@@ -420,8 +444,9 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     try {
       getLogger().i('🔄 开始重试加载页面...');
       
-      // 清理当前URL的重试计数器，给手动重试一个全新的机会
+      // 清理当前URL的重试计数器和预热状态，给手动重试一个全新的机会
       _retryCountMap.remove(articleController.articleUrl);
+      _warmupAttemptedForUrl.remove(articleController.articleUrl);
       
       // 检查WebView控制器是否可用
       if (webViewController == null) {
@@ -565,64 +590,99 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       String antiDetectionScript;
       
       if (Platform.isAndroid) {
-        // Android WebView 特有的反检测代码
+        // Android WebView 特有的反检测代码 (v2 - 增强版)
         antiDetectionScript = '''
         (function() {
-          console.log('🤖 Android WebView 反检测脚本启动');
+          console.log('🤖 Android WebView Advanced Anti-Detection Script v2');
           
-          // 1. 隐藏 Android WebView 特征
           try {
-            // 删除 Android WebView 的特有属性
+            // 1. 清理已知的WebView指纹
             delete window.AndroidBridge;
             delete window.android;
             delete window.prompt;
-            
-            // 伪装 Chrome 浏览器特征
+
+            // 2. 伪装navigator核心属性
+            // 最关键的属性：webdriver
             Object.defineProperty(navigator, 'webdriver', {
               get: () => undefined,
-              configurable: true
             });
+
+            // 伪装Chrome浏览器特有的对象
+            window.chrome = window.chrome || {};
+            window.chrome.app = {
+              isInstalled: false,
+              InstallState: {
+                DISABLED: 'disabled',
+                INSTALLED: 'installed',
+                NOT_INSTALLED: 'not_installed'
+              },
+              RunningState: {
+                CANNOT_RUN: 'cannot_run',
+                READY_TO_RUN: 'ready_to_run',
+                RUNNING: 'running'
+              }
+            };
+            window.chrome.webstore = {
+              onInstallStageChanged: {},
+              onDownloadProgress: {}
+            };
+            window.chrome.runtime = {};
+
+            // 3. 伪装插件和MIME类型
+            const originalPlugins = navigator.plugins;
+            const plugins = [
+              { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer', description: 'Portable Document Format', mimeTypes: [{ type: 'application/x-google-chrome-pdf', suffixes: 'pdf' }] },
+              { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai', description: '', mimeTypes: [{ type: 'application/pdf', suffixes: 'pdf' }] },
+              { name: 'Native Client', filename: 'internal-nacl-plugin', description: '', mimeTypes: [{ type: 'application/x-nacl', suffixes: '' }, { type: 'application/x-pnacl', suffixes: '' }] }
+            ];
+            plugins.item = (i) => plugins[i];
+            plugins.namedItem = (name) => plugins.find(p => p.name === name);
+            Object.defineProperty(navigator, 'plugins', { get: () => plugins });
             
-            // 隐藏 automation 标记
-            Object.defineProperty(navigator, 'webdriver', {
-              get: () => false,
-              configurable: true
-            });
-            
-            // 模拟 Chrome 的 plugins
-            Object.defineProperty(navigator, 'plugins', {
-              get: () => [
-                {name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer'},
-                {name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai'},
-                {name: 'Native Client', filename: 'internal-nacl-plugin'}
-              ],
-              configurable: true
-            });
-            
-            // 模拟 Chrome 的语言设置
-            Object.defineProperty(navigator, 'languages', {
-              get: () => ['zh-CN', 'zh', 'en-US', 'en'],
-              configurable: true
-            });
-            
-            // 设置正确的设备内存（如果存在）
+            const mimeTypes = [
+                { type: 'application/pdf', suffixes: 'pdf', enabledPlugin: plugins[1] },
+                { type: 'application/x-google-chrome-pdf', suffixes: 'pdf', enabledPlugin: plugins[0] },
+                { type: 'application/x-nacl', suffixes: '', enabledPlugin: plugins[2] },
+                { type: 'application/x-pnacl', suffixes: '', enabledPlugin: plugins[2] }
+            ];
+            mimeTypes.item = (i) => mimeTypes[i];
+            mimeTypes.namedItem = (name) => mimeTypes.find(m => m.type === name);
+            Object.defineProperty(navigator, 'mimeTypes', { get: () => mimeTypes });
+
+            // 4. 伪装权限API
+            if (navigator.permissions) {
+                const originalQuery = navigator.permissions.query;
+                navigator.permissions.query = (parameters) => (
+                  parameters.name === 'notifications'
+                    ? Promise.resolve({ state: Notification.permission })
+                    : originalQuery.apply(navigator.permissions, [parameters])
+                );
+            }
+
+            // 5. 伪装设备属性
             if ('deviceMemory' in navigator) {
-              Object.defineProperty(navigator, 'deviceMemory', {
-                get: () => 8,
-                configurable: true
-              });
+              Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 });
+            }
+            Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
+            Object.defineProperty(navigator, 'languages', { get: () => ['zh-CN', 'zh', 'en-US', 'en'] });
+
+            // 6. 伪装WebGL渲染信息
+            try {
+                const getParameter = WebGLRenderingContext.prototype.getParameter;
+                WebGLRenderingContext.prototype.getParameter = function(parameter) {
+                    // UNMASKED_VENDOR_WEBGL
+                    if (parameter === 37445) return 'Google Inc. (NVIDIA)';
+                    // UNMASKED_RENDERER_WEBGL
+                    if (parameter === 37446) return 'ANGLE (NVIDIA, NVIDIA GeForce GTX 1050 Ti Direct3D11 vs_5_0 ps_5_0, D3D11)';
+                    return getParameter.apply(this, [parameter]);
+                };
+            } catch (e) {
+                console.warn('⚠️ WebGL spoofing failed:', e.toString());
             }
             
-            // 设置硬件并发数
-            Object.defineProperty(navigator, 'hardwareConcurrency', {
-              get: () => 8,
-              configurable: true
-            });
-            
-            console.log('✅ Android WebView 反检测完成');
-            
+            console.log('✅ Android Advanced Anti-Detection finished.');
           } catch (e) {
-            console.warn('⚠️ Android 反检测部分失败:', e);
+            console.warn('⚠️ Android anti-detection script failed:', e.toString());
           }
         })();
         ''';
@@ -900,6 +960,29 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   /// 处理高防护网站的403错误
   Future<void> _handleHighProtectionSite403Error(InAppWebViewController controller, String url, String domain) async {
     try {
+      // 检查是否已经尝试过预热策略
+      final alreadyTriedWarmup = _warmupAttemptedForUrl[url] ?? false;
+      
+      if (!alreadyTriedWarmup) {
+        _warmupAttemptedForUrl[url] = true;
+        getLogger().i('🤔 知乎403：检测到首次访问失败，执行"首页预热"策略...');
+        
+        // 记录下真正的目标URL
+        _urlToLoadAfterWarmup = url;
+        
+        // 计算首页URL并加载
+        final homepageUrl = Uri.parse(url).replace(path: '/');
+        getLogger().i('➡️ 正在导航到首页: ${homepageUrl.toString()}');
+        
+        await controller.loadUrl(urlRequest: URLRequest(url: WebUri(homepageUrl.toString())));
+        
+        // 预热策略已启动，直接返回，等待首页加载完成后的回调
+        return;
+      }
+      
+      // 如果预热策略已尝试过，则进入常规的重试流程
+      getLogger().w('⚠️ 首页预热策略已执行过，但仍然失败。转为常规重试...');
+      
       getLogger().i('🔄 开始处理高防护网站403错误: $domain');
       
       // 增加重试计数器
@@ -921,6 +1004,14 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       }
       
       _retryCountMap[url] = retryCount + 1;
+      
+      // 在重试前，清除该站点的Cookies，尝试打破封锁
+      try {
+        await CookieManager.instance().deleteCookies(url: WebUri(url));
+        getLogger().i('🍪 已清除Cookies，准备重试: $url');
+      } catch (e) {
+        getLogger().w('⚠️ 清除Cookies失败: $e');
+      }
       
       // 延迟重试，避免被检测为机器人行为
       final delaySeconds = (retryCount + 1) * 2; // 递增延迟：2s, 4s, 6s
@@ -949,6 +1040,30 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     }
   }
   
+  /// 检查并处理预热跳转
+  /// 如果是预热加载，则返回true
+  Future<bool> _handleWarmupRedirect(Uri? currentUrl, InAppWebViewController controller) async {
+    if (_urlToLoadAfterWarmup != null && 
+        currentUrl != null && 
+        currentUrl.host == Uri.parse(_urlToLoadAfterWarmup!).host &&
+        currentUrl.path == '/') {
+          
+      getLogger().i('✅ 首页预热成功！');
+      final targetUrl = _urlToLoadAfterWarmup!;
+      _urlToLoadAfterWarmup = null; // 清除标记，避免重复跳转
+      
+      // 稍作等待，让首页的脚本有机会执行
+      await Future.delayed(const Duration(milliseconds: 500)); 
+      
+      getLogger().i('🚀 正在跳转至原始目标链接: $targetUrl');
+      await controller.loadUrl(urlRequest: URLRequest(url: WebUri(targetUrl)));
+      
+      return true; // 表示已经处理了跳转，上层调用应该中断
+    }
+    
+    return false; // 不是预热跳转
+  }
+  
   /// 针对知乎的特殊重试策略
   Future<void> _retryZhihuPage(InAppWebViewController controller, String url) async {
     try {
@@ -964,6 +1079,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         domStorageEnabled: true,
         databaseEnabled: true,
         thirdPartyCookiesEnabled: true,
+        useShouldOverrideUrlLoading: true,
       ));
       
       // 根据平台添加对应的浏览器请求头
@@ -988,7 +1104,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   /// 获取平台优化的请求头 
   Map<String, String> _getPlatformOptimizedHeaders() {
     if (Platform.isAndroid) {
-      // Android Chrome 的典型请求头
+      // Android Chrome 的典型请求头 - 更新至 Chrome 124
       return {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
@@ -1000,9 +1116,12 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         'Sec-Fetch-Site': 'none',
         'Sec-Fetch-User': '?1',
         'Cache-Control': 'max-age=0',
-        'sec-ch-ua': '"Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+        'sec-ch-ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
         'sec-ch-ua-mobile': '?1',
         'sec-ch-ua-platform': '"Android"',
+        'sec-ch-ua-platform-version': '"14.0.0"',
+        'sec-ch-ua-model': '"Pixel 7 Pro"',
+        'sec-ch-ua-full-version-list': '"Chromium";v="124.0.6367.123", "Google Chrome";v="124.0.6367.123", "Not-A.Brand";v="99.0.0.0"',
       };
     } else {
       // iOS Safari 的典型请求头
@@ -1240,52 +1359,80 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   InAppWebViewSettings _getWebViewSettings() {
     // 基础设置
     final settings = InAppWebViewSettings(
-      // 基础JavaScript支持
+      // --- 核心功能开关 ---
+      // 【允许执行JavaScript】: WebView的核心能力，必须为true。
       javaScriptEnabled: true,
+      // 【允许JS自动打开窗口】: 允许JS通过 `window.open()` 等方式打开新窗口，对于某些登录流程是必要的。
       javaScriptCanOpenWindowsAutomatically: true,
       
-      // 存储和数据支持 - 重要：让网站认为是真实浏览器
+      // --- 数据与存储 (关键反爬点) ---
+      // 【启用DOM存储】: 允许网站使用 localStorage 和 sessionStorage，是现代网站的标配。
       domStorageEnabled: true,
+      // 【启用Web数据库】: 允许网站使用 Web SQL Database API（虽然已废弃，但一些老网站可能还在用）。
       databaseEnabled: true,
+      // 【允许第三方Cookie】: 允许跨域请求设置Cookie，对于处理内嵌内容或SSO登录很重要。
       thirdPartyCookiesEnabled: true,
       
-      // 根据平台使用对应的User-Agent - 关键优化点
+      // --- 导航与拦截 ---
+      // 【启用URL加载拦截】: 设为true后，`shouldOverrideUrlLoading` 回调才会生效，是实现URL拦截的关键。
+      useShouldOverrideUrlLoading: true, 
+      
+      // --- 身份标识 ---
+      // 【设置User-Agent】: 向服务器声明自己的"身份"，是反爬虫伪装的第一步。
       userAgent: _getPlatformOptimizedUserAgent(),
       
-      // 网络和安全设置
+      // --- 内容与安全策略 ---
+      // 【混合内容模式】: 在HTTPS页面加载HTTP内容时的策略。`MIXED_CONTENT_ALWAYS_ALLOW` 表示总是允许，以避免内容显示不全。
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
+      // 【允许内联媒体播放】: 允许视频在页面内播放，而不是强制全屏。
       allowsInlineMediaPlayback: true,
+      // 【允许手势导航】(iOS): 允许用户通过左右滑动手势来前进或后退页面。
       allowsBackForwardNavigationGestures: true,
       
-      // 禁用一些可能暴露身份的特性
+      // --- UI与错误页面 ---
+      // 【禁用默认错误页面】: 禁用WebView内置的错误页面（如"网页无法打开"），以便我们用自定义的UI组件来显示错误。
       disableDefaultErrorPage: true,
-      disableContextMenu: false, // 保持启用以模拟真实浏览器
+      // 【禁用上下文菜单】: 是否禁用长按时出现的系统菜单（如复制、粘贴）。设为false以更像真实浏览器。
+      disableContextMenu: false,
       
-      // 缓存策略 - 使用默认缓存策略
+      // --- 缓存策略 ---
+      // 【缓存模式】: 使用默认的缓存策略，让WebView自行决定如何使用缓存。
       cacheMode: CacheMode.LOAD_DEFAULT,
+      // 【清除缓存】: 在WebView启动时不清除缓存，以保留之前的会话和数据。
       clearCache: false,
       
-      // 布局和交互
+      // --- 布局与交互 ---
+      // 【文本缩放比例】: 设置页面文字的缩放百分比，100表示正常大小。
       textZoom: 100,
-      supportZoom: false, // 禁用缩放避免页面拖动问题
+      // 【支持缩放】: 是否允许用户通过双指捏合来缩放页面。
+      supportZoom: true,
+      // 【显示内置缩放控件】: 是否显示WebView内置的缩放按钮（通常不美观，设为false）。
       builtInZoomControls: false,
+      // 【在屏幕上显示缩放控件】(Android): 同上，控制原生缩放控件的显示。
       displayZoomControls: false,
       
-      // 滚动控制
+      // --- 滚动控制 ---
+      // 【禁用水平滚动】: 强制页面内容在一屏内显示，防止出现水平滚动条，提升移动端体验。
       disableHorizontalScroll: true,
+      // 【禁用垂直滚动】: 设为false，允许用户正常地上下滚动页面。
       disableVerticalScroll: false,
       
-      // 多媒体支持
-      mediaPlaybackRequiresUserGesture: false,
+      // --- 多媒体支持 ---
+      // 【媒体播放需要用户手势】: 要求用户必须先点击一下才能播放视频或音频，这是现代浏览器的标准行为，可增加真实性。
+      mediaPlaybackRequiresUserGesture: true,
       
-      // 文件访问权限
+      // --- 文件访问权限 ---
+      // 【允许文件访问】: 允许WebView从文件系统加载资源（file://...）。
       allowFileAccess: true,
+      // 【允许内容访问】(Android): 允许WebView通过Content Provider访问内容。
       allowContentAccess: true,
     );
     
     // 添加平台特定设置
     if (Platform.isIOS) {
+      // 【禁用输入附件视图】(iOS): 隐藏键盘上方默认出现的辅助工具栏（包含"上一个/下一个/完成"）。
       settings.disableInputAccessoryView = true;
+      // 【禁止增量渲染】(iOS): 设为false表示启用增量渲染，即边加载边显示，体验更好。
       settings.suppressesIncrementalRendering = false;
     }
     
@@ -1295,11 +1442,11 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   /// 获取平台优化的User-Agent
   String _getPlatformOptimizedUserAgent() {
     if (Platform.isAndroid) {
-      // Android Chrome User-Agent - 使用最新版本
-      return "Mozilla/5.0 (Linux; Android 14; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36";
+      // Android Chrome User-Agent - 更新为更现代的版本以匹配headers
+      return "Mozilla/5.0 (Linux; Android 14; Pixel 7 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36";
     } else if (Platform.isIOS) {
-      // iOS Safari User-Agent - 使用最新版本
-      return "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1";
+      // iOS Safari User-Agent - 同样更新到较新版本
+      return "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1";
     } else {
       // 默认使用通用移动端User-Agent
       return "Mozilla/5.0 (Mobile; rv:109.0) Gecko/109.0 Firefox/119.0";
@@ -1313,6 +1460,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     webViewController?.dispose();
     _simulationManager?.dispose();
     _retryCountMap.clear(); // 清理重试计数器
+    _warmupAttemptedForUrl.clear(); // 清理预热状态
     super.dispose();
   }
 

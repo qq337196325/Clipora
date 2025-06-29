@@ -160,22 +160,43 @@ class SnapshotService extends GetxService {
       final String mhtFilePath = '$snapshotDir/$mhtFileName';
 
       headlessWebView = HeadlessInAppWebView(
+        // 【初始化设置】: 无头WebView的详细配置。
         initialSettings: InAppWebViewSettings(
+          // --- 身份标识 ---
+          // 【设置User-Agent】: 使用一个固定的、看起来真实的移动端浏览器UA。
           userAgent: userAgent,
+          
+          // --- 核心与数据支持 ---
+          // 【允许执行JavaScript】: 生成快照必须开启，因为很多页面内容是JS动态渲染的。
           javaScriptEnabled: true,
+          // 【启用DOM存储】: 允许网站使用localStorage，某些网站依赖它来正常渲染。
           domStorageEnabled: true,
+          // 【启用Web数据库】: 兼容可能使用Web SQL的老网站。
           databaseEnabled: true,
+          // 【不清除会话缓存】: 保持会话，如果需要登录才能访问的页面，可以利用共享的Cookie。
           clearSessionCache: false,
+          
+          // --- 导航与内容策略 ---
+          // 【启用URL加载拦截】: 虽然在无头模式下不常用，但开启后可用于调试或特定场景的导航控制。
           useShouldOverrideUrlLoading: true,
+          // 【媒体播放需要用户手she】: 在后台模式下，设为false以允许媒体内容（如视频封面）自动加载，而无需用户交互。
           mediaPlaybackRequiresUserGesture: false,
+          // 【允许内联媒体播放】: 确保视频等内容能在页面流中正确加载。
           allowsInlineMediaPlayback: true,
+          // 【允许iframe全屏】: 兼容可能使用iframe的页面。
           iframeAllowFullscreen: true,
-          // 添加更多设置
+          
+          // --- 文件与缓存 ---
+          // 【允许从文件URL访问文件】: 在某些复杂的Web应用中可能需要。
           allowFileAccessFromFileURLs: true,
+          // 【允许从文件URL访问所有资源】: 赋予更高的本地文件访问权限。
           allowUniversalAccessFromFileURLs: true,
+          // 【启用缓存】: 启用WebView的缓存机制，可以加速重复资源的加载。
           cacheEnabled: true,
         ),
+        // 【初始化URL请求】: 无头WebView启动时加载的目标文章URL。
         initialUrlRequest: URLRequest(url: WebUri(article.url)),
+        // 【页面加载完成回调】: 页面加载完成后，在这里执行滚动页面和生成快照的核心逻辑。
         onLoadStop: (controller, url) async {
           // 如果任务已经完成（成功、失败或超时），或者正在保存中，则忽略后续的事件
           if (completer.isCompleted || isSaving) {
@@ -242,6 +263,7 @@ class SnapshotService extends GetxService {
             }
           }
         },
+        // 【通用错误回调】: 捕获加载过程中发生的任何错误。
         onReceivedError: (controller, request, error) {
           getLogger().e('❌ MHTML页面加载错误: ${error.description} (Code: ${error.type}, URL: ${request.url})');
           if (!completer.isCompleted) {
