@@ -1,5 +1,5 @@
 import 'package:bot_toast/bot_toast.dart';
-import 'package:clipora/view/article/utils/snapshot_base_utils.dart';
+import 'package:clipora/basics/web_view/snapshot/snapshot_base_utils.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '/basics/logger.dart';
 

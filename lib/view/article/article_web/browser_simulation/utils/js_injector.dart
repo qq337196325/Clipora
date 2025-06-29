@@ -8,7 +8,7 @@ class JSInjector {
   final BrowserStorageManager storageManager;
   
   JSInjector(this.storageManager);
-  
+
   /// 注入存储仿真代码
   Future<void> injectStorageSimulation(InAppWebViewController controller) async {
     try {
@@ -22,6 +22,9 @@ class JSInjector {
       
       // 注入存储事件监听
       await _injectStorageEventListeners(controller);
+
+      // 预加载存储数据
+      await preloadStorageData(controller);
       
       getLogger().i('✅ 存储仿真代码注入完成');
     } catch (e) {

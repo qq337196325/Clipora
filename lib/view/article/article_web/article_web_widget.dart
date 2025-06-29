@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'dart:async';
-import 'dart:io'; // 添加平台检测
 import 'package:get/get.dart';
 
 import '../../../basics/logger.dart';
@@ -206,7 +205,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 });
                 
                 // 注入存储仿真代码
-                await _injectStorageSimulation(controller);
+                await _jsInjector?.injectStorageSimulation(controller);
                 
                 // 注入平台特定的反检测代码
                 await WebViewUtils.injectPlatformSpecificAntiDetection(controller);
@@ -221,10 +220,10 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 // 页面加载完成后进行优化设置
                 finalizeWebPageOptimization(url,webViewController);
                 
-                // 检查是否是预热首页加载完成，如果是，则跳转到目标URL
-                if (await _handleWarmupRedirect(url, webViewController!)) {
-                  return; // 如果是预热跳转，则中止后续操作，等待目标页面加载
-                }
+                // // 检查是否是预热首页加载完成，如果是，则跳转到目标URL
+                // if (await _handleWarmupRedirect(url, webViewController!)) {
+                //   return; // 如果是预热跳转，则中止后续操作，等待目标页面加载
+                // }
                 
                 // 检查是否需要自动生成MHTML快照（异步执行，不阻塞主线程）
                 generateMhtmlUtils.webViewController = webViewController;
@@ -431,7 +430,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath,articleController.articleId); // 上传快照到服务器
     if(uploadStatus){
       await generateMhtmlUtils.fetchMarkdownFromServer(
-        articleController: articleController,
+        article: articleController.currentArticle!,
         onMarkdownGenerated: widget.onMarkdownGenerated,
         isReCreate: true,
       );
@@ -454,27 +453,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     }
   }
 
-  /// 注入存储仿真代码
-  Future<void> _injectStorageSimulation(InAppWebViewController controller) async {
-    if (_jsInjector == null) {
-      getLogger().w('⚠️ JavaScript注入器未初始化，跳过存储仿真');
-      return;
-    }
 
-    try {
-      getLogger().i('💉 开始注入存储仿真代码...');
-      
-      // 注入存储仿真代码
-      await _jsInjector!.injectStorageSimulation(controller);
-      
-      // 预加载存储数据
-      await _jsInjector!.preloadStorageData(controller);
-      
-      getLogger().i('✅ 存储仿真代码注入完成');
-    } catch (e) {
-      getLogger().e('❌ 注入存储仿真代码失败: $e');
-    }
-  }
 
   /// 智能处理HTTP错误
   void _handleHttpError(InAppWebViewController controller, WebResourceRequest request, WebResourceResponse errorResponse) {

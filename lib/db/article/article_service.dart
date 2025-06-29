@@ -16,21 +16,11 @@ class ArticleService extends GetxService {
   /// 获取数据库实例
   DatabaseService get _dbService => DatabaseService.instance;
 
-  /// 确保数据库已初始化
-  Future<void> _ensureDatabaseInitialized() async {
-    if (!_dbService.isInitialized) {
-      getLogger().i('⏳ 等待数据库初始化...');
-      // await _dbService.onInit();
-    }
-  }
 
   /// 保存文章
   Future<ArticleDb> saveArticle(ArticleDb article) async {
-    await _ensureDatabaseInitialized();
-    
     try {
-      getLogger().i('💾 保存文章: ${article.title}');
-      
+
       final now = DateTime.now();
       article.updatedAt = now;
       
@@ -69,8 +59,7 @@ class ArticleService extends GetxService {
     String? excerpt,
     List<String>? tags,
   }) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       getLogger().i('📝 从分享内容创建文章: $title');
 
@@ -123,8 +112,7 @@ class ArticleService extends GetxService {
 
   /// 根据URL查找文章
   Future<ArticleDb?> findArticleByUrl(String url) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       final article = await _dbService.articles
           .filter()
@@ -144,8 +132,7 @@ class ArticleService extends GetxService {
 
   /// 获取所有文章
   Future<List<ArticleDb>> getAllArticles() async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       return await _dbService.articles
           .where()
@@ -159,8 +146,7 @@ class ArticleService extends GetxService {
 
   /// 获取未读文章
   Future<List<ArticleDb>> getUnreadArticles({int limit = 5}) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       return await _dbService.articles
           .where()
@@ -177,8 +163,7 @@ class ArticleService extends GetxService {
 
   /// 获取未读文章总数量
   Future<int> getUnreadArticlesCount() async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       return await _dbService.articles
           .where()
@@ -193,8 +178,7 @@ class ArticleService extends GetxService {
 
   /// 获取最近阅读的文章
   Future<List<ArticleDb>> getRecentlyReadArticles({int limit = 5}) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       return await _dbService.articles
           .where()
@@ -212,7 +196,6 @@ class ArticleService extends GetxService {
 
   /// 根据ID获取文章
   Future<ArticleDb?> getArticleById(int articleId) async {
-    await _ensureDatabaseInitialized();
     try {
       return await _dbService.articles.get(articleId);
     } catch (e) {
@@ -223,8 +206,7 @@ class ArticleService extends GetxService {
 
   /// 删除文章
   Future<bool> deleteArticle(int articleId) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       getLogger().i('🗑️ 删除文章，ID: $articleId');
       
@@ -273,8 +255,7 @@ class ArticleService extends GetxService {
 
   /// 更新文章分类
   Future<void> updateArticleCategory(int articleId, CategoryDb? category) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       getLogger().i('📝 更新文章分类，文章ID: $articleId, 分类: ${category?.name ?? "未分类"}');
       
@@ -308,8 +289,7 @@ class ArticleService extends GetxService {
     int? readDuration,
     double? readProgress,
   }) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       await _dbService.isar.writeTxn(() async {
         final article = await _dbService.articles.get(articleId);
@@ -338,8 +318,7 @@ class ArticleService extends GetxService {
 
   /// 切换文章重要状态
   Future<bool> toggleImportantStatus(int articleId) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       bool newImportantStatus = false;
       
@@ -369,8 +348,7 @@ class ArticleService extends GetxService {
 
   /// 切换文章归档状态
   Future<bool> toggleArchiveStatus(int articleId) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       bool newArchiveStatus = false;
       
@@ -400,8 +378,7 @@ class ArticleService extends GetxService {
 
   /// 软删除文章（设置deletedAt字段）
   Future<bool> softDeleteArticle(int articleId) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       await _dbService.isar.writeTxn(() async {
         final article = await _dbService.articles.get(articleId);
@@ -428,8 +405,7 @@ class ArticleService extends GetxService {
 
   /// 根据服务端ID查找文章
   Future<ArticleDb?> findArticleByServiceId(String serviceId) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       // serviceId 字段需要有 @Index() 才能有效查询
       return await _dbService.articles
@@ -444,8 +420,7 @@ class ArticleService extends GetxService {
 
   /// 更新文章的服务端ID
   Future<bool> updateServiceId(int articleId, String serviceId) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       getLogger().i('🔄 更新文章服务端ID，本地ID: $articleId, 服务端ID: $serviceId');
       
@@ -519,7 +494,6 @@ class ArticleService extends GetxService {
 
   /// 获取所有未同步到服务端的文章
   Future<List<ArticleDb>> getUnsyncedArticles() async {
-    await _ensureDatabaseInitialized();
     try {
       // 使用 isar 索引查询 isCreateService == false 的数据
       return await _dbService.articles
@@ -534,7 +508,6 @@ class ArticleService extends GetxService {
 
   /// 标记文章已同步到服务端
   Future<bool> markArticleAsSynced(int articleId, String serviceId) async {
-    await _ensureDatabaseInitialized();
     try {
       return await _dbService.isar.writeTxn(() async {
         final article = await _dbService.articles.get(articleId);
@@ -557,12 +530,12 @@ class ArticleService extends GetxService {
 
   /// 获取所有需要生成快照的文章
   Future<List<ArticleDb>> getUnsnapshottedArticles() async {
-    await _ensureDatabaseInitialized();
     try {
-      // 查询 isGenerateMhtml == false 且 url 不为空的数据
       return await _dbService.articles
           .filter()
           .isGenerateMhtmlEqualTo(false)
+          .deletedAtIsNull() // 过滤未删除的文章
+          .markdownStatusEqualTo(0)
           .and()
           .urlIsNotEmpty()
           .findAll();
@@ -574,7 +547,6 @@ class ArticleService extends GetxService {
 
   /// 更新文章的快照信息
   Future<bool> updateArticleSnapshotInfo(int articleId, String mhtmlPath) async {
-    await _ensureDatabaseInitialized();
     try {
       return await _dbService.isar.writeTxn(() async {
         final article = await _dbService.articles.get(articleId);
@@ -597,7 +569,6 @@ class ArticleService extends GetxService {
 
   /// 获取所有需要生成Markdown的文章
   Future<List<ArticleDb>> getArticlesToGenerateMarkdown() async {
-    await _ensureDatabaseInitialized();
     try {
       // 查询 isGenerateMhtml == true 且 isGenerateMarkdown == false 且 serviceId 不为空的数据
       return await _dbService.articles
@@ -616,7 +587,6 @@ class ArticleService extends GetxService {
 
   /// 更新文章的Markdown内容和状态
   Future<bool> updateArticleMarkdown(int articleId, String markdown, String title) async {
-    await _ensureDatabaseInitialized();
     try {
       return await _dbService.isar.writeTxn(() async {
         final article = await _dbService.articles.get(articleId);
@@ -641,8 +611,7 @@ class ArticleService extends GetxService {
 
   /// 搜索文章（模糊搜索标题和markdown内容）
   Future<List<ArticleDb>> searchArticles(String query, {int limit = 50}) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       if (query.trim().isEmpty) {
         return [];
@@ -684,8 +653,7 @@ class ArticleService extends GetxService {
 
   /// 快速搜索（实时搜索使用，同样搜索标题和内容）
   Future<List<ArticleDb>> fastSearchArticles(String query, {int limit = 20}) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       if (query.trim().isEmpty) {
         return [];
@@ -732,8 +700,7 @@ class ArticleService extends GetxService {
     String? sortBy,
     bool isDescending = true,
   }) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       // 根据排序类型排序，过滤未删除的文章
       switch (sortBy) {
@@ -786,8 +753,7 @@ class ArticleService extends GetxService {
     String? sortBy,
     bool isDescending = true,
   }) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       // 根据排序类型排序，过滤未删除和未读的文章
       switch (sortBy) {
@@ -848,8 +814,7 @@ class ArticleService extends GetxService {
     String? sortBy,
     bool isDescending = true,
   }) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       // 根据排序类型排序，过滤未删除和重要的文章
       switch (sortBy) {
@@ -911,10 +876,7 @@ class ArticleService extends GetxService {
     String? sortBy,
     bool isDescending = true,
   }) async {
-    await _ensureDatabaseInitialized();
-    
-    print('🔍 [ArticleService] 开始查询分类文章 - categoryId: $categoryId, offset: $offset, limit: $limit');
-    
+
     try {
       // 先检查该分类是否存在
       final categoryExists = await _dbService.categories.filter().idEqualTo(categoryId).findFirst();
@@ -1006,8 +968,7 @@ class ArticleService extends GetxService {
     String? sortBy,
     bool isDescending = true,
   }) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       // 根据排序类型排序，过滤未删除且归档的文章
       switch (sortBy) {
@@ -1069,8 +1030,7 @@ class ArticleService extends GetxService {
     String? sortBy,
     bool isDescending = true,
   }) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       if (query.trim().isEmpty) {
         return [];
@@ -1172,10 +1132,7 @@ class ArticleService extends GetxService {
     String? sortBy,
     bool isDescending = true,
   }) async {
-    await _ensureDatabaseInitialized();
-    
-    print('🔍 [ArticleService] 开始查询标签文章 - tagId: $tagId, offset: $offset, limit: $limit');
-    
+
     try {
       // 首先获取标签
       final tag = await _dbService.tags.get(tagId);
@@ -1245,8 +1202,7 @@ class ArticleService extends GetxService {
     String? sortBy,
     bool isDescending = true,
   }) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       // 根据排序类型排序，只查询已删除的文章
       switch (sortBy) {
@@ -1304,8 +1260,7 @@ class ArticleService extends GetxService {
 
   /// 恢复已删除的文章
   Future<bool> restoreDeletedArticle(int articleId) async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       await _dbService.isar.writeTxn(() async {
         final article = await _dbService.articles.get(articleId);
@@ -1332,8 +1287,7 @@ class ArticleService extends GetxService {
 
   /// 清空回收站（永久删除所有已删除的文章）
   Future<int> clearRecycleBin() async {
-    await _ensureDatabaseInitialized();
-    
+
     try {
       int deletedCount = 0;
       

@@ -2,13 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:go_router/go_router.dart';
-import 'package:get/get.dart';
 
 import '../../../route/route_name.dart';
+import '../../basics/logger.dart';
 import '../../db/article/article_service.dart';
 import '../../db/tag/tag_service.dart';
 import '../../db/article/article_db.dart';
-import '../../db/database_service.dart';
 
 
 class IndexWidget extends StatefulWidget {
@@ -38,7 +37,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
         ),
       ),
       child: RefreshIndicator(
-        onRefresh: _refreshArticles,
+        onRefresh: _loadArticles,
         color: const Color(0xFF007AFF),
         backgroundColor: Colors.white,
         child: ListView(
@@ -55,151 +54,6 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
     );
   }
 
-
-}
-
-mixin IndexWidgetBLoC on State<IndexWidget> {
-
-  bool isLoading = false;
-  bool hasError = false;
-  String errorMessage = '';
-
-  // 文章列表相关变量
-  List<ArticleDb> articles = [];
-  List<ArticleDb> unreadArticles = [];
-  List<ArticleDb> recentlyReadArticles = [];
-  List<TagWithCount> tagsWithCount = [];
-  int unreadArticlesCount = 0; // 未读文章总数量
-
-  // 数据缓存时间戳，用于智能刷新
-  DateTime? _lastLoadTime;
-  static const Duration _cacheValidDuration = Duration(minutes: 5); // 缓存有效期5分钟
-
-  // 定时器，用于定时刷新文章列表
-  Timer? _refreshTimer;
-
-
-  @override
-  void initState() {
-    super.initState();
-
-    // 确保UI完全初始化后再加载数据
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 添加额外延迟确保GetX服务完全就绪
-      _loadArticles();
-      // Future.delayed(const Duration(milliseconds: 200), () {
-      //   print('🚀 开始加载文章列表 (延迟后)');
-      //
-      // });
-      
-      // 启动定时器，每6秒刷新一次文章列表
-      _startRefreshTimer();
-    });
-  }
-
-  @override
-  void dispose() {
-    // 清理定时器
-    _refreshTimer?.cancel();
-    super.dispose();
-  }
-
-  /// 启动定时刷新定时器 
-  void _startRefreshTimer() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
-      print('🔄 定时器触发，开始刷新文章列表');
-      _refreshArticles();
-    });
-  }
-
-  /// 停止定时刷新定时器
-  void _stopRefreshTimer() {
-    _refreshTimer?.cancel();
-    _refreshTimer = null;
-  }
-
-
-  /// 刷新文章列表
-  Future<void> _refreshArticles() async {
-    await _loadArticles(forceRefresh: true);
-  }
-
-  /// 获取文章列表
-  Future<void> _loadArticles({bool forceRefresh = false}) async {
-    // 如果不是强制刷新且缓存仍然有效，则跳过加载
-    if (!forceRefresh && _lastLoadTime != null) {
-      final cacheAge = DateTime.now().difference(_lastLoadTime!);
-      if (cacheAge < _cacheValidDuration) {
-        print('📋 使用缓存数据，缓存时间: ${cacheAge.inMinutes}分钟');
-        return;
-      }
-    }
-
-    if (isLoading) return;
-
-    setState(() {
-      isLoading = true;
-      hasError = false;
-      errorMessage = '';
-    });
-
-    try {
-      // 添加详细的调试信息
-      print('📋 开始获取文章列表...');
-
-      // 检查GetX依赖是否正常
-      try {
-        final articleService = ArticleService.instance;
-        print('✅ ArticleService 获取成功: ${articleService.runtimeType}');
-      } catch (e) {
-        print('❌ ArticleService 获取失败: $e');
-        // 尝试手动注册
-        print('🔧 尝试手动注册 ArticleService...');
-        Get.put(ArticleService(), permanent: true);
-        print('✅ ArticleService 手动注册完成');
-      }
-
-      // 检查数据库服务是否已初始化
-      final dbService = DatabaseService.instance;
-      print('🗄️ 数据库是否已初始化: ${dbService.isInitialized}');
-
-      if (!dbService.isInitialized) {
-        print('⏳ 数据库未初始化，正在初始化...');
-        await dbService.initDb();
-        print('✅ 数据库初始化完成');
-      }
-
-      // 执行正常的查询
-      final results = await Future.wait([
-        ArticleService.instance.getUnreadArticles(limit: 5),
-        ArticleService.instance.getRecentlyReadArticles(limit: 5),
-        TagService.instance.getTagsWithArticleCount(),
-        ArticleService.instance.getUnreadArticlesCount(), // 获取未读文章总数量
-      ]);
-      final unreadList = results[0] as List<ArticleDb>;
-      final recentlyReadList = results[1] as List<ArticleDb>;
-      final tagsList = results[2] as List<TagWithCount>;
-      final unreadCount = results[3] as int;
-
-
-      setState(() {
-        unreadArticles = unreadList;
-        recentlyReadArticles = recentlyReadList;
-        tagsWithCount = tagsList;
-        unreadArticlesCount = unreadCount; // 使用真实的未读文章总数量
-        isLoading = false;
-        _lastLoadTime = DateTime.now(); // 更新缓存时间
-      });
-
-    } catch (e, stackTrace) {
-      print('❌ 获取文章列表失败: $e   堆栈跟踪: $stackTrace');
-      setState(() {
-        isLoading = false;
-        hasError = true;
-        errorMessage = e.toString();
-      });
-    }
-  }
 
   /// 构建最近阅读文章区域
   Widget _buildRecentlyReadSection() {
@@ -297,7 +151,7 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
                       onTap: () async {
                         final routeStatus = await context.push('/${RouteName.articlePage}?id=${article.id}');
                         if(routeStatus == true) {
-                          _refreshArticles();
+                          _loadArticles();
                         }
                       },
                       borderRadius: BorderRadius.circular(8),
@@ -465,7 +319,9 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            onTap: () => _navigateToReadLaterList(),
+            onTap: () {
+              context.push('/${RouteName.articleList}?type=read-later&title=稍后阅读');
+            },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
@@ -625,10 +481,99 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
     );
   }
 
-  /// 导航到稍后阅读列表页
-  void _navigateToReadLaterList() {
-    context.push('/${RouteName.articleList}?type=read-later&title=稍后阅读');
+
+
+}
+
+mixin IndexWidgetBLoC on State<IndexWidget> {
+
+  bool isLoading = false;
+  bool hasError = false;
+  String errorMessage = '';
+
+  // 文章列表相关变量
+  List<ArticleDb> articles = [];
+  List<ArticleDb> unreadArticles = [];
+  List<ArticleDb> recentlyReadArticles = [];
+  List<TagWithCount> tagsWithCount = [];
+  int unreadArticlesCount = 0; // 未读文章总数量
+
+  // 数据缓存时间戳，用于智能刷新
+  DateTime? _lastLoadTime;
+
+  // 定时器，用于定时刷新文章列表
+  Timer? _refreshTimer;
+
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 确保UI完全初始化后再加载数据
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 添加额外延迟确保GetX服务完全就绪
+      _loadArticles();
+      // Future.delayed(const Duration(milliseconds: 200), () {
+      //   print('🚀 开始加载文章列表 (延迟后)');
+      //
+      // });
+      
+      // 启动定时器，每6秒刷新一次文章列表
+      _startRefreshTimer();
+    });
   }
 
+  @override
+  void dispose() {
+    // 清理定时器
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+    super.dispose();
+  }
+
+  /// 启动定时刷新定时器 
+  void _startRefreshTimer() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _loadArticles();
+    });
+  }
+
+  /// 获取文章列表
+  Future<void> _loadArticles() async {
+    if (isLoading) return;
+
+    setState(() {
+      isLoading = true;
+      hasError = false;
+      errorMessage = '';
+    });
+
+    try {
+      // 执行正常的查询
+      final results = await Future.wait([
+        ArticleService.instance.getUnreadArticles(limit: 5),
+        ArticleService.instance.getRecentlyReadArticles(limit: 5),
+        TagService.instance.getTagsWithArticleCount(),
+        ArticleService.instance.getUnreadArticlesCount(), // 获取未读文章总数量
+      ]);
+      final unreadList = results[0] as List<ArticleDb>;
+      final recentlyReadList = results[1] as List<ArticleDb>;
+      final tagsList = results[2] as List<TagWithCount>;
+      final unreadCount = results[3] as int;
+
+
+      setState(() {
+        unreadArticles = unreadList;
+        recentlyReadArticles = recentlyReadList;
+        tagsWithCount = tagsList;
+        unreadArticlesCount = unreadCount; // 使用真实的未读文章总数量
+        isLoading = false;
+        _lastLoadTime = DateTime.now(); // 更新缓存时间
+      });
+
+    } catch (e, stackTrace) {
+      getLogger().e('❌ 获取文章列表失败: $e   堆栈跟踪: $stackTrace');
+    }
+  }
 
 }

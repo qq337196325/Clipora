@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:get/get.dart';
@@ -15,7 +14,7 @@ import 'db/article/article_service.dart';
 
 
 void main() async {
-  HttpOverrides.global = MyHttpOverrides(); // 忽略证书
+  // HttpOverrides.global = MyHttpOverrides(); // 忽略证书
   WidgetsFlutterBinding.ensureInitialized();
   
   // 初始化GetStorage，确保后续服务可用
@@ -71,14 +70,14 @@ class MyApp extends StatelessWidget {
       // 推荐使用官方推荐的简洁方式来初始化 BotToast
       builder: BotToastInit(),
     );
-
   }
 }
 
-class MyHttpOverrides extends HttpOverrides{
-  @override
-  HttpClient createHttpClient(SecurityContext? context){
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
-  }
-}
+
+// class MyHttpOverrides extends HttpOverrides{
+//   @override
+//   HttpClient createHttpClient(SecurityContext? context){
+//     return super.createHttpClient(context)
+//       ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
+//   }
+// }

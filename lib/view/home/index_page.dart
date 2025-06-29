@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../services/snapshot_service_widget.dart';
 import 'group/group_widget.dart';
 import 'index_widget.dart';
 import 'my_page/my_page.dart';
@@ -21,206 +22,219 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
 
 @override
   Widget build(BuildContext context) {
-    return Scaffold( 
-      // appBar: AppBar(
-      //   title: const Text('InAppWebView Demo'),
-      //   backgroundColor: Colors.blue,
-      //   elevation: 0,
-      // ),
-      body: SafeArea(
-        bottom :false,
-        child: Column(
-          children: [
-            Container(
-              // 添加渐变背景和阴影效果
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white,
-                    Colors.grey.shade50,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    offset: const Offset(0, 2),
-                    blurRadius: 8,
-                    spreadRadius: 0,
+    return Stack(
+      children: [
+        Scaffold(
+          // appBar: AppBar(
+          //   title: const Text('InAppWebView Demo'),
+          //   backgroundColor: Colors.blue,
+          //   elevation: 0,
+          // ),
+          body: SafeArea(
+            bottom :false,
+            child: Column(
+              children: [
+                Container(
+                  // 添加渐变背景和阴影效果
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white,
+                        Colors.grey.shade50,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        offset: const Offset(0, 2),
+                        blurRadius: 8,
+                        spreadRadius: 0,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                children: [
-                  // 左边的"我的"图标 - 添加更好的交互效果
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        // 添加触觉反馈
-                        HapticFeedback.lightImpact();
-                        _showMyPageModal();
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100.withOpacity(0.6),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Row(
+                    children: [
+                      // 左边的"我的"图标 - 添加更好的交互效果
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.grey.shade200,
-                            width: 0.5,
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.person_outline_rounded,
-                          size: 22,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  // 中间的 SegmentedTabControl - 优化样式
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            offset: const Offset(0, 1),
-                            blurRadius: 3,
-                            spreadRadius: 0,
-                          ),
-                        ],
-                      ),
-                      child: SegmentedTabControl(
-                        controller: tabController,
-                        barDecoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.grey.shade100,
-                              Colors.grey.shade50,
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.grey.shade200,
-                            width: 0.5,
-                          ),
-                        ),
-                        indicatorDecoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF00BCF6),
-                              Color(0xFF0099CC),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(6),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF00BCF6).withOpacity(0.3),
-                              offset: const Offset(0, 2),
-                              blurRadius: 4,
-                              spreadRadius: 0,
+                          onTap: () {
+                            // 添加触觉反馈
+                            HapticFeedback.lightImpact();
+                            _showMyPageModal();
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100.withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                                width: 0.5,
+                              ),
                             ),
-                          ],
+                            child: Icon(
+                              Icons.person_outline_rounded,
+                              size: 22,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
                         ),
-                        tabTextColor: Colors.grey.shade700,
-                        selectedTabTextColor: Colors.white,
-                        squeezeIntensity: 2,
-                        height: 32,
-                        tabPadding: const EdgeInsets.symmetric(horizontal: 12),
-                        tabs: tabs.map((tab) => SegmentTab(
-                          label: tab.label,
-                          color: tab.color,
-                        )).toList(),
                       ),
-                    ),
-                  ),
 
-                  const SizedBox(width: 16),
+                      const SizedBox(width: 16),
 
-                  // 右边的"搜索"图标 - 突出显示并添加动画
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        // 添加触觉反馈
-                        HapticFeedback.lightImpact();
-                        // 跳转到搜索页面
-                        context.push("/${RouteName.search}");
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.85),
+                      // 中间的 SegmentedTabControl - 优化样式
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                offset: const Offset(0, 1),
+                                blurRadius: 3,
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: SegmentedTabControl(
+                            controller: tabController,
+                            barDecoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.grey.shade100,
+                                  Colors.grey.shade50,
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                                width: 0.5,
+                              ),
+                            ),
+                            indicatorDecoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFF00BCF6),
+                                  Color(0xFF0099CC),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF00BCF6).withOpacity(0.3),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 4,
+                                  spreadRadius: 0,
+                                ),
+                              ],
+                            ),
+                            tabTextColor: Colors.grey.shade700,
+                            selectedTabTextColor: Colors.white,
+                            squeezeIntensity: 2,
+                            height: 32,
+                            tabPadding: const EdgeInsets.symmetric(horizontal: 12),
+                            tabs: tabs.map((tab) => SegmentTab(
+                              label: tab.label,
+                              color: tab.color,
+                            )).toList(),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      // 右边的"搜索"图标 - 突出显示并添加动画
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.grey.shade200.withOpacity(0.6),
-                            width: 0.5,
+                          onTap: () {
+                            // 添加触觉反馈
+                            HapticFeedback.lightImpact();
+                            // 跳转到搜索页面
+                            context.push("/${RouteName.search}");
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.85),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey.shade200.withOpacity(0.6),
+                                width: 0.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 8,
+                                  spreadRadius: 0,
+                                ),
+                                BoxShadow(
+                                  color: Colors.white.withOpacity(0.7),
+                                  offset: const Offset(0, -1),
+                                  blurRadius: 2,
+                                  spreadRadius: 0,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.search_rounded,
+                              size: 22,
+                              color: Colors.grey.shade700,
+                            ),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              offset: const Offset(0, 2),
-                              blurRadius: 8,
-                              spreadRadius: 0,
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withOpacity(0.7),
-                              offset: const Offset(0, -1),
-                              blurRadius: 2,
-                              spreadRadius: 0,
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.search_rounded,
-                          size: 22,
-                          color: Colors.grey.shade700,
                         ),
                       ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onPanUpdate: (details) {
+                      // 记录滑动增量
+                      _updatePanDelta(details.delta);
+                    },
+                    onPanEnd: (details) {
+                      // 检查是否应该切换页面
+                      _handlePanEnd();
+                    },
+                    child: TabBarView(
+                      controller: tabController, // 使用自定义的TabController
+                      physics: const NeverScrollableScrollPhysics(), // 禁用默认滑动切换
+                      clipBehavior: Clip.none, // 避免裁剪问题
+                      children: [
+                        IndexWidget(),
+                        GroupPage(),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: GestureDetector(
-                onPanUpdate: (details) {
-                  // 记录滑动增量
-                  _updatePanDelta(details.delta);
-                },
-                onPanEnd: (details) {
-                  // 检查是否应该切换页面
-                  _handlePanEnd();
-                },
-                child: TabBarView(
-                  controller: tabController, // 使用自定义的TabController
-                  physics: const NeverScrollableScrollPhysics(), // 禁用默认滑动切换
-                  clipBehavior: Clip.none, // 避免裁剪问题
-                  children: [
-                    IndexWidget(),
-                    GroupPage(),
-                  ],
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+        // This is the hidden WebView that will be used for background tasks.
+        Offstage(
+          offstage: true,
+          child: SizedBox(
+            width: 1080,  // 最小尺寸，因为是后台任务
+            height: 2460,
+            child: SnapshotServiceWidget(),
+          ),
+        ),
+      ],
     );
   }
 

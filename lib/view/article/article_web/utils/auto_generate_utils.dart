@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../basics/logger.dart';
+import '../../../../db/article/article_db.dart';
 import '../../controller/article_controller.dart';
-import '../../utils/snapshot_base_utils.dart';
+import '../../../../basics/web_view/snapshot/snapshot_base_utils.dart';
 import '../../../../db/article/article_service.dart';
 import '../../../../api/user_api.dart';
 import '../../../../db/annotation/enhanced_annotation_service.dart';
@@ -59,9 +60,10 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
       final uploadStatus = await uploadSnapshotToServer(filePath,articleController.articleId); // 上传快照到服务器
       if(uploadStatus){
         await fetchMarkdownFromServer(
-          articleController: articleController,
+          article: articleController.currentArticle!,
           onMarkdownGenerated: onMarkdownGenerated,
         );
+        articleController.refreshCurrentArticle();
       }
 
       getLogger().i('✅ 自动MHTML快照生成完成: ${article.title}');
@@ -73,13 +75,13 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
 
   /// 从服务端获取Markdown内容
   Future<void> fetchMarkdownFromServer({
-    required ArticleController articleController,
+    required ArticleDb article,
     required VoidCallback? onMarkdownGenerated,
     bool isReCreate = false,
   }) async {
     try {
       // 获取当前文章
-      final article = articleController.currentArticle;
+      // final article = articleController.currentArticle;
       if (article == null) {
         getLogger().w('⚠️ 当前文章为空，无法获取Markdown');
         return;
@@ -131,7 +133,7 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
               await ArticleService.instance.updateArticleMarkdown(article.id, markdownContent, title);
 
               // 刷新当前文章数据
-              await articleController.refreshCurrentArticle();
+              // await articleController.refreshCurrentArticle();
 
               // 通知父组件刷新 tabs
               onMarkdownGenerated?.call();
