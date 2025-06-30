@@ -5,6 +5,9 @@ import 'dart:io';
 import 'dart:async';
 
 import '../../basics/logger.dart';
+import '../../basics/web_view/settings.dart';
+import '../../basics/web_view/utils.dart';
+import 'article_web/utils/web_utils.dart';
 
 /// ArticleMhtmlWidget - 快照文章显示组件
 /// 
@@ -180,7 +183,7 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
             Expanded(
               child: InAppWebView(
                 initialUrlRequest: URLRequest(url: WebUri(mhtmlFileUrl)),
-                initialSettings: webViewSettings,
+                initialSettings: WebViewSettings.getWebViewSettings(),
                 onWebViewCreated: (controller) {
                   webViewController = controller;
                   getLogger().i('MHTML WebView创建成功');
@@ -197,6 +200,13 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                   setState(() {
                     isLoading = false;
                   });
+
+
+                  // 注入移动端弹窗处理脚本 - 恢复滚动功能
+                  await WebViewUtils.injectMobilePopupHandler(controller);
+
+                  // 页面加载完成后进行优化设置
+                  finalizeWebPageOptimization(url,webViewController);
                   
                   // 注入内边距
                   final padding = widget.contentPadding.resolve(Directionality.of(context));

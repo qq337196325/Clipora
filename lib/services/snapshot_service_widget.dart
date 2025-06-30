@@ -75,19 +75,68 @@ class SnapshotServiceWidgetState extends State<SnapshotServiceWidget> with Snaps
 
   @override
   Widget build(BuildContext context) {
-    return Offstage(
-      offstage: true, // 隐藏WebView，但保持功能运行
-      child: InAppWebView(
-        key: webViewKey,
-        initialUrlRequest: currentUrlRequest,
-        initialSettings: WebViewSettings.getWebViewSettings(),
-        onWebViewCreated: onWebViewCreated,
-        onLoadStart: onLoadStart,
-        onLoadStop: onLoadStop,
-        onReceivedError: onReceivedError,
-        onProgressChanged: onProgressChanged,
-      ),
+    return InAppWebView(
+      key: webViewKey,
+      initialUrlRequest: currentUrlRequest,
+      initialSettings: WebViewSettings.getWebViewSettings(),
+      // onWebViewCreated: onWebViewCreated,
+      onWebViewCreated: (controller) async { // 【WebView创建完成回调】: 当WebView实例创建成功后调用，通常在这里获取WebView控制器。
+        webViewController = controller;
+        getLogger().i('🌐 Web页面WebView创建成功');
+      },
+      // onLoadStart: onLoadStart,
+      onLoadStart: (controller, url) {
+        getLogger().i('🌐 开始加载Web页面: $url');
+        setState(() {
+          isLoading = true;
+
+          // 修复了一个bug：在预热跳转时，错误的URL（如zhihu://）可能导致错误页面闪现。
+          // 现在，只有在加载http/https协议时才重置错误状态。
+          if (url != null && (url.scheme == 'http' || url.scheme == 'https')) {
+            hasError = false;
+          }
+        });
+      },
+      onLoadStop: _onLoadStopDispatcher,
+      onReceivedError: onReceivedError,
+      onProgressChanged: onProgressChanged,
+      onReceivedHttpError: (controller, request, errorResponse) {
+        _handleHttpError(controller, request, errorResponse);
+      },
+      shouldOverrideUrlLoading: _handleOptimizedUrlNavigation,
     );
+  }
+
+
+  /// 优化的URL导航处理
+  Future<NavigationActionPolicy> _handleOptimizedUrlNavigation(
+      InAppWebViewController controller,
+      NavigationAction navigationAction
+      ) async {
+    final uri = navigationAction.request.url!;
+    final url = uri.toString();
+
+    getLogger().d('🌐 URL跳转拦截: $url');
+
+    // 检查是否是自定义scheme（非http/https）
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      getLogger().w('⚠️ 拦截自定义scheme跳转: ${uri.scheme}://');
+      return NavigationActionPolicy.CANCEL;
+    }
+
+    // 检查是否是应用内跳转scheme
+    if (url.startsWith('snssdk') ||
+        url.startsWith('sslocal') ||
+        url.startsWith('toutiao') ||
+        url.startsWith('newsarticle') ||
+        url.startsWith('zhihu')) { // 明确拦截知乎的App拉起协议
+      getLogger().w('⚠️ 拦截应用跳转scheme: $url');
+      return NavigationActionPolicy.CANCEL;
+    }
+
+    // 允许正常的HTTP/HTTPS链接
+    getLogger().d('✅ 允许正常HTTP跳转: $url');
+    return NavigationActionPolicy.ALLOW;
   }
   
   /// 手动触发快照处理（外部调用接口）
@@ -132,7 +181,6 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
   bool _isLoadingSnapshot = false;
   bool _serviceStarted = false;
   ArticleDb? _currentArticle;
-  Completer<SnapshotResult>? _currentCompleter;
   Completer<void>? _warmupCompleter; // 用于同步预热流程
 
   // 工具类
@@ -140,6 +188,14 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
   GenerateMhtmlUtils generateMhtmlUtils = GenerateMhtmlUtils();
   BrowserSimulationManager? _simulationManager;
   JSInjector? _jsInjector;
+
+  final Map<String, bool> _warmupAttemptedForUrl = {};
+  // 重试计数器 - 记录每个URL的重试次数
+  final Map<String, int> _retryCountMap = {};
+  bool isLoading = true;
+  String? _urlToLoadAfterWarmup;
+  bool hasError = false;
+  String errorMessage = '';
 
   @override
   void initState() {
@@ -190,7 +246,6 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
         timer.cancel();
         return;
       }
-      getLogger().i('⏰ 定时快照任务触发');
       processUnsnapshottedArticles();
     });
   }
@@ -205,20 +260,10 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     // 取消定时器
     _snapshotTimer?.cancel();
     
-    // 如果有正在进行的快照任务，完成它们
-    if (_currentCompleter != null && !_currentCompleter!.isCompleted) {
-      _currentCompleter!.complete(SnapshotResult(
-        type: SnapshotType.mhtml,
-        success: false,
-        error: 'Service stopped',
-      ));
-    }
-    
     // 重置状态
     _isProcessing = false;
     _isLoadingSnapshot = false;
     _currentArticle = null;
-    _currentCompleter = null;
   }
 
   /// 获取存储权限
@@ -263,7 +308,6 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
       final articlesToProcess = await ArticleService.instance.getUnsnapshottedArticles();
 
       if (articlesToProcess.isEmpty) {
-        getLogger().i('✅ 没有需要生成快照的文章。');
         return;
       }
 
@@ -333,6 +377,8 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
         return false;
       }
 
+      await Future.delayed(const Duration(milliseconds: 1000));
+      webViewController?.stopLoading();
       // 等待onLoadStop完成预热completer
       await _warmupCompleter!.future;
       warmupUrls.updateWarmupStatus(domain, isWarmedUp: true);
@@ -351,7 +397,6 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
 
   Future<SnapshotResult> _tryMhtmlSnapshot(ArticleDb article) async {
     final completer = Completer<SnapshotResult>();
-    _currentCompleter = completer;
     _currentArticle = article;
 
     // 检查是否需要预热
@@ -421,7 +466,7 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
       );
     } finally {
       _isLoadingSnapshot = false;
-      _currentCompleter = null;
+
       _currentArticle = null;
     }
   }
@@ -436,102 +481,87 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     getLogger().i('🔄 开始加载页面: $url');
   }
 
-  Future<void> onLoadStop(InAppWebViewController controller, WebUri? url) async {
-    // 如果是预热加载，完成预热Completer并直接返回
+  /// onLoadStop的回调分发
+  Future<void> _onLoadStopDispatcher(InAppWebViewController controller, WebUri? url) async {
     if (isLoadPerformWarmup) {
-      getLogger().i('✅ 预热页面加载完成: $url');
-      if (_warmupCompleter != null && !_warmupCompleter!.isCompleted) {
-        _warmupCompleter!.complete();
-      }
-      return;
+      await _onWarmupLoadStop(controller, url);
+    } else {
+      await _onNormalLoadStop(controller, url);
     }
+  }
 
-    if (!_isLoadingSnapshot || _currentCompleter == null || _currentCompleter!.isCompleted) {
-      return;
+  /// 预热加载完成回调
+  Future<void> _onWarmupLoadStop(InAppWebViewController controller, WebUri? url) async {
+    getLogger().i('✅ 预热页面加载完成: $url');
+    if (_warmupCompleter != null && !_warmupCompleter!.isCompleted) {
+      _warmupCompleter!.complete();
     }
+  }
 
-    // 核心修复：确保我们只在正确的文章URL加载完成后才生成快照。
-    // 这可以防止因预热页面加载事件延迟而导致的竞态条件。
-    // final currentArticleUrl = _currentArticle?.url;
-    // if (currentArticleUrl == null || url.toString() != currentArticleUrl) {
-    //   getLogger().w(
-    //     '⚠️ onLoadStop 触发了非预期的URL。期望: "$currentArticleUrl", 实际: "$url"。这可能是上一个页面（如预热页）残留的事件或重定向。将忽略此事件。');
-    //   return;
-    // }
+  /// 正常页面加载完成回调
+  Future<void> _onNormalLoadStop(InAppWebViewController controller, WebUri? url) async {
+    if(!_isLoadingSnapshot){
+      return ;
+    }
 
     getLogger().i('✅ 页面加载完成: $url');
 
+
+    // 注入存储仿真代码
+    await _jsInjector?.injectStorageSimulation(controller);
+
+    // 注入平台特定的反检测代码
+    await WebViewUtils.injectPlatformSpecificAntiDetection(controller);
+
+    // 注入内边距和修复页面宽度
+    const padding = EdgeInsets.symmetric(horizontal: 12.0);
+    await WebViewUtils.fixPageWidth(controller, padding);
+
+    // 注入移动端弹窗处理脚本
+    await WebViewUtils.injectMobilePopupHandler(controller);
+
+    // 页面加载完成后进行优化设置
+    finalizeWebPageOptimization(url, webViewController);
+
+    // 等待页面初步渲染
+    await Future.delayed(Duration(seconds: 2));
+
+    // 滚动页面以触发懒加载内容
+    await controller.evaluateJavascript(source: 'window.scrollTo(0, document.body.scrollHeight);');
+    await Future.delayed(Duration(seconds: 1));
+    await controller.evaluateJavascript(source: 'window.scrollTo(0, 0);');
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // 生成MHTML快照
+    generateMhtmlUtils.webViewController = webViewController;
+    final filePath = await generateMhtmlUtils.generateSnapshot();
+    await Future.delayed(const Duration(milliseconds: 500));
+    getLogger().i(' 快照路径: $filePath');
+    if (_currentArticle != null) {
+      generateMhtmlUtils.updateArticleSnapshot(filePath, _currentArticle!.id);
+      final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath, _currentArticle!.id);
+
+      if (uploadStatus) {
+        await generateMhtmlUtils.fetchMarkdownFromServer(
+          article: _currentArticle!,
+          onMarkdownGenerated: () {},
+        );
+      }
+    }
+
+
+
     try {
-      // 注入存储仿真代码
-      await _jsInjector?.injectStorageSimulation(controller);
 
-      // 注入平台特定的反检测代码
-      await WebViewUtils.injectPlatformSpecificAntiDetection(controller);
-
-      // 注入内边距和修复页面宽度
-      const padding = EdgeInsets.symmetric(horizontal: 12.0);
-      await WebViewUtils.fixPageWidth(controller, padding);
-
-      // 注入移动端弹窗处理脚本
-      await WebViewUtils.injectMobilePopupHandler(controller);
-
-      // 页面加载完成后进行优化设置
-      finalizeWebPageOptimization(url, webViewController);
-
-      // 等待页面初步渲染
-      await Future.delayed(Duration(seconds: 2));
-
-      // 滚动页面以触发懒加载内容
-      await controller.evaluateJavascript(source: 'window.scrollTo(0, document.body.scrollHeight);');
-      await Future.delayed(Duration(seconds: 1));
-      await controller.evaluateJavascript(source: 'window.scrollTo(0, 0);');
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // 生成MHTML快照
-      generateMhtmlUtils.webViewController = webViewController;
-      final filePath = await generateMhtmlUtils.generateSnapshot();
-      
-      if (_currentArticle != null) {
-        generateMhtmlUtils.updateArticleSnapshot(filePath, _currentArticle!.id);
-        final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath, _currentArticle!.id);
-        
-        if (uploadStatus) {
-          await generateMhtmlUtils.fetchMarkdownFromServer(
-            article: _currentArticle!,
-            onMarkdownGenerated: () {},
-          );
-        }
-      }
-
-      if (!_currentCompleter!.isCompleted) {
-        _currentCompleter!.complete(SnapshotResult(
-          type: SnapshotType.mhtml,
-          success: true,
-          filePath: filePath,
-        ));
-      }
     } catch (e) {
       getLogger().e('❌ 快照保存过程出错: $e');
-      if (!_currentCompleter!.isCompleted) {
-        _currentCompleter!.complete(SnapshotResult(
-          type: SnapshotType.mhtml,
-          success: false,
-          error: e.toString(),
-        ));
-      }
+
     }
   }
 
   Future<void> onReceivedError(InAppWebViewController controller, WebResourceRequest request, WebResourceError error) async {
     getLogger().e('❌ 页面加载错误: ${error.description} (Code: ${error.type}, URL: ${request.url})');
-    
-    if (_currentCompleter != null && !_currentCompleter!.isCompleted) {
-      _currentCompleter!.complete(SnapshotResult(
-        type: SnapshotType.mhtml,
-        success: false,
-        error: 'Load error: ${error.description}',
-      ));
-    }
+
   }
 
   Future<void> onProgressChanged(InAppWebViewController controller, int progress) async {
@@ -548,4 +578,133 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
       return '';
     }
   }
+
+
+  /// 智能处理HTTP错误
+  void _handleHttpError(InAppWebViewController controller, WebResourceRequest request, WebResourceResponse errorResponse) {
+    final url = request.url.toString();
+    final statusCode = errorResponse.statusCode ?? 0;
+    final domain = Uri.parse(url).host;
+
+    getLogger().w('⚠️ HTTP错误: $statusCode - $url');
+
+    // 检查是否是API请求错误（不影响主页面加载）
+    final isApiRequest = WebViewUtils.isApiRequest(url);
+    final isMainFrameRequest = request.isForMainFrame ?? false;
+
+    if (isApiRequest && !isMainFrameRequest) {
+      // API请求错误，不显示错误界面
+      getLogger().i('📡 API请求失败，但不影响主页面: $url');
+
+      return; // 不设置hasError，让页面继续正常显示
+    }
+
+    // 主页面请求的特殊处理
+    if (isMainFrameRequest) {
+      // 对知乎等高防护网站的403错误进行特殊处理
+      if (statusCode == 403 && _isHighProtectionSite(domain)) {
+        getLogger().w('🛡️ 检测到高防护网站403错误，尝试智能重试');
+        _handleHighProtectionSite403Error(controller, url, domain);
+        return;
+      }
+
+      // 其他HTTP错误的处理
+      setState(() {
+        isLoading = false;
+        hasError = true;
+        errorMessage = WebViewUtils.generateHttpErrorMessage(statusCode, errorResponse.reasonPhrase, domain);
+      });
+    }
+  }
+
+  /// 检查是否是高防护网站
+  bool _isHighProtectionSite(String domain) {
+    final highProtectionSites = [
+      'zhihu.com',
+      'weibo.com',
+      'douban.com',
+      'jianshu.com',
+      'csdn.net',
+    ];
+
+    return highProtectionSites.any((site) => domain.contains(site));
+  }
+
+
+
+  /// 处理高防护网站的403错误
+  Future<void> _handleHighProtectionSite403Error(InAppWebViewController controller, String url, String domain) async {
+    try {
+      // 检查是否已经尝试过预热策略
+      final alreadyTriedWarmup = _warmupAttemptedForUrl[url] ?? false;
+
+      if (!alreadyTriedWarmup) {
+        _warmupAttemptedForUrl[url] = true;
+        getLogger().i('🤔 知乎403：检测到首次访问失败，执行"首页预热"策略...');
+
+        // 记录下真正的目标URL
+        _urlToLoadAfterWarmup = url;
+
+        // 计算首页URL并加载
+        final homepageUrl = Uri.parse(url).replace(path: '/');
+        getLogger().i('➡️ 正在导航到首页: ${homepageUrl.toString()}');
+
+        await controller.loadUrl(urlRequest: URLRequest(url: WebUri(homepageUrl.toString())));
+
+        // 预热策略已启动，直接返回，等待首页加载完成后的回调
+        return;
+      }
+
+      // 如果预热策略已尝试过，则进入常规的重试流程
+      getLogger().w('⚠️ 首页预热策略已执行过，但仍然失败。转为常规重试...');
+
+      getLogger().i('🔄 开始处理高防护网站403错误: $domain');
+
+      // 增加重试计数器
+      if (!_retryCountMap.containsKey(url)) {
+        _retryCountMap[url] = 0;
+      }
+
+      final retryCount = _retryCountMap[url]!;
+      const maxRetries = 3;
+
+      if (retryCount >= maxRetries) {
+        getLogger().w('⚠️ 已达到最大重试次数，显示错误页面');
+        setState(() {
+          isLoading = false;
+          hasError = true;
+          errorMessage = '网站访问被限制 (403)\n\n该网站检测到非常规访问模式。\n\n建议：\n• 稍后重试\n• 使用浏览器直接访问\n• 检查网络环境';
+        });
+        return;
+      }
+
+      _retryCountMap[url] = retryCount + 1;
+
+      // 在重试前，清除该站点的Cookies，尝试打破封锁
+      try {
+        await CookieManager.instance().deleteCookies(url: WebUri(url));
+        getLogger().i('🍪 已清除Cookies，准备重试: $url');
+      } catch (e) {
+        getLogger().w('⚠️ 清除Cookies失败: $e');
+      }
+
+      // 延迟重试，避免被检测为机器人行为
+      final delaySeconds = (retryCount + 1) * 2; // 递增延迟：2s, 4s, 6s
+      getLogger().i('⏰ 延迟 ${delaySeconds}s 后重试 (第${retryCount + 1}/$maxRetries次)');
+
+      await Future.delayed(Duration(seconds: delaySeconds));
+
+      // 检查组件是否仍然挂载
+      if (!mounted) return;
+
+    } catch (e) {
+      getLogger().e('❌ 处理高防护网站403错误失败: $e');
+      setState(() {
+        isLoading = false;
+        hasError = true;
+        errorMessage = '重试失败\n\n请稍后手动重试或使用浏览器访问。';
+      });
+    }
+  }
+
 }

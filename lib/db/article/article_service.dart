@@ -535,6 +535,7 @@ class ArticleService extends GetxService {
           .filter()
           .isGenerateMhtmlEqualTo(false)
           .deletedAtIsNull() // 过滤未删除的文章
+          .serviceIdIsNotEmpty() // 服务器ID不能为空
           .markdownStatusEqualTo(0)
           .and()
           .urlIsNotEmpty()
