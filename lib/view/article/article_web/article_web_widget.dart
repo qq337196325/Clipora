@@ -40,6 +40,9 @@ class ArticleWebWidget extends StatefulWidget {
 
 class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
   double _lastScrollY = 0.0;
+  
+  // 添加防抖Timer，避免generateSnapshot多次执行
+  Timer? _generateSnapshotTimer;
 
   @override
   Widget build(BuildContext context) {
@@ -220,28 +223,14 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 // 页面加载完成后进行优化设置
                 finalizeWebPageOptimization(url,webViewController);
                 
-                // // 检查是否是预热首页加载完成，如果是，则跳转到目标URL
-                // if (await _handleWarmupRedirect(url, webViewController!)) {
-                //   return; // 如果是预热跳转，则中止后续操作，等待目标页面加载
-                // }
+                // 检查是否是预热首页加载完成，如果是，则跳转到目标URL
+                if (await _handleWarmupRedirect(url, webViewController!)) {
+                  getLogger().w('❌ 这个是预热，所以终止执行:');
+
+                  return; // 如果是预热跳转，则中止后续操作，等待目标页面加载
+                }
                 
-                // 检查是否需要自动生成MHTML快照（异步执行，不阻塞主线程）
-                generateMhtmlUtils.webViewController = webViewController;
-                generateMhtmlUtils.checkAndGenerateSnapshotIfNeeded(
-                  articleController: articleController,
-                  onSnapshotCreated: widget.onSnapshotCreated,
-                  onLoadingStateChanged: (loading) {
-                    if (mounted) {
-                      setState(() {
-                        isLoading = loading;
-                      });
-                    }
-                  },
-                  mounted: mounted,
-                  onMarkdownGenerated: widget.onMarkdownGenerated,
-                ).catchError((e) {
-                  getLogger().e('❌ 自动检查快照失败: $e');
-                });
+                _debouncedGenerateSnapshot();
               },
               // 【加载进度变化回调】: 当页面加载进度更新时调用，可用于显示进度条。
               onProgressChanged: (controller, progress) {
@@ -276,6 +265,54 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
       ],
     );
   }
+
+
+  generateSnapshot(){
+    // 检查是否需要自动生成MHTML快照（异步执行，不阻塞主线程）
+    generateMhtmlUtils.webViewController = webViewController;
+    generateMhtmlUtils.checkAndGenerateSnapshotIfNeeded(
+      articleController: articleController,
+      onSnapshotCreated: widget.onSnapshotCreated,
+      onLoadingStateChanged: (loading) {
+        if (mounted) {
+          setState(() {
+            isLoading = loading;
+          });
+        }
+      },
+      mounted: mounted,
+      onMarkdownGenerated: widget.onMarkdownGenerated,
+    ).catchError((e) {
+      getLogger().e('❌ 自动检查快照失败: $e');
+    });
+  }
+
+  /// 防抖执行generateSnapshot方法
+  /// 等待5秒后执行，如果期间再次调用则重新计时
+  void _debouncedGenerateSnapshot() {
+    // 取消之前的定时器（如果存在）
+    _generateSnapshotTimer?.cancel();
+    
+    getLogger().d('🕐 开始5秒防抖计时，等待generateSnapshot执行...');
+    
+    // 创建新的5秒定时器
+    _generateSnapshotTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && !hasError) {
+        getLogger().i('✅ 5秒防抖完成，开始执行generateSnapshot');
+        generateSnapshot();
+      } else {
+        getLogger().w('⚠️ 页面已销毁或有错误，跳过generateSnapshot执行');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // 清理防抖Timer
+    _generateSnapshotTimer?.cancel();
+    super.dispose();
+  }
+
 
   /// 优化的URL导航处理
   Future<NavigationActionPolicy> _handleOptimizedUrlNavigation(
@@ -335,6 +372,9 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   // 浏览器仿真管理器
   BrowserSimulationManager? _simulationManager;
   JSInjector? _jsInjector;
+
+  // 添加防抖Timer，避免generateSnapshot多次执行
+  Timer? _generateSnapshotTimer;
 
   @override
   void initState() {
@@ -470,7 +510,6 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
     if (isApiRequest && !isMainFrameRequest) {
       // API请求错误，不显示错误界面
       getLogger().i('📡 API请求失败，但不影响主页面: $url');
-      
       return; // 不设置hasError，让页面继续正常显示
     }
     
@@ -595,13 +634,14 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         currentUrl != null && 
         currentUrl.host == Uri.parse(_urlToLoadAfterWarmup!).host &&
         currentUrl.path == '/') {
-          
+
+      controller.stopLoading();
       getLogger().i('✅ 首页预热成功！');
       final targetUrl = _urlToLoadAfterWarmup!;
       _urlToLoadAfterWarmup = null; // 清除标记，避免重复跳转
       
       // 稍作等待，让首页的脚本有机会执行
-      await Future.delayed(const Duration(milliseconds: 500)); 
+      await Future.delayed(const Duration(milliseconds: 500));
       
       getLogger().i('🚀 正在跳转至原始目标链接: $targetUrl');
       await controller.loadUrl(urlRequest: URLRequest(url: WebUri(targetUrl)));

@@ -32,6 +32,7 @@ class ArticleDb {
   @Index() String markdown = "";               // Markdown文档
   @Index() bool isGenerateMarkdown = false;    // 是否生成了Markdown文档
   int markdownStatus = 0;                      // markdown状态    0=待生成  1=已生成   2=生成失败     3=正在生成
+  DateTime? markdownProcessingStartTime;       // markdown开始处理时间（状态为3时记录）
   String shareOriginalContent = "";            // 分享接收到的原始内容
   @Index() String serviceId = ""; 
 
@@ -85,6 +86,7 @@ class ArticleDb {
       'mhtmlPath': mhtmlPath,
       'markdown': markdown,
       'isGenerateMarkdown': isGenerateMarkdown,
+      'markdownProcessingStartTime': markdownProcessingStartTime?.toIso8601String(),
       'shareOriginalContent': shareOriginalContent,
       'serviceId': serviceId,
       'isRead': isRead,

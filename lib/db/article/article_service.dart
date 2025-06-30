@@ -610,6 +610,32 @@ class ArticleService extends GetxService {
     }
   }
 
+  /// 获取处理超时的文章（状态为3且超过指定时间）
+  Future<List<ArticleDb>> getTimeoutProcessingArticles({int timeoutSeconds = 50}) async {
+    try {
+      final now = DateTime.now();
+      final timeoutThreshold = now.subtract(Duration(seconds: timeoutSeconds));
+      
+      // 先获取所有状态为3的文章
+      final articles = await _dbService.articles
+          .filter()
+          .markdownStatusEqualTo(3) // 正在生成状态
+          .findAll();
+      
+      // 在代码中筛选出超时的文章
+      final timeoutArticles = articles.where((article) {
+        return article.markdownProcessingStartTime != null &&
+               article.markdownProcessingStartTime!.isBefore(timeoutThreshold);
+      }).toList();
+      
+      getLogger().d('🔍 检查到 ${articles.length} 篇正在生成Markdown的文章，其中 ${timeoutArticles.length} 篇超时');
+      return timeoutArticles;
+    } catch (e) {
+      getLogger().e('❌ 获取超时处理文章失败: $e');
+      return [];
+    }
+  }
+
   /// 更新文章的Markdown状态
   /// markdownStatus: 0=待生成  1=已生成   2=生成失败     3=正在生成
   Future<bool> updateArticleMarkdownStatus(int articleId, int markdownStatus) async {
@@ -617,8 +643,20 @@ class ArticleService extends GetxService {
       return await _dbService.isar.writeTxn(() async {
         final article = await _dbService.articles.get(articleId);
         if (article != null) {
+          final now = DateTime.now();
           article.markdownStatus = markdownStatus;
-          article.updatedAt = DateTime.now();
+          article.updatedAt = now;
+          
+          // 当状态设为3（正在生成）时，记录开始处理时间
+          if (markdownStatus == 3) {
+            article.markdownProcessingStartTime = now;
+            getLogger().i('⏰ 记录Markdown处理开始时间: $now');
+          }
+          // 当状态设为1（已生成）或2（生成失败）时，清除开始处理时间
+          else if (markdownStatus == 1 || markdownStatus == 2) {
+            article.markdownProcessingStartTime = null;
+          }
+          
           await _dbService.articles.put(article);
           
           String statusText = '';

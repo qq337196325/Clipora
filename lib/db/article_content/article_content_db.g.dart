@@ -47,8 +47,13 @@ const ArticleContentDbSchema = CollectionSchema(
       name: r'markdown',
       type: IsarType.string,
     ),
-    r'updatedAt': PropertySchema(
+    r'textContent': PropertySchema(
       id: 6,
+      name: r'textContent',
+      type: IsarType.string,
+    ),
+    r'updatedAt': PropertySchema(
+      id: 7,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -98,6 +103,19 @@ const ArticleContentDbSchema = CollectionSchema(
         )
       ],
     ),
+    r'textContent': IndexSchema(
+      id: 1990746073331052909,
+      name: r'textContent',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'textContent',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
     r'createdAt': IndexSchema(
       id: -3433535483987302584,
       name: r'createdAt',
@@ -141,6 +159,7 @@ int _articleContentDbEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.languageCode.length * 3;
   bytesCount += 3 + object.markdown.length * 3;
+  bytesCount += 3 + object.textContent.length * 3;
   return bytesCount;
 }
 
@@ -156,7 +175,8 @@ void _articleContentDbSerialize(
   writer.writeBool(offsets[3], object.isOriginal);
   writer.writeString(offsets[4], object.languageCode);
   writer.writeString(offsets[5], object.markdown);
-  writer.writeDateTime(offsets[6], object.updatedAt);
+  writer.writeString(offsets[6], object.textContent);
+  writer.writeDateTime(offsets[7], object.updatedAt);
 }
 
 ArticleContentDb _articleContentDbDeserialize(
@@ -173,7 +193,8 @@ ArticleContentDb _articleContentDbDeserialize(
   object.isOriginal = reader.readBool(offsets[3]);
   object.languageCode = reader.readString(offsets[4]);
   object.markdown = reader.readString(offsets[5]);
-  object.updatedAt = reader.readDateTime(offsets[6]);
+  object.textContent = reader.readString(offsets[6]);
+  object.updatedAt = reader.readDateTime(offsets[7]);
   return object;
 }
 
@@ -197,6 +218,8 @@ P _articleContentDbDeserializeProp<P>(
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -495,6 +518,51 @@ extension ArticleContentDbQueryWhere
               indexName: r'markdown',
               lower: [],
               upper: [markdown],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterWhereClause>
+      textContentEqualTo(String textContent) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'textContent',
+        value: [textContent],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterWhereClause>
+      textContentNotEqualTo(String textContent) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'textContent',
+              lower: [],
+              upper: [textContent],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'textContent',
+              lower: [textContent],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'textContent',
+              lower: [textContent],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'textContent',
+              lower: [],
+              upper: [textContent],
               includeUpper: false,
             ));
       }
@@ -1215,6 +1283,142 @@ extension ArticleContentDbQueryFilter
   }
 
   QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'textContent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'textContent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'textContent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'textContent',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'textContent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'textContent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'textContent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'textContent',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'textContent',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      textContentIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'textContent',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
       updatedAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1364,6 +1568,20 @@ extension ArticleContentDbQuerySortBy
   }
 
   QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
+      sortByTextContent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'textContent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
+      sortByTextContentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'textContent', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
       sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -1478,6 +1696,20 @@ extension ArticleContentDbQuerySortThenBy
   }
 
   QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
+      thenByTextContent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'textContent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
+      thenByTextContentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'textContent', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
       thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -1537,6 +1769,13 @@ extension ArticleContentDbQueryWhereDistinct
   }
 
   QueryBuilder<ArticleContentDb, ArticleContentDb, QDistinct>
+      distinctByTextContent({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'textContent', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QDistinct>
       distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
@@ -1588,6 +1827,13 @@ extension ArticleContentDbQueryProperty
   QueryBuilder<ArticleContentDb, String, QQueryOperations> markdownProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'markdown');
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, String, QQueryOperations>
+      textContentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'textContent');
     });
   }
 

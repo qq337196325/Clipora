@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:go_router/go_router.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../../route/route_name.dart';
 import '../../basics/logger.dart';
@@ -432,7 +433,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                       ),
                     ),
                   InkWell(
-                    onTap: () {
+                    onTap: article.markdownStatus == 3 ? null : () {
                       context.push('/${RouteName.articlePage}?id=${article.id}');
                     },
                     borderRadius: BorderRadius.circular(8),
@@ -444,8 +445,10 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                           Container(
                             width: 4,
                             height: 4,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF007AFF),
+                            decoration: BoxDecoration(
+                              color: article.markdownStatus == 3 
+                                  ? const Color(0xFFFF9500)  // 正在生成时使用橙色
+                                  : const Color(0xFF007AFF), // 正常状态使用蓝色
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -455,19 +458,27 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                               article.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
-                                color: Color(0xFF1D1D1F),
+                                color: article.markdownStatus == 3 
+                                    ? const Color(0xFF8E8E93)  // 正在生成时使用灰色
+                                    : const Color(0xFF1D1D1F), // 正常状态使用黑色
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 14,
-                            color: Color(0xFFD1D1D6),
-                          ),
+                          // 根据文章状态显示不同的图标
+                          article.markdownStatus == 3
+                              ? LoadingAnimationWidget.staggeredDotsWave(
+                                  color: const Color(0xFFFF9500),
+                                  size: 16,
+                                )
+                              : const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 14,
+                                  color: Color(0xFFD1D1D6),
+                                ),
                         ],
                       ),
                     ),
