@@ -9,6 +9,7 @@ import 'group/group_widget.dart';
 import 'index_widget.dart';
 import 'my_page/my_page.dart';
 import '../../route/route_name.dart';
+import 'components/add_content_dialog.dart';
 
 
 class IndexPage extends StatefulWidget {
@@ -197,6 +198,50 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                           ),
                         ),
                       ),
+                      const SizedBox(width: 6),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            // 添加触觉反馈
+                            HapticFeedback.lightImpact();
+                            // 显示添加内容对话框
+                            _showAddContentDialog();
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.85),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey.shade200.withOpacity(0.6),
+                                width: 0.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 8,
+                                  spreadRadius: 0,
+                                ),
+                                BoxShadow(
+                                  color: Colors.white.withOpacity(0.7),
+                                  offset: const Offset(0, -1),
+                                  blurRadius: 2,
+                                  spreadRadius: 0,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              size: 22,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -323,6 +368,15 @@ mixin IndexPageBLoC on State<IndexPage> {
         return const MyPage();
       },
     );
+  }
+
+  /// 显示添加内容对话框
+  void _showAddContentDialog() async {
+    final result = await showAddContentDialog(context);
+    if (result == true) {
+      // 内容添加成功，可以在这里做一些刷新操作
+      // 例如刷新首页列表等
+    }
   }
 
 }
