@@ -36,50 +36,24 @@ class SnapshotResult {
 }
 
 class SnapshotServiceWidget extends StatefulWidget {
-  /// 是否自动启动快照服务
-  final bool autoStart;
-  
-  /// 定时任务间隔（秒）
-  final int intervalSeconds;
+
   
   const SnapshotServiceWidget({
     super.key,
-    this.autoStart = true,
-    this.intervalSeconds = 2,
   });
 
   @override
   State<SnapshotServiceWidget> createState() => SnapshotServiceWidgetState();
-  
-  /// 创建一个全局可访问的实例
-  static SnapshotServiceWidgetState? _instance;
-  static SnapshotServiceWidgetState? get instance => _instance;
+
 }
 
 class SnapshotServiceWidgetState extends State<SnapshotServiceWidget> with SnapshotServiceBLoC {
-  @override
-  void initState() {
-    super.initState();
-    // 设置全局实例
-    SnapshotServiceWidget._instance = this;
-  }
 
-  @override
-  void dispose() {
-    // 清除全局实例
-    if (SnapshotServiceWidget._instance == this) {
-      SnapshotServiceWidget._instance = null;
-    }
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return InAppWebView(
-      key: webViewKey,
-      initialUrlRequest: currentUrlRequest,
       initialSettings: WebViewSettings.getWebViewSettings(),
-      // onWebViewCreated: onWebViewCreated,
       onWebViewCreated: (controller) async { // 【WebView创建完成回调】: 当WebView实例创建成功后调用，通常在这里获取WebView控制器。
         webViewController = controller;
         getLogger().i('🌐 Web页面WebView创建成功');
@@ -99,7 +73,6 @@ class SnapshotServiceWidgetState extends State<SnapshotServiceWidget> with Snaps
       },
       onLoadStop: _onLoadStopDispatcher,
       onReceivedError: onReceivedError,
-      onProgressChanged: onProgressChanged,
       onReceivedHttpError: (controller, request, errorResponse) {
         _handleHttpError(controller, request, errorResponse);
       },
@@ -164,14 +137,9 @@ class SnapshotServiceWidgetState extends State<SnapshotServiceWidget> with Snaps
 
 mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
   // 使用常量来管理时间，提高可读性和可维护性
-  static const Duration _kWarmupTimeout = Duration(seconds: 8); // 预热超时时间
-  static const Duration _kSnapshotTimeout = Duration(seconds: 90);
-  static const Duration _kPostWarmupDelay = Duration(seconds: 2);
-
   bool isLoadPerformWarmup = false; // 是否正在预热，如果是预热状态，不执行 onLoadStop
 
   // WebView相关
-  final GlobalKey webViewKey = GlobalKey();
   InAppWebViewController? webViewController;
   URLRequest? currentUrlRequest;
 
@@ -223,14 +191,10 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     
     await _initializePermissions();
     await _initializeBrowserSimulation();
-    
-    getLogger().i('🔧 快照服务初始化完成，autoStart=${widget.autoStart}');
-    
-    // 根据参数决定是否自动启动
-    if (widget.autoStart) {
-      getLogger().i('🔧 准备自动启动快照服务...');
-      _startService();
-    }
+
+
+    getLogger().i('🔧 准备自动启动快照服务...');
+    _startService();
   }
 
   /// 启动服务
@@ -241,7 +205,7 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     getLogger().i('📸 快照服务已启动');
     
     // 启动定时任务
-    _snapshotTimer = Timer.periodic(Duration(seconds: widget.intervalSeconds), (timer) {
+    _snapshotTimer = Timer.periodic(Duration(seconds: 2), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -298,13 +262,14 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     getLogger().d('🔍 检查快照任务状态: _isProcessing=$_isProcessing, _isLoadingSnapshot=$_isLoadingSnapshot, mounted=$mounted, _serviceStarted=$_serviceStarted');
     
     if (_isProcessing || _isLoadingSnapshot || !mounted || !_serviceStarted) {
+      getLogger().i('🔍 检查快照任务状态: _isProcessing=$_isProcessing, _isLoadingSnapshot=$_isLoadingSnapshot, mounted=$mounted, _serviceStarted=$_serviceStarted');
       getLogger().i('🔄 快照任务正在处理中、Widget已销毁或服务未启动，跳过此次触发。');
       return;
     }
     _isProcessing = true;
 
     try {
-      getLogger().i('🔄 开始执行快照生成任务...');
+      // getLogger().i('🔄 开始执行快照生成任务...');
       final articlesToProcess = await ArticleService.instance.getUnsnapshottedArticles();
 
       if (articlesToProcess.isEmpty) {
@@ -337,98 +302,15 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
 
     getLogger().i('🔄 开始为文章 "${article.title}" 生成快照...');
     
-    final result = await _tryMhtmlSnapshot(article);
+    // 设置状态为正在生成
+    await ArticleService.instance.updateArticleMarkdownStatus(article.id, 3);
     
-    if (result.success && result.filePath != null) {
-      getLogger().i('✅ 快照已生成 (${result.type.name}): ${result.filePath}');
-    } else {
-      getLogger().e('❌ 快照生成失败，文章: "${article.title}", 错误: ${result.error}');
-    }
+    final result = await _tryMhtmlSnapshot(article);
   }
 
-  /// 执行预热访问
-  Future<bool> _performWarmup(String domain) async {
-    isLoadPerformWarmup = true;
-    _warmupCompleter = Completer<void>();
 
-    final timeout = Timer(_kWarmupTimeout, () {
-      if (!(_warmupCompleter?.isCompleted ?? true)) {
-        getLogger().e('❌ 预热访问超时: $domain');
-        _warmupCompleter?.completeError('Warmup timeout');
-      }
-    });
-
-    try {
-      final warmupUrl = 'https://$domain';
-      // final warmupUrl = 'https://juejin.cn/post/7520548278338322483';
-      getLogger().i('🔥 开始预热访问: $warmupUrl');
-
-      // 使用 webViewController 直接加载 URL
-      if (webViewController != null && mounted) {
-        await webViewController!.loadUrl(
-          urlRequest: URLRequest(
-            url: WebUri(warmupUrl),
-            headers: WebViewSettings.getPlatformOptimizedHeaders(),
-          ),
-        );
-      } else {
-        getLogger().w('⚠️ webViewController not ready for warmup, skipping.');
-        timeout.cancel();
-        return false;
-      }
-
-      await Future.delayed(const Duration(milliseconds: 1000));
-      webViewController?.stopLoading();
-      // 等待onLoadStop完成预热completer
-      await _warmupCompleter!.future;
-      warmupUrls.updateWarmupStatus(domain, isWarmedUp: true);
-
-      timeout.cancel();
-      return true;
-    } catch (e) {
-      getLogger().e('❌ 预热过程整体出错: $e');
-      timeout.cancel();
-      return false;
-    } finally {
-      isLoadPerformWarmup = false;
-      _warmupCompleter = null;
-    }
-  }
-
-  Future<SnapshotResult> _tryMhtmlSnapshot(ArticleDb article) async {
-    final completer = Completer<SnapshotResult>();
+  Future<void> _tryMhtmlSnapshot(ArticleDb article) async {
     _currentArticle = article;
-
-    // 检查是否需要预热
-    final domain = _extractDomainFromUrl(article.url);
-    getLogger().i('🔥 当前访问域名: $domain');
-    if (domain.isNotEmpty) {
-      final warmupUrlsMap = warmupUrls.getWarmupUrls();
-      if (warmupUrlsMap.containsKey(domain) && !warmupUrls.isWarmedUp(domain)) {
-        getLogger().i('🔥 检测到需要预热的域名: $domain');
-        final warmupSuccess = await _performWarmup(domain);
-        if (warmupSuccess) {
-          getLogger().i('✅ 域名预热成功: $domain');
-        } else {
-          getLogger().w('⚠️ 域名预热失败，继续尝试访问: $domain');
-        }
-      }
-    }
-
-    // 设置超时
-    final timeout = Timer(_kSnapshotTimeout, () {
-      if (!completer.isCompleted) {
-        getLogger().e('❌ MHTML快照任务超时 for ${article.url}');
-        completer.complete(SnapshotResult(
-          type: SnapshotType.mhtml,
-          success: false,
-          error: 'Timeout after ${_kSnapshotTimeout.inSeconds} seconds',
-        ));
-      }
-    });
-
-
-    getLogger().i('✅ 开始调用: $domain');
 
     try {
       _isLoadingSnapshot = true;
@@ -445,29 +327,12 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
       } else {
         final errorMsg = 'WebView controller not available or widget unmounted';
         getLogger().e('❌ $errorMsg. Cancelling snapshot.');
-        timeout.cancel();
-        return SnapshotResult(
-          type: SnapshotType.mhtml,
-          success: false,
-          error: errorMsg,
-        );
       }
 
-      final result = await completer.future;
-      timeout.cancel();
-      return result;
     } catch (e) {
-      timeout.cancel();
       getLogger().e('❌ MHTML快照整体流程出错: $e');
-      return SnapshotResult(
-        type: SnapshotType.mhtml,
-        success: false,
-        error: e.toString(),
-      );
     } finally {
       _isLoadingSnapshot = false;
-
-      _currentArticle = null;
     }
   }
 
@@ -500,62 +365,82 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
 
   /// 正常页面加载完成回调
   Future<void> _onNormalLoadStop(InAppWebViewController controller, WebUri? url) async {
-    if(!_isLoadingSnapshot){
-      return ;
-    }
 
     getLogger().i('✅ 页面加载完成: $url');
 
-
-    // 注入存储仿真代码
-    await _jsInjector?.injectStorageSimulation(controller);
-
-    // 注入平台特定的反检测代码
-    await WebViewUtils.injectPlatformSpecificAntiDetection(controller);
-
-    // 注入内边距和修复页面宽度
-    const padding = EdgeInsets.symmetric(horizontal: 12.0);
-    await WebViewUtils.fixPageWidth(controller, padding);
-
-    // 注入移动端弹窗处理脚本
-    await WebViewUtils.injectMobilePopupHandler(controller);
-
-    // 页面加载完成后进行优化设置
-    finalizeWebPageOptimization(url, webViewController);
-
-    // 等待页面初步渲染
-    await Future.delayed(Duration(seconds: 2));
-
-    // 滚动页面以触发懒加载内容
-    await controller.evaluateJavascript(source: 'window.scrollTo(0, document.body.scrollHeight);');
-    await Future.delayed(Duration(seconds: 1));
-    await controller.evaluateJavascript(source: 'window.scrollTo(0, 0);');
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // 生成MHTML快照
-    generateMhtmlUtils.webViewController = webViewController;
-    final filePath = await generateMhtmlUtils.generateSnapshot();
-    await Future.delayed(const Duration(milliseconds: 500));
-    getLogger().i(' 快照路径: $filePath');
-    if (_currentArticle != null) {
-      generateMhtmlUtils.updateArticleSnapshot(filePath, _currentArticle!.id);
-      final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath, _currentArticle!.id);
-
-      if (uploadStatus) {
-        await generateMhtmlUtils.fetchMarkdownFromServer(
-          article: _currentArticle!,
-          onMarkdownGenerated: () {},
-        );
-      }
-    }
-
-
-
     try {
+      // 注入存储仿真代码
+      await _jsInjector?.injectStorageSimulation(controller);
 
+      // 注入平台特定的反检测代码
+      await WebViewUtils.injectPlatformSpecificAntiDetection(controller);
+
+      // 注入内边距和修复页面宽度
+      const padding = EdgeInsets.symmetric(horizontal: 12.0);
+      await WebViewUtils.fixPageWidth(controller, padding);
+
+      // 注入移动端弹窗处理脚本
+      await WebViewUtils.injectMobilePopupHandler(controller);
+
+      // 页面加载完成后进行优化设置
+      finalizeWebPageOptimization(url, webViewController);
+
+
+      if(isLoadPerformWarmup){
+        getLogger().w(' 当前是预热: $url');
+        return;
+      }
+
+      // 等待页面初步渲染
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // 滚动页面以触发懒加载内容
+      await controller.evaluateJavascript(source: 'window.scrollTo(0, document.body.scrollHeight);');
+      await Future.delayed(const Duration(milliseconds: 500));
+      await controller.evaluateJavascript(source: 'window.scrollTo(0, 0);');
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // 生成MHTML快照
+      generateMhtmlUtils.webViewController = webViewController;
+      final filePath = await generateMhtmlUtils.generateSnapshot();
+      await Future.delayed(const Duration(milliseconds: 500));
+      getLogger().i(' 快照路径: $filePath   $_currentArticle');
+      
+      if (_currentArticle != null) {
+        generateMhtmlUtils.updateArticleSnapshot(filePath, _currentArticle!.id);
+        final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath, _currentArticle!.id);
+
+        if (uploadStatus) {
+          await generateMhtmlUtils.fetchMarkdownFromServer(
+            article: _currentArticle!,
+            onMarkdownGenerated: () {},
+          );
+          
+          // 检查Markdown是否成功生成，通过查询文章的最新状态来判断
+          final updatedArticle = await ArticleService.instance.getArticleById(_currentArticle!.id);
+          if (updatedArticle != null && updatedArticle.markdownStatus == 1) {
+            // fetchMarkdownFromServer内部已经设置了状态为1，这里只需要记录日志
+            getLogger().i('✅ 文章快照和Markdown处理完成，状态已更新为已生成');
+          } else {
+            // Markdown获取失败，设置状态为生成失败
+            await ArticleService.instance.updateArticleMarkdownStatus(_currentArticle!.id, 2);
+            getLogger().e('❌ Markdown获取失败，状态已更新为生成失败');
+          }
+        } else {
+          // 上传失败，设置状态为生成失败
+          await ArticleService.instance.updateArticleMarkdownStatus(_currentArticle!.id, 2);
+          getLogger().e('❌ 快照上传失败，状态已更新为生成失败');
+        }
+      }
     } catch (e) {
       getLogger().e('❌ 快照保存过程出错: $e');
-
+      // 处理过程中出现异常，设置状态为生成失败
+      if (_currentArticle != null) {
+        await ArticleService.instance.updateArticleMarkdownStatus(_currentArticle!.id, 2);
+        getLogger().e('❌ 快照处理异常，状态已更新为生成失败: $e');
+      }
+    } finally {
+      controller.stopLoading();
     }
   }
 
@@ -563,22 +448,6 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     getLogger().e('❌ 页面加载错误: ${error.description} (Code: ${error.type}, URL: ${request.url})');
 
   }
-
-  Future<void> onProgressChanged(InAppWebViewController controller, int progress) async {
-    // 可以在这里显示加载进度
-  }
-
-  /// 从URL中提取域名
-  String _extractDomainFromUrl(String url) {
-    try {
-      final uri = Uri.parse(url);
-      return uri.host;
-    } catch (e) {
-      getLogger().e('❌ 提取域名失败: $e, URL: $url');
-      return '';
-    }
-  }
-
 
   /// 智能处理HTTP错误
   void _handleHttpError(InAppWebViewController controller, WebResourceRequest request, WebResourceResponse errorResponse) {
@@ -630,8 +499,6 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     return highProtectionSites.any((site) => domain.contains(site));
   }
 
-
-
   /// 处理高防护网站的403错误
   Future<void> _handleHighProtectionSite403Error(InAppWebViewController controller, String url, String domain) async {
     try {
@@ -651,14 +518,15 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
 
         await controller.loadUrl(urlRequest: URLRequest(url: WebUri(homepageUrl.toString())));
 
+        isLoadPerformWarmup = true;
         // 预热策略已启动，直接返回，等待首页加载完成后的回调
         return;
       }
 
-      // 如果预热策略已尝试过，则进入常规的重试流程
-      getLogger().w('⚠️ 首页预热策略已执行过，但仍然失败。转为常规重试...');
 
-      getLogger().i('🔄 开始处理高防护网站403错误: $domain');
+      isLoadPerformWarmup = false;
+      // 如果预热策略已尝试过，则进入常规的重试流程
+      getLogger().w('🔄 开始处理高防护网站403错误: $domain');
 
       // 增加重试计数器
       if (!_retryCountMap.containsKey(url)) {

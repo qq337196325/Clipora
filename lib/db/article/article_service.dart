@@ -610,6 +610,47 @@ class ArticleService extends GetxService {
     }
   }
 
+  /// 更新文章的Markdown状态
+  /// markdownStatus: 0=待生成  1=已生成   2=生成失败     3=正在生成
+  Future<bool> updateArticleMarkdownStatus(int articleId, int markdownStatus) async {
+    try {
+      return await _dbService.isar.writeTxn(() async {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null) {
+          article.markdownStatus = markdownStatus;
+          article.updatedAt = DateTime.now();
+          await _dbService.articles.put(article);
+          
+          String statusText = '';
+          switch (markdownStatus) {
+            case 0:
+              statusText = '待生成';
+              break;
+            case 1:
+              statusText = '已生成';
+              break;
+            case 2:
+              statusText = '生成失败';
+              break;
+            case 3:
+              statusText = '正在生成';
+              break;
+            default:
+              statusText = '未知状态($markdownStatus)';
+          }
+          
+          getLogger().i('✅ 成功更新文章Markdown状态: ID $articleId -> $statusText');
+          return true;
+        }
+        getLogger().w('⚠️ 更新Markdown状态失败：未找到文章 ID $articleId');
+        return false;
+      });
+    } catch (e) {
+      getLogger().e('❌ 更新文章Markdown状态时出错: $e');
+      return false;
+    }
+  }
+
   /// 搜索文章（模糊搜索标题和markdown内容）
   Future<List<ArticleDb>> searchArticles(String query, {int limit = 50}) async {
 
