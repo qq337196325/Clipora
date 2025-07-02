@@ -29,12 +29,13 @@ class ArticleDb {
   @Index() bool isCreateService = false;       // 是否在服务端添加
   @Index() bool isGenerateMhtml = false;       // 是否生成了Mhtml文件
   String mhtmlPath = "";                       // mhtml快照路径【因为跨平台、这个要考虑下怎么保存】
-  @Index() String markdown = "";               // Markdown文档
   @Index() bool isGenerateMarkdown = false;    // 是否生成了Markdown文档
   int markdownStatus = 0;                      // markdown状态    0=待生成  1=已生成   2=生成失败     3=正在生成
   DateTime? markdownProcessingStartTime;       // markdown开始处理时间（状态为3时记录）
   String shareOriginalContent = "";            // 分享接收到的原始内容
-  @Index() String serviceId = ""; 
+  @Index() String serviceId = "";              // 对应服务端ID
+
+  // @Index() String markdown = "";               // Markdown文档
 
   // 用户行为数据
   int isRead = 0;            // 是否阅读   0=未读    1= 已读
@@ -43,13 +44,13 @@ class ArticleDb {
   double readProgress = 0.0; // 阅读进度(0-1)
 
   // 精确定位相关字段
-  int markdownScrollY = 0;     // Markdown文档滚动Y位置
-  int markdownScrollX = 0;     // Markdown文档滚动X位置
-  String currentElementId = "";   // 当前可见元素的ID
-  String currentElementText = ""; // 当前可见元素的文本片段(前100字符，用于备用定位)
-  int currentElementOffset = 0;   // 当前元素在页面中的偏移量
-  int viewportHeight = 0;         // 视窗高度(用于计算相对位置)
-  int contentHeight = 0;          // 内容总高度
+  // int markdownScrollY = 0;     // Markdown文档滚动Y位置
+  // int markdownScrollX = 0;     // Markdown文档滚动X位置
+  // String currentElementId = "";   // 当前可见元素的ID
+  // String currentElementText = ""; // 当前可见元素的文本片段(前100字符，用于备用定位)
+  // int currentElementOffset = 0;   // 当前元素在页面中的偏移量
+  // int viewportHeight = 0;         // 视窗高度(用于计算相对位置)
+  // int contentHeight = 0;          // 内容总高度
   DateTime? lastReadTime;         // 最后阅读时间
   
   // 阅读会话信息
@@ -84,7 +85,7 @@ class ArticleDb {
       'isCreateService': isCreateService,
       'isGenerateMhtml': isGenerateMhtml,
       'mhtmlPath': mhtmlPath,
-      'markdown': markdown,
+      // 'markdown': markdown,
       'isGenerateMarkdown': isGenerateMarkdown,
       'markdownProcessingStartTime': markdownProcessingStartTime?.toIso8601String(),
       'shareOriginalContent': shareOriginalContent,
@@ -93,13 +94,13 @@ class ArticleDb {
       'readCount': readCount,
       'readDuration': readDuration,
       'readProgress': readProgress,
-      'markdownScrollY': markdownScrollY,
-      'markdownScrollX': markdownScrollX,
-      'currentElementId': currentElementId,
-      'currentElementText': currentElementText,
-      'currentElementOffset': currentElementOffset,
-      'viewportHeight': viewportHeight,
-      'contentHeight': contentHeight,
+      // 'markdownScrollY': markdownScrollY,
+      // 'markdownScrollX': markdownScrollX,
+      // 'currentElementId': currentElementId,
+      // 'currentElementText': currentElementText,
+      // 'currentElementOffset': currentElementOffset,
+      // 'viewportHeight': viewportHeight,
+      // 'contentHeight': contentHeight,
       'lastReadTime': lastReadTime?.toIso8601String(),
       'readingSessionId': readingSessionId,
       'readingStartTime': readingStartTime,

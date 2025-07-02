@@ -29,109 +29,114 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
       type: IsarType.byte,
       enumMap: _EnhancedAnnotationDbannotationTypeEnumValueMap,
     ),
-    r'articleId': PropertySchema(
+    r'articleContentId': PropertySchema(
       id: 2,
+      name: r'articleContentId',
+      type: IsarType.long,
+    ),
+    r'articleId': PropertySchema(
+      id: 3,
       name: r'articleId',
       type: IsarType.long,
     ),
     r'backupData': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'backupData',
       type: IsarType.string,
     ),
     r'beforeContext': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'beforeContext',
       type: IsarType.string,
     ),
     r'boundingHeight': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'boundingHeight',
       type: IsarType.double,
     ),
     r'boundingWidth': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'boundingWidth',
       type: IsarType.double,
     ),
     r'boundingX': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'boundingX',
       type: IsarType.double,
     ),
     r'boundingY': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'boundingY',
       type: IsarType.double,
     ),
     r'colorType': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'colorType',
       type: IsarType.byte,
       enumMap: _EnhancedAnnotationDbcolorTypeEnumValueMap,
     ),
     r'createdAt': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'crossParagraph': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'crossParagraph',
       type: IsarType.bool,
     ),
     r'endOffset': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'endOffset',
       type: IsarType.long,
     ),
     r'endXPath': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'endXPath',
       type: IsarType.string,
     ),
     r'highlightId': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'highlightId',
       type: IsarType.string,
     ),
     r'noteContent': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'noteContent',
       type: IsarType.string,
     ),
     r'rangeFingerprint': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'rangeFingerprint',
       type: IsarType.string,
     ),
     r'selectedText': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'selectedText',
       type: IsarType.string,
     ),
     r'startOffset': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'startOffset',
       type: IsarType.long,
     ),
     r'startXPath': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'startXPath',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'userId',
       type: IsarType.string,
     ),
     r'version': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'version',
       type: IsarType.long,
     )
@@ -163,6 +168,19 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'articleId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'articleContentId': IndexSchema(
+      id: 6133014446145633714,
+      name: r'articleContentId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'articleContentId',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -274,27 +292,28 @@ void _enhancedAnnotationDbSerialize(
 ) {
   writer.writeString(offsets[0], object.afterContext);
   writer.writeByte(offsets[1], object.annotationType.index);
-  writer.writeLong(offsets[2], object.articleId);
-  writer.writeString(offsets[3], object.backupData);
-  writer.writeString(offsets[4], object.beforeContext);
-  writer.writeDouble(offsets[5], object.boundingHeight);
-  writer.writeDouble(offsets[6], object.boundingWidth);
-  writer.writeDouble(offsets[7], object.boundingX);
-  writer.writeDouble(offsets[8], object.boundingY);
-  writer.writeByte(offsets[9], object.colorType.index);
-  writer.writeDateTime(offsets[10], object.createdAt);
-  writer.writeBool(offsets[11], object.crossParagraph);
-  writer.writeLong(offsets[12], object.endOffset);
-  writer.writeString(offsets[13], object.endXPath);
-  writer.writeString(offsets[14], object.highlightId);
-  writer.writeString(offsets[15], object.noteContent);
-  writer.writeString(offsets[16], object.rangeFingerprint);
-  writer.writeString(offsets[17], object.selectedText);
-  writer.writeLong(offsets[18], object.startOffset);
-  writer.writeString(offsets[19], object.startXPath);
-  writer.writeDateTime(offsets[20], object.updatedAt);
-  writer.writeString(offsets[21], object.userId);
-  writer.writeLong(offsets[22], object.version);
+  writer.writeLong(offsets[2], object.articleContentId);
+  writer.writeLong(offsets[3], object.articleId);
+  writer.writeString(offsets[4], object.backupData);
+  writer.writeString(offsets[5], object.beforeContext);
+  writer.writeDouble(offsets[6], object.boundingHeight);
+  writer.writeDouble(offsets[7], object.boundingWidth);
+  writer.writeDouble(offsets[8], object.boundingX);
+  writer.writeDouble(offsets[9], object.boundingY);
+  writer.writeByte(offsets[10], object.colorType.index);
+  writer.writeDateTime(offsets[11], object.createdAt);
+  writer.writeBool(offsets[12], object.crossParagraph);
+  writer.writeLong(offsets[13], object.endOffset);
+  writer.writeString(offsets[14], object.endXPath);
+  writer.writeString(offsets[15], object.highlightId);
+  writer.writeString(offsets[16], object.noteContent);
+  writer.writeString(offsets[17], object.rangeFingerprint);
+  writer.writeString(offsets[18], object.selectedText);
+  writer.writeLong(offsets[19], object.startOffset);
+  writer.writeString(offsets[20], object.startXPath);
+  writer.writeDateTime(offsets[21], object.updatedAt);
+  writer.writeString(offsets[22], object.userId);
+  writer.writeLong(offsets[23], object.version);
 }
 
 EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
@@ -308,30 +327,31 @@ EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
   object.annotationType = _EnhancedAnnotationDbannotationTypeValueEnumMap[
           reader.readByteOrNull(offsets[1])] ??
       AnnotationType.highlight;
-  object.articleId = reader.readLong(offsets[2]);
-  object.backupData = reader.readStringOrNull(offsets[3]);
-  object.beforeContext = reader.readString(offsets[4]);
-  object.boundingHeight = reader.readDouble(offsets[5]);
-  object.boundingWidth = reader.readDouble(offsets[6]);
-  object.boundingX = reader.readDouble(offsets[7]);
-  object.boundingY = reader.readDouble(offsets[8]);
+  object.articleContentId = reader.readLong(offsets[2]);
+  object.articleId = reader.readLong(offsets[3]);
+  object.backupData = reader.readStringOrNull(offsets[4]);
+  object.beforeContext = reader.readString(offsets[5]);
+  object.boundingHeight = reader.readDouble(offsets[6]);
+  object.boundingWidth = reader.readDouble(offsets[7]);
+  object.boundingX = reader.readDouble(offsets[8]);
+  object.boundingY = reader.readDouble(offsets[9]);
   object.colorType = _EnhancedAnnotationDbcolorTypeValueEnumMap[
-          reader.readByteOrNull(offsets[9])] ??
+          reader.readByteOrNull(offsets[10])] ??
       AnnotationColor.yellow;
-  object.createdAt = reader.readDateTime(offsets[10]);
-  object.crossParagraph = reader.readBool(offsets[11]);
-  object.endOffset = reader.readLong(offsets[12]);
-  object.endXPath = reader.readString(offsets[13]);
-  object.highlightId = reader.readString(offsets[14]);
+  object.createdAt = reader.readDateTime(offsets[11]);
+  object.crossParagraph = reader.readBool(offsets[12]);
+  object.endOffset = reader.readLong(offsets[13]);
+  object.endXPath = reader.readString(offsets[14]);
+  object.highlightId = reader.readString(offsets[15]);
   object.id = id;
-  object.noteContent = reader.readString(offsets[15]);
-  object.rangeFingerprint = reader.readString(offsets[16]);
-  object.selectedText = reader.readString(offsets[17]);
-  object.startOffset = reader.readLong(offsets[18]);
-  object.startXPath = reader.readString(offsets[19]);
-  object.updatedAt = reader.readDateTime(offsets[20]);
-  object.userId = reader.readString(offsets[21]);
-  object.version = reader.readLong(offsets[22]);
+  object.noteContent = reader.readString(offsets[16]);
+  object.rangeFingerprint = reader.readString(offsets[17]);
+  object.selectedText = reader.readString(offsets[18]);
+  object.startOffset = reader.readLong(offsets[19]);
+  object.startXPath = reader.readString(offsets[20]);
+  object.updatedAt = reader.readDateTime(offsets[21]);
+  object.userId = reader.readString(offsets[22]);
+  object.version = reader.readLong(offsets[23]);
   return object;
 }
 
@@ -351,11 +371,11 @@ P _enhancedAnnotationDbDeserializeProp<P>(
     case 2:
       return (reader.readLong(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 6:
       return (reader.readDouble(offset)) as P;
     case 7:
@@ -363,17 +383,17 @@ P _enhancedAnnotationDbDeserializeProp<P>(
     case 8:
       return (reader.readDouble(offset)) as P;
     case 9:
+      return (reader.readDouble(offset)) as P;
+    case 10:
       return (_EnhancedAnnotationDbcolorTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           AnnotationColor.yellow) as P;
-    case 10:
-      return (reader.readDateTime(offset)) as P;
     case 11:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 12:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 13:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 14:
       return (reader.readString(offset)) as P;
     case 15:
@@ -383,14 +403,16 @@ P _enhancedAnnotationDbDeserializeProp<P>(
     case 17:
       return (reader.readString(offset)) as P;
     case 18:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 19:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 20:
-      return (reader.readDateTime(offset)) as P;
-    case 21:
       return (reader.readString(offset)) as P;
+    case 21:
+      return (reader.readDateTime(offset)) as P;
     case 22:
+      return (reader.readString(offset)) as P;
+    case 23:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -508,6 +530,15 @@ extension EnhancedAnnotationDbQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'articleId'),
+      );
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhere>
+      anyArticleContentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'articleContentId'),
       );
     });
   }
@@ -752,6 +783,99 @@ extension EnhancedAnnotationDbQueryWhere
         lower: [lowerArticleId],
         includeLower: includeLower,
         upper: [upperArticleId],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      articleContentIdEqualTo(int articleContentId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'articleContentId',
+        value: [articleContentId],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      articleContentIdNotEqualTo(int articleContentId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'articleContentId',
+              lower: [],
+              upper: [articleContentId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'articleContentId',
+              lower: [articleContentId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'articleContentId',
+              lower: [articleContentId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'articleContentId',
+              lower: [],
+              upper: [articleContentId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      articleContentIdGreaterThan(
+    int articleContentId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'articleContentId',
+        lower: [articleContentId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      articleContentIdLessThan(
+    int articleContentId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'articleContentId',
+        lower: [],
+        upper: [articleContentId],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      articleContentIdBetween(
+    int lowerArticleContentId,
+    int upperArticleContentId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'articleContentId',
+        lower: [lowerArticleContentId],
+        includeLower: includeLower,
+        upper: [upperArticleContentId],
         includeUpper: includeUpper,
       ));
     });
@@ -1363,6 +1487,62 @@ extension EnhancedAnnotationDbQueryFilter on QueryBuilder<EnhancedAnnotationDb,
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'annotationType',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> articleContentIdEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'articleContentId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> articleContentIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'articleContentId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> articleContentIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'articleContentId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> articleContentIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'articleContentId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -3391,6 +3571,20 @@ extension EnhancedAnnotationDbQuerySortBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByArticleContentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'articleContentId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByArticleContentIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'articleContentId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       sortByArticleId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'articleId', Sort.asc);
@@ -3712,6 +3906,20 @@ extension EnhancedAnnotationDbQuerySortThenBy
       thenByAnnotationTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'annotationType', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByArticleContentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'articleContentId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByArticleContentIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'articleContentId', Sort.desc);
     });
   }
 
@@ -4041,6 +4249,13 @@ extension EnhancedAnnotationDbQueryWhereDistinct
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
+      distinctByArticleContentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'articleContentId');
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
       distinctByArticleId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'articleId');
@@ -4209,6 +4424,13 @@ extension EnhancedAnnotationDbQueryProperty on QueryBuilder<
       annotationTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'annotationType');
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, int, QQueryOperations>
+      articleContentIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'articleContentId');
     });
   }
 

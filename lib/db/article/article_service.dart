@@ -8,6 +8,7 @@ import '../database_service.dart';
 import '../category/category_db.dart';
 import '../../basics/logger.dart';
 import '../sync_operation.dart';
+import '../article_content/article_content_db.dart';
 
 /// 文章服务类
 class ArticleService extends GetxService {
@@ -587,28 +588,28 @@ class ArticleService extends GetxService {
   }
 
   /// 更新文章的Markdown内容和状态
-  Future<bool> updateArticleMarkdown(int articleId, String markdown, String title) async {
-    try {
-      return await _dbService.isar.writeTxn(() async {
-        final article = await _dbService.articles.get(articleId);
-        if (article != null) {
-          article.markdown = markdown;
-          article.isGenerateMarkdown = true;
-          article.markdownStatus = 1;
-          article.updatedAt = DateTime.now();
-          article.title = title;
-          await _dbService.articles.put(article);
-          getLogger().i('✅ 成功更新文章Markdown内容: ID $articleId');
-          return true;
-        }
-        getLogger().w('⚠️ 更新Markdown内容失败：未找到文章 ID $articleId');
-        return false;
-      });
-    } catch (e) {
-      getLogger().e('❌ 更新文章Markdown内容时出错: $e');
-      return false;
-    }
-  }
+  // Future<bool> updateArticleMarkdown(int articleId, String markdown, String title) async {
+  //   try {
+  //     return await _dbService.isar.writeTxn(() async {
+  //       final article = await _dbService.articles.get(articleId);
+  //       if (article != null) {
+  //         article.markdown = markdown;
+  //         article.isGenerateMarkdown = true;
+  //         article.markdownStatus = 1;
+  //         article.updatedAt = DateTime.now();
+  //         article.title = title;
+  //         await _dbService.articles.put(article);
+  //         getLogger().i('✅ 成功更新文章Markdown内容: ID $articleId');
+  //         return true;
+  //       }
+  //       getLogger().w('⚠️ 更新Markdown内容失败：未找到文章 ID $articleId');
+  //       return false;
+  //     });
+  //   } catch (e) {
+  //     getLogger().e('❌ 更新文章Markdown内容时出错: $e');
+  //     return false;
+  //   }
+  // }
 
   /// 获取处理超时的文章（状态为3且超过指定时间）
   Future<List<ArticleDb>> getTimeoutProcessingArticles({int timeoutSeconds = 50}) async {
@@ -689,7 +690,7 @@ class ArticleService extends GetxService {
     }
   }
 
-  /// 搜索文章（模糊搜索标题和markdown内容）
+  /// 搜索文章（模糊搜索标题和内容）
   Future<List<ArticleDb>> searchArticles(String query, {int limit = 50}) async {
 
     try {
@@ -700,16 +701,53 @@ class ArticleService extends GetxService {
       final cleanQuery = query.trim();
       getLogger().d('🔍 搜索文章: $cleanQuery');
       
-      // 使用单一查询合并标题和内容搜索
-      final results = await _dbService.articles
+      // 搜索标题匹配的文章
+      final titleResults = await _dbService.articles
+          .filter()
+          .deletedAtIsNull()
+          .and()
+          .titleContains(cleanQuery, caseSensitive: false)
+          .sortByCreatedAtDesc()
+          .findAll();
+      
+      // 搜索内容匹配的文章ID
+      final contentResults = await _dbService.articleContent
           .filter()
           .group((q) => q
-              .titleContains(cleanQuery, caseSensitive: false)
+              .textContentContains(cleanQuery, caseSensitive: false)
               .or()
               .markdownContains(cleanQuery, caseSensitive: false))
-          .sortByCreatedAtDesc()
-          .limit(limit)
           .findAll();
+      
+      // 获取内容匹配的文章ID列表
+      final contentArticleIds = contentResults
+          .map((content) => content.articleId)
+          .toSet()
+          .toList();
+      
+      // 根据内容匹配的ID获取文章
+      final contentArticles = <ArticleDb>[];
+      for (final articleId in contentArticleIds) {
+        final article = await _dbService.articles.get(articleId);
+        if (article != null && article.deletedAt == null) {
+          contentArticles.add(article);
+        }
+      }
+      
+      // 合并结果并去重
+      final allResults = <int, ArticleDb>{};
+      
+      // 添加标题匹配的结果
+      for (final article in titleResults) {
+        allResults[article.id] = article;
+      }
+      
+      // 添加内容匹配的结果
+      for (final article in contentArticles) {
+        allResults[article.id] = article;
+      }
+      
+      final results = allResults.values.toList();
       
       // 对结果进行排序优化：标题匹配的排在前面
       results.sort((a, b) {
@@ -723,8 +761,11 @@ class ArticleService extends GetxService {
         return b.createdAt.compareTo(a.createdAt);
       });
       
-      getLogger().d('🔍 搜索完成，找到 ${results.length} 篇文章');
-      return results;
+      // 限制结果数量
+      final limitedResults = results.take(limit).toList();
+      
+      getLogger().d('🔍 搜索完成，找到 ${limitedResults.length} 篇文章');
+      return limitedResults;
     } catch (e) {
       getLogger().e('❌ 搜索文章失败: $e');
       return [];
@@ -741,16 +782,58 @@ class ArticleService extends GetxService {
       
       final cleanQuery = query.trim();
       
-      // 实时搜索也搜索标题和内容，但限制结果数量以保持响应速度
-      final results = await _dbService.articles
+      // 搜索标题匹配的文章（限制数量以保持响应速度）
+      final titleResults = await _dbService.articles
           .filter()
-          .group((q) => q
-              .titleContains(cleanQuery, caseSensitive: false)
-              .or()
-              .markdownContains(cleanQuery, caseSensitive: false))
+          .deletedAtIsNull()
+          .and()
+          .titleContains(cleanQuery, caseSensitive: false)
           .sortByCreatedAtDesc()
           .limit(limit)
           .findAll();
+      
+      // 搜索内容匹配的文章ID（限制数量）
+      final contentResults = await _dbService.articleContent
+          .filter()
+          .group((q) => q
+              .textContentContains(cleanQuery, caseSensitive: false)
+              .or()
+              .markdownContains(cleanQuery, caseSensitive: false))
+          .limit(limit)
+          .findAll();
+      
+      // 获取内容匹配的文章ID列表
+      final contentArticleIds = contentResults
+          .map((content) => content.articleId)
+          .toSet()
+          .toList();
+      
+      // 根据内容匹配的ID获取文章（快速搜索，减少查询次数）
+      final contentArticles = <ArticleDb>[];
+      if (contentArticleIds.isNotEmpty) {
+        final articles = await _dbService.articles
+            .filter()
+            .deletedAtIsNull()
+            .and()
+            .anyOf(contentArticleIds, (q, articleId) => q.idEqualTo(articleId))
+            .findAll();
+        contentArticles.addAll(articles);
+      }
+      
+      // 合并结果并去重
+      final allResults = <int, ArticleDb>{};
+      
+      // 添加标题匹配的结果
+      for (final article in titleResults) {
+        allResults[article.id] = article;
+      }
+      
+      // 添加内容匹配的结果
+      for (final article in contentArticles) {
+        allResults[article.id] = article;
+      }
+      
+      final results = allResults.values.toList();
       
       // 对结果进行排序优化：标题匹配的排在前面
       results.sort((a, b) {
@@ -764,7 +847,10 @@ class ArticleService extends GetxService {
         return b.createdAt.compareTo(a.createdAt);
       });
       
-      return results;
+      // 限制结果数量
+      final limitedResults = results.take(limit).toList();
+      
+      return limitedResults;
     } catch (e) {
       getLogger().e('❌ 快速搜索失败: $e');
       return [];
@@ -1118,84 +1204,101 @@ class ArticleService extends GetxService {
       
       final cleanQuery = query.trim();
       
-      // 根据排序类型排序，过滤未删除的文章
-      List<ArticleDb> results;
-      switch (sortBy) {
-        case 'createTime':
-          results = await _dbService.articles
-              .filter()
-              .deletedAtIsNull() // 过滤未删除的文章
-              .and()
-              .group((q) => q
-                  .titleContains(cleanQuery, caseSensitive: false)
-                  .or()
-                  .markdownContains(cleanQuery, caseSensitive: false))
-              .sortByCreatedAt()
-              .offset(offset)
-              .limit(limit)
-              .findAll();
-          if (isDescending) results = results.reversed.toList();
-          break;
-        case 'modifyTime':
-          results = await _dbService.articles
-              .filter()
-              .deletedAtIsNull() // 过滤未删除的文章
-              .and()
-              .group((q) => q
-                  .titleContains(cleanQuery, caseSensitive: false)
-                  .or()
-                  .markdownContains(cleanQuery, caseSensitive: false))
-              .sortByUpdatedAt()
-              .offset(offset)
-              .limit(limit)
-              .findAll();
-          if (isDescending) results = results.reversed.toList();
-          break;
-        case 'name':
-          results = await _dbService.articles
-              .filter()
-              .deletedAtIsNull() // 过滤未删除的文章
-              .and()
-              .group((q) => q
-                  .titleContains(cleanQuery, caseSensitive: false)
-                  .or()
-                  .markdownContains(cleanQuery, caseSensitive: false))
-              .sortByTitle()
-              .offset(offset)
-              .limit(limit)
-              .findAll();
-          if (isDescending) results = results.reversed.toList();
-          break;
-        default:
-          results = await _dbService.articles
-              .filter()
-              .deletedAtIsNull() // 过滤未删除的文章
-              .and()
-              .group((q) => q
-                  .titleContains(cleanQuery, caseSensitive: false)
-                  .or()
-                  .markdownContains(cleanQuery, caseSensitive: false))
-              .sortByCreatedAtDesc()
-              .offset(offset)
-              .limit(limit)
-              .findAll();
+      // 先搜索所有匹配的文章，然后在内存中排序和分页
+      // 这是因为跨表搜索难以在数据库层面直接排序
+      
+      // 搜索标题匹配的文章
+      final titleResults = await _dbService.articles
+          .filter()
+          .deletedAtIsNull()
+          .and()
+          .titleContains(cleanQuery, caseSensitive: false)
+          .findAll();
+      
+      // 搜索内容匹配的文章ID
+      final contentResults = await _dbService.articleContent
+          .filter()
+          .group((q) => q
+              .textContentContains(cleanQuery, caseSensitive: false)
+              .or()
+              .markdownContains(cleanQuery, caseSensitive: false))
+          .findAll();
+      
+      // 获取内容匹配的文章ID列表
+      final contentArticleIds = contentResults
+          .map((content) => content.articleId)
+          .toSet()
+          .toList();
+      
+      // 根据内容匹配的ID获取文章
+      final contentArticles = <ArticleDb>[];
+      if (contentArticleIds.isNotEmpty) {
+        final articles = await _dbService.articles
+            .filter()
+            .deletedAtIsNull()
+            .and()
+            .anyOf(contentArticleIds, (q, articleId) => q.idEqualTo(articleId))
+            .findAll();
+        contentArticles.addAll(articles);
       }
       
-      // 对结果进行排序优化：标题匹配的排在前面
-      if (sortBy == null || sortBy == 'createTime') {
-        results.sort((a, b) {
-          final aInTitle = a.title.toLowerCase().contains(cleanQuery.toLowerCase());
-          final bInTitle = b.title.toLowerCase().contains(cleanQuery.toLowerCase());
-          
-          if (aInTitle && !bInTitle) return -1;
-          if (!aInTitle && bInTitle) return 1;
-          
-          // 如果都在标题中或都不在标题中，按创建时间排序
-          return isDescending 
-              ? b.createdAt.compareTo(a.createdAt)
-              : a.createdAt.compareTo(b.createdAt);
-        });
+      // 合并结果并去重
+      final allResults = <int, ArticleDb>{};
+      
+      // 添加标题匹配的结果
+      for (final article in titleResults) {
+        allResults[article.id] = article;
       }
+      
+      // 添加内容匹配的结果
+      for (final article in contentArticles) {
+        allResults[article.id] = article;
+      }
+      
+      final allArticles = allResults.values.toList();
+      
+      // 根据排序类型排序
+      switch (sortBy) {
+        case 'createTime':
+          allArticles.sort((a, b) => isDescending 
+              ? b.createdAt.compareTo(a.createdAt)
+              : a.createdAt.compareTo(b.createdAt));
+          break;
+        case 'modifyTime':
+          allArticles.sort((a, b) => isDescending 
+              ? b.updatedAt.compareTo(a.updatedAt)
+              : a.updatedAt.compareTo(b.updatedAt));
+          break;
+        case 'name':
+          allArticles.sort((a, b) => isDescending 
+              ? b.title.compareTo(a.title)
+              : a.title.compareTo(b.title));
+          break;
+        default:
+          // 默认排序优化：标题匹配的排在前面
+          allArticles.sort((a, b) {
+            final aInTitle = a.title.toLowerCase().contains(cleanQuery.toLowerCase());
+            final bInTitle = b.title.toLowerCase().contains(cleanQuery.toLowerCase());
+            
+            if (aInTitle && !bInTitle) return -1;
+            if (!aInTitle && bInTitle) return 1;
+            
+            // 如果都在标题中或都不在标题中，按创建时间排序
+            return isDescending 
+                ? b.createdAt.compareTo(a.createdAt)
+                : a.createdAt.compareTo(b.createdAt);
+          });
+      }
+      
+      // 应用分页
+      final startIndex = offset;
+      final endIndex = (offset + limit).clamp(0, allArticles.length);
+      
+      if (startIndex >= allArticles.length) {
+        return [];
+      }
+      
+      final results = allArticles.sublist(startIndex, endIndex);
       
       return results;
     } catch (e) {
@@ -1394,6 +1497,127 @@ class ArticleService extends GetxService {
     } catch (e) {
       getLogger().e('❌ 清空回收站失败: $e');
       rethrow;
+    }
+  }
+
+  /// 保存或更新文章内容到 ArticleContentDb
+  Future<ArticleContentDb> saveOrUpdateArticleContent({
+    required int articleId,
+    required String markdown,
+    String textContent = '',
+    String languageCode = "",
+    bool isOriginal = true,
+    String serviceId = '',
+  }) async {
+    try {
+      getLogger().i('📝 保存文章内容到 ArticleContentDb，文章ID: $articleId，语言: ${languageCode}');
+      
+      final now = DateTime.now();
+      
+      // 首先查询是否已存在该文章的内容（根据 articleId 和 languageCode）
+      final existingContent = await _dbService.isar.writeTxn(() async {
+        final existing = await _dbService.articleContent
+            .filter()
+            .articleIdEqualTo(articleId)
+            .and()
+            .languageCodeEqualTo(languageCode)
+            .findFirst();
+        
+        if (existing != null) {
+          // 更新现有内容
+          existing.markdown = markdown;
+          existing.textContent = textContent;
+          existing.updatedAt = now;
+          if (serviceId.isNotEmpty) {
+            existing.serviceId = serviceId;
+          }
+          await _dbService.articleContent.put(existing);
+          getLogger().i('✅ 更新现有文章内容成功，ArticleContentDb ID: ${existing.id}');
+          return existing;
+        } else {
+          // 创建新内容
+          final newContent = ArticleContentDb()
+            ..articleId = articleId
+            ..markdown = markdown
+            ..textContent = textContent
+            ..languageCode = languageCode
+            ..isOriginal = isOriginal
+            ..serviceId = serviceId
+            ..createdAt = now
+            ..updatedAt = now;
+          
+          await _dbService.articleContent.put(newContent);
+          getLogger().i('✅ 创建新文章内容成功，ArticleContentDb ID: ${newContent.id}');
+          return newContent;
+        }
+      });
+      
+      return existingContent;
+    } catch (e) {
+      getLogger().e('❌ 保存文章内容失败: $e');
+      rethrow;
+    }
+  }
+
+  /// 获取文章的原文内容
+  Future<ArticleContentDb?> getOriginalArticleContent(int articleId) async {
+    try {
+      return await _dbService.articleContent
+          .filter()
+          .articleIdEqualTo(articleId)
+          .and()
+          .languageCodeEqualTo("original")
+          .findFirst();
+    } catch (e) {
+      getLogger().e('❌ 获取文章原文内容失败: $e');
+      return null;
+    }
+  }
+
+  /// 获取文章的所有内容（所有语言版本）
+  Future<List<ArticleContentDb>> getAllArticleContents(int articleId) async {
+    try {
+      return await _dbService.articleContent
+          .filter()
+          .articleIdEqualTo(articleId)
+          .sortByLanguageCode()
+          .findAll();
+    } catch (e) {
+      getLogger().e('❌ 获取文章所有内容失败: $e');
+      return [];
+    }
+  }
+
+  /// 获取文章指定语言的内容
+  Future<ArticleContentDb?> getArticleContentByLanguage(int articleId, String language) async {
+    try {
+      return await _dbService.articleContent
+          .filter()
+          .articleIdEqualTo(articleId)
+          .and()
+          .languageCodeEqualTo(language)
+          .findFirst();
+    } catch (e) {
+      getLogger().e('❌ 获取文章指定语言内容失败: $e');
+      return null;
+    }
+  }
+
+  /// 删除文章的所有内容
+  Future<int> deleteAllArticleContents(int articleId) async {
+    try {
+      final deletedCount = await _dbService.isar.writeTxn(() async {
+        return await _dbService.articleContent
+            .filter()
+            .articleIdEqualTo(articleId)
+            .deleteAll();
+      });
+      
+      getLogger().i('🗑️ 删除文章($articleId)的所有内容，共 $deletedCount 条');
+      return deletedCount;
+    } catch (e) {
+      getLogger().e('❌ 删除文章内容失败: $e');
+      return 0;
     }
   }
 

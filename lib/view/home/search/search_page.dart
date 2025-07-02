@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../basics/logger.dart';
 import '../../../db/article/article_db.dart';
 import '../../../db/article/article_service.dart';
+import '../../../db/article_content/article_content_db.dart';
 import '../../../route/route_name.dart';
 import 'components/highlight_text.dart';
 
@@ -549,6 +550,9 @@ mixin SearchPageBLoC on State<SearchPage> {
   List<String> searchSuggestions = [];
   List<ArticleDb> searchResults = [];
   
+  // 文章内容缓存 - 存储文章ID到内容的映射
+  Map<int, ArticleContentDb?> articleContentCache = {};
+  
   // 防抖相关
   Timer? _debounceTimer;
   static const Duration _debounceDuration = Duration(milliseconds: 300);
@@ -628,6 +632,9 @@ mixin SearchPageBLoC on State<SearchPage> {
       // 实时搜索：搜索标题和内容，限制结果数量保持响应速度
       final results = await ArticleService.instance.fastSearchArticles(query);
       
+      // 预加载文章内容
+      await _preloadArticleContents(results);
+      
       // 计算搜索耗时
       final duration = DateTime.now().difference(_searchStartTime!).inMilliseconds;
       
@@ -665,6 +672,9 @@ mixin SearchPageBLoC on State<SearchPage> {
       // 使用完整搜索功能（搜索标题和内容，更多结果）
       final results = await ArticleService.instance.searchArticles(searchText);
       
+      // 预加载文章内容
+      await _preloadArticleContents(results);
+      
       setState(() {
         isLoading = false;
         searchResults = results;
@@ -681,6 +691,21 @@ mixin SearchPageBLoC on State<SearchPage> {
     
     // 收起键盘
     searchFocusNode.unfocus();
+  }
+
+  /// 预加载文章内容到缓存
+  Future<void> _preloadArticleContents(List<ArticleDb> articles) async {
+    try {
+      for (final article in articles) {
+        // 如果缓存中没有该文章的内容，则获取
+        if (!articleContentCache.containsKey(article.id)) {
+          final content = await ArticleService.instance.getOriginalArticleContent(article.id);
+          articleContentCache[article.id] = content;
+        }
+      }
+    } catch (e) {
+      getLogger().e('预加载文章内容失败: $e');
+    }
   }
 
   void _onResultTap(ArticleDb result) {
@@ -705,17 +730,37 @@ mixin SearchPageBLoC on State<SearchPage> {
       }
     }
     
+    // 从缓存中获取文章内容
+    final articleContent = articleContentCache[article.id];
+    
     // 如果有markdown内容
-    if (article.markdown.isNotEmpty) {
+    if (articleContent?.markdown != null && articleContent!.markdown.isNotEmpty) {
       if (searchQuery.isEmpty) {
-        return article.markdown.length > 100 
-            ? '${article.markdown.substring(0, 100)}...'
-            : article.markdown;
+        return articleContent.markdown.length > 100 
+            ? '${articleContent.markdown.substring(0, 100)}...'
+            : articleContent.markdown;
       }
       
       // 提取包含搜索词的相关片段
       return HighlightTextBuilder.extractRelevantContent(
-        fullContent: article.markdown,
+        fullContent: articleContent.markdown,
+        searchQuery: searchQuery,
+        maxLength: 120,
+        contextLength: 40,
+      );
+    }
+    
+    // 如果有文本内容
+    if (articleContent?.textContent != null && articleContent!.textContent.isNotEmpty) {
+      if (searchQuery.isEmpty) {
+        return articleContent.textContent.length > 100 
+            ? '${articleContent.textContent.substring(0, 100)}...'
+            : articleContent.textContent;
+      }
+      
+      // 提取包含搜索词的相关片段
+      return HighlightTextBuilder.extractRelevantContent(
+        fullContent: articleContent.textContent,
         searchQuery: searchQuery,
         maxLength: 120,
         contextLength: 40,

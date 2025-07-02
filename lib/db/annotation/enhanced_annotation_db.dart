@@ -9,9 +9,14 @@ class EnhancedAnnotationDb {
   Id id = Isar.autoIncrement;
   @Index() String userId = "";
 
-  // 关联文章
+  // 关联文章（旧版，现在改成为 articleContentId）
   @Index()
   int articleId = 0;
+
+  // 关联文章内容 新版
+  @Index()
+  int articleContentId = 0;
+  
 
   @Index(unique: true, replace: true)
   String highlightId = "";  // 高亮HTML元素的唯一ID

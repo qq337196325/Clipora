@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../controller/article_controller.dart';
 import 'move_to_category_modal.dart';
 import 'tag_edit_modal.dart';
+import 'translate_modal.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import '../../../../db/article/article_db.dart';
 import '../../../../db/article/article_service.dart';
@@ -123,6 +124,16 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
       context: context,
       expand: true,
       builder: (context) => TagEditModal(articleId: widget.articleId),
+    );
+  }
+
+
+  void _showTranslateModal(BuildContext context) {
+    Navigator.of(context).pop();
+    showCupertinoModalBottomSheet(
+      context: context,
+      expand: true,
+      builder: (context) => TranslateModal(articleId: widget.articleId),
     );
   }
 
@@ -363,19 +374,13 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
     final hasUrl = articleController.articleUrl.isNotEmpty;
 
     final List<_ActionItem> actions = [
-      // _ActionItem(
-      //   icon: Icons.explore_outlined,
-      //   label: '浏览器访问',
-      //   onTap: () => _openInBrowser(context),
-      //   isEnabled: hasUrl,
-      // ),
       _ActionItem(
         icon: Icons.link, 
         label: '复制链接', 
         onTap: () => _copyLink(context),
         isEnabled: hasUrl,
       ),
-            _ActionItem(
+      _ActionItem(
         icon: Icons.refresh,
         label: '刷新解析',
         onTap: () {
@@ -408,6 +413,10 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
             _showToast(context, '重新生成快照');
           }
         }),
+
+
+      _ActionItem(icon: Icons.g_translate, label: 'AI翻译', onTap: () => _showTranslateModal(context)),
+
       _ActionItem(icon: Icons.label_outline, label: '标签', onTap: () => _showTagEditModal(context)),
       _ActionItem(icon: Icons.drive_file_move_outline, label: '移动', onTap: () => _showMoveToCategoryModal(context)),
              _ActionItem(
@@ -424,7 +433,8 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
     ];
 
     return Material(
-      color: theme.cardColor,
+      // color: theme.cardColor,
+      color: Colors.white,
       borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(20),
         topRight: Radius.circular(20),
@@ -436,7 +446,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
             decoration: BoxDecoration(
               color: isDarkMode
                   ? const Color(0xFF2C2C2E)
-                  : const Color(0xFFF2F2F7),
+                  : const Color(0xFFFFFFFF),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(

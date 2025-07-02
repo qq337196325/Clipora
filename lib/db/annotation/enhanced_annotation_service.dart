@@ -50,7 +50,7 @@ class EnhancedAnnotationService {
     }
   }
 
-  /// 获取文章的所有标注
+  /// 获取文章的所有标注（旧方法，基于articleId）
   Future<List<EnhancedAnnotationDb>> getAnnotationsForArticle(int articleId) async {
     try {
       // final isar = _databaseService.isar;
@@ -64,6 +64,23 @@ class EnhancedAnnotationService {
       return annotations;
     } catch (e) {
       getLogger().e('❌ 获取文章标注失败: $e');
+      return [];
+    }
+  }
+
+  /// 获取指定语言版本的标注（新方法，基于articleContentId）
+  Future<List<EnhancedAnnotationDb>> getAnnotationsForArticleContent(int articleContentId) async {
+    try {
+      final annotations = await _isar.enhancedAnnotationDbs
+          .filter()
+          .articleContentIdEqualTo(articleContentId)
+          .sortByCreatedAt()
+          .findAll();
+      
+      getLogger().d('📊 获取文章内容($articleContentId)标注: ${annotations.length}个');
+      return annotations;
+    } catch (e) {
+      getLogger().e('❌ 获取文章内容标注失败: $e');
       return [];
     }
   }
@@ -308,6 +325,24 @@ class EnhancedAnnotationService {
       return count;
     } catch (e) {
       getLogger().e('❌ 清理文章标注失败: $e');
+      return 0;
+    }
+  }
+
+  /// 清理基于 ArticleContentDb 的所有标注（新架构）
+  Future<int> clearArticleContentAnnotations(int articleContentId) async {
+    try {
+      final count = await _isar.writeTxn(() async {
+        return await _isar.enhancedAnnotationDbs
+            .filter()
+            .articleContentIdEqualTo(articleContentId)
+            .deleteAll();
+      });
+      
+      getLogger().i('✅ 清理文章内容($articleContentId)标注: $count个');
+      return count;
+    } catch (e) {
+      getLogger().e('❌ 清理文章内容标注失败: $e');
       return 0;
     }
   }

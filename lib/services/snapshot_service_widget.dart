@@ -384,7 +384,8 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
         return;
       }
 
-      // 检查是否是预热首页加载完成，如果是，则跳转到目标URL
+      /// 检查是否是预热首页加载完成，如果是，则跳转到目标URL
+      /// 当发生请求错误的时候，尝试预热处理
       if (await _handleWarmupRedirect(url, webViewController!)) {
         getLogger().w('❌ 这个是预热，所以终止执行:');
 
@@ -396,6 +397,7 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
       await controller.evaluateJavascript(source: 'window.scrollTo(0, 0);');
       await Future.delayed(const Duration(milliseconds: 800));
 
+      /// onLoadStop 会存在多次请求的情况。所以需要等待5秒页面稳定下来
       _debouncedGenerateSnapshot();
     } catch (e) {
       getLogger().e('❌ 快照保存过程出错: $e');

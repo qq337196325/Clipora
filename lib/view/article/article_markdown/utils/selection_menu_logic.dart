@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../article_markdown_add_note_dialog.dart';
 import '../../../../basics/logger.dart';
 import '../../../../db/article/article_db.dart';
+import '../../../../db/article/article_service.dart';
 import '../../../../db/annotation/enhanced_annotation_db.dart';
 import '../../../../db/annotation/enhanced_annotation_service.dart';
 import 'basic_scripts_logic.dart';
@@ -224,6 +225,13 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
         return;
       }
 
+      // 获取当前语言版本的文章内容ID
+      final articleContentId = await _getCurrentArticleContentId();
+      if (articleContentId == null) {
+        showMessage('无法创建高亮：内容版本信息缺失');
+        return;
+      }
+
       // 创建增强标注
       final annotation = EnhancedAnnotationDb.fromSelectionData(
         selectionData,
@@ -231,6 +239,9 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
         AnnotationType.highlight,
         colorType: AnnotationColor.yellow,
       );
+
+      // 设置 articleContentId（新架构）
+      annotation.articleContentId = articleContentId;
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);
@@ -244,7 +255,7 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
 
       if (success) {
         showMessage('高亮已添加');
-        getLogger().i('✅ 高亮创建成功: ${annotation.highlightId}');
+        getLogger().i('✅ 高亮创建成功: ${annotation.highlightId}，内容ID: $articleContentId');
       } else {
         showMessage('高亮添加失败');
         // 回滚数据库操作
@@ -275,6 +286,13 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
         return; // 用户取消或输入为空
       }
 
+      // 获取当前语言版本的文章内容ID
+      final articleContentId = await _getCurrentArticleContentId();
+      if (articleContentId == null) {
+        showMessage('无法创建笔记：内容版本信息缺失');
+        return;
+      }
+
       // 创建带笔记的增强标注
       final annotation = EnhancedAnnotationDb.fromSelectionData(
         selectionData,
@@ -283,6 +301,9 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
         colorType: AnnotationColor.green,
         noteContent: noteText,
       );
+
+      // 设置 articleContentId（新架构）
+      annotation.articleContentId = articleContentId;
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);
@@ -297,7 +318,7 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
 
       if (success) {
         showMessage('笔记已添加');
-        getLogger().i('✅ 笔记创建成功: ${annotation.highlightId}');
+        getLogger().i('✅ 笔记创建成功: ${annotation.highlightId}，内容ID: $articleContentId');
       } else {
         showMessage('笔记添加失败');
         // 回滚数据库操作
@@ -318,6 +339,35 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
     
     return requiredFields.every((field) => 
       data.containsKey(field) && data[field] != null);
+  }
+
+  /// 获取当前语言版本的文章内容ID
+  Future<int?> _getCurrentArticleContentId() async {
+    try {
+      if (article?.id == null) return null;
+      
+      // 尝试从enhanced_markdown_logic获取当前的articleContent
+      if (this is dynamic && (this as dynamic)._currentArticleContent != null) {
+        final currentContent = (this as dynamic)._currentArticleContent;
+        if (currentContent != null && currentContent.id != null) {
+          getLogger().d('🌐 获取当前文章内容ID: ${currentContent.id}，语言: ${currentContent.languageCode}');
+          return currentContent.id;
+        }
+      }
+      
+      // 如果无法从enhanced_markdown_logic获取，尝试获取原文内容
+      final originalContent = await ArticleService.instance.getOriginalArticleContent(article!.id);
+      if (originalContent != null) {
+        getLogger().d('⚪ 回退到原文内容ID: ${originalContent.id}');
+        return originalContent.id;
+      }
+      
+      getLogger().w('⚠️ 无法获取文章内容ID');
+      return null;
+    } catch (e) {
+      getLogger().e('❌ 获取文章内容ID失败: $e');
+      return null;
+    }
   }
 
   void _logValidationDetails(Map<String, dynamic> data) {

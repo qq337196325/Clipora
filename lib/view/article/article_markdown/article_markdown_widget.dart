@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter/rendering.dart';
+import 'package:get/get.dart';
 
 import 'package:flutter/services.dart';
 import '../../../basics/logger.dart';
 import '../../../db/article/article_db.dart';
+import '../controller/article_controller.dart';
 import 'utils/simple_html_template.dart';
 import 'utils/enhanced_markdown_logic.dart';
 import 'utils/selection_menu_logic.dart';
@@ -48,6 +50,10 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Selec
 
   double _lastScrollY = 0.0;
   Timer? _savePositionTimer;
+  
+  // 用于跟踪上一次的内容，检测内容变化
+  String _previousMarkdownContent = '';
+  String _currentLanguageCode = 'original'; // 当前语言代码
 
   /// 重新加载Markdown内容
   /// 供外部调用的公开方法
@@ -114,7 +120,40 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Selec
   @override
   void initState() {
     super.initState();
+    _previousMarkdownContent = markdownContent;
+    _detectCurrentLanguage();
     initEnhancedLogic();
+  }
+
+  @override
+  void didUpdateWidget(ArticleMarkdownWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // 检测内容是否发生变化
+    if (oldWidget.markdownContent != widget.markdownContent) {
+      getLogger().i('🔄 检测到Markdown内容变化，准备重新渲染');
+      _previousMarkdownContent = markdownContent;
+      _detectCurrentLanguage();
+      
+      // 如果WebView已经准备好，立即重新渲染内容
+      if (webViewController != null) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _renderMarkdownContent();
+        });
+      }
+    }
+    
+    // 检测文章是否变化（用于处理高亮和笔记的语言版本）
+    if (oldWidget.article?.id != widget.article?.id) {
+      getLogger().i('🔄 检测到文章变化，重新初始化增强功能');
+      _detectCurrentLanguage();
+      // 重新初始化增强功能
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) {
+          initEnhancedLogic();
+        }
+      });
+    }
   }
 
   @override
@@ -124,6 +163,67 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Selec
     webViewController?.dispose();
     getLogger().d('✅ ArticleMarkdownWidget销毁完成');
     super.dispose();
+  }
+  
+  /// 检测当前语言代码
+  void _detectCurrentLanguage() {
+    try {
+      // 通过ArticleController获取当前语言状态
+      final previousLanguage = _currentLanguageCode;
+      
+      // 尝试获取ArticleController的当前语言状态
+      try {
+        final articleController = Get.find<ArticleController>();
+        _currentLanguageCode = articleController.currentLanguageCode;
+        getLogger().d('🌐 从ArticleController获取当前语言: $_currentLanguageCode');
+      } catch (e) {
+        // 如果无法获取ArticleController，使用fallback逻辑
+        if (markdownContent.isEmpty) {
+          _currentLanguageCode = 'original';
+        } else {
+          // 保持当前语言设置不变，避免频繁切换
+        }
+      }
+      
+      if (previousLanguage != _currentLanguageCode) {
+        getLogger().i('🌐 语言切换: $previousLanguage -> $_currentLanguageCode');
+        // 语言切换时，需要重新加载对应语言的高亮和笔记
+        _onLanguageChanged();
+      }
+    } catch (e) {
+      getLogger().e('❌ 检测语言失败: $e');
+      _currentLanguageCode = 'original';
+    }
+  }
+  
+  /// 语言切换时的处理
+  void _onLanguageChanged() {
+    getLogger().i('🌐 处理语言切换后的逻辑，当前语言: $_currentLanguageCode');
+    
+    // 这里可以添加语言切换后的特殊处理逻辑
+    // 比如重新加载高亮、笔记等
+    // 由于高亮和笔记在enhanced_markdown_logic中管理，这里先做标记
+    
+    // 通知增强功能语言已切换
+    if (mounted) {
+      // 延迟执行，确保内容已经渲染完成
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _notifyLanguageChanged();
+        }
+      });
+    }
+  }
+  
+  /// 通知增强功能语言已切换
+  void _notifyLanguageChanged() {
+    // 这个方法可以被enhanced_markdown_logic重写来处理语言切换
+    getLogger().d('📢 通知增强功能语言已切换: $_currentLanguageCode');
+    
+    // 如果使用了enhanced_markdown_logic，调用语言切换方法
+    if (this is dynamic && (this as dynamic)._reloadAnnotationsForLanguage != null) {
+      (this as dynamic)._reloadAnnotationsForLanguage(_currentLanguageCode);
+    }
   }
   
   /// 防抖保存位置，避免过于频繁的保存操作
@@ -322,15 +422,7 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Selec
               document.body.style.backgroundColor = 'transparent';
               document.documentElement.style.backgroundColor = 'transparent';
             ''');
-            
-            // 更新加载状态：正在加载内容
-            // await controller.evaluateJavascript(source: '''
-            //   if (window.SmoothLoading) {
-            //     window.SmoothLoading.updateText('正在加载内容...');
-            //   }
-            // ''').catchError((e) => getLogger().d('⚠️ 更新加载文本失败: $e'));
-            print('menuX12222222222222222222:' );
-            // getLogger().d('🎯 准备调用onEnhancedWebViewLoadStop');
+
             // 调用增强功能初始化
             await onEnhancedWebViewLoadStop();
             // getLogger().d('✅ onEnhancedWebViewLoadStop执行完成');

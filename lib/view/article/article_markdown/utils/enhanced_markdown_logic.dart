@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../../../basics/logger.dart';
 import '../../../../db/article/article_db.dart';
 import '../../../../db/article/article_service.dart';
+import '../../../../db/article_content/article_content_db.dart';
 import '../../../../db/annotation/enhanced_annotation_db.dart';
 import '../../../../db/annotation/enhanced_annotation_service.dart';
 import 'basic_scripts_logic.dart';
@@ -48,6 +49,9 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
   DateTime? _lastSaveTime;
   static const Duration _saveInterval = Duration(seconds: 20);
   static const Duration _minSaveInterval = Duration(seconds: 5);
+  
+  // === 文章内容相关 ===
+  ArticleContentDb? _currentArticleContent;
 
   // === 增强标注相关状态 === （已迁移到 SelectionMenuLogic）
   
@@ -62,6 +66,9 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     _ensureResourceManagerInitialized();
     Future.microtask(() => _ensureLatestArticleData());
     _recordReadingStart();
+    
+    // 初始化文章内容数据
+    _initializeArticleContent();
     
     // 确保增强标注服务已注册
     _ensureEnhancedAnnotationService();
@@ -197,12 +204,6 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       
       // 隐藏加载遮罩
       await _hideLoadingOverlay();
-      
-      // === 第一步：调试测试（仅在开发时启用） ===
-      // 延迟一下再测试，确保所有内容都已加载
-      Future.delayed(const Duration(seconds: 1), () {
-        debugTestHighlightClickListener();
-      });
       
       getLogger().i('✅ 增强WebView设置完成，页面已显示');
     } catch (e) {
@@ -469,13 +470,23 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     try {
       getLogger().d('🔄 开始恢复增强标注，文章ID: ${article!.id}');
       
-      final annotations = await EnhancedAnnotationService.instance
-          .getAnnotationsForArticle(article!.id);
+      List<EnhancedAnnotationDb> annotations;
+      
+      // 优先使用基于articleContentId的新方法
+      if (_currentArticleContent != null) {
+        getLogger().d('🌐 使用当前语言版本恢复标注，内容ID: ${_currentArticleContent!.id}，语言: ${_currentArticleContent!.languageCode}');
+        annotations = await EnhancedAnnotationService.instance
+            .getAnnotationsForArticleContent(_currentArticleContent!.id);
+      } else {
+        getLogger().d('⚠️ 当前语言版本内容不存在，回退到旧方法');
+        annotations = await EnhancedAnnotationService.instance
+            .getAnnotationsForArticle(article!.id);
+      }
       
       getLogger().i('📊 从数据库获取到 ${annotations.length} 个增强标注');
       
       if (annotations.isEmpty) {
-        getLogger().d('ℹ️ 本文无历史增强标注');
+        getLogger().d('ℹ️ 本语言版本无历史增强标注');
         return;
       }
 
@@ -560,29 +571,45 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       final currentScrollY = scrollY ?? 0;
       final currentScrollX = scrollX ?? 0;
       
-      getLogger().d('📊 当前滚动位置: X=$currentScrollX, Y=$currentScrollY, 上次保存: Y=${article!.markdownScrollY}');
+      getLogger().d('📊 当前滚动位置: X=$currentScrollX, Y=$currentScrollY, 上次保存: Y=${_currentArticleContent?.markdownScrollY ?? 0}');
       
-      if ((currentScrollY - article!.markdownScrollY).abs() > 50) {
-        final newProgress = 0.0; // 简化版本，不计算进度
+      if ((currentScrollY - (_currentArticleContent?.markdownScrollY ?? 0)).abs() > 50) {
         
-        article!
-          ..markdownScrollY = currentScrollY
-          ..markdownScrollX = currentScrollX
-          ..readProgress = newProgress
-          ..lastReadTime = DateTime.now()
-          ..updatedAt = DateTime.now();
-        
-        final currentTime = DateTime.now().millisecondsSinceEpoch;
-        if (article!.readingStartTime > 0) {
-          article!.readDuration += ((currentTime - article!.readingStartTime) / 1000).round();
-          article!.readingStartTime = currentTime;
+        // 确保有文章内容记录
+        if (_currentArticleContent == null) {
+          await _initializeArticleContent();
         }
         
-        getLogger().i('💾 保存阅读位置成功: X=$currentScrollX, Y=$currentScrollY');
-        await ArticleService.instance.saveArticle(article!);
-        _lastSaveTime = DateTime.now();
+        if (_currentArticleContent != null) {
+          // 更新位置信息
+          _currentArticleContent!
+            ..markdownScrollY = currentScrollY
+            ..markdownScrollX = currentScrollX
+            ..lastReadTime = DateTime.now()
+            ..updatedAt = DateTime.now();
+          
+          // 保存到数据库
+          await _saveArticleContentToDatabase();
+          
+          // 更新ArticleDb的阅读统计
+          final currentTime = DateTime.now().millisecondsSinceEpoch;
+          if (article!.readingStartTime > 0) {
+            article!.readDuration += ((currentTime - article!.readingStartTime) / 1000).round();
+            article!.readingStartTime = currentTime;
+          }
+          
+          // 保存ArticleDb
+          article!
+            ..lastReadTime = DateTime.now()
+            ..updatedAt = DateTime.now();
+          
+          await ArticleService.instance.saveArticle(article!);
+          
+          getLogger().i('💾 保存阅读位置成功: X=$currentScrollX, Y=$currentScrollY');
+          _lastSaveTime = DateTime.now();
+        }
       } else {
-        getLogger().d('📍 位置变化不大，跳过保存 (差值: ${(currentScrollY - article!.markdownScrollY).abs()})');
+        getLogger().d('📍 位置变化不大，跳过保存 (差值: ${(currentScrollY - (_currentArticleContent?.markdownScrollY ?? 0)).abs()})');
       }
     } catch (e) {
       if (e.toString().contains('disposed')) {
@@ -590,6 +617,23 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       } else {
         getLogger().e('❌ 保存阅读位置异常: $e');
       }
+    }
+  }
+  
+  /// 保存文章内容到数据库
+  Future<void> _saveArticleContentToDatabase() async {
+    if (_currentArticleContent == null) return;
+    
+    try {
+      await ArticleService.instance.saveOrUpdateArticleContent(
+        articleId: _currentArticleContent!.articleId,
+        markdown: _currentArticleContent!.markdown,
+        textContent: _currentArticleContent!.textContent,
+        languageCode: _currentArticleContent!.languageCode,
+        isOriginal: _currentArticleContent!.isOriginal,
+      );
+    } catch (e) {
+      getLogger().e('❌ 保存文章内容到数据库失败: $e');
     }
   }
 
@@ -602,8 +646,13 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       return;
     }
     
-    final hasPositionData = article!.markdownScrollY > 0;
-    getLogger().i('📍 检查阅读位置: X=${article!.markdownScrollX}, Y=${article!.markdownScrollY}, 有效: $hasPositionData');
+    // 确保文章内容已加载
+    if (_currentArticleContent == null) {
+      await _initializeArticleContent();
+    }
+    
+    final hasPositionData = (_currentArticleContent?.markdownScrollY ?? 0) > 0;
+    getLogger().i('📍 检查阅读位置: X=${_currentArticleContent?.markdownScrollX ?? 0}, Y=${_currentArticleContent?.markdownScrollY ?? 0}, 有效: $hasPositionData');
     
     if (!hasPositionData) {
       getLogger().i('ℹ️ 无保存的阅读位置，从顶部开始');
@@ -625,7 +674,10 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
 
     _isRestoringPosition = true;
     try {
-      getLogger().i('🔄 开始恢复阅读位置到 X=${article!.markdownScrollX}, Y=${article!.markdownScrollY}...');
+      final targetScrollX = _currentArticleContent?.markdownScrollX ?? 0;
+      final targetScrollY = _currentArticleContent?.markdownScrollY ?? 0;
+      
+      getLogger().i('🔄 开始恢复阅读位置到 X=$targetScrollX, Y=$targetScrollY...');
       
       // 等待DOM完全准备好
       // await Future.delayed(const Duration(milliseconds: 500));
@@ -635,13 +687,13 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
         document.body.scrollHeight || document.documentElement.scrollHeight || 0;
       ''');
       
-      getLogger().d('📏 页面内容高度: $contentHeight, 目标Y位置: ${article!.markdownScrollY}');
+      getLogger().d('📏 页面内容高度: $contentHeight, 目标Y位置: $targetScrollY');
       
       if (_isWebViewAvailable()) {
         // 先尝试滚动到目标位置
         await webViewController!.scrollTo(
-          x: article!.markdownScrollX,
-          y: article!.markdownScrollY,
+          x: targetScrollX,
+          y: targetScrollY,
         );
         
         // 验证滚动是否成功
@@ -649,11 +701,11 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
         final actualY = await webViewController!.getScrollY();
         final actualX = await webViewController!.getScrollX();
         
-        getLogger().i('✅ 阅读位置恢复: 目标(${article!.markdownScrollX}, ${article!.markdownScrollY}) -> 实际($actualX, $actualY)');
+        getLogger().i('✅ 阅读位置恢复: 目标($targetScrollX, $targetScrollY) -> 实际($actualX, $actualY)');
         
         // 如果位置差异较大，可能是内容还没完全加载
-        if (actualY != null && (actualY - article!.markdownScrollY).abs() > 100) {
-          getLogger().w('⚠️ 位置恢复可能不准确，差异: ${(actualY - article!.markdownScrollY).abs()}px');
+        if (actualY != null && (actualY - targetScrollY).abs() > 100) {
+          getLogger().w('⚠️ 位置恢复可能不准确，差异: ${(actualY - targetScrollY).abs()}px');
         }
       }
     } catch (e, stackTrace) {
@@ -809,90 +861,112 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     await _saveCurrentReadingPosition();
     if (oldLastSaveTime != null) _lastSaveTime = oldLastSaveTime;
   }
-  
-  /// 手动触发位置恢复（用于调试）
-  Future<void> manualRestorePosition() async {
-    getLogger().i('🔧 手动触发位置恢复...');
-    await _restoreReadingPosition();
-  }
+
 
   Future<void> _ensureLatestArticleData() async {
     if (article?.id == null) return;
     try {
+      // 刷新文章基本信息
       final latestArticle = await ArticleService.instance.getArticleById(article!.id);
       if (latestArticle != null && !_isDisposed) {
         setState(() {
           article
-          ?..markdownScrollY = latestArticle.markdownScrollY
-          ..markdownScrollX = latestArticle.markdownScrollX
-          ..readProgress = latestArticle.readProgress
+          ?..readProgress = latestArticle.readProgress
           ..lastReadTime = latestArticle.lastReadTime
           ..readCount = latestArticle.readCount
           ..readDuration = latestArticle.readDuration;
         });
+      }
+      
+      // 刷新文章内容信息
+      final latestContent = await ArticleService.instance.getOriginalArticleContent(article!.id);
+      if (latestContent != null && !_isDisposed) {
+        _currentArticleContent = latestContent;
+        getLogger().d('🔄 文章内容数据已刷新');
       }
     } catch(e) {
       getLogger().e('❌ 刷新文章数据失败: $e');
     }
   }
 
-  // === 第一步：调试和测试方法 ===
-  
-  /// 调试：验证标注点击监听器是否正常工作
-  Future<void> debugTestHighlightClickListener() async {
-    if (!_isWebViewAvailable()) {
-      getLogger().w('⚠️ WebView不可用，无法进行标注点击测试');
-      return;
-    }
+  /// 初始化文章内容数据
+  Future<void> _initializeArticleContent() async {
+    if (article?.id == null) return;
     
     try {
-      getLogger().d('🧪 开始测试标注点击监听器...');
+      // 获取原文内容
+      _currentArticleContent = await ArticleService.instance
+          .getOriginalArticleContent(article!.id);
       
-      // 检查监听器是否已安装
-      final listenerInstalled = await webViewController!.evaluateJavascript(source: '''
-        (function() {
-          return !!window.highlightClickListenerInstalled;
-        })();
-      ''');
+      getLogger().d('📄 文章内容初始化: ${_currentArticleContent != null ? '成功' : '失败'}');
       
-      getLogger().d('🧪 监听器安装状态: $listenerInstalled');
-      
-      // 检查页面中是否有标注元素
-      final highlightCount = await webViewController!.evaluateJavascript(source: '''
-        (function() {
-          const highlights = document.querySelectorAll('[data-highlight-id]');
-          console.log('🧪 找到标注元素:', highlights.length, '个');
-          
-                     // 打印前3个标注的信息
-           Array.from(highlights).slice(0, 3).forEach((el, index) => {
-             console.log('🧪 标注' + (index + 1) + ':', {
-               id: el.dataset.highlightId,
-               content: el.textContent?.substring(0, 50) + '...',
-               className: el.className,
-               tagName: el.tagName
-             });
-           });
-          
-          return highlights.length;
-        })();
-      ''');
-      
-      getLogger().d('🧪 页面中标注数量: $highlightCount');
-      
-      if ((highlightCount ?? 0) > 0) {
-        getLogger().i('✅ 第一步功能准备就绪：监听器已安装，页面中有 $highlightCount 个标注');
-        getLogger().i('🎯 现在可以点击任意标注来测试功能');
-      } else {
-        getLogger().w('⚠️ 页面中暂无标注，请先添加一些标注后再测试点击功能');
+      // 如果没有内容记录，创建一个空的
+      if (_currentArticleContent == null && article != null) {
+        _currentArticleContent = await ArticleService.instance
+            .saveOrUpdateArticleContent(
+              articleId: article!.id,
+              markdown: '',
+              textContent: '',
+              languageCode: "original",
+              isOriginal: true,
+            );
+        getLogger().d('📄 已创建新的文章内容记录');
       }
-      
     } catch (e) {
-      getLogger().e('❌ 测试标注点击监听器失败: $e');
+      getLogger().e('❌ 初始化文章内容失败: $e');
     }
   }
 
-  // === _showMessage 已迁移到 SelectionMenuLogic ===
+  /// 根据语言代码加载对应的文章内容数据
+  Future<void> _loadArticleContentByLanguage(String languageCode) async {
+    if (article?.id == null) return;
+    
+    try {
+      getLogger().d('🌐 加载语言版本的文章内容，语言: $languageCode');
+      
+      _currentArticleContent = await ArticleService.instance
+          .getArticleContentByLanguage(article!.id, languageCode);
+      
+      if (_currentArticleContent != null) {
+        getLogger().i('✅ 加载语言版本文章内容成功，内容ID: ${_currentArticleContent!.id}，语言: ${_currentArticleContent!.languageCode}');
+      } else {
+        getLogger().w('⚠️ 未找到语言版本 $languageCode 的文章内容');
+        // 如果找不到对应语言的内容，回退到原文
+        if (languageCode != 'original') {
+          _currentArticleContent = await ArticleService.instance
+              .getOriginalArticleContent(article!.id);
+          getLogger().d('⚪ 回退到原文内容');
+        }
+      }
+    } catch (e) {
+      getLogger().e('❌ 加载语言版本文章内容失败: $e');
+    }
+  }
 
+  /// 语言切换时重新加载高亮和笔记
+  Future<void> _reloadAnnotationsForLanguage(String languageCode) async {
+    if (!_isWebViewAvailable()) return;
+    
+    try {
+      getLogger().i('🌐 语言切换，重新加载高亮和笔记，语言: $languageCode');
+      
+      // 1. 清除当前页面上的所有高亮
+      await basicScriptsLogic.clearAllAnnotations();
+      
+      // 2. 加载对应语言版本的文章内容数据
+      await _loadArticleContentByLanguage(languageCode);
+      
+      // 3. 延迟一点时间确保内容渲染完成，然后恢复高亮
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!_isDisposed && mounted) {
+          _restoreEnhancedAnnotations();
+        }
+      });
+      
+    } catch (e) {
+      getLogger().e('❌ 语言切换时重新加载标注失败: $e');
+    }
+  }
 
 }
 

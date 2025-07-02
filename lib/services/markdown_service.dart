@@ -79,18 +79,18 @@ class MarkdownService extends GetxService {
       getLogger().i('🌐 从服务端获取Markdown，serviceId: ${article.serviceId}');
       final response = await UserApi.getArticleApi({'service_article_id': article.serviceId});
 
-      if (response['code'] == 0 && response['data'] != null) {
-        final markdownContent = response['data']['markdown_content'] as String? ?? '';
-        final title = response['data']['title'] as String? ?? '';
-        if (markdownContent.isNotEmpty) {
-          getLogger().i('✅ Markdown获取成功，长度: ${markdownContent.length}');
-          await ArticleService.instance.updateArticleMarkdown(article.id, markdownContent,title);
-        } else {
-          getLogger().w('⚠️ 服务端返回的Markdown内容为空 for article ${article.id}');
-        }
-      } else {
-        getLogger().e('❌ 获取Markdown失败: ${response['msg']}');
-      }
+      // if (response['code'] == 0 && response['data'] != null) {
+      //   final markdownContent = response['data']['markdown_content'] as String? ?? '';
+      //   final title = response['data']['title'] as String? ?? '';
+      //   if (markdownContent.isNotEmpty) {
+      //     getLogger().i('✅ Markdown获取成功，长度: ${markdownContent.length}');
+      //     await ArticleService.instance.updateArticleMarkdown(article.id, markdownContent,title);
+      //   } else {
+      //     getLogger().w('⚠️ 服务端返回的Markdown内容为空 for article ${article.id}');
+      //   }
+      // } else {
+      //   getLogger().e('❌ 获取Markdown失败: ${response['msg']}');
+      // }
     } catch (e) {
       getLogger().e('❌ _fetchAndSaveMarkdown 失败: $e');
     }

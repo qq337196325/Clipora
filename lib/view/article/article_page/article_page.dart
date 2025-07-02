@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
-import '/api/user_api.dart';
 import '/basics/logger.dart';
 import '/basics/upload.dart';
 import '/db/article/article_service.dart';
@@ -126,23 +125,35 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
                     // 1. 首先生成新的Markdown
                     await (_webWidgetKey.currentState)?.createMarkdown();
 
-                    // 3. 获取最新的文章数据（包含新的markdown内容）
+                    // 3. 获取最新的文章数据
                     await articleController.refreshCurrentArticle();
                     
-                    // 4. 更新本地Markdown内容状态
+                    // 4. 从 ArticleContentDb 获取最新的 Markdown 内容
                     final currentArticle = articleController.currentArticle;
-                    if (currentArticle != null && currentArticle.markdown.isNotEmpty) {
+                    if (currentArticle != null) {
+                      try {
+                        // 使用控制器刷新 Markdown 内容
+                        await articleController.refreshMarkdownContent();
+                        
+                        if (articleController.currentMarkdownContent.isNotEmpty) {
+                          // 5. 直接调用 ArticleMarkdownWidget 的方法重新加载内容
+                          final markdownState = _markdownWidgetKey.currentState;
+                          if (markdownState != null) {
+                            getLogger().i('📄 调用Markdown组件重新加载方法');
+                            await markdownState.reloadMarkdownContent();
+                          }
 
-                      // 5. 直接调用 ArticleMarkdownWidget 的方法重新加载内容
-                      final markdownState = _markdownWidgetKey.currentState;
-                      if (markdownState != null) {
-                        getLogger().i('📄 调用Markdown组件重新加载方法');
-                        await markdownState.reloadMarkdownContent();
+                          BotToast.showText(text: '图文更新成功');
+                        } else {
+                          getLogger().w('⚠️ ArticleContentDb 中未找到新的 Markdown 内容');
+                          BotToast.showText(text: 'Markdown生成中，请稍后查看');
+                        }
+                      } catch (e) {
+                        getLogger().e('❌ 从ArticleContentDb获取Markdown内容失败: $e');
+                        BotToast.showText(text: 'Markdown获取失败: $e');
                       }
-
-                      BotToast.showText(text: '图文更新成功');
                     } else {
-                      getLogger().w('⚠️ 未获取到新的Markdown内容');
+                      getLogger().w('⚠️ 未获取到文章数据');
                       BotToast.showText(text: 'Markdown生成中，请稍后查看');
                     }
                   } catch (e) {
@@ -235,9 +246,8 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   String snapshotPath = "";
   bool isUploading = false; // 添加上传状态标识
 
-  // 添加markdown内容状态管理
-  final RxString _markdownContent = ''.obs;
-  String get markdownContent => _markdownContent.value;
+  // markdown内容现在通过控制器管理
+  String get markdownContent => articleController.currentMarkdownContent;
   
   // 用于控制UI显隐的状态
   bool _isBottomBarVisible = true;
@@ -466,7 +476,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
           shouldKeepAlive: () => !_isPageDisposing,
           child: Obx(() => ArticleMarkdownWidget(
             key: _markdownWidgetKey,
-            markdownContent: _markdownContent.value,
+            markdownContent: articleController.currentMarkdownContent,
             article: articleController.currentArticle,
             onScroll: _handleScroll,
             contentPadding: padding,
@@ -560,135 +570,19 @@ mixin ArticlePageBLoC on State<ArticlePage> {
       if (mounted) {
         setState(() {});
       }
-      
-      await _loadMarkdownContent();
-    }
-  }
-
-  /// 加载Markdown内容
-  Future<void> _loadMarkdownContent() async {
-    final article = articleController.currentArticle;
-    if (article == null) {
-      getLogger().w('⚠️ 当前文章为空，无法加载Markdown内容');
-      return;
-    }
-
-    try {
-      getLogger().i('📄 开始检查Markdown内容，文章ID: ${article.id}');
-      
-      // 检查数据库中的markdown字段是否为空
-      if (article.markdown.isEmpty) {
-        getLogger().i('📄 数据库中Markdown字段为空，从服务端获取');
-        
-        // 检查是否有serviceId
-        if (article.serviceId.isEmpty) {
-          getLogger().w('⚠️ 文章serviceId为空，无法从服务端获取Markdown内容');
-          _markdownContent.value = '';
-          return;
-        }
-
-        // 从服务端获取文章内容
-        await _fetchMarkdownFromServer(article.serviceId, article.id);
-      } else {
-        getLogger().i('✅ 使用数据库中的Markdown内容，长度: ${article.markdown.length}');
-        _markdownContent.value = article.markdown;
-      }
-    } catch (e) {
-      getLogger().e('❌ 加载Markdown内容失败: $e');
-      _markdownContent.value = '';
-    }
-  }
-
-  /// 从服务端获取Markdown内容
-  Future<void> _fetchMarkdownFromServer(String serviceId, int articleId) async {
-    try {
-      getLogger().i('🌐 从服务端获取Markdown内容，serviceId: $serviceId');
-      
-      final response = await UserApi.getArticleApi({
-        'service_article_id': serviceId,
-      });
-
-      if (response['code'] == 0) {
-        final data = response['data'];
-        final markdownContent = data['markdown_content'] ?? '';
-        
-        if (markdownContent.isNotEmpty) {
-          getLogger().i('✅ 服务端Markdown内容获取成功，长度: ${markdownContent.length}');
-          
-          // 更新本地状态
-          _markdownContent.value = markdownContent;
-          
-          // 保存到数据库
-          await _saveMarkdownToDatabase(articleId, markdownContent);
-        } else {
-          getLogger().i('ℹ️ 服务端暂无Markdown内容，等待生成');
-          _markdownContent.value = '';
-        }
-      } else {
-        // 检查是否是"系统错误"或类似的服务端错误
-        final errorMsg = response['msg'] ?? '获取文章失败';
-        if (errorMsg.contains('系统错误') || errorMsg.contains('暂无') || errorMsg.contains('不存在')) {
-          getLogger().w('⚠️ 服务端暂无Markdown内容: $errorMsg');
-          _markdownContent.value = '';
-        } else {
-          throw Exception(errorMsg);
-        }
-      }
-    } catch (e) {
-      getLogger().w('⚠️ 获取Markdown内容时出现异常: $e');
-      _markdownContent.value = '';
-      // 不再显示用户错误提示，因为这是正常情况（还没生成Markdown）
-    }
-  }
-
-  /// 保存Markdown内容到数据库
-  Future<void> _saveMarkdownToDatabase(int articleId, String markdownContent) async {
-    try {
-      getLogger().i('💾 保存Markdown内容到数据库，文章ID: $articleId');
-      
-      // 获取文章记录
-      final article = await ArticleService.instance.getArticleById(articleId);
-      if (article != null) {
-        // 更新markdown字段
-        article.markdown = markdownContent;
-        article.isGenerateMarkdown = true; // 标记已生成markdown
-        article.updatedAt = DateTime.now();
-        
-        // 保存到数据库
-        await ArticleService.instance.saveArticle(article);
-        
-        getLogger().i('✅ Markdown内容保存成功: ${article.title}');
-        
-        // 刷新控制器中的文章数据
-        await articleController.refreshCurrentArticle();
-        
-        // 刷新tabs显示
-        refreshTabs();
-      } else {
-        getLogger().e('❌ 未找到ID为 $articleId 的文章记录');
-      }
-    } catch (e) {
-      getLogger().e('❌ 保存Markdown内容到数据库失败: $e');
     }
   }
 
   /// Markdown 生成成功回调
   void _onMarkdownGenerated() {
-    getLogger().i('🎯 收到 Markdown 生成成功通知，刷新 tabs');
+    getLogger().i('🎯 收到 Markdown 生成成功通知，使用控制器刷新');
     
-    // 刷新当前文章数据
-    articleController.refreshCurrentArticle().then((_) {
+    // 使用控制器的方法处理 markdown 生成成功
+    articleController.onMarkdownGenerated().then((_) {
       // 刷新 tabs 显示
       refreshTabs();
-      
-      // 更新 markdown 内容状态
-      final article = articleController.currentArticle;
-      if (article != null && article.markdown.isNotEmpty) {
-        _markdownContent.value = article.markdown;
-        getLogger().i('✅ Markdown 内容已更新到本地状态，长度: ${article.markdown.length}');
-      }
     }).catchError((e) {
-      getLogger().e('❌ 刷新文章数据失败: $e');
+      getLogger().e('❌ 刷新Markdown内容失败: $e');
     });
   }
 
@@ -1029,3 +923,4 @@ class _KeepAliveWrapperState extends State<_KeepAliveWrapper> with AutomaticKeep
     super.dispose();
   }
 }
+

@@ -8,6 +8,7 @@ import '../../../../db/article/article_service.dart';
 import '../../../../api/user_api.dart';
 import '../../../../db/annotation/enhanced_annotation_service.dart';
 
+
 /// MHTML快照生成工具类
 class GenerateMhtmlUtils extends SnapshotBaseUtils {
 
@@ -120,25 +121,45 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
               // Markdown已生成成功
               getLogger().i('✅ Markdown获取成功，长度: ${markdownContent.length}');
               
-              // 如果是重新生成，先删除所有标注和高亮
+              // 如果是重新生成，先删除所有标注和相关的文章内容
               if (isReCreate) {
                 try {
-                  final deletedCount = await EnhancedAnnotationService.instance.clearArticleAnnotations(article.id);
-                  getLogger().i('🗑️ 重新生成时已删除 $deletedCount 个标注和高亮');
+                  // 获取现有的文章内容记录
+                  final existingContent = await ArticleService.instance.getOriginalArticleContent(article.id);
+                  
+                  if (existingContent != null) {
+                    // 删除与该内容相关的标注
+                    final deletedAnnotationCount = await EnhancedAnnotationService.instance.clearArticleContentAnnotations(existingContent.id);
+                    getLogger().i('🗑️ 重新生成时已删除 $deletedAnnotationCount 个标注');
+                  }
+                  
+                  // 删除旧的文章内容记录
+                  final deletedContentCount = await ArticleService.instance.deleteAllArticleContents(article.id);
+                  getLogger().i('🗑️ 重新生成时已删除 $deletedContentCount 个文章内容记录');
                 } catch (e) {
-                  getLogger().e('❌ 删除标注失败: $e');
+                  getLogger().e('❌ 删除旧内容和标注失败: $e');
                 }
               }
               
-              await ArticleService.instance.updateArticleMarkdown(article.id, markdownContent, title);
+              // 保存到 ArticleContentDb 表
+              final articleContent = await ArticleService.instance.saveOrUpdateArticleContent(
+                articleId: article.id,
+                markdown: markdownContent,
+                languageCode: "original",
+                isOriginal: true,
+              );
 
-              // 刷新当前文章数据
-              // await articleController.refreshCurrentArticle();
+              // 更新 ArticleDb 的相关状态
+              article.isGenerateMarkdown = true;
+              article.markdownStatus = 1;
+              article.updatedAt = DateTime.now();
+              article.title = title;
+              await ArticleService.instance.saveArticle(article);
 
               // 通知父组件刷新 tabs
               onMarkdownGenerated?.call();
 
-              getLogger().i('🎉 Markdown内容已保存到本地数据库，已通知父组件刷新tabs');
+              getLogger().i('🎉 Markdown内容已保存到ArticleContentDb表（ID: ${articleContent.id}），已通知父组件刷新tabs');
               return;
             }
           } else {
