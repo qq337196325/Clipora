@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../article_markdown_add_note_dialog.dart';
+import '../components/article_markdown_add_note_dialog.dart';
 import '../../../../basics/logger.dart';
 import '../../../../db/article/article_db.dart';
 import '../../../../db/article/article_service.dart';

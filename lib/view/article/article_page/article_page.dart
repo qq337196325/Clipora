@@ -47,13 +47,13 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
         }
       },
       child: Obx(() {
-        if (articleController.hasError) {
-          return Scaffold(body: _buildErrorView(context));
-        }
+        // if (articleController.hasError) {
+        //   return Scaffold(body: _buildErrorView(context));
+        // }
 
         // 在tabs初始化之前，始终显示加载视图
         if (tabs.isEmpty) {
-          return Scaffold(body: _buildInitialLoadingView());
+          // return Scaffold(body: _buildInitialLoadingView());
         }
         
         // 主内容UI
@@ -78,7 +78,8 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
                 bottomBarHeight: _bottomBarHeight,
                 onBack: () async {
                   await _prepareForPageExit();
-                  await (_markdownWidgetKey.currentState)?.manualSavePosition();
+                  await articleController.manualSavePosition();
+                  // await (_markdownWidgetKey.currentState)?.manualSavePosition();
                   Navigator.of(context).pop();
                 },
                 onGenerateSnapshot: generateSnapshot,
@@ -207,11 +208,11 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
           const SizedBox(height: 16),
           Text('加载失败', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
-          Text(
-            articleController.errorMessage,
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
+          // Text(
+          //   articleController.errorMessage,
+          //   style: Theme.of(context).textTheme.bodyMedium,
+          //   textAlign: TextAlign.center,
+          // ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _loadArticleData,
@@ -287,8 +288,6 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     if (article.isGenerateMarkdown) {
       tabs.insert(0, '图文');
     }
-
-
 
     // 根据isGenerateMhtml决定是否显示快照tab
     if (article.isGenerateMhtml) {
@@ -762,14 +761,15 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     
     try {
 
-      await (_markdownWidgetKey.currentState)?.manualSavePosition();
-      // 1. 立即隐藏所有UI组件，避免视觉闪烁
-      if (mounted) {
-        setState(() {
-          // hideMain = true;
-          _isBottomBarVisible = false;
-        });
-      }
+      await articleController.manualSavePosition();
+      // await (_markdownWidgetKey.currentState)?.manualSavePosition();
+      // // 1. 立即隐藏所有UI组件，避免视觉闪烁
+      // if (mounted) {
+      //   setState(() {
+      //     // hideMain = true;
+      //     _isBottomBarVisible = false;
+      //   });
+      // }
       
       // 2. 提前销毁所有缓存的WebView组件
       await _disposeAllWebViews();

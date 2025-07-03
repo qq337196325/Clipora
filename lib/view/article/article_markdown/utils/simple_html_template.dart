@@ -259,10 +259,7 @@ class SimpleHtmlTemplate {
 </head>
 <body>
     <!-- 平滑加载遮罩 -->
-    <div id="smooth-loading-overlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">正在恢复阅读位置...</div>
-    </div>
+
     
     <!-- Markdown内容容器 -->
     <div id="content" class="markdown-body"></div>
@@ -388,10 +385,10 @@ class SimpleHtmlTemplate {
         };
         
         // 页面初始化时显示加载遮罩
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM内容已加载，显示加载遮罩');
-            window.SmoothLoading.show('正在加载内容...');
-        });
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     console.log('📄 DOM内容已加载，显示加载遮罩');
+        //     window.SmoothLoading.show('正在加载内容...');
+        // });
     </script>
 </body>
 </html>''';

@@ -54,7 +54,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
   ArticleContentDb? _currentArticleContent;
 
   // === 增强标注相关状态 === （已迁移到 SelectionMenuLogic）
-  
+
   late final AppLifecycleObserver _lifecycleObserver;
 
   // === 初始化和销毁 ===
@@ -68,7 +68,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     _recordReadingStart();
     
     // 初始化文章内容数据
-    _initializeArticleContent();
+    // _initializeArticleContent();
     
     // 确保增强标注服务已注册
     _ensureEnhancedAnnotationService();
@@ -170,25 +170,25 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     getLogger().d('🔥 增强文本选择回调处理器已注册11111');
     if (!_isWebViewAvailable()) return;
     try {
-      // 更新加载状态：正在注册处理器
-      await _updateLoadingText('加载中...');
-      
+      // // 更新加载状态：正在注册处理器
+      // await _updateLoadingText('加载中...');
+      //
       // 【重要】首先立即注册回调处理器，确保JavaScript调用时Flutter已准备好
       _setupEnhancedTextSelectionHandlers();
-      getLogger().d('🔥 增强文本选择回调处理器已注册');
-      
-      // 注入基础脚本
+      // getLogger().d('🔥 增强文本选择回调处理器已注册');
+      //
+      // // 注入基础脚本
       await basicScriptsLogic.injectBasicScripts(webViewController!);
-      
-      // 注入Range标注引擎（这时Handler已经准备好了）
+      //
+      // // 注入Range标注引擎（这时Handler已经准备好了）
       final injectionSuccess = await basicScriptsLogic.injectRangeAnnotationScript();
       getLogger().d('🔥 Range引擎注入结果: $injectionSuccess');
-      
-      // === 第一步：注入标注点击监听脚本 ===
-      await _injectHighlightClickListener();
 
-      // 设置图片点击处理
-      await _setupImageClickHandler();
+      // // === 第一步：注入标注点击监听脚本 ===
+      await _injectHighlightClickListener();
+      //
+      // // 设置图片点击处理
+      // await _setupImageClickHandler();
 
       // 渲染Markdown内容
       await _renderMarkdownContent();
@@ -196,13 +196,13 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       // 恢复历史标注
       await _restoreEnhancedAnnotations();
 
-      // 恢复阅读位置
+      // // 恢复阅读位置
       await _restoreReadingPosition();
-      
-      // 开始周期性位置保存
+      //
+      // // 开始周期性位置保存
       _startPeriodicPositionSaving();
-      
-      // 隐藏加载遮罩
+      //
+      // // 隐藏加载遮罩
       await _hideLoadingOverlay();
       
       getLogger().i('✅ 增强WebView设置完成，页面已显示');
@@ -577,7 +577,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
         
         // 确保有文章内容记录
         if (_currentArticleContent == null) {
-          await _initializeArticleContent();
+          // await _initializeArticleContent();
         }
         
         if (_currentArticleContent != null) {
@@ -589,7 +589,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
             ..updatedAt = DateTime.now();
           
           // 保存到数据库
-          await _saveArticleContentToDatabase();
+          // await _saveArticleContentToDatabase();
           
           // 更新ArticleDb的阅读统计
           final currentTime = DateTime.now().millisecondsSinceEpoch;
@@ -620,22 +620,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     }
   }
   
-  /// 保存文章内容到数据库
-  Future<void> _saveArticleContentToDatabase() async {
-    if (_currentArticleContent == null) return;
-    
-    try {
-      await ArticleService.instance.saveOrUpdateArticleContent(
-        articleId: _currentArticleContent!.articleId,
-        markdown: _currentArticleContent!.markdown,
-        textContent: _currentArticleContent!.textContent,
-        languageCode: _currentArticleContent!.languageCode,
-        isOriginal: _currentArticleContent!.isOriginal,
-      );
-    } catch (e) {
-      getLogger().e('❌ 保存文章内容到数据库失败: $e');
-    }
-  }
+
 
   Future<void> _restoreReadingPosition() async {
     if (!_isWebViewAvailable() || article == null) {
@@ -648,7 +633,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     
     // 确保文章内容已加载
     if (_currentArticleContent == null) {
-      await _initializeArticleContent();
+      // await _initializeArticleContent();
     }
     
     final hasPositionData = (_currentArticleContent?.markdownScrollY ?? 0) > 0;
@@ -734,33 +719,33 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
       getLogger().w('⚠️ Markdown内容为空或WebView不可用，跳过渲染');
       return;
     }
-    
+
     try {
       getLogger().i('🎨 开始渲染Markdown内容 (长度: ${markdownContent.length})...');
-      
+
       // 应用内边距样式
       final paddingStyle = _getPaddingStyle();
       getLogger().d('📐 内边距样式: $paddingStyle');
-      
+
       // 使用简单的Markdown渲染器
       final success = await SimpleMarkdownRenderer.renderMarkdown(
         webViewController!,
         markdownContent,
         paddingStyle: paddingStyle,
       );
-      
+
       if (success) {
         getLogger().i('✅ Markdown内容渲染成功');
-        
+
         // 等待一下让DOM稳定
         // await Future.delayed(const Duration(milliseconds: 300));
-        
+
         // 检查渲染后的页面高度
         final contentHeight = await webViewController!.evaluateJavascript(source: '''
           document.body.scrollHeight || document.documentElement.scrollHeight || 0;
         ''');
         getLogger().d('📏 渲染后页面高度: $contentHeight');
-        
+
         // 渲染成功后更新加载状态，但不隐藏遮罩（由位置恢复完成后处理）
         if (mounted && !_isDisposed) {
           setState(() {
@@ -853,7 +838,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
   bool _isWebViewAvailable() => !_isDisposed && webViewController != null && mounted;
   bool _shouldSave() => _lastSaveTime == null || DateTime.now().difference(_lastSaveTime!) >= _minSaveInterval;
   
-  /// 手动触发位置保存（用于调试）
+  /// 手动触发位置保存
   Future<void> manualSavePosition() async {
     getLogger().i('🔧 手动触发位置保存...');
     final oldLastSaveTime = _lastSaveTime;
@@ -889,33 +874,7 @@ mixin EnhancedMarkdownLogic<T extends StatefulWidget> on State<T>, SelectionMenu
     }
   }
 
-  /// 初始化文章内容数据
-  Future<void> _initializeArticleContent() async {
-    if (article?.id == null) return;
-    
-    try {
-      // 获取原文内容
-      _currentArticleContent = await ArticleService.instance
-          .getOriginalArticleContent(article!.id);
-      
-      getLogger().d('📄 文章内容初始化: ${_currentArticleContent != null ? '成功' : '失败'}');
-      
-      // 如果没有内容记录，创建一个空的
-      if (_currentArticleContent == null && article != null) {
-        _currentArticleContent = await ArticleService.instance
-            .saveOrUpdateArticleContent(
-              articleId: article!.id,
-              markdown: '',
-              textContent: '',
-              languageCode: "original",
-              isOriginal: true,
-            );
-        getLogger().d('📄 已创建新的文章内容记录');
-      }
-    } catch (e) {
-      getLogger().e('❌ 初始化文章内容失败: $e');
-    }
-  }
+
 
   /// 根据语言代码加载对应的文章内容数据
   Future<void> _loadArticleContentByLanguage(String languageCode) async {

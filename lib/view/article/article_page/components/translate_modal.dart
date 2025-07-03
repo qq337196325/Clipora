@@ -42,8 +42,11 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     _currentLanguageCode = articleController.currentLanguageCode;
     getLogger().d('🌐 TranslateModal 获取当前语言: $_currentLanguageCode');
     
-    // 获取所有语言代码
-    final languageCodes = _languages.map((lang) => lang.code).toList();
+    // 获取所有语言代码（除了原文，因为原文不需要翻译状态管理）
+    final languageCodes = _allLanguages
+        .where((lang) => lang.code != 'original')
+        .map((lang) => lang.code)
+        .toList();
     
     // 批量初始化 ArticleController 中的翻译状态
     await articleController.initializeAllLanguageStatus(languageCodes);
@@ -51,9 +54,12 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     // 更新本地状态（实际上现在本地状态不再使用，但保持一致性）
     if (mounted) {
       setState(() {
-        for (int i = 0; i < _languages.length; i++) {
-          final status = articleController.getTranslationStatus(_languages[i].code);
-          _languages[i].status = status;
+        for (int i = 0; i < _allLanguages.length; i++) {
+          // 跳过原文，因为原文不需要翻译状态
+          if (_allLanguages[i].code == 'original') continue;
+          
+          final status = articleController.getTranslationStatus(_allLanguages[i].code);
+          _allLanguages[i].status = status;
         }
       });
     }
@@ -98,15 +104,18 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
               _buildHeader(context),
               const SizedBox(height: 16),
               Flexible(
-                child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  shrinkWrap: true,
-                  itemCount: _languages.length,
-                  itemBuilder: (context, index) {
-                    final lang = _languages[index];
-                    return _buildLanguageItem(context, lang, index);
-                  },
-                ),
+                child: Obx(() {
+                  final languages = _languages; // 动态获取当前应该显示的语言列表
+                  return ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: languages.length,
+                    itemBuilder: (context, index) {
+                      final lang = languages[index];
+                      return _buildLanguageItem(context, lang, index);
+                    },
+                  );
+                }),
               ),
               const SizedBox(height: 16),
             ],
@@ -149,10 +158,10 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
 
   Widget _buildLanguageItem(BuildContext context, _Language lang, int index) {
     final theme = Theme.of(context);
-    final isCurrent = _currentLanguageCode == lang.code;
 
     return Obx(() {
-      // 直接使用 ArticleController 的翻译状态
+      // 直接使用 ArticleController 的实时状态
+      final isCurrent = articleController.currentLanguageCode == lang.code;
       final displayStatus = articleController.getTranslationStatus(lang.code);
       
       return Card(
@@ -181,11 +190,11 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
-                  _buildStatusWidget(context, displayStatus),
+                  _buildStatusWidget(context, displayStatus, lang.code),
                 ],
               ),
               const Spacer(),
-              _buildActionButton(context, lang, index, displayStatus),
+              _buildActionButton(context, lang, index, displayStatus, isCurrent),
             ],
           ),
         ),
@@ -193,8 +202,19 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     });
   }
 
-  Widget _buildStatusWidget(BuildContext context, String status) {
+  Widget _buildStatusWidget(BuildContext context, String status, [String? languageCode]) {
     final theme = Theme.of(context);
+    
+    // 原文的特殊处理
+    if (languageCode == 'original') {
+      return Text(
+        '已可用',
+        style: theme.textTheme.bodySmall
+            ?.copyWith(color: theme.colorScheme.primary),
+      );
+    }
+    
+    // 其他语言的翻译状态
     switch (status) {
       case 'translated':
         return Text(
@@ -237,8 +257,24 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     }
   }
 
-  Widget _buildActionButton(BuildContext context, _Language lang, int index, String displayStatus) {
+  Widget _buildActionButton(BuildContext context, _Language lang, int index, String displayStatus, bool isCurrent) {
     final theme = Theme.of(context);
+    
+    // 原文的特殊处理 - 只显示查看按钮
+    if (lang.code == 'original') {
+      return ElevatedButton(
+        onPressed: () => _switchToLanguage(lang.code),
+        style: isCurrent
+            ? ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                foregroundColor: theme.colorScheme.onPrimaryContainer,
+              )
+            : null,
+        child: const Text('查看'),
+      );
+    }
+    
+    // 其他语言的翻译状态处理
     switch (displayStatus) {
       case 'untranslated':
         return ElevatedButton(
@@ -264,7 +300,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
             const SizedBox(width: 8),
             ElevatedButton(
               onPressed: () => _switchToLanguage(lang.code),
-              style: _currentLanguageCode == lang.code
+              style: isCurrent
                   ? ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.primaryContainer,
                       foregroundColor: theme.colorScheme.onPrimaryContainer,
@@ -293,7 +329,8 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
 mixin TranslateModalBLoC on State<TranslateModal> {
   final ArticleController articleController = Get.find<ArticleController>();
 
-  final List<_Language> _languages = [
+  final List<_Language> _allLanguages = [
+    _Language(name: '原文', code: 'original'),
     _Language(name: '英语', code: 'en-US'),
     _Language(name: '日语', code: 'ja-JP'),
     _Language(name: '韩语', code: 'ko-KR'),
@@ -310,6 +347,19 @@ mixin TranslateModalBLoC on State<TranslateModal> {
     _Language(name: '简体中文', code: 'zh-CN'),
     _Language(name: '繁体中文', code: 'zh-TW'),
   ];
+
+  /// 获取当前应该显示的语言列表
+  List<_Language> get _languages {
+    final currentLanguage = articleController.currentLanguageCode;
+    
+    // 如果当前是原文，则不显示原文选项
+    if (currentLanguage == 'original') {
+      return _allLanguages.where((lang) => lang.code != 'original').toList();
+    } else {
+      // 如果当前是其他语言，则显示包括原文在内的所有选项
+      return _allLanguages;
+    }
+  }
 
   String _currentLanguageCode = 'original'; // 默认为原文，将从ArticleController获取
 

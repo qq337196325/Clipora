@@ -33,6 +33,7 @@ class _MyHomePageState extends State<AppsState> {
 
 
     Get.lazyPut(() => ArticleController());
+    // Get.lazyPut(() => ArticleMarkdownController());
     // Get.lazyPut(() => SnapshotService());
     Get.lazyPut(() => EnhancedAnnotationService());
     // Get.lazyPut(() => FullCommodityCategoryController());

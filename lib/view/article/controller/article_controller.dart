@@ -2,89 +2,38 @@ import 'dart:async';
 import 'package:get/get.dart';
 import 'package:bot_toast/bot_toast.dart';
 
-import '../../../db/article/article_db.dart';
-import '../../../db/article/article_service.dart';
 import '../../../db/article_content/article_content_db.dart';
 import '../../../api/user_api.dart';
 import '../../../basics/logger.dart';
+import 'article_markdown_controller.dart';
+import 'models/translate_content_model.dart';
 
-/// 翻译内容模型
-class TranslateContentModel {
-  final String id;
-  final String userId;
-  final String serviceArticleId;
-  final int articleId;
-  final String languageCode;
-  final String markdown;
-  final String upId;
-
-  TranslateContentModel({
-    required this.id,
-    required this.userId,
-    required this.serviceArticleId,
-    required this.articleId,
-    required this.languageCode,
-    required this.markdown,
-    required this.upId,
-  });
-
-  factory TranslateContentModel.fromJson(Map<String, dynamic> json) {
-    return TranslateContentModel(
-      id: json['id'] ?? '',
-      userId: json['user_id'] ?? '',
-      serviceArticleId: json['service_article_id'] ?? '',
-      articleId: json['article_id'] ?? 0,
-      languageCode: json['language_code'] ?? '',
-      markdown: json['markdown'] ?? '',
-      upId: json['up_id'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'user_id': userId,
-      'service_article_id': serviceArticleId,
-      'article_id': articleId,
-      'language_code': languageCode,
-      'markdown': markdown,
-      'up_id': upId,
-    };
-  }
-}
 
 /// 文章控制器
-class ArticleController extends GetxController {
+class ArticleController extends ArticleMarkdownController {
 
-  int articleId = 0;
+
 
   /// ------------------------------------------------------------------------------
 
-  // 获取文章服务实例
-  final ArticleService _articleService = ArticleService.instance;
 
-  // 当前文章数据
-  final Rx<ArticleDb?> _currentArticle = Rx<ArticleDb?>(null);
-  ArticleDb? get currentArticle => _currentArticle.value;
 
-  // 当前语言的 Markdown 内容
-  final RxString _currentMarkdownContent = ''.obs;
-  String get currentMarkdownContent => _currentMarkdownContent.value;
+
 
   // 加载状态
-  final RxBool _isLoading = false.obs;
-  bool get isLoading => _isLoading.value;
-
-  // Markdown 内容加载状态
-  final RxBool _isMarkdownLoading = false.obs;
-  bool get isMarkdownLoading => _isMarkdownLoading.value;
+  // final RxBool _isLoading = false.obs;
+  // bool get isLoading => _isLoading.value;
+  //
+  // // Markdown 内容加载状态
+  // final RxBool _isMarkdownLoading = false.obs;
+  // bool get isMarkdownLoading => _isMarkdownLoading.value;
 
   // 错误信息
-  final RxString _errorMessage = ''.obs;
-  String get errorMessage => _errorMessage.value;
+  // final RxString _errorMessage = ''.obs;
+  // String get errorMessage => _errorMessage.value;
 
   // 是否有错误
-  bool get hasError => _errorMessage.value.isNotEmpty;
+  // bool get hasError => _errorMessage.value.isNotEmpty;
 
   // 翻译相关状态
   final RxMap<String, String> _translationStatus = <String, String>{}.obs;
@@ -92,158 +41,44 @@ class ArticleController extends GetxController {
   
   final Map<String, Timer?> _pollingTimers = {};
   final Map<String, String> _translationUpIds = {};
-  
-  // 当前显示的语言代码
-  final RxString _currentLanguageCode = 'original'.obs;
-  String get currentLanguageCode => _currentLanguageCode.value;
+  // 添加请求进行中的标记，防止重复请求
+  final Map<String, bool> _translationRequesting = {};
+
 
   /// 根据ID加载文章数据
   Future<void> loadArticleById(int articleId) async {
     try {
       getLogger().i('🔄 开始加载文章，ID: $articleId');
-      _isLoading.value = true;
-      _errorMessage.value = '';
 
-      final article = await _articleService.getArticleById(articleId);
-      
+      final article = await articleService.getArticleById(articleId);
+
       if (article != null) {
-        _currentArticle.value = article;
+        currentArticleRx.value = article;
         getLogger().i('✅ 文章加载完成: ${article.title}');
-        
+
         // 更新阅读次数
         await _updateReadCount(articleId);
-        
+
         // 加载当前语言的 Markdown 内容
         await loadMarkdownContent();
-        
+
         // 初始化翻译状态（为了在打开翻译弹窗时显示正确状态）
         await _initializeTranslationStatusForCurrentArticle();
       } else {
-        _errorMessage.value = '未找到指定的文章';
         getLogger().w('⚠️ 文章不存在，ID: $articleId');
       }
     } catch (e) {
-      _errorMessage.value = '加载文章失败: $e';
       getLogger().e('❌ 加载文章失败: $e');
     } finally {
-      _isLoading.value = false;
+      // _isLoading.value = false;
     }
   }
 
 
-  /// 加载 Markdown 内容
-  Future<void> loadMarkdownContent([String? language]) async {
-    final article = _currentArticle.value;
-    if (article == null) return;
 
-    final targetLanguage = language ?? "original";
 
-    try {
-      getLogger().i('📄 开始加载Markdown内容，文章ID: ${article.id}，语言: ${targetLanguage}');
-      _isMarkdownLoading.value = true;
-      
-      // 更新当前语言状态
-      _currentLanguageCode.value = targetLanguage;
-      
-      // 从 ArticleContentDb 获取指定语言的内容
-      final articleContent = await _articleService.getArticleContentByLanguage(
-        article.id, 
-        targetLanguage
-      );
-      
-      if (articleContent != null && articleContent.markdown.isNotEmpty) {
-        getLogger().i('✅ 使用ArticleContentDb中的Markdown内容，语言: ${targetLanguage}，长度: ${articleContent.markdown.length}');
-        _currentMarkdownContent.value = articleContent.markdown;
-      } else {
-        getLogger().i('📄 ArticleContentDb 中无该语言的Markdown内容，尝试从服务端获取');
-        
-        // 如果是原文且有 serviceId，从服务端获取
-        if (article.serviceId.isNotEmpty) {
-          await _fetchMarkdownFromServer(article.serviceId, article.id, targetLanguage);
-        } else {
-          _currentMarkdownContent.value = '';
-          // getLogger().w('⚠️ 无法获取该语言的Markdown内容: ${targetLanguage.label}');
-        }
-      }
-    } catch (e) {
-      getLogger().e('❌ 加载Markdown内容失败: $e');
-      _currentMarkdownContent.value = '';
-    } finally {
-      _isMarkdownLoading.value = false;
-    }
-  }
 
-  /// 从服务端获取Markdown内容
-  Future<void> _fetchMarkdownFromServer(String serviceId, int articleId, String language) async {
-    try {
-      getLogger().i('🌐 从服务端获取Markdown内容，serviceId: $serviceId，语言: ${language}');
-      
-      final response = await UserApi.getArticleApi({
-        'service_article_id': serviceId,
-      });
 
-      if (response['code'] == 0) {
-        final data = response['data'];
-        final markdownContent = data['markdown_content'] ?? '';
-        
-        if (markdownContent.isNotEmpty) {
-          getLogger().i('✅ 服务端Markdown内容获取成功，长度: ${markdownContent.length}');
-          
-          // 更新本地状态
-          _currentMarkdownContent.value = markdownContent;
-          
-          // 保存到数据库
-          await _saveMarkdownToDatabase(articleId, markdownContent, language);
-        } else {
-          getLogger().i('ℹ️ 服务端暂无Markdown内容，等待生成');
-          _currentMarkdownContent.value = '';
-        }
-      } else {
-        // 检查是否是"系统错误"或类似的服务端错误
-        final errorMsg = response['msg'] ?? '获取文章失败';
-        if (errorMsg.contains('系统错误') || errorMsg.contains('暂无') || errorMsg.contains('不存在')) {
-          getLogger().w('⚠️ 服务端暂无Markdown内容: $errorMsg');
-          _currentMarkdownContent.value = '';
-        } else {
-          throw Exception(errorMsg);
-        }
-      }
-    } catch (e) {
-      getLogger().w('⚠️ 获取Markdown内容时出现异常: $e');
-      _currentMarkdownContent.value = '';
-    }
-  }
-
-  /// 保存Markdown内容到数据库
-  Future<void> _saveMarkdownToDatabase(int articleId, String markdownContent, String language) async {
-    try {
-      getLogger().i('💾 保存Markdown内容到ArticleContentDb，文章ID: $articleId，语言: ${language}');
-      
-      // 保存到 ArticleContentDb 表
-      final articleContent = await _articleService.saveOrUpdateArticleContent(
-        articleId: articleId,
-        markdown: markdownContent,
-        languageCode: language,
-        isOriginal: language == "original",
-      );
-      
-      // 如果是原文，更新 ArticleDb 的状态
-      if (language == "original") {
-        final article = await _articleService.getArticleById(articleId);
-        if (article != null) {
-          article.isGenerateMarkdown = true;
-          article.markdownStatus = 1;
-          article.updatedAt = DateTime.now();
-          await _articleService.saveArticle(article);
-        }
-      }
-      
-      getLogger().i('✅ Markdown内容保存成功，ArticleContentDb ID: ${articleContent.id}');
-
-    } catch (e) {
-      getLogger().e('❌ 保存Markdown内容到数据库失败: $e');
-    }
-  }
 
 
   /// Markdown 生成成功回调
@@ -265,14 +100,14 @@ class ArticleController extends GetxController {
   /// 更新阅读次数
   Future<void> _updateReadCount(int articleId) async {
     try {
-      await _articleService.updateReadStatus(
+      await articleService.updateReadStatus(
         articleId,
         isRead: true,
       );
       // 重新加载文章数据以更新计数
-      final updatedArticle = await _articleService.getArticleById(articleId);
+      final updatedArticle = await articleService.getArticleById(articleId);
       if (updatedArticle != null) {
-        _currentArticle.value = updatedArticle;
+        currentArticleRx.value = updatedArticle;
       }
     } catch (e) {
       getLogger().e('❌ 更新阅读计数失败: $e');
@@ -281,11 +116,11 @@ class ArticleController extends GetxController {
 
   /// 更新阅读进度
   Future<void> updateReadProgress(double progress) async {
-    final article = _currentArticle.value;
+    final article = currentArticleRx.value;
     if (article == null) return;
 
     try {
-      await _articleService.updateReadStatus(
+      await articleService.updateReadStatus(
         article.id,
         isRead: true,
         readProgress: progress,
@@ -293,7 +128,7 @@ class ArticleController extends GetxController {
       
       // 更新本地数据
       article.readProgress = progress;
-      _currentArticle.refresh();
+      currentArticleRx.refresh();
       
       getLogger().i('📊 更新阅读进度: ${(progress * 100).toStringAsFixed(1)}%');
     } catch (e) {
@@ -303,11 +138,11 @@ class ArticleController extends GetxController {
 
   /// 标记文章为已读
   Future<void> markAsRead() async {
-    final article = _currentArticle.value;
+    final article = currentArticleRx.value;
     if (article == null) return;
 
     try {
-      await _articleService.updateReadStatus(
+      await articleService.updateReadStatus(
         article.id,
         isRead: true,
         readProgress: 1.0,
@@ -316,7 +151,7 @@ class ArticleController extends GetxController {
       // 更新本地数据
       article.isRead = 1;
       article.readProgress = 1.0;
-      _currentArticle.refresh();
+      currentArticleRx.refresh();
       
       getLogger().i('✅ 文章已标记为已读');
     } catch (e) {
@@ -326,28 +161,27 @@ class ArticleController extends GetxController {
 
   /// 清除当前文章数据
   void clearCurrentArticle() {
-    _currentArticle.value = null;
-    _currentMarkdownContent.value = '';
-    _errorMessage.value = '';
+    currentArticleRx.value = null;
+    currentMarkdownContentRx.value = '';
     getLogger().i('🧹 清除当前文章数据');
   }
 
   /// 重新加载当前文章
   Future<void> refreshCurrentArticle() async {
-    final article = _currentArticle.value;
+    final article = currentArticleRx.value;
     if (article != null) {
       await loadArticleById(article.id);
     }
   }
 
   /// 检查文章是否存在
-  bool get hasArticle => _currentArticle.value != null;
+  bool get hasArticle => currentArticleRx.value != null;
 
   /// 获取文章标题
-  String get articleTitle => _currentArticle.value?.title ?? '未知标题';
+  String get articleTitle => currentArticleRx.value?.title ?? '未知标题';
 
   /// 获取文章URL
-  String get articleUrl => _currentArticle.value?.url ?? '';
+  String get articleUrl => currentArticleRx.value?.url ?? '';
 
   // ============================================================================
   // 翻译相关方法
@@ -355,7 +189,19 @@ class ArticleController extends GetxController {
 
   /// 开始翻译
   Future<void> startTranslation(String languageCode) async {
-    final article = _currentArticle.value;
+    // 检查是否已经在请求中，防止重复请求
+    if (_translationRequesting[languageCode] == true) {
+      getLogger().w('⚠️ 翻译请求已在进行中，忽略重复请求: $languageCode');
+      return;
+    }
+
+    // 检查是否已经在翻译中
+    if (_translationStatus[languageCode] == 'translating') {
+      getLogger().w('⚠️ 该语言正在翻译中，忽略重复请求: $languageCode');
+      return;
+    }
+
+    final article = currentArticleRx.value;
     if (article == null || article.serviceId.isEmpty) {
       BotToast.showText(text: '文章信息获取失败');
       return;
@@ -363,6 +209,8 @@ class ArticleController extends GetxController {
 
     getLogger().i('🌐 开始翻译，语言: $languageCode');
     
+    // 设置请求进行中标记
+    _translationRequesting[languageCode] = true;
     // 设置翻译状态为进行中
     _translationStatus[languageCode] = 'translating';
 
@@ -391,6 +239,9 @@ class ArticleController extends GetxController {
       _translationStatus[languageCode] = 'failed';
       BotToast.showText(text: '翻译请求失败，请重试');
       getLogger().e('❌ 翻译请求异常: $e');
+    } finally {
+      // 清除请求进行中标记
+      _translationRequesting[languageCode] = false;
     }
   }
 
@@ -409,7 +260,7 @@ class ArticleController extends GetxController {
   /// 检查翻译结果
   Future<void> _checkTranslationResult(String languageCode, String upId, Timer timer) async {
     try {
-      final article = _currentArticle.value;
+      final article = currentArticleRx.value;
       if (article == null) {
         timer.cancel();
         return;
@@ -455,7 +306,7 @@ class ArticleController extends GetxController {
   /// 保存翻译内容到数据库
   Future<void> _saveTranslatedContent(TranslateContentModel translateContent) async {
     try {
-      await _articleService.saveOrUpdateArticleContent(
+      await articleService.saveOrUpdateArticleContent(
         articleId: translateContent.articleId,
         markdown: translateContent.markdown,
         languageCode: translateContent.languageCode,
@@ -470,6 +321,12 @@ class ArticleController extends GetxController {
 
   /// 重新翻译
   Future<void> retranslate(String languageCode) async {
+    // 检查是否已经在请求中
+    if (_translationRequesting[languageCode] == true) {
+      getLogger().w('⚠️ 重新翻译请求已在进行中，忽略重复请求: $languageCode');
+      return;
+    }
+
     // 停止当前轮询
     _pollingTimers[languageCode]?.cancel();
     _pollingTimers.remove(languageCode);
@@ -486,7 +343,7 @@ class ArticleController extends GetxController {
 
   /// 检查语言是否已翻译
   Future<bool> isLanguageTranslated(String languageCode) async {
-    final article = _currentArticle.value;
+    final article = currentArticleRx.value;
     if (article == null) return false;
 
     // 首先检查内存状态
@@ -496,7 +353,7 @@ class ArticleController extends GetxController {
 
     // 检查数据库中是否已有翻译内容
     try {
-      final content = await _articleService.getArticleContentByLanguage(
+      final content = await articleService.getArticleContentByLanguage(
         article.id,
         languageCode,
       );
@@ -515,14 +372,14 @@ class ArticleController extends GetxController {
 
   /// 批量初始化所有语言的翻译状态
   Future<void> initializeAllLanguageStatus(List<String> languageCodes) async {
-    final article = _currentArticle.value;
+    final article = currentArticleRx.value;
     if (article == null) return;
 
     getLogger().i('🔄 初始化所有语言翻译状态，文章ID: ${article.id}');
 
     try {
       // 获取文章的所有已翻译内容
-      final allContents = await _articleService.getAllArticleContents(article.id);
+      final allContents = await articleService.getAllArticleContents(article.id);
       
       // 清空当前状态
       _translationStatus.clear();
@@ -547,7 +404,7 @@ class ArticleController extends GetxController {
         }
       }
       
-             getLogger().i('🎯 翻译状态初始化完成，已翻译语言数: ${_translationStatus.values.where((status) => status == 'translated').length}');
+      getLogger().i('🎯 翻译状态初始化完成，已翻译语言数: ${_translationStatus.values.where((status) => status == 'translated').length}');
      } catch (e) {
        getLogger().e('❌ 初始化翻译状态失败: $e');
      }
@@ -567,7 +424,16 @@ class ArticleController extends GetxController {
 
   /// 切换到指定语言
   Future<void> switchToLanguage(String languageCode) async {
+    getLogger().i('🌐 切换到语言: $languageCode');
+    
+    // 更新当前语言状态
+    currentLanguageCodeRx.value = languageCode;
+    
+    // 加载对应语言的Markdown内容
     await loadMarkdownContent(languageCode);
+    
+    // 通过update()触发UI刷新，确保ArticleMarkdownWidget能够接收到新内容
+    update();
   }
 
   /// 清理翻译状态
@@ -578,6 +444,7 @@ class ArticleController extends GetxController {
     }
     _pollingTimers.clear();
     _translationUpIds.clear();
+    _translationRequesting.clear();
     _translationStatus.clear();
   }
 
