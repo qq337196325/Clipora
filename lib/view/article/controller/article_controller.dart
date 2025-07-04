@@ -187,24 +187,24 @@ class ArticleController extends ArticleMarkdownController {
   // 翻译相关方法
   // ============================================================================
 
-  /// 开始翻译
-  Future<void> startTranslation(String languageCode) async {
+  /// 开始翻译 返回API状态码
+  Future<int> startTranslation(String languageCode) async {
     // 检查是否已经在请求中，防止重复请求
     if (_translationRequesting[languageCode] == true) {
       getLogger().w('⚠️ 翻译请求已在进行中，忽略重复请求: $languageCode');
-      return;
+      return 99;
     }
 
     // 检查是否已经在翻译中
     if (_translationStatus[languageCode] == 'translating') {
       getLogger().w('⚠️ 该语言正在翻译中，忽略重复请求: $languageCode');
-      return;
+      return 99;
     }
 
     final article = currentArticleRx.value;
     if (article == null || article.serviceId.isEmpty) {
       BotToast.showText(text: '文章信息获取失败');
-      return;
+      return 99;
     }
 
     getLogger().i('🌐 开始翻译，语言: $languageCode');
@@ -229,16 +229,45 @@ class ArticleController extends ArticleMarkdownController {
         
         // 开始轮询翻译结果
         _startPolling(languageCode, upId);
+        return 0;
+      } else if (response['code'] == 100) {
+        _translationStatus[languageCode] = 'failed';
+        final errorMsg = response['msg'] ?? '您的翻译额度已用完';
+        return response['code'];
+        // getLogger().w('⚠️ 翻译额度用完: $errorMsg');
+        // Get.dialog(
+        //   AlertDialog(
+        //     title: const Text('额度不足'),
+        //     content: const Text('您的翻译额度已用完，是否前往充值？'),
+        //     actions: [
+        //       TextButton(
+        //         onPressed: () => Get.back(),
+        //         child: const Text('取消'),
+        //       ),
+        //       TextButton(
+        //         onPressed: () {
+        //           Get.back();
+        //           if (Get.context != null) {
+        //             GoRouter.of(Get.context!).push('/${RouteName.aiOrderPage}');
+        //           }
+        //         },
+        //         child: const Text('前往充值'),
+        //       ),
+        //     ],
+        //   ),
+        // );
       } else {
         _translationStatus[languageCode] = 'failed';
         final errorMsg = response['msg'] ?? '翻译请求失败';
         BotToast.showText(text: errorMsg);
         getLogger().e('❌ 翻译请求失败: $errorMsg');
+        return response['code'];
       }
     } catch (e) {
       _translationStatus[languageCode] = 'failed';
       BotToast.showText(text: '翻译请求失败，请重试');
       getLogger().e('❌ 翻译请求异常: $e');
+      return 99;
     } finally {
       // 清除请求进行中标记
       _translationRequesting[languageCode] = false;
@@ -320,11 +349,11 @@ class ArticleController extends ArticleMarkdownController {
   }
 
   /// 重新翻译
-  Future<void> retranslate(String languageCode) async {
+  Future<int> retranslate(String languageCode) async {
     // 检查是否已经在请求中
     if (_translationRequesting[languageCode] == true) {
       getLogger().w('⚠️ 重新翻译请求已在进行中，忽略重复请求: $languageCode');
-      return;
+      return 99;
     }
 
     // 停止当前轮询
@@ -333,7 +362,7 @@ class ArticleController extends ArticleMarkdownController {
     _translationUpIds.remove(languageCode);
     
     // 重新开始翻译
-    await startTranslation(languageCode);
+    return await startTranslation(languageCode);
   }
 
   /// 获取语言翻译状态

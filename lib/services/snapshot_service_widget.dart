@@ -294,7 +294,7 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
           break;
         }
         await _generateAndUploadSnapshot(article);
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(Duration(seconds: 10));
       }
     } catch (e) {
       getLogger().e('❌ 执行快照任务时出错: $e');
@@ -434,8 +434,10 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     final filePath = await generateMhtmlUtils.generateSnapshot();
     getLogger().i(' 快照路径: $filePath   $_currentArticle');
 
+
+
     if (_currentArticle != null) {
-      generateMhtmlUtils.updateArticleSnapshot(filePath, _currentArticle!.id);
+      await generateMhtmlUtils.updateArticleSnapshot(filePath, _currentArticle!.id);
       final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath, _currentArticle!.id);
 
       if (uploadStatus) {

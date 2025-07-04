@@ -89,7 +89,7 @@ class SimpleHtmlTemplate {
             background-color: transparent !important;
             margin: 0;
             padding: 20px;
-            padding-top: 50px;
+            padding-top: 100px;
             word-wrap: break-word;
         }
         
@@ -105,6 +105,7 @@ class SimpleHtmlTemplate {
         .markdown-body {
             font-size: 16px;
             line-height: 1.6;
+            padding-top: 30px;
         }
         
         .markdown-body h1,

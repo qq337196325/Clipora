@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../route/route_name.dart';
 
 import '../../../../basics/logger.dart';
 import '../../controller/article_controller.dart';
@@ -65,14 +67,79 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     }
   }
 
-  void _translate(int index) {
+  void _translate(int index) async {
     final lang = _languages[index];
-    articleController.startTranslation(lang.code);
+    final apiCode = await articleController.startTranslation(lang.code);
+    _handleApiCode(apiCode);
   }
 
-  void _retranslate(int index) {
+  void _retranslate(int index) async {
     final lang = _languages[index];
-    articleController.retranslate(lang.code);
+    final apiCode = await articleController.retranslate(lang.code);
+    _handleApiCode(apiCode);
+  }
+
+  void _handleApiCode(int apiCode) {
+    if (apiCode == 100) {
+      if (!mounted) return;
+      final theme = Theme.of(context);
+      showDialog(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            backgroundColor: theme.colorScheme.surface,
+            title: Row(
+              children: [
+                Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'AI翻译不足',
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: Text(
+              '系统赠送新用户3次免费AI翻译。您的 AI 翻译额度已用完，充值后可继续使用高质量翻译服务。',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('以后再说'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pop(); // Close the translate modal as well
+                  context.push('/${RouteName.aiOrderPage}');
+                },
+                child: const Text('前往充值'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   void _switchToLanguage(String code) {

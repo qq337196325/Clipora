@@ -268,15 +268,15 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                 ),
 
 
-
-                InkWell(
-                  onTap: (){
-                    context.push("/${RouteName.aiOrderPage}");
-                  },
-                  child: Container(
-                    child: Text("跳转到支付页面"),
-                  ),
-                )
+                //
+                // InkWell(
+                //   onTap: (){
+                //     context.push("/${RouteName.aiOrderPage}");
+                //   },
+                //   child: Container(
+                //     child: Text("跳转到支付页面"),
+                //   ),
+                // )
               ],
             ),
           ),

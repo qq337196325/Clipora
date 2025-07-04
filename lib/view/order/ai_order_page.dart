@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluwx/fluwx.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'dart:async';
 
 import '../../api/user_api.dart';
 import '../../basics/config.dart';
+import '../../basics/logger.dart';
 
 /// AI请求包购买页面
 class AIOrderPage extends StatefulWidget {
@@ -114,7 +114,7 @@ class _AIOrderPageState extends State<AIOrderPage>
           
           // 标题
           const Text(
-            'AI助手请求包',
+            'AI翻译请求包',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -124,22 +124,7 @@ class _AIOrderPageState extends State<AIOrderPage>
           ),
           
           const Spacer(),
-          
-          // AI图标
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.psychology,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
+
         ],
       ),
     );
@@ -188,7 +173,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'AI智能助手',
+                      'AI翻译助手',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -197,7 +182,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                     ),
                     SizedBox(height: 4),
                     Text(
-                      '让阅读更智能，让笔记更高效',
+                      '让阅读更智能，让学习更高效',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.white70,
@@ -212,7 +197,7 @@ class _AIOrderPageState extends State<AIOrderPage>
           const SizedBox(height: 20),
           
           const Text(
-            '通过AI助手，您可以快速总结文章要点、生成读书笔记、回答阅读疑问，让您的学习效率提升数倍。',
+            '通过AI翻译助手，您可以文章翻译成多国语言。',
             style: TextStyle(
               fontSize: 16,
               color: Colors.white,
@@ -338,8 +323,8 @@ class _AIOrderPageState extends State<AIOrderPage>
           
           _buildPackageDetailItem(
             icon: Icons.trending_up,
-            title: '高速响应',
-            subtitle: '平均响应时间少于3秒',
+            title: '智能强大',
+            subtitle: '利用AI大模型将您的内容翻译成多国语言',
             iconColor: const Color(0xFF9B59B6),
           ),
         ],
@@ -399,27 +384,27 @@ class _AIOrderPageState extends State<AIOrderPage>
   /// 功能优势列表
   Widget _buildFeaturesList() {
     final features = [
-      {
-        'icon': Icons.summarize,
-        'title': '智能总结',
-        'subtitle': '一键提取文章核心要点',
-        'color': const Color(0xFF667eea),
-      },
-      {
-        'icon': Icons.edit_note,
-        'title': '笔记生成',
-        'subtitle': '自动生成结构化读书笔记',
-        'color': const Color(0xFF4ECDC4),
-      },
-      {
-        'icon': Icons.quiz,
-        'title': '智能问答',
-        'subtitle': '针对阅读内容提问和解答',
-        'color': const Color(0xFF9B59B6),
-      },
+      // {
+      //   'icon': Icons.summarize,
+      //   'title': '智能总结',
+      //   'subtitle': '一键提取文章核心要点',
+      //   'color': const Color(0xFF667eea),
+      // },
+      // {
+      //   'icon': Icons.edit_note,
+      //   'title': '笔记生成',
+      //   'subtitle': '自动生成结构化读书笔记',
+      //   'color': const Color(0xFF4ECDC4),
+      // },
+      // {
+      //   'icon': Icons.quiz,
+      //   'title': '智能问答',
+      //   'subtitle': '针对阅读内容提问和解答',
+      //   'color': const Color(0xFF9B59B6),
+      // },
       {
         'icon': Icons.translate,
-        'title': '多语言支持',
+        'title': '多国语言支持',
         'subtitle': '支持翻译和多语言理解',
         'color': const Color(0xFFFF9500),
       },
@@ -541,38 +526,6 @@ class _AIOrderPageState extends State<AIOrderPage>
       ),
       child: Column(
         children: [
-          // 使用说明
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF667eea).withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF667eea).withOpacity(0.1),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: const Color(0xFF667eea),
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    '购买后可在任意文章页面唤起AI助手',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF667eea),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 16),
           
           // 购买按钮
           SizedBox(
@@ -784,6 +737,12 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
   void dispose() {
     // 取消支付结果监听
     _paymentSubscription?.cancel();
+    
+    // 取消iOS支付监听
+    if (Platform.isIOS) {
+      subscription.cancel();
+    }
+    
     // 资源清理
     super.dispose();
   }
@@ -792,7 +751,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
   void _setupPaymentListener() {
 
     fluwx.addSubscriber((response){
-      print("微信支付结果: ${response.errCode} - ${response.errStr}");
+      getLogger().i('💰 微信支付结果: ${response.errCode} - ${response.errStr}');
       if (mounted) {
         setState(() {
           isLoading = false;
@@ -809,24 +768,24 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
     switch (response.errCode) {
       case 0:
         // 支付成功
-        print("微信支付：支付成功");
+        getLogger().i('✅ 微信支付：支付成功');
         _showSuccessDialog();
         break;
       case -1:
         // 支付错误 - 可能有具体的原因 
-        print("微信支付：支付错误 - ${response.errStr}");
+        getLogger().e('❌ 微信支付：支付错误 - ${response.errStr}');
         _showErrorDialog('支付失败，请重试');
         break;
       case -2:
         // 用户取消支付
-        print("微信支付：用户取消支付");
+        getLogger().w('⚠️ 微信支付：用户取消支付');
         // 用户主动取消，通常不需要显示错误提示
         // 可以选择显示轻提示或者不处理
         BotToast.showText(text: "支付已取消");
         break;
       default:
         // 其他错误
-        print("微信支付：未知错误 - 错误码: ${response.errCode}, 错误信息: ${response.errStr}");
+        getLogger().e('❌ 微信支付：未知错误 - 错误码: ${response.errCode}, 错误信息: ${response.errStr}');
         _showErrorDialog('支付异常，请稍后重试');
         break;
     }
@@ -881,11 +840,15 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
           }
         }
         // 如果调起成功，等待支付结果通过 responseFromPayment 流返回
+      } else if (Platform.isIOS) {
+        // iOS App Store 支付
+        await buyProduct();
+        // loading状态将在支付流程回调中处理
       }
 
       
     } catch (e) {
-      print("支付API调用异常: $e");
+      getLogger().e('❌ 支付API调用异常: $e');
       if (mounted) {
         setState(() {
           isLoading = false;
@@ -908,50 +871,137 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
   /// IOS支付监听
   Future<void> listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
     for (final PurchaseDetails purchaseDetails in purchaseDetailsList) {
-      if (purchaseDetails.status == PurchaseStatus.pending) {
-        /// 等待
-        // showPendingUI();
-        print("等待");
-      } else {
-        if (purchaseDetails.status == PurchaseStatus.error) {
-          /// 支付出错需要处理逻辑
-          print("支付出错");
-          // btnController.reset();
-          // handleError(purchaseDetails.error!);
-        } else if (purchaseDetails.status == PurchaseStatus.purchased || purchaseDetails.status == PurchaseStatus.restored) {
+      // 检查Widget是否还存在
+      if (!mounted) return;
+      
+      switch (purchaseDetails.status) {
+        case PurchaseStatus.pending:
+          // 等待支付中
+          getLogger().d('⏳ iOS支付：等待支付中');
+          // 可以在这里显示等待UI
+          break;
+          
+        case PurchaseStatus.error:
+          // 支付错误处理
+          getLogger().e('❌ iOS支付错误：${purchaseDetails.error?.message}');
+          
+          // 重置loading状态
+          if (mounted) {
+            setState(() {
+              isLoading = false;
+            });
+          }
+          
+          // 显示错误提示
+          String errorMessage = '支付失败';
+          if (purchaseDetails.error != null) {
+            switch (purchaseDetails.error!.code) {
+              case 'purchase_canceled':
+                errorMessage = '支付已取消';
+                // 用户取消支付，使用轻提示
+                BotToast.showText(text: errorMessage);
+                break;
+              case 'item_unavailable':
+                errorMessage = '商品不可用，请稍后重试';
+                _showErrorDialog(errorMessage);
+                break;
+              case 'network_error':
+                errorMessage = '网络连接失败，请检查网络后重试';
+                _showErrorDialog(errorMessage);
+                break;
+              default:
+                errorMessage = '支付异常：${purchaseDetails.error!.message}';
+                _showErrorDialog(errorMessage);
+                break;
+            }
+          } else {
+            _showErrorDialog(errorMessage);
+          }
+          break;
+          
+        case PurchaseStatus.purchased:
+        case PurchaseStatus.restored:
+          // 支付成功，进行后台验证
+          getLogger().i('✅ iOS支付：支付成功，开始后台验证');
+          await _handlePaymentVerification(purchaseDetails);
+          break;
+          
+        case PurchaseStatus.canceled:
+          // 支付取消
+          getLogger().w('⚠️ iOS支付：支付已取消');
+          if (mounted) {
+            setState(() {
+              isLoading = false;
+            });
+          }
+          BotToast.showText(text: "支付已取消");
+          break;
+          
+        default:
+          getLogger().w('⚠️ iOS支付：未知状态 - ${purchaseDetails.status}');
+          break;
+      }
 
-          final prefs = await SharedPreferences.getInstance();
-          String? prefsUserId = prefs.getString('user_id');
-
-          // IosPayValidate IOS支付验证
-          Map<String, dynamic> param = {
-            "user_id": prefsUserId,
-            "platform": "ios"
-          };
-
-          // final res = await UserApi.iosPayMemberApi(param);
-          // if(res["code"] != 0){
-          //   BotToast.showText(text: "后台服务出错，请联系工作人员。");
-          // }
-          // BotToast.showText(text: "支付成功");
-          // print("支付成功，等待校验");
-          // final bool valid = await _verifyPurchase(purchaseDetails);
-          // if (!valid) {
-          //   _handleInvalidPurchase(purchaseDetails);
-          //   return;
-          // }
-        }
-
-        /// 待完成
-        if (purchaseDetails.pendingCompletePurchase) {
-          print("等待支付完成");
-          // _btnController.reset();
+      // 完成支付流程
+      if (purchaseDetails.pendingCompletePurchase) {
+        getLogger().i('✅ iOS支付：完成支付流程');
+        try {
           await inAppPurchase.completePurchase(purchaseDetails);
+        } catch (e) {
+          getLogger().e('❌ iOS支付：完成支付流程失败 - $e');
         }
       }
     }
   }
 
+  /// 处理支付验证
+  Future<void> _handlePaymentVerification(PurchaseDetails purchaseDetails) async {
+    try {
+      // 构建验证参数
+      Map<String, dynamic> param = {
+        "platform": "ios",
+        "local_verification_data": purchaseDetails.verificationData.localVerificationData,
+        "server_verification_data": purchaseDetails.verificationData.serverVerificationData,
+        "source": purchaseDetails.verificationData.source,
+      };
+
+      // 调用后台验证API
+      final res = await UserApi.iosPayTranslateOrderApi(param);
+      
+      // 检查Widget是否还存在
+      if (!mounted) return;
+      
+      // 重置loading状态
+      setState(() {
+        isLoading = false;
+      });
+      
+      if (res["code"] == 0) {
+        // 验证成功
+        getLogger().i('✅ iOS支付：后台验证成功');
+        _showSuccessDialog();
+      } else {
+        // 验证失败
+        print("iOS支付：后台验证失败 - ${res["message"] ?? "未知错误"}");
+        String errorMessage = res["message"] ?? "支付验证失败，请联系客服";
+        _showErrorDialog(errorMessage);
+      }
+      
+    } catch (e) {
+      print("iOS支付：验证异常 - $e");
+      
+      // 检查Widget是否还存在
+      if (!mounted) return;
+      
+      // 重置loading状态
+      setState(() {
+        isLoading = false;
+      });
+      
+      // 显示错误提示
+      _showErrorDialog("支付验证异常，请联系客服处理");
+    }
+  }
 
   /// 处理用户协议点击
   void _handleUserAgreement() {

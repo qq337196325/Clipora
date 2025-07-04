@@ -82,11 +82,6 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
   }) async {
     try {
       // 获取当前文章
-      // final article = articleController.currentArticle;
-      if (article == null) {
-        getLogger().w('⚠️ 当前文章为空，无法获取Markdown');
-        return;
-      }
 
       // 检查是否有serviceId
       if (article.serviceId.isEmpty) {
@@ -116,16 +111,19 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
           if (response['code'] == 0 && response['data'] != null) {
             final markdownContent = response['data']['markdown'] as String? ?? '';
             final title = response['data']['title'] as String? ?? '';
+            final userId = response['data']['user_id'] as String? ?? '';
 
             if (markdownContent.isNotEmpty) {
               // Markdown已生成成功
               getLogger().i('✅ Markdown获取成功，长度: ${markdownContent.length}');
-              
+
+              /// 重新获取，避免覆盖之前更新的数据
+              final newArticle = await ArticleService.instance.getArticleById(article.id);
               // 如果是重新生成，先删除所有标注和相关的文章内容
               if (isReCreate) {
                 try {
                   // 获取现有的文章内容记录
-                  final existingContent = await ArticleService.instance.getOriginalArticleContent(article.id);
+                  final existingContent = await ArticleService.instance.getOriginalArticleContent(newArticle!.id);
                   
                   if (existingContent != null) {
                     // 删除与该内容相关的标注
@@ -134,7 +132,7 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
                   }
                   
                   // 删除旧的文章内容记录
-                  final deletedContentCount = await ArticleService.instance.deleteAllArticleContents(article.id);
+                  final deletedContentCount = await ArticleService.instance.deleteAllArticleContents(newArticle!.id);
                   getLogger().i('🗑️ 重新生成时已删除 $deletedContentCount 个文章内容记录');
                 } catch (e) {
                   getLogger().e('❌ 删除旧内容和标注失败: $e');
@@ -143,18 +141,19 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
               
               // 保存到 ArticleContentDb 表
               final articleContent = await ArticleService.instance.saveOrUpdateArticleContent(
-                articleId: article.id,
+                articleId: newArticle!.id,
                 markdown: markdownContent,
                 languageCode: "original",
                 isOriginal: true,
               );
 
               // 更新 ArticleDb 的相关状态
-              article.isGenerateMarkdown = true;
-              article.markdownStatus = 1;
-              article.updatedAt = DateTime.now();
-              article.title = title;
-              await ArticleService.instance.saveArticle(article);
+              newArticle.isGenerateMarkdown = true;
+              newArticle.markdownStatus = 1;
+              newArticle.updatedAt = DateTime.now();
+              newArticle.title = title;
+              newArticle.userId = userId;
+              await ArticleService.instance.saveArticle(newArticle);
 
               // 通知父组件刷新 tabs
               onMarkdownGenerated?.call();
