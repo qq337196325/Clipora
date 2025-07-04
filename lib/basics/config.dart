@@ -1,7 +1,7 @@
 
 
 
-
+const wxAppId = "wx629011ac595bee08";
 
 
 // const bool isDevelop = true;

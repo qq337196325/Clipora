@@ -31,6 +31,6 @@ class RouteName {
   static String phoneLogin = "phone_login";
   static String phoneVerify = "phone_verify";
   static String articleList = "article_list";
-
+  static String aiOrderPage = "ai_order_page";
 
 }

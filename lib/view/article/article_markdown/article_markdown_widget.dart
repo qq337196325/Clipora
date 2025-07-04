@@ -109,7 +109,10 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Artic
 
           await _injectHighlightClickListener();
 
-          _renderMarkdownContent(); // 渲染文档
+          await _renderMarkdownContent(); // 渲染文档
+
+          // 添加小延迟，避免过快操作
+          await Future.delayed(const Duration(milliseconds: 20));
           _restoreReadingPosition(); // 恢复上次阅读的位置
 
           _restoreEnhancedAnnotations();

@@ -30,5 +30,7 @@ class UserApi {
   static Future<Map> getTranslateContentApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/get_translate_content", data:param);
   }
-
+  static Future<Map> createTranslatePayOrderApi(Map<String, dynamic> param) async {
+    return await Request().post("$apiVersion/api/user/create_translate_pay_order", data:param);
+  }
 }
