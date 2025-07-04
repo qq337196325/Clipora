@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../../../db/article/article_db.dart';
-import '../../../db/article/article_service.dart';
+import '../../../db/article/service/article_service.dart';
 import '../models/article_list_config.dart';
 import '../models/sort_option.dart';
 

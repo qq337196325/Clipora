@@ -6,7 +6,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../../route/route_name.dart';
 import '../../basics/logger.dart';
-import '../../db/article/article_service.dart';
+import '../../db/article/service/article_service.dart';
 import '../../db/tag/tag_service.dart';
 import '../../db/article/article_db.dart';
 

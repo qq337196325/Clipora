@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../basics/logger.dart';
-import '../../../db/article/article_service.dart';
+import '../../../db/article/service/article_service.dart';
+
 
 /// 添加内容对话框
 class AddContentDialog extends StatefulWidget {

@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../basics/logger.dart';
-import '../db/article/article_service.dart';
+import '../db/article/service/article_service.dart';
 
 
 /// 分享内容类型枚举

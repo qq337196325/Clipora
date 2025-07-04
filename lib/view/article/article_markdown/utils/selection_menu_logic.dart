@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../db/article/service/article_service.dart';
 import '../components/article_markdown_add_note_dialog.dart';
 import '../../../../basics/logger.dart';
 import '../../../../db/article/article_db.dart';
-import '../../../../db/article/article_service.dart';
 import '../../../../db/annotation/enhanced_annotation_db.dart';
 import '../../../../db/annotation/enhanced_annotation_service.dart';
 import 'basic_scripts_logic.dart';

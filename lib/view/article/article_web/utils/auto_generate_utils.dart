@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../basics/logger.dart';
 import '../../../../db/article/article_db.dart';
+import '../../../../db/article/service/article_service.dart';
 import '../../controller/article_controller.dart';
 import '../../../../basics/web_view/snapshot/snapshot_base_utils.dart';
-import '../../../../db/article/article_service.dart';
 import '../../../../api/user_api.dart';
 import '../../../../db/annotation/enhanced_annotation_service.dart';
 

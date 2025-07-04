@@ -4,9 +4,9 @@ import 'package:get/get.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
+import '../../../db/article/service/article_service.dart';
 import '/basics/logger.dart';
 import '/basics/upload.dart';
-import '/db/article/article_service.dart';
 import 'components/article_bottom_bar.dart';
 import 'components/article_loading_view.dart';
 import 'components/article_top_bar.dart';

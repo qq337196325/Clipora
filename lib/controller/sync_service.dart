@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 
 import '../basics/logger.dart';
 import '../db/article/article_db.dart';
-import '../db/article/article_service.dart';
 import '../api/user_api.dart';
+import '../db/article/service/article_service.dart';
 
 
 class SyncService extends GetxService {

@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../../basics/logger.dart';
 import '../../../../db/article/article_db.dart';
-import '../../../../db/article/article_service.dart';
+import '../../../../db/article/service/article_service.dart';
 import '../../../../db/article_content/article_content_db.dart';
 import '../../../../db/annotation/enhanced_annotation_db.dart';
 import '../../../../db/annotation/enhanced_annotation_service.dart';

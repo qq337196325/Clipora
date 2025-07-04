@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 
 import '../../../db/article/article_db.dart';
-import '../../../db/article/article_service.dart';
+import '../../../db/article/service/article_service.dart';
 import '../../../db/article_content/article_content_db.dart';
 
 

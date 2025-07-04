@@ -3,9 +3,10 @@ import 'package:get/get.dart';
 import 'package:isar/isar.dart';
 
 import '../basics/logger.dart';
+import '../db/article/service/article_service.dart';
 import '../db/database_service.dart';
 import '../db/sync_operation.dart';
-import '../db/article/article_service.dart';
+
 
 /// 负责处理数据同步的后台服务
 class SyncService extends GetxService {

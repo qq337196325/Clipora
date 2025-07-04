@@ -4,10 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../basics/logger.dart';
 import '../../../db/article/article_db.dart';
-import '../../../db/article/article_service.dart';
+import '../../../db/article/service/article_service.dart';
 import '../../../db/article_content/article_content_db.dart';
 import '../../../route/route_name.dart';
 import 'components/highlight_text.dart';
+
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
