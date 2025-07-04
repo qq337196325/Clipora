@@ -39,15 +39,8 @@ void main() async {
   // 确保数据库初始化完成，这对于后续操作至关重要
   await dbService.initDb();
 
-
-
-
   runApp(AppsState(child: MyApp()));
 }
-
-
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

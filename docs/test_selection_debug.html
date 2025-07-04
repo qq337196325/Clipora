@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本选择调试测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-content {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 1000;
+        }
+        .selection-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 999;
+            display: none;
+        }
+        .menu-button {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 0 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .menu-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>文本选择调试测试</h1>
+    
+    <div class="debug-info" id="debugInfo">
+        <div>等待文本选择...</div>
+    </div>
+    
+    <div class="selection-menu" id="selectionMenu">
+        <button class="menu-button" onclick="handleCopy()">复制</button>
+        <button class="menu-button" onclick="handleHighlight()">高亮</button>
+        <button class="menu-button" onclick="handleNote()">笔记</button>
+    </div>
+    
+    <div class="test-content">
+        <h2>测试段落1</h2>
+        <p>这是第一个测试段落。请尝试长按选择这段文字，看看是否能够正确触发选择事件。这段文字包含了足够的内容来测试跨行选择的情况。</p>
+        
+        <h2>测试段落2</h2>
+        <p>这是第二个测试段落，用于测试跨段落选择。如果你选择从第一段的某个位置开始，一直选择到这一段的某个位置，系统应该能够正确检测到这是一个跨段落的选择。</p>
+        
+        <h2>测试列表</h2>
+        <ul>
+            <li>列表项目1：测试在列表中的文本选择</li>
+            <li>列表项目2：测试跨列表项的文本选择</li>
+            <li>列表项目3：确保所有类型的元素都能正确处理</li>
+        </ul>
+        
+        <h2>测试代码块</h2>
+        <pre><code>function testFunction() {
+    console.log("这是一个代码块");
+    return "测试代码选择";
+}</code></pre>
+    </div>
+
+    <script>
+        let lastSelection = null;
+        let selectionTimeout = null;
+        
+        function updateDebugInfo(message) {
+            const debugInfo = document.getElementById('debugInfo');
+            const timestamp = new Date().toLocaleTimeString();
+            debugInfo.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+        }
+        
+        function showSelectionMenu(x, y) {
+            const menu = document.getElementById('selectionMenu');
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+            menu.style.display = 'block';
+        }
+        
+        function hideSelectionMenu() {
+            const menu = document.getElementById('selectionMenu');
+            menu.style.display = 'none';
+        }
+        
+        function handleCopy() {
+            const selection = window.getSelection();
+            if (selection) {
+                navigator.clipboard.writeText(selection.toString());
+                updateDebugInfo('📋 文本已复制到剪贴板');
+            }
+            hideSelectionMenu();
+        }
+        
+        function handleHighlight() {
+            updateDebugInfo('🎨 高亮功能触发');
+            hideSelectionMenu();
+        }
+        
+        function handleNote() {
+            updateDebugInfo('📝 笔记功能触发');
+            hideSelectionMenu();
+        }
+        
+        function processSelectionChange() {
+            const selection = window.getSelection();
+            
+            if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
+                updateDebugInfo('🔍 没有检测到有效选择，清除选择状态');
+                hideSelectionMenu();
+                lastSelection = null;
+                return;
+            }
+
+            const selectedText = selection.toString().trim();
+            updateDebugInfo(`🔍 检测到文本选择: "${selectedText.substring(0, 30)}..."`);
+
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            
+            // 显示选择菜单
+            showSelectionMenu(rect.x + rect.width / 2, rect.y - 50);
+            
+            lastSelection = {
+                text: selectedText,
+                rect: rect
+            };
+        }
+        
+        function handleSelectionChange() {
+            if (selectionTimeout) {
+                clearTimeout(selectionTimeout);
+            }
+            
+            selectionTimeout = setTimeout(() => {
+                processSelectionChange();
+            }, 150);
+        }
+        
+        // 设置事件监听器
+        document.addEventListener('selectionchange', handleSelectionChange);
+        
+        // 移动端事件处理
+        let touchStartTime = 0;
+        let touchStartPos = null;
+        let longPressTimer = null;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartTime = Date.now();
+            touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+            }
+            
+            longPressTimer = setTimeout(() => {
+                updateDebugInfo('⏰ 长按定时器触发，检查选择状态...');
+                const selection = window.getSelection();
+                if (selection && selection.toString().trim().length > 0) {
+                    updateDebugInfo(`📱 长按检测到文本选择: ${selection.toString().substring(0, 30)}`);
+                    processSelectionChange();
+                } else {
+                    updateDebugInfo('📱 长按时未检测到文本选择');
+                }
+            }, 500);
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (touchStartPos) {
+                const currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                const distance = Math.sqrt(
+                    Math.pow(currentPos.x - touchStartPos.x, 2) + 
+                    Math.pow(currentPos.y - touchStartPos.y, 2)
+                );
+                
+                if (distance > 10 && longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            
+            const checkSelection = (attempts = 0) => {
+                const selection = window.getSelection();
+                if (selection && selection.toString().trim().length > 0) {
+                    updateDebugInfo(`📱 touchend检测到文本选择: ${selection.toString().substring(0, 30)}`);
+                    processSelectionChange();
+                } else if (attempts < 3) {
+                    setTimeout(() => checkSelection(attempts + 1), 50 * (attempts + 1));
+                }
+            };
+            
+            setTimeout(() => checkSelection(), 100);
+        });
+        
+        // 点击其他地方隐藏菜单
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.selection-menu')) {
+                hideSelectionMenu();
+            }
+        });
+        
+        // 定时检查机制
+        setInterval(() => {
+            const selection = window.getSelection();
+            if (selection && selection.toString().trim().length > 0) {
+                const selectedText = selection.toString().trim();
+                if (!lastSelection || lastSelection.text !== selectedText) {
+                    updateDebugInfo('🔄 定时检查发现新选择，主动处理');
+                    processSelectionChange();
+                }
+            }
+        }, 500);
+        
+        updateDebugInfo('✅ 文本选择调试系统已启动');
+    </script>
+</body>
+</html> 

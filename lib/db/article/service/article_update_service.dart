@@ -4,7 +4,7 @@ import 'article_base_service.dart';
 import '../article_db.dart';
 import '../../category/category_db.dart';
 import '../../../basics/logger.dart';
-import '../../sync_operation.dart';
+import '../../sync_operation/sync_operation.dart';
 
 
 /// 文章服务类

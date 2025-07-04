@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import '../article_db.dart';
 import '../../database_service.dart';
 import '../../../basics/logger.dart';
-import '../../sync_operation.dart';
+import '../../sync_operation/sync_operation.dart';
 import '../../article_content/article_content_db.dart';
 
 

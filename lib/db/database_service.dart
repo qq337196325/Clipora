@@ -7,7 +7,7 @@ import 'article/article_db.dart';
 import 'article_content/article_content_db.dart';
 import 'tag/tag_db.dart';
 import 'category/category_db.dart';
-import 'sync_operation.dart';
+import 'sync_operation/sync_operation.dart';
 import '../basics/logger.dart';
 
 /// 数据库服务类
