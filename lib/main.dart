@@ -24,6 +24,7 @@ void main() async {
   // 注册分享服务
   Get.put(ShareService(), permanent: true);
 
+
   // 注册文章服务
   Get.put(ArticleService(), permanent: true);
   Get.put(ArticleContentService(), permanent: true);

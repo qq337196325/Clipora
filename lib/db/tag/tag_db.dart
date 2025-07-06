@@ -14,6 +14,10 @@ class TagDb {
   @Backlink(to: 'tags')
   final articles = IsarLinks<ArticleDb>();
 
+  /// 版本号（用于冲突解决）
+  @Index() int version = 1;
+  @Index() int updateTimestamp = 0;
+
   @Index()
   DateTime createdAt = DateTime.now();
 

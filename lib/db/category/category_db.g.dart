@@ -17,113 +17,108 @@ const CategoryDbSchema = CollectionSchema(
   name: r'CategoryDb',
   id: -5337878045259613447,
   properties: {
-    r'articleCount': PropertySchema(
-      id: 0,
-      name: r'articleCount',
-      type: IsarType.long,
-    ),
     r'color': PropertySchema(
-      id: 1,
+      id: 0,
       name: r'color',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'description': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'description',
       type: IsarType.string,
     ),
     r'deviceId': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'deviceId',
       type: IsarType.string,
     ),
     r'icon': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'icon',
       type: IsarType.string,
     ),
     r'isDeleted': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'isEnabled': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'isEnabled',
       type: IsarType.bool,
     ),
     r'isRoot': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'isRoot',
       type: IsarType.bool,
     ),
     r'isSynced': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'isSynced',
       type: IsarType.bool,
     ),
     r'lastModified': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'lastModified',
       type: IsarType.long,
     ),
     r'level': PropertySchema(
-      id: 11,
+      id: 10,
       name: r'level',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 12,
+      id: 11,
       name: r'name',
       type: IsarType.string,
     ),
     r'parentId': PropertySchema(
-      id: 13,
+      id: 12,
       name: r'parentId',
       type: IsarType.long,
     ),
     r'parentServerId': PropertySchema(
-      id: 14,
+      id: 13,
       name: r'parentServerId',
       type: IsarType.string,
     ),
     r'path': PropertySchema(
-      id: 15,
+      id: 14,
       name: r'path',
       type: IsarType.string,
     ),
     r'serverId': PropertySchema(
-      id: 16,
+      id: 15,
       name: r'serverId',
       type: IsarType.string,
     ),
     r'sortOrder': PropertySchema(
-      id: 17,
+      id: 16,
       name: r'sortOrder',
       type: IsarType.long,
     ),
-    r'totalArticleCount': PropertySchema(
-      id: 18,
-      name: r'totalArticleCount',
+    r'updateTimestamp': PropertySchema(
+      id: 17,
+      name: r'updateTimestamp',
       type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
-      id: 19,
+      id: 18,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 20,
+      id: 19,
       name: r'userId',
       type: IsarType.string,
     ),
     r'version': PropertySchema(
-      id: 21,
+      id: 20,
       name: r'version',
       type: IsarType.long,
     )
@@ -238,19 +233,6 @@ const CategoryDbSchema = CollectionSchema(
         )
       ],
     ),
-    r'version': IndexSchema(
-      id: -3425991338577364869,
-      name: r'version',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'version',
-          type: IndexType.value,
-          caseSensitive: false,
-        )
-      ],
-    ),
     r'lastModified': IndexSchema(
       id: 5953778071269117195,
       name: r'lastModified',
@@ -311,6 +293,32 @@ const CategoryDbSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'updatedAt',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'version': IndexSchema(
+      id: -3425991338577364869,
+      name: r'version',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'version',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'updateTimestamp': IndexSchema(
+      id: -2874489669811602764,
+      name: r'updateTimestamp',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'updateTimestamp',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -387,28 +395,27 @@ void _categoryDbSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.articleCount);
-  writer.writeString(offsets[1], object.color);
-  writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeString(offsets[3], object.description);
-  writer.writeString(offsets[4], object.deviceId);
-  writer.writeString(offsets[5], object.icon);
-  writer.writeBool(offsets[6], object.isDeleted);
-  writer.writeBool(offsets[7], object.isEnabled);
-  writer.writeBool(offsets[8], object.isRoot);
-  writer.writeBool(offsets[9], object.isSynced);
-  writer.writeLong(offsets[10], object.lastModified);
-  writer.writeLong(offsets[11], object.level);
-  writer.writeString(offsets[12], object.name);
-  writer.writeLong(offsets[13], object.parentId);
-  writer.writeString(offsets[14], object.parentServerId);
-  writer.writeString(offsets[15], object.path);
-  writer.writeString(offsets[16], object.serverId);
-  writer.writeLong(offsets[17], object.sortOrder);
-  writer.writeLong(offsets[18], object.totalArticleCount);
-  writer.writeDateTime(offsets[19], object.updatedAt);
-  writer.writeString(offsets[20], object.userId);
-  writer.writeLong(offsets[21], object.version);
+  writer.writeString(offsets[0], object.color);
+  writer.writeDateTime(offsets[1], object.createdAt);
+  writer.writeString(offsets[2], object.description);
+  writer.writeString(offsets[3], object.deviceId);
+  writer.writeString(offsets[4], object.icon);
+  writer.writeBool(offsets[5], object.isDeleted);
+  writer.writeBool(offsets[6], object.isEnabled);
+  writer.writeBool(offsets[7], object.isRoot);
+  writer.writeBool(offsets[8], object.isSynced);
+  writer.writeLong(offsets[9], object.lastModified);
+  writer.writeLong(offsets[10], object.level);
+  writer.writeString(offsets[11], object.name);
+  writer.writeLong(offsets[12], object.parentId);
+  writer.writeString(offsets[13], object.parentServerId);
+  writer.writeString(offsets[14], object.path);
+  writer.writeString(offsets[15], object.serverId);
+  writer.writeLong(offsets[16], object.sortOrder);
+  writer.writeLong(offsets[17], object.updateTimestamp);
+  writer.writeDateTime(offsets[18], object.updatedAt);
+  writer.writeString(offsets[19], object.userId);
+  writer.writeLong(offsets[20], object.version);
 }
 
 CategoryDb _categoryDbDeserialize(
@@ -418,28 +425,27 @@ CategoryDb _categoryDbDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = CategoryDb();
-  object.articleCount = reader.readLong(offsets[0]);
-  object.color = reader.readStringOrNull(offsets[1]);
-  object.createdAt = reader.readDateTime(offsets[2]);
-  object.description = reader.readStringOrNull(offsets[3]);
-  object.deviceId = reader.readStringOrNull(offsets[4]);
-  object.icon = reader.readStringOrNull(offsets[5]);
+  object.color = reader.readStringOrNull(offsets[0]);
+  object.createdAt = reader.readDateTime(offsets[1]);
+  object.description = reader.readStringOrNull(offsets[2]);
+  object.deviceId = reader.readStringOrNull(offsets[3]);
+  object.icon = reader.readStringOrNull(offsets[4]);
   object.id = id;
-  object.isDeleted = reader.readBool(offsets[6]);
-  object.isEnabled = reader.readBool(offsets[7]);
-  object.isSynced = reader.readBool(offsets[9]);
-  object.lastModified = reader.readLong(offsets[10]);
-  object.level = reader.readLong(offsets[11]);
-  object.name = reader.readString(offsets[12]);
-  object.parentId = reader.readLongOrNull(offsets[13]);
-  object.parentServerId = reader.readStringOrNull(offsets[14]);
-  object.path = reader.readString(offsets[15]);
-  object.serverId = reader.readStringOrNull(offsets[16]);
-  object.sortOrder = reader.readLong(offsets[17]);
-  object.totalArticleCount = reader.readLong(offsets[18]);
-  object.updatedAt = reader.readDateTime(offsets[19]);
-  object.userId = reader.readString(offsets[20]);
-  object.version = reader.readLong(offsets[21]);
+  object.isDeleted = reader.readBool(offsets[5]);
+  object.isEnabled = reader.readBool(offsets[6]);
+  object.isSynced = reader.readBool(offsets[8]);
+  object.lastModified = reader.readLong(offsets[9]);
+  object.level = reader.readLong(offsets[10]);
+  object.name = reader.readString(offsets[11]);
+  object.parentId = reader.readLongOrNull(offsets[12]);
+  object.parentServerId = reader.readStringOrNull(offsets[13]);
+  object.path = reader.readString(offsets[14]);
+  object.serverId = reader.readStringOrNull(offsets[15]);
+  object.sortOrder = reader.readLong(offsets[16]);
+  object.updateTimestamp = reader.readLong(offsets[17]);
+  object.updatedAt = reader.readDateTime(offsets[18]);
+  object.userId = reader.readString(offsets[19]);
+  object.version = reader.readLong(offsets[20]);
   return object;
 }
 
@@ -451,17 +457,17 @@ P _categoryDbDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
-    case 1:
       return (reader.readStringOrNull(offset)) as P;
-    case 2:
+    case 1:
       return (reader.readDateTime(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
       return (reader.readBool(offset)) as P;
     case 7:
@@ -469,30 +475,28 @@ P _categoryDbDeserializeProp<P>(
     case 8:
       return (reader.readBool(offset)) as P;
     case 9:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 10:
       return (reader.readLong(offset)) as P;
     case 11:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 12:
-      return (reader.readString(offset)) as P;
-    case 13:
       return (reader.readLongOrNull(offset)) as P;
+    case 13:
+      return (reader.readStringOrNull(offset)) as P;
     case 14:
-      return (reader.readStringOrNull(offset)) as P;
-    case 15:
       return (reader.readString(offset)) as P;
-    case 16:
+    case 15:
       return (reader.readStringOrNull(offset)) as P;
+    case 16:
+      return (reader.readLong(offset)) as P;
     case 17:
       return (reader.readLong(offset)) as P;
     case 18:
-      return (reader.readLong(offset)) as P;
-    case 19:
       return (reader.readDateTime(offset)) as P;
-    case 20:
+    case 19:
       return (reader.readString(offset)) as P;
-    case 21:
+    case 20:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -553,14 +557,6 @@ extension CategoryDbQueryWhereSort
     });
   }
 
-  QueryBuilder<CategoryDb, CategoryDb, QAfterWhere> anyVersion() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'version'),
-      );
-    });
-  }
-
   QueryBuilder<CategoryDb, CategoryDb, QAfterWhere> anyLastModified() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -597,6 +593,22 @@ extension CategoryDbQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'updatedAt'),
+      );
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhere> anyVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'version'),
+      );
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhere> anyUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'updateTimestamp'),
       );
     });
   }
@@ -1204,96 +1216,6 @@ extension CategoryDbQueryWhere
     });
   }
 
-  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionEqualTo(
-      int version) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'version',
-        value: [version],
-      ));
-    });
-  }
-
-  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionNotEqualTo(
-      int version) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'version',
-              lower: [],
-              upper: [version],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'version',
-              lower: [version],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'version',
-              lower: [version],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'version',
-              lower: [],
-              upper: [version],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionGreaterThan(
-    int version, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'version',
-        lower: [version],
-        includeLower: include,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionLessThan(
-    int version, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'version',
-        lower: [],
-        upper: [version],
-        includeUpper: include,
-      ));
-    });
-  }
-
-  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionBetween(
-    int lowerVersion,
-    int upperVersion, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'version',
-        lower: [lowerVersion],
-        includeLower: includeLower,
-        upper: [upperVersion],
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
   QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> lastModifiedEqualTo(
       int lastModified) {
     return QueryBuilder.apply(this, (query) {
@@ -1654,66 +1576,193 @@ extension CategoryDbQueryWhere
       ));
     });
   }
-}
 
-extension CategoryDbQueryFilter
-    on QueryBuilder<CategoryDb, CategoryDb, QFilterCondition> {
-  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
-      articleCountEqualTo(int value) {
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionEqualTo(
+      int version) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'articleCount',
-        value: value,
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'version',
+        value: [version],
       ));
     });
   }
 
-  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
-      articleCountGreaterThan(
-    int value, {
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionNotEqualTo(
+      int version) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [],
+              upper: [version],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [version],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [version],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [],
+              upper: [version],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionGreaterThan(
+    int version, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'articleCount',
-        value: value,
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'version',
+        lower: [version],
+        includeLower: include,
+        upper: [],
       ));
     });
   }
 
-  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
-      articleCountLessThan(
-    int value, {
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionLessThan(
+    int version, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'articleCount',
-        value: value,
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'version',
+        lower: [],
+        upper: [version],
+        includeUpper: include,
       ));
     });
   }
 
-  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
-      articleCountBetween(
-    int lower,
-    int upper, {
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> versionBetween(
+    int lowerVersion,
+    int upperVersion, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'articleCount',
-        lower: lower,
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'version',
+        lower: [lowerVersion],
         includeLower: includeLower,
-        upper: upper,
+        upper: [upperVersion],
         includeUpper: includeUpper,
       ));
     });
   }
 
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause>
+      updateTimestampEqualTo(int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'updateTimestamp',
+        value: [updateTimestamp],
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause>
+      updateTimestampNotEqualTo(int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause>
+      updateTimestampGreaterThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [updateTimestamp],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause>
+      updateTimestampLessThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [],
+        upper: [updateTimestamp],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause>
+      updateTimestampBetween(
+    int lowerUpdateTimestamp,
+    int upperUpdateTimestamp, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [lowerUpdateTimestamp],
+        includeLower: includeLower,
+        upper: [upperUpdateTimestamp],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension CategoryDbQueryFilter
+    on QueryBuilder<CategoryDb, CategoryDb, QFilterCondition> {
   QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> colorIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -3259,45 +3308,45 @@ extension CategoryDbQueryFilter
   }
 
   QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
-      totalArticleCountEqualTo(int value) {
+      updateTimestampEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'totalArticleCount',
+        property: r'updateTimestamp',
         value: value,
       ));
     });
   }
 
   QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
-      totalArticleCountGreaterThan(
+      updateTimestampGreaterThan(
     int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'totalArticleCount',
+        property: r'updateTimestamp',
         value: value,
       ));
     });
   }
 
   QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
-      totalArticleCountLessThan(
+      updateTimestampLessThan(
     int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'totalArticleCount',
+        property: r'updateTimestamp',
         value: value,
       ));
     });
   }
 
   QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
-      totalArticleCountBetween(
+      updateTimestampBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -3305,7 +3354,7 @@ extension CategoryDbQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'totalArticleCount',
+        property: r'updateTimestamp',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -3623,18 +3672,6 @@ extension CategoryDbQueryLinks
 
 extension CategoryDbQuerySortBy
     on QueryBuilder<CategoryDb, CategoryDb, QSortBy> {
-  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByArticleCount() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'articleCount', Sort.asc);
-    });
-  }
-
-  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByArticleCountDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'articleCount', Sort.desc);
-    });
-  }
-
   QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByColor() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'color', Sort.asc);
@@ -3840,16 +3877,16 @@ extension CategoryDbQuerySortBy
     });
   }
 
-  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByTotalArticleCount() {
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByUpdateTimestamp() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'totalArticleCount', Sort.asc);
+      return query.addSortBy(r'updateTimestamp', Sort.asc);
     });
   }
 
   QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy>
-      sortByTotalArticleCountDesc() {
+      sortByUpdateTimestampDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'totalArticleCount', Sort.desc);
+      return query.addSortBy(r'updateTimestamp', Sort.desc);
     });
   }
 
@@ -3892,18 +3929,6 @@ extension CategoryDbQuerySortBy
 
 extension CategoryDbQuerySortThenBy
     on QueryBuilder<CategoryDb, CategoryDb, QSortThenBy> {
-  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByArticleCount() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'articleCount', Sort.asc);
-    });
-  }
-
-  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByArticleCountDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'articleCount', Sort.desc);
-    });
-  }
-
   QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByColor() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'color', Sort.asc);
@@ -4121,16 +4146,16 @@ extension CategoryDbQuerySortThenBy
     });
   }
 
-  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByTotalArticleCount() {
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByUpdateTimestamp() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'totalArticleCount', Sort.asc);
+      return query.addSortBy(r'updateTimestamp', Sort.asc);
     });
   }
 
   QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy>
-      thenByTotalArticleCountDesc() {
+      thenByUpdateTimestampDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'totalArticleCount', Sort.desc);
+      return query.addSortBy(r'updateTimestamp', Sort.desc);
     });
   }
 
@@ -4173,12 +4198,6 @@ extension CategoryDbQuerySortThenBy
 
 extension CategoryDbQueryWhereDistinct
     on QueryBuilder<CategoryDb, CategoryDb, QDistinct> {
-  QueryBuilder<CategoryDb, CategoryDb, QDistinct> distinctByArticleCount() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'articleCount');
-    });
-  }
-
   QueryBuilder<CategoryDb, CategoryDb, QDistinct> distinctByColor(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -4290,10 +4309,9 @@ extension CategoryDbQueryWhereDistinct
     });
   }
 
-  QueryBuilder<CategoryDb, CategoryDb, QDistinct>
-      distinctByTotalArticleCount() {
+  QueryBuilder<CategoryDb, CategoryDb, QDistinct> distinctByUpdateTimestamp() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'totalArticleCount');
+      return query.addDistinctBy(r'updateTimestamp');
     });
   }
 
@@ -4322,12 +4340,6 @@ extension CategoryDbQueryProperty
   QueryBuilder<CategoryDb, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
-    });
-  }
-
-  QueryBuilder<CategoryDb, int, QQueryOperations> articleCountProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'articleCount');
     });
   }
 
@@ -4433,9 +4445,9 @@ extension CategoryDbQueryProperty
     });
   }
 
-  QueryBuilder<CategoryDb, int, QQueryOperations> totalArticleCountProperty() {
+  QueryBuilder<CategoryDb, int, QQueryOperations> updateTimestampProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'totalArticleCount');
+      return query.addPropertyName(r'updateTimestamp');
     });
   }
 

@@ -147,20 +147,30 @@ const ArticleDbSchema = CollectionSchema(
       name: r'title',
       type: IsarType.string,
     ),
-    r'updatedAt': PropertySchema(
+    r'updateTimestamp': PropertySchema(
       id: 26,
+      name: r'updateTimestamp',
+      type: IsarType.long,
+    ),
+    r'updatedAt': PropertySchema(
+      id: 27,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'url',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'userId',
       type: IsarType.string,
+    ),
+    r'version': PropertySchema(
+      id: 30,
+      name: r'version',
+      type: IsarType.long,
     )
   },
   estimateSize: _articleDbEstimateSize,
@@ -337,6 +347,32 @@ const ArticleDbSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'version': IndexSchema(
+      id: -3425991338577364869,
+      name: r'version',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'version',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'updateTimestamp': IndexSchema(
+      id: -2874489669811602764,
+      name: r'updateTimestamp',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'updateTimestamp',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {
@@ -422,9 +458,11 @@ void _articleDbSerialize(
   writer.writeLong(offsets[23], object.serviceUpdatedAt);
   writer.writeString(offsets[24], object.shareOriginalContent);
   writer.writeString(offsets[25], object.title);
-  writer.writeDateTime(offsets[26], object.updatedAt);
-  writer.writeString(offsets[27], object.url);
-  writer.writeString(offsets[28], object.userId);
+  writer.writeLong(offsets[26], object.updateTimestamp);
+  writer.writeDateTime(offsets[27], object.updatedAt);
+  writer.writeString(offsets[28], object.url);
+  writer.writeString(offsets[29], object.userId);
+  writer.writeLong(offsets[30], object.version);
 }
 
 ArticleDb _articleDbDeserialize(
@@ -461,9 +499,11 @@ ArticleDb _articleDbDeserialize(
   object.serviceUpdatedAt = reader.readLong(offsets[23]);
   object.shareOriginalContent = reader.readString(offsets[24]);
   object.title = reader.readString(offsets[25]);
-  object.updatedAt = reader.readDateTime(offsets[26]);
-  object.url = reader.readString(offsets[27]);
-  object.userId = reader.readString(offsets[28]);
+  object.updateTimestamp = reader.readLong(offsets[26]);
+  object.updatedAt = reader.readDateTime(offsets[27]);
+  object.url = reader.readString(offsets[28]);
+  object.userId = reader.readString(offsets[29]);
+  object.version = reader.readLong(offsets[30]);
   return object;
 }
 
@@ -527,11 +567,15 @@ P _articleDbDeserializeProp<P>(
     case 25:
       return (reader.readString(offset)) as P;
     case 26:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 27:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 28:
       return (reader.readString(offset)) as P;
+    case 29:
+      return (reader.readString(offset)) as P;
+    case 30:
+      return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -620,6 +664,22 @@ extension ArticleDbQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'updatedAt'),
+      );
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'version'),
+      );
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhere> anyUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'updateTimestamp'),
       );
     });
   }
@@ -1427,6 +1487,187 @@ extension ArticleDbQueryWhere
         lower: [lowerUpdatedAt],
         includeLower: includeLower,
         upper: [upperUpdatedAt],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> versionEqualTo(
+      int version) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'version',
+        value: [version],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> versionNotEqualTo(
+      int version) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [],
+              upper: [version],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [version],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [version],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [],
+              upper: [version],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> versionGreaterThan(
+    int version, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'version',
+        lower: [version],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> versionLessThan(
+    int version, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'version',
+        lower: [],
+        upper: [version],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> versionBetween(
+    int lowerVersion,
+    int upperVersion, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'version',
+        lower: [lowerVersion],
+        includeLower: includeLower,
+        upper: [upperVersion],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> updateTimestampEqualTo(
+      int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'updateTimestamp',
+        value: [updateTimestamp],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause>
+      updateTimestampNotEqualTo(int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause>
+      updateTimestampGreaterThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [updateTimestamp],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> updateTimestampLessThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [],
+        upper: [updateTimestamp],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> updateTimestampBetween(
+    int lowerUpdateTimestamp,
+    int upperUpdateTimestamp, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [lowerUpdateTimestamp],
+        includeLower: includeLower,
+        upper: [upperUpdateTimestamp],
         includeUpper: includeUpper,
       ));
     });
@@ -3496,6 +3737,62 @@ extension ArticleDbQueryFilter
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      updateTimestampEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'updateTimestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      updateTimestampGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'updateTimestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      updateTimestampLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'updateTimestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition>
+      updateTimestampBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'updateTimestamp',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> updatedAtEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -3806,6 +4103,59 @@ extension ArticleDbQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'userId',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> versionEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> versionGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> versionLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterFilterCondition> versionBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'version',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -4208,6 +4558,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByUpdateTimestampDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -4241,6 +4603,18 @@ extension ArticleDbQuerySortBy on QueryBuilder<ArticleDb, ArticleDb, QSortBy> {
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByUserIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> sortByVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.desc);
     });
   }
 }
@@ -4579,6 +4953,18 @@ extension ArticleDbQuerySortThenBy
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByUpdateTimestampDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.desc);
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -4612,6 +4998,18 @@ extension ArticleDbQuerySortThenBy
   QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByUserIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterSortBy> thenByVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.desc);
     });
   }
 }
@@ -4786,6 +5184,12 @@ extension ArticleDbQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'updateTimestamp');
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
@@ -4803,6 +5207,12 @@ extension ArticleDbQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'userId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QDistinct> distinctByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'version');
     });
   }
 }
@@ -4973,6 +5383,12 @@ extension ArticleDbQueryProperty
     });
   }
 
+  QueryBuilder<ArticleDb, int, QQueryOperations> updateTimestampProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'updateTimestamp');
+    });
+  }
+
   QueryBuilder<ArticleDb, DateTime, QQueryOperations> updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'updatedAt');
@@ -4988,6 +5404,12 @@ extension ArticleDbQueryProperty
   QueryBuilder<ArticleDb, String, QQueryOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userId');
+    });
+  }
+
+  QueryBuilder<ArticleDb, int, QQueryOperations> versionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'version');
     });
   }
 }

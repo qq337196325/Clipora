@@ -36,4 +36,17 @@ class UserApi {
   static Future<Map> iosPayTranslateOrderApi(Map<String, dynamic> param) async {
     return await Request().post("$apiVersion/api/user/ios_pay_translate_order", data:param);
   }
+
+  // ------------------------  数据同步  -----------------------------
+  static Future<Map> getCurrentTimeApi() async {
+    return await Request().post("$apiVersion/api/user/get_current_time");
+  }
+  static Future<Map> getSyncAllDataApi(Map<String, dynamic> param) async {
+    return await Request().post("$apiVersion/api/user/get_sync_all_data", data:param);
+  }
+  static Future<Map> updateSyncDataApi(Map<String, dynamic> param) async {
+    return await Request().post("$apiVersion/api/user/update_sync_data", data:param);
+  }
+
+
 }

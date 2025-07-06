@@ -29,11 +29,11 @@ class ArticleController extends ArticleMarkdownController {
   // bool get isMarkdownLoading => _isMarkdownLoading.value;
 
   // 错误信息
-  // final RxString _errorMessage = ''.obs;
-  // String get errorMessage => _errorMessage.value;
+  final RxString _errorMessage = ''.obs;
+  String get errorMessage => _errorMessage.value;
 
   // 是否有错误
-  // bool get hasError => _errorMessage.value.isNotEmpty;
+  bool get hasError => _errorMessage.value.isNotEmpty;
 
   // 翻译相关状态
   final RxMap<String, String> _translationStatus = <String, String>{}.obs;

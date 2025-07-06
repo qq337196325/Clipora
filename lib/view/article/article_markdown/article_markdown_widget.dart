@@ -87,7 +87,7 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Artic
       ),
       onWebViewCreated: (InAppWebViewController controller){
         webViewController = controller;
-        articleController.webViewController = controller;
+        articleController.markdownController = controller;
       },
       onLoadStart: (controller, url) {
         getLogger().d('🚀 WebView开始加载: $url');
@@ -236,7 +236,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     _savePositionTimer?.cancel();
     // disposeEnhancedLogic();
     hideEnhancedSelectionMenu(); // 清理菜单
-    webViewController?.dispose();
+
     getLogger().d('✅ ArticleMarkdownWidget销毁完成');
     super.dispose();
   }

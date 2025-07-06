@@ -306,12 +306,12 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
     });
   }
 
-  @override
-  void dispose() {
-    // 清理防抖Timer
-    _generateSnapshotTimer?.cancel();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   // 清理防抖Timer
+  //   _generateSnapshotTimer?.cancel();
+  //   super.dispose();
+  // }
 
 
   /// 优化的URL导航处理
@@ -688,7 +688,10 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
 
   @override
   void dispose() {
-    webViewController?.dispose();
+    if(webViewController != null){
+      webViewController?.dispose();
+    }
+
     _simulationManager?.dispose();
     _retryCountMap.clear(); // 清理重试计数器
     _warmupAttemptedForUrl.clear(); // 清理预热状态

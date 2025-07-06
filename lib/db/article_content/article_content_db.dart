@@ -34,6 +34,9 @@ class ArticleContentDb {
   @Index() DateTime updatedAt = DateTime.now();
   DateTime? deletedAt;                         // 删除日期
 
+  /// 版本号（用于冲突解决）
+  @Index() int version = 1;
+  @Index() int updateTimestamp = 0;
 }
 
 // // 语言枚举

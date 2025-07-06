@@ -27,15 +27,25 @@ const TagDbSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'updatedAt': PropertySchema(
+    r'updateTimestamp': PropertySchema(
       id: 2,
+      name: r'updateTimestamp',
+      type: IsarType.long,
+    ),
+    r'updatedAt': PropertySchema(
+      id: 3,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'userId',
       type: IsarType.string,
+    ),
+    r'version': PropertySchema(
+      id: 5,
+      name: r'version',
+      type: IsarType.long,
     )
   },
   estimateSize: _tagDbEstimateSize,
@@ -66,6 +76,32 @@ const TagDbSchema = CollectionSchema(
         IndexPropertySchema(
           name: r'name',
           type: IndexType.hash,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'version': IndexSchema(
+      id: -3425991338577364869,
+      name: r'version',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'version',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'updateTimestamp': IndexSchema(
+      id: -2874489669811602764,
+      name: r'updateTimestamp',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'updateTimestamp',
+          type: IndexType.value,
           caseSensitive: false,
         )
       ],
@@ -132,8 +168,10 @@ void _tagDbSerialize(
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
   writer.writeString(offsets[1], object.name);
-  writer.writeDateTime(offsets[2], object.updatedAt);
-  writer.writeString(offsets[3], object.userId);
+  writer.writeLong(offsets[2], object.updateTimestamp);
+  writer.writeDateTime(offsets[3], object.updatedAt);
+  writer.writeString(offsets[4], object.userId);
+  writer.writeLong(offsets[5], object.version);
 }
 
 TagDb _tagDbDeserialize(
@@ -146,8 +184,10 @@ TagDb _tagDbDeserialize(
   object.createdAt = reader.readDateTime(offsets[0]);
   object.id = id;
   object.name = reader.readString(offsets[1]);
-  object.updatedAt = reader.readDateTime(offsets[2]);
-  object.userId = reader.readString(offsets[3]);
+  object.updateTimestamp = reader.readLong(offsets[2]);
+  object.updatedAt = reader.readDateTime(offsets[3]);
+  object.userId = reader.readString(offsets[4]);
+  object.version = reader.readLong(offsets[5]);
   return object;
 }
 
@@ -163,9 +203,13 @@ P _tagDbDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 3:
+      return (reader.readDateTime(offset)) as P;
+    case 4:
       return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -243,6 +287,22 @@ extension TagDbQueryWhereSort on QueryBuilder<TagDb, TagDb, QWhere> {
   QueryBuilder<TagDb, TagDb, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhere> anyVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'version'),
+      );
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhere> anyUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'updateTimestamp'),
+      );
     });
   }
 
@@ -413,6 +473,184 @@ extension TagDbQueryWhere on QueryBuilder<TagDb, TagDb, QWhereClause> {
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> versionEqualTo(int version) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'version',
+        value: [version],
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> versionNotEqualTo(int version) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [],
+              upper: [version],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [version],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [version],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'version',
+              lower: [],
+              upper: [version],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> versionGreaterThan(
+    int version, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'version',
+        lower: [version],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> versionLessThan(
+    int version, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'version',
+        lower: [],
+        upper: [version],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> versionBetween(
+    int lowerVersion,
+    int upperVersion, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'version',
+        lower: [lowerVersion],
+        includeLower: includeLower,
+        upper: [upperVersion],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> updateTimestampEqualTo(
+      int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'updateTimestamp',
+        value: [updateTimestamp],
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> updateTimestampNotEqualTo(
+      int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> updateTimestampGreaterThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [updateTimestamp],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> updateTimestampLessThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [],
+        upper: [updateTimestamp],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> updateTimestampBetween(
+    int lowerUpdateTimestamp,
+    int upperUpdateTimestamp, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [lowerUpdateTimestamp],
+        includeLower: includeLower,
+        upper: [upperUpdateTimestamp],
+        includeUpper: includeUpper,
+      ));
     });
   }
 
@@ -831,6 +1069,59 @@ extension TagDbQueryFilter on QueryBuilder<TagDb, TagDb, QFilterCondition> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> updateTimestampEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'updateTimestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> updateTimestampGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'updateTimestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> updateTimestampLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'updateTimestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> updateTimestampBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'updateTimestamp',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QAfterFilterCondition> updatedAtEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -1012,6 +1303,58 @@ extension TagDbQueryFilter on QueryBuilder<TagDb, TagDb, QFilterCondition> {
       ));
     });
   }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> versionEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> versionGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> versionLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> versionBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'version',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension TagDbQueryObject on QueryBuilder<TagDb, TagDb, QFilterCondition> {}
@@ -1099,6 +1442,18 @@ extension TagDbQuerySortBy on QueryBuilder<TagDb, TagDb, QSortBy> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByUpdateTimestampDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.desc);
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -1120,6 +1475,18 @@ extension TagDbQuerySortBy on QueryBuilder<TagDb, TagDb, QSortBy> {
   QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByUserIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.desc);
     });
   }
 }
@@ -1161,6 +1528,18 @@ extension TagDbQuerySortThenBy on QueryBuilder<TagDb, TagDb, QSortThenBy> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByUpdateTimestampDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.desc);
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -1184,6 +1563,18 @@ extension TagDbQuerySortThenBy on QueryBuilder<TagDb, TagDb, QSortThenBy> {
       return query.addSortBy(r'userId', Sort.desc);
     });
   }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.desc);
+    });
+  }
 }
 
 extension TagDbQueryWhereDistinct on QueryBuilder<TagDb, TagDb, QDistinct> {
@@ -1200,6 +1591,12 @@ extension TagDbQueryWhereDistinct on QueryBuilder<TagDb, TagDb, QDistinct> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QDistinct> distinctByUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'updateTimestamp');
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QDistinct> distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
@@ -1210,6 +1607,12 @@ extension TagDbQueryWhereDistinct on QueryBuilder<TagDb, TagDb, QDistinct> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'userId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QDistinct> distinctByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'version');
     });
   }
 }
@@ -1233,6 +1636,12 @@ extension TagDbQueryProperty on QueryBuilder<TagDb, TagDb, QQueryProperty> {
     });
   }
 
+  QueryBuilder<TagDb, int, QQueryOperations> updateTimestampProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'updateTimestamp');
+    });
+  }
+
   QueryBuilder<TagDb, DateTime, QQueryOperations> updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'updatedAt');
@@ -1242,6 +1651,12 @@ extension TagDbQueryProperty on QueryBuilder<TagDb, TagDb, QQueryProperty> {
   QueryBuilder<TagDb, String, QQueryOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userId');
+    });
+  }
+
+  QueryBuilder<TagDb, int, QQueryOperations> versionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'version');
     });
   }
 }

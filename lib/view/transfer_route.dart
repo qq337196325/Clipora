@@ -61,6 +61,9 @@ class _TransferRouteState extends State<TransferRoute> {
     }
 
     if (mounted) {
+      // Get.put(CategoryService(), permanent: true);
+
+
       context.go('/${RouteName.index}');
     }
   }

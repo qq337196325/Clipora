@@ -7,10 +7,10 @@ part 'article_db.g.dart'; // 用于代码生成
 @collection
 class ArticleDb {
 
-  Id id = Isar.autoIncrement;
-
   // 客户端数据有个问题，如果是登录不同账号的时候应该怎么处理数据；【前期可以预留相关的字段，暂时不处理功能】
 
+  Id id = Isar.autoIncrement;
+  @Index() String serviceId = "";              // 对应服务端ID
   
   @Index() String title = "";
   String? excerpt;                  // 摘要/简介
@@ -33,24 +33,15 @@ class ArticleDb {
   int markdownStatus = 0;                      // markdown状态    0=待生成  1=已生成   2=生成失败     3=正在生成
   DateTime? markdownProcessingStartTime;       // markdown开始处理时间（状态为3时记录）
   String shareOriginalContent = "";            // 分享接收到的原始内容
-  @Index() String serviceId = "";              // 对应服务端ID
+
 
   // @Index() String markdown = "";               // Markdown文档
 
   // 用户行为数据
-  int isRead = 0;            // 是否阅读   0=未读    1= 已读
-  int readCount = 0;         // 阅读次数
-  int readDuration = 0;      // 阅读时长(秒)
-  double readProgress = 0.0; // 阅读进度(0-1)
-
-  // 精确定位相关字段
-  // int markdownScrollY = 0;     // Markdown文档滚动Y位置
-  // int markdownScrollX = 0;     // Markdown文档滚动X位置
-  // String currentElementId = "";   // 当前可见元素的ID
-  // String currentElementText = ""; // 当前可见元素的文本片段(前100字符，用于备用定位)
-  // int currentElementOffset = 0;   // 当前元素在页面中的偏移量
-  // int viewportHeight = 0;         // 视窗高度(用于计算相对位置)
-  // int contentHeight = 0;          // 内容总高度
+  int isRead = 0;                 // 是否阅读   0=未读    1= 已读
+  int readCount = 0;              // 阅读次数
+  int readDuration = 0;           // 阅读时长(秒)
+  double readProgress = 0.0;      // 阅读进度(0-1)
   DateTime? lastReadTime;         // 最后阅读时间
   
   // 阅读会话信息
@@ -67,6 +58,10 @@ class ArticleDb {
   @Index() DateTime createdAt = DateTime.now();
   @Index() DateTime updatedAt = DateTime.now();
 
+  /// 版本号（用于冲突解决）
+  @Index() int version = 1;
+  @Index() int updateTimestamp = 0;
+
   /// 将 ArticleDb 对象转换为可以被 jsonEncode 的 Map
   Map<String, dynamic> toJson() {
     return {
@@ -75,9 +70,6 @@ class ArticleDb {
       'title': title,
       'excerpt': excerpt,
       'content': content,
-      // 关联对象需要单独处理，这里暂时只传递ID
-      // 'tags': tags.map((t) => t.id).toList(), 
-      // 'category': category.value?.id,
       'url': url,
       'domain': domain,
       'author': author,
@@ -85,7 +77,6 @@ class ArticleDb {
       'isCreateService': isCreateService,
       'isGenerateMhtml': isGenerateMhtml,
       'mhtmlPath': mhtmlPath,
-      // 'markdown': markdown,
       'isGenerateMarkdown': isGenerateMarkdown,
       'markdownProcessingStartTime': markdownProcessingStartTime?.toIso8601String(),
       'shareOriginalContent': shareOriginalContent,
@@ -94,13 +85,6 @@ class ArticleDb {
       'readCount': readCount,
       'readDuration': readDuration,
       'readProgress': readProgress,
-      // 'markdownScrollY': markdownScrollY,
-      // 'markdownScrollX': markdownScrollX,
-      // 'currentElementId': currentElementId,
-      // 'currentElementText': currentElementText,
-      // 'currentElementOffset': currentElementOffset,
-      // 'viewportHeight': viewportHeight,
-      // 'contentHeight': contentHeight,
       'lastReadTime': lastReadTime?.toIso8601String(),
       'readingSessionId': readingSessionId,
       'readingStartTime': readingStartTime,

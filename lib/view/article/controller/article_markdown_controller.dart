@@ -10,7 +10,7 @@ import 'article_base_controller.dart';
 /// 文章控制器
 class ArticleMarkdownController extends ArticleBaseController {
 
-  InAppWebViewController? webViewController;
+  InAppWebViewController? markdownController;
   DateTime? _lastSaveTime;
 
 
@@ -35,7 +35,7 @@ class ArticleMarkdownController extends ArticleBaseController {
 
       if (articleContent != null && articleContent.markdown.isNotEmpty) {
         getLogger().i('✅ 使用ArticleContentDb中的Markdown内容，语言: ${targetLanguage}，长度: ${articleContent.markdown.length}');
-        getLogger().i('✅ 使用ArticleContentDb中的Markdown内容，语言: ${articleContent.markdown}');
+        // getLogger().i('✅ 使用ArticleContentDb中的Markdown内容，语言: ${articleContent.markdown}');
         currentArticleContentRx.value = articleContent;
         currentMarkdownContentRx.value = articleContent.markdown;
         update();
@@ -145,8 +145,8 @@ class ArticleMarkdownController extends ArticleBaseController {
   Future<void> _saveCurrentReadingPosition() async {
     try {
       // 使用简单的滚动位置保存
-      final scrollY = await webViewController!.getScrollY();
-      final scrollX = await webViewController!.getScrollX();
+      final scrollY = await markdownController!.getScrollY();
+      final scrollX = await markdownController!.getScrollX();
 
       final currentScrollY = scrollY ?? 0;
       final currentScrollX = scrollX ?? 0;

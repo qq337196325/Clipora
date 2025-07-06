@@ -2,14 +2,20 @@ import 'package:animated_segmented_tab_control/animated_segmented_tab_control.da
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
 
+import '../../basics/logger.dart';
+import '../../basics/ui.dart';
+import '../../services/data_sync/data_sync_service.dart';
 import '../../services/snapshot_service_widget.dart';
 import 'group/group_widget.dart';
 import 'index_widget.dart';
 import 'my_page/my_page.dart';
 import '../../route/route_name.dart';
 import 'components/add_content_dialog.dart';
+import '../../basics/get_sync_data/get_sync_data.dart';
 
 
 class IndexPage extends StatefulWidget {
@@ -309,11 +315,15 @@ mixin IndexPageBLoC on State<IndexPage> {
 
   // 上次活跃时间，用于判断是否需要刷新
   DateTime? _lastActiveTime;
+  
+  // 同步进度相关
+  double _syncProgress = 0.0;
+  String _syncMessage = '正在初始化...';
 
   @override
   void initState() {
     super.initState();
-
+    // _init();
     tabController = TabController(
       length: 2, 
       vsync: this as TickerProvider,
@@ -330,8 +340,10 @@ mixin IndexPageBLoC on State<IndexPage> {
 
     tabs.add(const SegmentTab(label: '首页', color: Color(0xFF00BCF6)));
     tabs.add(const SegmentTab(label: '分组', color: Color(0xFF00BCF6)));
-
+    checkCompleteSync();
   }
+
+
 
   @override
   void dispose() {
@@ -390,4 +402,123 @@ mixin IndexPageBLoC on State<IndexPage> {
     }
   }
 
+  final box = GetStorage();
+  /// 新用户检查全量更新
+  checkCompleteSync() async {
+
+    await Future.delayed(const Duration(milliseconds: 5000));
+
+    box.write('completeSyncStatus', false);
+    bool? completeSyncStatus = box.read('completeSyncStatus');
+    getLogger().i('更新预热URL列表222');
+    getLogger().i(completeSyncStatus);
+
+
+    final serviceCurrentTime = await getServiceCurrentTime();
+    box.write('serviceCurrentTime', serviceCurrentTime);
+    getLogger().i('📅 服务端时间已更新: $serviceCurrentTime');
+
+    /// 只有全量更新完或者不需要全量更新的时候初始化
+    Get.put(DataSyncService(), permanent: true);
+
+    // 如果需要全量同步，显示对话框
+    if (completeSyncStatus == null || completeSyncStatus == false) {
+      if (mounted) {
+        showDialog<bool>(
+          context: context,
+          barrierDismissible: false, // 防止用户意外关闭同步对话框
+          builder: (context) => StatefulBuilder(
+            builder: (context, setDialogState) {
+              return buildSyncDialogWithProgress(
+                context,
+                _syncMessage,
+                _syncProgress,
+              );
+            },
+          ),
+        );
+
+        // 开始模拟同步过程
+        _startSyncProcess();
+      }
+    }
+
+  }
+
+  /// 开始同步过程
+  void _startSyncProcess() async {
+    try {
+      getLogger().i('🔄 开始执行全量同步...');
+      
+      // 更新同步状态显示
+      _updateSyncProgress('正在初始化同步...', 0.1);
+      
+      // 导入全量同步类
+      final getSyncData = GetSyncData();
+      
+      // 执行全量同步，传递进度回调
+      final syncResult = await getSyncData.completeSyncAllData(
+        progressCallback: (message, progress) {
+          _updateSyncProgress(message, progress);
+        },
+      );
+      
+      if (syncResult) {
+        getLogger().i('✅ 全量同步成功完成');
+        
+        _updateSyncProgress('正在完成同步...', 0.9);
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // 更新同步状态显示
+        _updateSyncProgress('同步完成！', 1.0);
+        
+        // 等待一下让用户看到完成状态
+        await Future.delayed(const Duration(milliseconds: 1500));
+        
+        // 保存同步完成状态并关闭对话框
+        if (mounted) {
+          box.write('completeSyncStatus', true);
+          Navigator.of(context).pop(true);
+        }
+      } else {
+        getLogger().e('❌ 全量同步失败');
+        
+        // 更新同步状态显示
+        _updateSyncProgress('同步失败，请检查网络连接后重试', 0.0);
+        
+        // 等待一下然后关闭对话框
+        await Future.delayed(const Duration(milliseconds: 3000));
+        
+        if (mounted) {
+          Navigator.of(context).pop(false);
+        }
+      }
+    } catch (e) {
+      getLogger().e('❌ 同步过程发生异常: $e');
+      
+      // 更新同步状态显示
+      _updateSyncProgress('同步异常: ${e.toString().length > 50 ? e.toString().substring(0, 50) + '...' : e.toString()}', 0.0);
+      
+      // 等待一下然后关闭对话框
+      await Future.delayed(const Duration(milliseconds: 3000));
+      
+      if (mounted) {
+        Navigator.of(context).pop(false);
+      }
+    }
+  }
+
+  /// 更新同步进度
+  void _updateSyncProgress(String message, double progress) {
+    if (mounted) {
+      setState(() {
+        _syncMessage = message;
+        _syncProgress = progress;
+      });
+    }
+  }
+
+
+
 }
+

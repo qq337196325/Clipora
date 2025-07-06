@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../db/annotation/enhanced_annotation_service.dart';
+import '../db/category/category_service.dart';
 import '../view/article/controller/article_controller.dart';
 
 
@@ -30,12 +31,12 @@ class _MyHomePageState extends State<AppsState> {
   _init() async {
 
 
-
+    Get.lazyPut(() => CategoryService());
+    Get.lazyPut(() => EnhancedAnnotationService());
 
     Get.lazyPut(() => ArticleController());
     // Get.lazyPut(() => ArticleMarkdownController());
     // Get.lazyPut(() => SnapshotService());
-    Get.lazyPut(() => EnhancedAnnotationService());
     // Get.lazyPut(() => FullCommodityCategoryController());
     // Get.lazyPut(() => FullCommodityUtilController());
     // Get.lazyPut(() => UserController());

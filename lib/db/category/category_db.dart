@@ -48,15 +48,11 @@ class CategoryDb {
   @Index()
   String path = '';
 
-  /// 文章数量缓存（避免实时计算）
-  int articleCount = 0;
-
-  /// 总文章数量（包含子分类的文章数量）
-  int totalArticleCount = 0;
-
-  /// 版本号（用于冲突解决）
-  @Index()
-  int version = 1;
+  // /// 文章数量缓存（避免实时计算）
+  // int articleCount = 0;
+  //
+  // /// 总文章数量（包含子分类的文章数量）
+  // int totalArticleCount = 0;
 
   /// 最后修改时间戳（用于同步判断）
   @Index()
@@ -82,6 +78,10 @@ class CategoryDb {
 
   @Index()
   DateTime updatedAt = DateTime.now();
+
+  /// 版本号（用于冲突解决）
+  @Index() int version = 1;
+  @Index() int updateTimestamp = 0;
 
   /// 获取分类的完整路径名称（如：技术 > 前端 > Vue）
   String getFullPath(List<CategoryDb> allCategories) {

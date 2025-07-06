@@ -47,13 +47,13 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
         }
       },
       child: Obx(() {
-        // if (articleController.hasError) {
-        //   return Scaffold(body: _buildErrorView(context));
-        // }
+        if (articleController.hasError) {
+          return Scaffold(body: _buildErrorView(context));
+        }
 
         // 在tabs初始化之前，始终显示加载视图
         if (tabs.isEmpty) {
-          // return Scaffold(body: _buildInitialLoadingView());
+          return Scaffold(body: _buildInitialLoadingView());
         }
         
         // 主内容UI
@@ -208,11 +208,11 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
           const SizedBox(height: 16),
           Text('加载失败', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
-          // Text(
-          //   articleController.errorMessage,
-          //   style: Theme.of(context).textTheme.bodyMedium,
-          //   textAlign: TextAlign.center,
-          // ),
+          Text(
+            articleController.errorMessage,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _loadArticleData,
@@ -280,15 +280,20 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   void _initializeTabs() {
     // 此方法仅在 articleController.hasArticle 为 true 时调用
     // 网页tab总是显示
-    tabs = ['网页'];
+    // tabs = ['网页'];
 
     final article = articleController.currentArticle!;
-    
+
+
+
+
     // 根据isGenerateMarkdown决定是否显示图文tab
     if (article.isGenerateMarkdown) {
       tabs.insert(0, '图文');
     }
-
+    if (article.url != "") {
+      tabs.add('网页');
+    }
     // 根据isGenerateMhtml决定是否显示快照tab
     if (article.isGenerateMhtml) {
       tabs.add('快照');

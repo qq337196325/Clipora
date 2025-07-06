@@ -672,10 +672,10 @@ mixin GroupPageBLoC on State<GroupPage> {
     setState(() => isLoading = true);
     var allCategories = await _categoryService.getAllCategories();
 
-    if (allCategories.isEmpty) {
-      await _createSampleData();
-      allCategories = await _categoryService.getAllCategories();
-    }
+    // if (allCategories.isEmpty) {
+    //   await _createSampleData();
+    //   allCategories = await _categoryService.getAllCategories();
+    // }
     
     _categoriesByParentId = {};
     for (var cat in allCategories) {
