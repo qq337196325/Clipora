@@ -506,7 +506,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     var absoluteY = webViewOffset.dy + rectY;
     // 针对iOS全面屏下坐标系差异的修正
     // 在iOS上，如果WebView是全面屏显示的(紧贴屏幕顶部)，JS的getBoundingClientRect().y可能是相对于SafeArea的，而不是屏幕绝对坐标
-    if (Platform.isIOS && webViewOffset.dy < systemPadding.top) {
+    if (Platform.isIOS && webViewOffset.dy < systemPadding.top) { //
       absoluteY += systemPadding.top;
     }
 
@@ -531,7 +531,13 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     // 智能位置选择：优先上方，但选择空间较大的位置
     if (spaceAbove >= menuHeight) {
       // 上方有足够空间
-      menuY = selectionRectOnScreen.top - menuHeight - 120;
+      // menuY = selectionRectOnScreen.top - menuHeight - 180;
+      if (Platform.isIOS) { 
+        menuY = selectionRectOnScreen.top - menuHeight - 180;
+      }else{
+        menuY = selectionRectOnScreen.top - menuHeight - 50;
+      }
+
     } else if (spaceBelow >= menuHeight) {
       // 下方有足够空间
       menuY = selectionRectOnScreen.bottom - 20;
@@ -557,6 +563,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       builder: (context) => Positioned.fill(
         child: GestureDetector(
           onTap: hideEnhancedSelectionMenu,
+          behavior: HitTestBehavior.translucent,
           child: Container(color: Colors.transparent),
         ),
       ),
@@ -1138,6 +1145,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       builder: (context) => Positioned.fill(
         child: GestureDetector(
           onTap: hideHighlightActionMenu,
+          behavior: HitTestBehavior.translucent,
           child: Container(color: Colors.transparent),
         ),
       ),
