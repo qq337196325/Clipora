@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import '../../../api/user_api.dart';
 import '../../../route/route_name.dart';
 import '../../../basics/logger.dart';
 import 'about_page.dart';
@@ -47,21 +48,23 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 4),
-                  
+
+                  // 应用功能
+                  _buildSectionHeader('应用功能', Icons.apps),
+                  const SizedBox(height: 12),
+                  _buildFunctionSection(),
+                  const SizedBox(height: 12),
                   // 隐私与安全
-                  _buildSectionHeader('信息', Icons.security),
+                  _buildSectionHeader('信息', Icons.security), 
                   const SizedBox(height: 12),
                   _buildPrivacySection(),
                   
-                  const SizedBox(height: 54),
 
-                  // // 应用功能
-                  // _buildSectionHeader('应用功能', Icons.apps),
-                  // const SizedBox(height: 12),
-                  // _buildFunctionSection(),
-                  //
-                  // const SizedBox(height: 24),
-                  //
+
+
+
+                  const SizedBox(height: 54),
+                  
                   // 退出登录按钮
                   _buildLogoutButton(),
                   
@@ -250,43 +253,196 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
   }
 
   Widget _buildFunctionSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 10,
-            spreadRadius: 0,
+    return Column(
+      children: [
+        _buildAiTranslationCard(),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                offset: const Offset(0, 3),
+                blurRadius: 10,
+                spreadRadius: 0,
+              ),
+            ],
           ),
-        ],
+          child: Column(
+            children: [
+              // _buildModernSettingItem(
+              //   icon: Icons.help_center_outlined,
+              //   title: '使用帮助',
+              //   subtitle: '常见问题与解答',
+              //   iconColor: const Color(0xFF45B7D1),
+              //   iconBgColor: const Color(0xFF45B7D1).withOpacity(0.1),
+              //   onTap: () => _handleHelp(),
+              //   isFirst: true,
+              // ),
+              // _buildDivider(),
+              // _buildModernSettingItem(
+              //   icon: Icons.star_rate_outlined,
+              //   title: '评价一下',
+              //   subtitle: '您的评价是我们前进的动力',
+              //   iconColor: const Color(0xFFFFD93D),
+              //   iconBgColor: const Color(0xFFFFD93D).withOpacity(0.1),
+              //   onTap: () => _handleRating(),
+              //   isLast: true,
+              // ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAiTranslationCard() {
+    return GestureDetector(
+      onTap: () {
+        if (!_isLoadingQuantity && _remainingTranslateQuantity == null) {
+          setState(() {
+            _isLoadingQuantity = true;
+          });
+          _loadTranslateQuantity();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF667eea).withOpacity(0.1),
+              offset: const Offset(0, 4),
+              blurRadius: 12,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: _isLoadingQuantity
+            ? _buildAiCardLoading()
+            : (_remainingTranslateQuantity == null
+                ? _buildAiCardError()
+                : _buildAiCardData()),
       ),
-      child: Column(
-        children: [
+    );
+  }
 
-          _buildModernSettingItem(
-            icon: Icons.help_center_outlined,
-            title: '使用帮助',
-            subtitle: '常见问题与解答',
-            iconColor: const Color(0xFF45B7D1),
-            iconBgColor: const Color(0xFF45B7D1).withOpacity(0.1),
-            onTap: () => _handleHelp(),
+  Widget _buildAiCardLoading() {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF667eea))),
+        SizedBox(width: 12),
+        Text('正在获取AI翻译余量...', style: TextStyle(color: Color(0xFF8E8E93), fontSize: 14)),
+      ],
+    );
+  }
+
+  Widget _buildAiCardError() {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.error_outline, color: Color(0xFFFF6B6B), size: 20),
+        SizedBox(width: 8),
+        Text('加载失败，请点击重试',
+            style: TextStyle(
+                color: Color(0xFFFF6B6B),
+                fontSize: 14,
+                fontWeight: FontWeight.w600)),
+      ],
+    );
+  }
+
+  Widget _buildAiCardData() {
+    double progress = 0;
+    if (_totalTranslateQuantity != null && _totalTranslateQuantity! > 0) {
+      progress = (_totalTranslateQuantity! - _remainingTranslateQuantity!) /
+          _totalTranslateQuantity!;
+    }
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                 Text(
+                  'AI 翻译请求',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1D1D1F)),
+                ),
+                 SizedBox(height: 2),
+                 Text(
+                  '让阅读更智能，翻译更流畅',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF8E8E93),
+                  ),
+                ),
+              ],
+            ),
+            
+            ElevatedButton(
+              onPressed: () {
+                context.push('/${RouteName.aiOrderPage}');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF667eea),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+              ),
+              child: const Text('购买', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            )
+          ],
+        ),
+        const SizedBox(height: 16),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(5),
+          child: LinearProgressIndicator(
+            value: progress,
+            backgroundColor: const Color(0xFFF0F2F5),
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
+            minHeight: 10,
           ),
-          _buildDivider(),
-
-          _buildModernSettingItem(
-            icon: Icons.star_rate_outlined,
-            title: '评价一下',
-            subtitle: '您的评价是我们前进的动力',
-            iconColor: const Color(0xFFFFD93D),
-            iconBgColor: const Color(0xFFFFD93D).withOpacity(0.1),
-            onTap: () => _handleRating(),
-          ),
-
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '已用: ${_totalTranslateQuantity! - _remainingTranslateQuantity!}',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF8E8E93)),
+            ),
+            Text(
+              '剩余: $_remainingTranslateQuantity / $_totalTranslateQuantity',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF3C3C3C),
+              ),
+            ),
+          ],
+        )
+      ],
     );
   }
 
@@ -447,11 +603,15 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
 // BLoC Mixin for business logic
 mixin MyPageBLoC on State<MyPage> {
   String cacheSize = '0.0MB';
+  int? _remainingTranslateQuantity;
+  int? _totalTranslateQuantity;
+  bool _isLoadingQuantity = true;
 
   @override
   void initState() {
     super.initState();
     _loadCacheSize();
+    _loadTranslateQuantity();
   }
 
   void _loadCacheSize() async {
@@ -459,6 +619,47 @@ mixin MyPageBLoC on State<MyPage> {
     setState(() {
       cacheSize = '0.0MB';
     });
+  }
+
+  void _loadTranslateQuantity() async {
+    try {
+      final res = await UserApi.getTranslateRequestQuantityApi({});
+      if (!mounted) return;
+
+      if (res['code'] == 0 && res['data'] != null) {
+        setState(() {
+          _totalTranslateQuantity = res['data']['total_translate_quantity'];
+          _remainingTranslateQuantity =
+              res['data']['remaining_translate_quantity'];
+          _isLoadingQuantity = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingQuantity = false;
+        });
+        getLogger().w('Failed to load translate quantity: ${res["msg"]}');
+      }
+    } catch (e) {
+      getLogger().e('Failed to load translate quantity: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingQuantity = false;
+        });
+      }
+    }
+  }
+
+  void _handleAiTranslation() {
+    if (_isLoadingQuantity) return; 
+
+    if (_remainingTranslateQuantity == null) {
+      setState(() {
+        _isLoadingQuantity = true;
+      });
+      _loadTranslateQuantity();
+    } else {
+      context.push('/${RouteName.aiOrderPage}');
+    }
   }
 
   void _handleThirdPartyInfo() {

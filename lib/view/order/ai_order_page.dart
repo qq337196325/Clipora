@@ -527,7 +527,9 @@ class _AIOrderPageState extends State<AIOrderPage>
       ),
       child: Column(
         children: [
-          
+          // 协议条款
+          _buildAgreementSection(),
+          const SizedBox(height: 16),
           // 购买按钮
           SizedBox(
             width: double.infinity,
@@ -592,10 +594,9 @@ class _AIOrderPageState extends State<AIOrderPage>
             ),
           ),
           
-          const SizedBox(height: 16),
+
           
-          // 协议条款
-          _buildAgreementSection(),
+
         ],
       ),
     );
@@ -637,6 +638,14 @@ class _AIOrderPageState extends State<AIOrderPage>
               ),
             ),
             const SizedBox(width: 8),
+            InkWell(
+              onTap: (){
+                setState(() {
+                  isAgreedToTerms = !isAgreedToTerms;
+                });
+              },
+              child: Text('购买前请阅读并同意'),
+            ),
             Expanded(
               child: RichText(
                 text: TextSpan(
@@ -646,7 +655,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                     height: 1.4,
                   ),
                   children: [
-                    const TextSpan(text: '购买前请阅读'),
+
                     WidgetSpan(
                       child: GestureDetector(
                         onTap: () => _handleUserAgreement(),
@@ -674,7 +683,7 @@ class _AIOrderPageState extends State<AIOrderPage>
 /// 业务逻辑 Mixin
 mixin AIOrderPageBLoC on State<AIOrderPage> {
   bool isLoading = false;
-  bool isAgreedToTerms = true; // 默认同意，符合用户体验
+  bool isAgreedToTerms = false; // 默认同意，符合用户体验
   Fluwx fluwx = Fluwx();
   
   // 支付结果监听订阅
