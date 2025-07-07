@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
-import 'app_store_helper.dart';
+import '../utils/app_store_helper.dart';
 import '../../../basics/logger.dart';
 
 class RatingDialog extends StatelessWidget {

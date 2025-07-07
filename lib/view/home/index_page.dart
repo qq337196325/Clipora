@@ -10,6 +10,7 @@ import '../../basics/logger.dart';
 import '../../basics/ui.dart';
 import '../../services/data_sync/data_sync_service.dart';
 import '../../services/snapshot_service_widget.dart';
+import 'utils/upgrade_service.dart';
 import 'group/group_widget.dart';
 import 'index_widget.dart';
 import 'my_page/my_page.dart';
@@ -340,9 +341,17 @@ mixin IndexPageBLoC on State<IndexPage> {
 
     tabs.add(const SegmentTab(label: '首页', color: Color(0xFF00BCF6)));
     tabs.add(const SegmentTab(label: '分组', color: Color(0xFF00BCF6)));
-    checkCompleteSync();
+
+    // 使用addPostFrameCallback确保在第一帧渲染后执行，避免阻塞UI
+    WidgetsBinding.instance.addPostFrameCallback((_)  {
+      _init();
+    });
   }
 
+  _init() async {
+    await _checkAppVersion(); // 在这里调用版本检查
+    checkCompleteSync();
+  }
 
   @override
   void dispose() {
@@ -399,6 +408,12 @@ mixin IndexPageBLoC on State<IndexPage> {
       // 内容添加成功，可以在这里做一些刷新操作
       // 例如刷新首页列表等
     }
+  }
+
+  /// 检查应用版本
+  Future<void> _checkAppVersion() async {
+    // 创建服务实例并调用检查方法
+    await UpgradeService().checkAndShowUpgradeDialog(context);
   }
 
   final box = GetStorage();

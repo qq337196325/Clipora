@@ -9,6 +9,7 @@ import 'dart:async';
 import '../../api/user_api.dart';
 import '../../basics/config.dart';
 import '../../basics/logger.dart';
+import '../../basics/ui.dart';
 
 /// AI请求包购买页面
 class AIOrderPage extends StatefulWidget {
@@ -1005,57 +1006,8 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
 
   /// 处理用户协议点击
   void _handleUserAgreement() {
-    // TODO: 跳转到用户协议页面
-    // 这里可以使用webview或者专门的协议页面
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: const Color(0xFFFEFDF8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  '用户协议',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3C3C3C),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '暂未实现完整协议内容\n请在实际项目中补充详细的用户协议条款',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF8C8C8C),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF667eea),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text('确定'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    final Uri _url = Uri.parse("https://clipora.guanshangyun.com/payment_agreement");
+    goLaunchUrl(_url);
   }
 
 

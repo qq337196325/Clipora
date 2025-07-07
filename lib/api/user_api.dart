@@ -5,6 +5,10 @@ import "/basics/config.dart";
 
 class UserApi {
 
+
+  static Future<Map> getVersionUpdateApi(dynamic param) async {
+    return await Request().post("$apiVersion/api/user/get_version_update", data:param);
+  }
   static Future<Map> smsCodeApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/sms_code", data:param);
   }

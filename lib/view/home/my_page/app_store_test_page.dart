@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
-import 'app_store_helper.dart';
+import '../utils/app_store_helper.dart';
 
 
 class AppStoreTestPage extends StatefulWidget {

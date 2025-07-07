@@ -380,8 +380,8 @@ class _AboutPageState extends State<AboutPage> {
           _buildContactItem(
             icon: Icons.email_outlined,
             title: '邮箱',
-            content: 'contact@clipora.com',
-            onTap: () => _copyToClipboard('contact@clipora.com', '邮箱地址'),
+            content: '337196325@qq.com',
+            onTap: () => _copyToClipboard('337196325@qq.com', '邮箱地址'),
           ),
           
           const SizedBox(height: 12),
@@ -389,8 +389,8 @@ class _AboutPageState extends State<AboutPage> {
           _buildContactItem(
             icon: Icons.web_outlined,
             title: '官网',
-            content: 'www.clipora.com',
-            onTap: () => _copyToClipboard('www.clipora.com', '官网地址'),
+            content: 'clipora.guanshangyun.com',
+            onTap: () => _copyToClipboard('clipora.guanshangyun.com', '官网地址'),
           ),
           
           const SizedBox(height: 16),

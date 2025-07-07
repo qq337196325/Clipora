@@ -4,7 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../basics/logger.dart';
 
 class AppStoreHelper {
-  static const String _appId = 'your_app_id'; // 请替换为实际的应用ID
+  static const String _appId = '6747252007'; // 请替换为实际的应用ID
   static const String _packageName = 'com.guanshangyun.clipora'; // 实际的包名
 
   /// 跳转到应用商店评价页面
@@ -21,6 +21,20 @@ class AppStoreHelper {
     }
   }
 
+  /// 跳转到应用商店进行更新
+  static Future<void> openAppStoreForUpdate() async {
+    try {
+      if (Platform.isIOS) {
+        await _openIOSAppStoreForUpdate();
+      } else if (Platform.isAndroid) {
+        await _openAndroidAppStore();
+      }
+    } catch (e) {
+      getLogger().e('打开应用商店更新失败: $e');
+      rethrow;
+    }
+  }
+
   /// iOS App Store 评价
   static Future<void> _openIOSAppStore() async {
     final url = 'https://apps.apple.com/app/id$_appId?action=write-review';
@@ -29,6 +43,19 @@ class AppStoreHelper {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
       getLogger().i('跳转到iOS App Store评价页面');
+    } else {
+      throw Exception('无法打开iOS App Store');
+    }
+  }
+
+  /// iOS App Store 更新
+  static Future<void> _openIOSAppStoreForUpdate() async {
+    final url = 'https://apps.apple.com/app/id$_appId';
+    final uri = Uri.parse(url);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      getLogger().i('跳转到iOS App Store更新页面');
     } else {
       throw Exception('无法打开iOS App Store');
     }

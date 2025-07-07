@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api/user_api.dart';
 
@@ -25,7 +26,11 @@ class UiColour {
   static Color primary = const Color(0xFF2196F3);
   static Color secondary = const Color(0xFFFF9800);
   static Color background = const Color(0xFFF8F9FA);
-  static Color text = const Color(0xFF212121); 
+  static Color text = const Color(0xFF212121);
+
+
+
+  static Color funFF6600 = const Color(0xFFFF6600);
 
 }
 final box = GetStorage();
@@ -54,6 +59,13 @@ int getStorageServiceCurrentTimeAdding(){
   final serverLocalDiff = localTime - serverTime;
 
   return localTime + (serverLocalDiff > 0 ? serverLocalDiff : 0) + 10;
+}
+
+/// 跳转链接
+Future<void> goLaunchUrl(Uri _url) async {
+  if (!await launchUrl(_url)) {
+    throw Exception('Could not launch $_url');
+  }
 }
 
 /// 构建带进度的数据同步对话框

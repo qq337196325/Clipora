@@ -1,10 +1,16 @@
+import 'package:bot_toast/bot_toast.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:fluwx/fluwx.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../basics/config.dart';
+import '../../basics/ui.dart';
+import '../../components/ui_border_radius_widget.dart';
 import 'phone_login_page.dart';
 import '../../api/user_api.dart';
 import '../../route/route_name.dart';
@@ -111,15 +117,15 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
     return Column(
       children: [
         // Apple登录按钮
-        _buildLoginButton(
-          icon: Icons.apple,
-          text: '使用 Apple 登录',
-          backgroundColor: const Color(0xFF000000),
-          textColor: Colors.white,
-          onPressed: onAppleLogin,
-        ),
-        
-        const SizedBox(height: 16),
+        // _buildLoginButton(
+        //   icon: Icons.apple,
+        //   text: '使用 Apple 登录',
+        //   backgroundColor: const Color(0xFF000000),
+        //   textColor: Colors.white,
+        //   onPressed: onAppleLogin,
+        // ),
+        //
+        // const SizedBox(height: 16),
         
         // 微信登录按钮
         _buildLoginButton(
@@ -202,34 +208,81 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
 
   Widget _buildPrivacyText() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF8C8C8C),
-            height: 1.4,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        children: [
+          Transform.scale(
+            scale: 0.9,
+            child: Checkbox(
+              side: BorderSide(width: 1, color: UiColour.neutral_6),
+              value: isAgreePrivacyAgreement,
+              activeColor: UiColour.primary,
+              onChanged: (value) {
+                setState(() {
+                  isAgreePrivacyAgreement = value!;
+                });
+              },
+            ),
           ),
-          children: [
-            const TextSpan(text: '登录即表示您同意我们的'),
-            TextSpan(
-              text: '《用户协议》',
-              style: TextStyle(
-                color: const Color(0xFF005A9C),
-                fontWeight: FontWeight.w500,
+
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                isAgreePrivacyAgreement = !isAgreePrivacyAgreement;
+              });
+            },
+            child: Text("我已阅读并同意",
+                style: TextStyle(color: UiColour.neutral_6, fontSize: 13)),
+          ),
+
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF8C8C8C),
+                height: 1.4,
               ),
+              children: [
+                // const TextSpan(text: '我已阅读并同意'),
+                // TextSpan(
+                //     text: '我已阅读并同意',
+                //     recognizer: TapGestureRecognizer()
+                //       ..onTap = () {
+                //         setState(() {
+                //           isAgreePrivacyAgreement = !isAgreePrivacyAgreement;
+                //         });
+                //       }
+                // ),
+
+                TextSpan(
+                    text: '《用户协议》',
+                    style: TextStyle(
+                      color: const Color(0xFF005A9C),
+                      fontWeight: FontWeight.w500,
+                    ), recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    final Uri _url = Uri.parse(urlPrivacy);
+                    goLaunchUrl(_url);
+                  }
+                ),
+                const TextSpan(text: '和'),
+                TextSpan(
+                    text: '《隐私政策》',
+                    style: TextStyle(
+                      color: const Color(0xFF005A9C),
+                      fontWeight: FontWeight.w500,
+                    ), recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    final Uri _url = Uri.parse(urlAgreement);
+                    goLaunchUrl(_url);
+                  }
+                ),
+              ],
             ),
-            const TextSpan(text: '和'),
-            TextSpan(
-              text: '《隐私政策》',
-              style: TextStyle(
-                color: const Color(0xFF005A9C),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+          ),
+
+        ],
       ),
     );
   }
@@ -242,6 +295,8 @@ mixin LoginPageBLoC on State<LoginPage> {
   
   // 微信授权响应流订阅
   StreamSubscription<WeChatAuthResponse>? _authSubscription;
+  bool isAgreePrivacyAgreement = false;
+  late SharedPreferences prefs;
   
   @override
   void initState() {
@@ -249,12 +304,19 @@ mixin LoginPageBLoC on State<LoginPage> {
     _init();
   }
 
-  void _init() {
+  void _init() async {
     // 初始化登录页面
     // 可以在这里添加一些初始化逻辑，比如检查登录状态等
     
     // 监听微信授权响应
     _listenWeChatAuthResponse();
+
+    prefs = await SharedPreferences.getInstance();
+    final privacy = prefs.getBool('privacy');
+    if(privacy == null || privacy == false){
+      // TODO: 发布华为版注释下面两行
+      openSmartDialog();
+    }
   }
 
   // Apple登录
@@ -267,6 +329,19 @@ mixin LoginPageBLoC on State<LoginPage> {
   // 微信登录
   void onWechatLogin() async {
     try {
+
+      if (!isAgreePrivacyAgreement) {
+        openSmartDialog();
+        BotToast.showText(
+          textStyle: TextStyle(color: UiColour.neutral_11),
+          text: "请阅读并勾选我们的隐私政策与用户协议",
+          contentColor: UiColour.neutral_5,
+          align: Alignment(0, 0),
+        );
+        return;
+      }
+
+      prefs.setBool("privacy", true);
       getLogger().i('用户点击微信登录按钮');
       
       // 检查微信是否已安装
@@ -291,6 +366,19 @@ mixin LoginPageBLoC on State<LoginPage> {
 
   // 手机号登录
   void onPhoneLogin() {
+
+    if (!isAgreePrivacyAgreement) {
+      openSmartDialog();
+      BotToast.showText(
+        textStyle: TextStyle(color: UiColour.neutral_11),
+        text: "请阅读并勾选我们的隐私政策与用户协议",
+        contentColor: UiColour.neutral_5,
+        align: Alignment(0, 0),
+      );
+      return;
+    }
+    prefs.setBool("privacy", true);
+
     // 跳转到手机号输入页面
     Navigator.push(
       context,
@@ -325,10 +413,8 @@ mixin LoginPageBLoC on State<LoginPage> {
       final String? code = response.code;
       final String? state = response.state;
       if (code != null && code.isNotEmpty) {
-        getLogger().i('✅ 微信授权成功');
         getLogger().i('📱 获取到code: $code');
         getLogger().i('📱 state参数: $state');
-        getLogger().i('📱 使用的AppID: wx629011ac595bee08');
         _processWeChatLogin(code);
       } else {
         getLogger().e('❌ 微信授权成功但未获取到code');
@@ -649,5 +735,83 @@ mixin LoginPageBLoC on State<LoginPage> {
     // 清理微信授权响应订阅
     _authSubscription?.cancel();
     super.dispose();
+  }
+
+
+  openSmartDialog(){
+    SmartDialog.show(
+      builder: (fcontext) => UiBorderRadiusWidget(
+        width: 300,
+        child: Container(
+
+          margin: const EdgeInsets.only(left: 20, right: 20),
+          padding: EdgeInsets.only(left: 10, right: 10, top: 4, bottom: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("隐私政策", style: TextStyle(fontWeight: FontWeight.w600)),
+              SizedBox(height: 20),
+              RichText(
+                text: TextSpan(
+                  style: DefaultTextStyle.of(context).style,
+                  children: <TextSpan>[
+                    TextSpan(text: '本应用尊重并保护所有用户的个人隐私权。为了给您提供更准确、更有个性化的服务，本应用会按照隐私政策的规定使用和披露您的个人信息。可阅读我们的'),
+                    TextSpan(text: '隐私政策', style: TextStyle(color: UiColour.primary),recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        final Uri _url = Uri.parse(urlAgreement);
+                        goLaunchUrl(_url);
+                      }),
+                  ],
+                ),
+              ),
+              Container(
+                width: 400,
+                decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(40))),
+                padding: const EdgeInsets.only(top: 28.0, left: 20, right: 20),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    backgroundColor: UiColour.primary,
+                  ),
+                  child: Container(
+                    decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(40))),
+                    padding: const EdgeInsets.all(8.0),
+                    child: const Text("同意", style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      isAgreePrivacyAgreement = true;
+                    });
+                    // ClientLog.instance.getDeviceInfo();
+                    SmartDialog.dismiss();
+                  },
+                ),
+              ),
+              Container(
+                width: 400,
+                decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(40))),
+                padding: const EdgeInsets.only(top: 28.0, left: 20, right: 20),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    backgroundColor: UiColour.funFF6600,
+                  ),
+                  child: Container(
+                    decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(40))),
+                    padding: const EdgeInsets.all(8.0),
+                    child: const Text("不同意并退出APP", style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                  onPressed: () async {
+                    SystemNavigator.pop();
+                  },
+                ),
+              ),
+
+
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
