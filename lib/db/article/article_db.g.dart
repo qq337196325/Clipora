@@ -179,6 +179,19 @@ const ArticleDbSchema = CollectionSchema(
   deserializeProp: _articleDbDeserializeProp,
   idName: r'id',
   indexes: {
+    r'serviceId': IndexSchema(
+      id: -2057415921448131436,
+      name: r'serviceId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'serviceId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
     r'title': IndexSchema(
       id: -7636685945352118059,
       name: r'title',
@@ -280,19 +293,6 @@ const ArticleDbSchema = CollectionSchema(
           name: r'isGenerateMarkdown',
           type: IndexType.value,
           caseSensitive: false,
-        )
-      ],
-    ),
-    r'serviceId': IndexSchema(
-      id: -2057415921448131436,
-      name: r'serviceId',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'serviceId',
-          type: IndexType.hash,
-          caseSensitive: true,
         )
       ],
     ),
@@ -752,6 +752,51 @@ extension ArticleDbQueryWhere
     });
   }
 
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> serviceIdEqualTo(
+      String serviceId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serviceId',
+        value: [serviceId],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> serviceIdNotEqualTo(
+      String serviceId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [],
+              upper: [serviceId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [serviceId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [serviceId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [],
+              upper: [serviceId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
   QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> titleEqualTo(
       String title) {
     return QueryBuilder.apply(this, (query) {
@@ -1171,51 +1216,6 @@ extension ArticleDbQueryWhere
               indexName: r'isGenerateMarkdown',
               lower: [],
               upper: [isGenerateMarkdown],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> serviceIdEqualTo(
-      String serviceId) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'serviceId',
-        value: [serviceId],
-      ));
-    });
-  }
-
-  QueryBuilder<ArticleDb, ArticleDb, QAfterWhereClause> serviceIdNotEqualTo(
-      String serviceId) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'serviceId',
-              lower: [],
-              upper: [serviceId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'serviceId',
-              lower: [serviceId],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'serviceId',
-              lower: [serviceId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'serviceId',
-              lower: [],
-              upper: [serviceId],
               includeUpper: false,
             ));
       }

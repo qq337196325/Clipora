@@ -21,6 +21,16 @@ class EnhancedAnnotationDb {
   @Index(unique: true, replace: true)
   String highlightId = "";  // 高亮HTML元素的唯一ID
 
+  /// 服务器端ID（同步后存储）
+  @Index()
+  String? serverId;
+  /// 是否已同步到服务器
+  @Index()
+  bool isSynced = false;
+  /// 最后修改时间戳（用于同步判断）
+  @Index()
+  int updateTimestamp = 0;
+
   // === Range精确定位信息 ===
   String startXPath = "";        // 开始节点的XPath路径
   int startOffset = 0;           // 在开始节点中的偏移量
@@ -75,7 +85,8 @@ class EnhancedAnnotationDb {
     AnnotationColor colorType = AnnotationColor.yellow,
     String noteContent = '',
   }) {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final now = DateTime.now();
+    final timestamp = now.millisecondsSinceEpoch;
     final highlightId = 'highlight_${timestamp}_${selectionData['selectedText']?.hashCode ?? 0}';
     
     final annotation = EnhancedAnnotationDb()
@@ -93,8 +104,9 @@ class EnhancedAnnotationDb {
       ..noteContent = noteContent
       ..crossParagraph = selectionData['crossParagraph'] ?? false
       ..rangeFingerprint = _generateFingerprint(selectionData)
-      ..createdAt = DateTime.now()
-      ..updatedAt = DateTime.now()
+      ..createdAt = now
+      ..updatedAt = now
+      ..updateTimestamp = timestamp
       ..version = 1;
 
     // 设置边界框信息
@@ -193,7 +205,9 @@ class EnhancedAnnotationDb {
 
   // 更新时间戳
   void touch() {
-    updatedAt = DateTime.now();
+    final now = DateTime.now();
+    updatedAt = now;
+    updateTimestamp = now.millisecondsSinceEpoch;
   }
 
   @override

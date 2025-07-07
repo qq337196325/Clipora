@@ -15,6 +15,8 @@ class ArticleDb {
   @Index() String title = "";
   String? excerpt;                  // 摘要/简介
   String? content;
+
+  /// 标签
   final tags = IsarLinks<TagDb>();
 
   /// 文章分类关联
@@ -33,9 +35,6 @@ class ArticleDb {
   int markdownStatus = 0;                      // markdown状态    0=待生成  1=已生成   2=生成失败     3=正在生成
   DateTime? markdownProcessingStartTime;       // markdown开始处理时间（状态为3时记录）
   String shareOriginalContent = "";            // 分享接收到的原始内容
-
-
-  // @Index() String markdown = "";               // Markdown文档
 
   // 用户行为数据
   int isRead = 0;                 // 是否阅读   0=未读    1= 已读

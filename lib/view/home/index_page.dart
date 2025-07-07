@@ -344,7 +344,6 @@ mixin IndexPageBLoC on State<IndexPage> {
   }
 
 
-
   @override
   void dispose() {
     tabController.dispose();
@@ -406,13 +405,11 @@ mixin IndexPageBLoC on State<IndexPage> {
   /// 新用户检查全量更新
   checkCompleteSync() async {
 
-    await Future.delayed(const Duration(milliseconds: 5000));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     box.write('completeSyncStatus', false);
     bool? completeSyncStatus = box.read('completeSyncStatus');
     getLogger().i('更新预热URL列表222');
-    getLogger().i(completeSyncStatus);
-
 
     final serviceCurrentTime = await getServiceCurrentTime();
     box.write('serviceCurrentTime', serviceCurrentTime);
@@ -438,7 +435,7 @@ mixin IndexPageBLoC on State<IndexPage> {
           ),
         );
 
-        // 开始模拟同步过程
+        // 开始同步过程
         _startSyncProcess();
       }
     }
@@ -487,7 +484,7 @@ mixin IndexPageBLoC on State<IndexPage> {
         _updateSyncProgress('同步失败，请检查网络连接后重试', 0.0);
         
         // 等待一下然后关闭对话框
-        await Future.delayed(const Duration(milliseconds: 3000));
+        await Future.delayed(const Duration(milliseconds: 1000));
         
         if (mounted) {
           Navigator.of(context).pop(false);
@@ -500,7 +497,7 @@ mixin IndexPageBLoC on State<IndexPage> {
       _updateSyncProgress('同步异常: ${e.toString().length > 50 ? e.toString().substring(0, 50) + '...' : e.toString()}', 0.0);
       
       // 等待一下然后关闭对话框
-      await Future.delayed(const Duration(milliseconds: 3000));
+      await Future.delayed(const Duration(milliseconds: 1000));
       
       if (mounted) {
         Navigator.of(context).pop(false);

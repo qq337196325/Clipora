@@ -27,23 +27,28 @@ const TagDbSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'updateTimestamp': PropertySchema(
+    r'serviceId': PropertySchema(
       id: 2,
+      name: r'serviceId',
+      type: IsarType.string,
+    ),
+    r'updateTimestamp': PropertySchema(
+      id: 3,
       name: r'updateTimestamp',
       type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'userId',
       type: IsarType.string,
     ),
     r'version': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'version',
       type: IsarType.long,
     )
@@ -62,6 +67,19 @@ const TagDbSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'userId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'serviceId': IndexSchema(
+      id: -2057415921448131436,
+      name: r'serviceId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'serviceId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -156,6 +174,7 @@ int _tagDbEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.name.length * 3;
+  bytesCount += 3 + object.serviceId.length * 3;
   bytesCount += 3 + object.userId.length * 3;
   return bytesCount;
 }
@@ -168,10 +187,11 @@ void _tagDbSerialize(
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
   writer.writeString(offsets[1], object.name);
-  writer.writeLong(offsets[2], object.updateTimestamp);
-  writer.writeDateTime(offsets[3], object.updatedAt);
-  writer.writeString(offsets[4], object.userId);
-  writer.writeLong(offsets[5], object.version);
+  writer.writeString(offsets[2], object.serviceId);
+  writer.writeLong(offsets[3], object.updateTimestamp);
+  writer.writeDateTime(offsets[4], object.updatedAt);
+  writer.writeString(offsets[5], object.userId);
+  writer.writeLong(offsets[6], object.version);
 }
 
 TagDb _tagDbDeserialize(
@@ -184,10 +204,11 @@ TagDb _tagDbDeserialize(
   object.createdAt = reader.readDateTime(offsets[0]);
   object.id = id;
   object.name = reader.readString(offsets[1]);
-  object.updateTimestamp = reader.readLong(offsets[2]);
-  object.updatedAt = reader.readDateTime(offsets[3]);
-  object.userId = reader.readString(offsets[4]);
-  object.version = reader.readLong(offsets[5]);
+  object.serviceId = reader.readString(offsets[2]);
+  object.updateTimestamp = reader.readLong(offsets[3]);
+  object.updatedAt = reader.readDateTime(offsets[4]);
+  object.userId = reader.readString(offsets[5]);
+  object.version = reader.readLong(offsets[6]);
   return object;
 }
 
@@ -203,12 +224,14 @@ P _tagDbDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
-    case 3:
-      return (reader.readDateTime(offset)) as P;
-    case 4:
       return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readDateTime(offset)) as P;
     case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -427,6 +450,51 @@ extension TagDbQueryWhere on QueryBuilder<TagDb, TagDb, QWhereClause> {
               indexName: r'userId',
               lower: [],
               upper: [userId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> serviceIdEqualTo(
+      String serviceId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serviceId',
+        value: [serviceId],
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterWhereClause> serviceIdNotEqualTo(
+      String serviceId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [],
+              upper: [serviceId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [serviceId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [serviceId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [],
+              upper: [serviceId],
               includeUpper: false,
             ));
       }
@@ -1069,6 +1137,136 @@ extension TagDbQueryFilter on QueryBuilder<TagDb, TagDb, QFilterCondition> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'serviceId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'serviceId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'serviceId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> serviceIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'serviceId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QAfterFilterCondition> updateTimestampEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -1442,6 +1640,18 @@ extension TagDbQuerySortBy on QueryBuilder<TagDb, TagDb, QSortBy> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByServiceId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByServiceIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceId', Sort.desc);
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByUpdateTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updateTimestamp', Sort.asc);
@@ -1528,6 +1738,18 @@ extension TagDbQuerySortThenBy on QueryBuilder<TagDb, TagDb, QSortThenBy> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByServiceId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByServiceIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceId', Sort.desc);
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByUpdateTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updateTimestamp', Sort.asc);
@@ -1591,6 +1813,13 @@ extension TagDbQueryWhereDistinct on QueryBuilder<TagDb, TagDb, QDistinct> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QDistinct> distinctByServiceId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'serviceId', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QDistinct> distinctByUpdateTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updateTimestamp');
@@ -1633,6 +1862,12 @@ extension TagDbQueryProperty on QueryBuilder<TagDb, TagDb, QQueryProperty> {
   QueryBuilder<TagDb, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
+    });
+  }
+
+  QueryBuilder<TagDb, String, QQueryOperations> serviceIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'serviceId');
     });
   }
 

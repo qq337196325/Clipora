@@ -100,43 +100,58 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
       name: r'highlightId',
       type: IsarType.string,
     ),
-    r'noteContent': PropertySchema(
+    r'isSynced': PropertySchema(
       id: 16,
+      name: r'isSynced',
+      type: IsarType.bool,
+    ),
+    r'noteContent': PropertySchema(
+      id: 17,
       name: r'noteContent',
       type: IsarType.string,
     ),
     r'rangeFingerprint': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'rangeFingerprint',
       type: IsarType.string,
     ),
     r'selectedText': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'selectedText',
       type: IsarType.string,
     ),
+    r'serverId': PropertySchema(
+      id: 20,
+      name: r'serverId',
+      type: IsarType.string,
+    ),
     r'startOffset': PropertySchema(
-      id: 19,
+      id: 21,
       name: r'startOffset',
       type: IsarType.long,
     ),
     r'startXPath': PropertySchema(
-      id: 20,
+      id: 22,
       name: r'startXPath',
       type: IsarType.string,
     ),
+    r'updateTimestamp': PropertySchema(
+      id: 23,
+      name: r'updateTimestamp',
+      type: IsarType.long,
+    ),
     r'updatedAt': PropertySchema(
-      id: 21,
+      id: 24,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 22,
+      id: 25,
       name: r'userId',
       type: IsarType.string,
     ),
     r'version': PropertySchema(
-      id: 23,
+      id: 26,
       name: r'version',
       type: IsarType.long,
     )
@@ -196,6 +211,45 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
           name: r'highlightId',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'serverId': IndexSchema(
+      id: -7950187970872907662,
+      name: r'serverId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'serverId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'isSynced': IndexSchema(
+      id: -39763503327887510,
+      name: r'isSynced',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'isSynced',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'updateTimestamp': IndexSchema(
+      id: -2874489669811602764,
+      name: r'updateTimestamp',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'updateTimestamp',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     ),
@@ -279,6 +333,12 @@ int _enhancedAnnotationDbEstimateSize(
   bytesCount += 3 + object.noteContent.length * 3;
   bytesCount += 3 + object.rangeFingerprint.length * 3;
   bytesCount += 3 + object.selectedText.length * 3;
+  {
+    final value = object.serverId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.startXPath.length * 3;
   bytesCount += 3 + object.userId.length * 3;
   return bytesCount;
@@ -306,14 +366,17 @@ void _enhancedAnnotationDbSerialize(
   writer.writeLong(offsets[13], object.endOffset);
   writer.writeString(offsets[14], object.endXPath);
   writer.writeString(offsets[15], object.highlightId);
-  writer.writeString(offsets[16], object.noteContent);
-  writer.writeString(offsets[17], object.rangeFingerprint);
-  writer.writeString(offsets[18], object.selectedText);
-  writer.writeLong(offsets[19], object.startOffset);
-  writer.writeString(offsets[20], object.startXPath);
-  writer.writeDateTime(offsets[21], object.updatedAt);
-  writer.writeString(offsets[22], object.userId);
-  writer.writeLong(offsets[23], object.version);
+  writer.writeBool(offsets[16], object.isSynced);
+  writer.writeString(offsets[17], object.noteContent);
+  writer.writeString(offsets[18], object.rangeFingerprint);
+  writer.writeString(offsets[19], object.selectedText);
+  writer.writeString(offsets[20], object.serverId);
+  writer.writeLong(offsets[21], object.startOffset);
+  writer.writeString(offsets[22], object.startXPath);
+  writer.writeLong(offsets[23], object.updateTimestamp);
+  writer.writeDateTime(offsets[24], object.updatedAt);
+  writer.writeString(offsets[25], object.userId);
+  writer.writeLong(offsets[26], object.version);
 }
 
 EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
@@ -344,14 +407,17 @@ EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
   object.endXPath = reader.readString(offsets[14]);
   object.highlightId = reader.readString(offsets[15]);
   object.id = id;
-  object.noteContent = reader.readString(offsets[16]);
-  object.rangeFingerprint = reader.readString(offsets[17]);
-  object.selectedText = reader.readString(offsets[18]);
-  object.startOffset = reader.readLong(offsets[19]);
-  object.startXPath = reader.readString(offsets[20]);
-  object.updatedAt = reader.readDateTime(offsets[21]);
-  object.userId = reader.readString(offsets[22]);
-  object.version = reader.readLong(offsets[23]);
+  object.isSynced = reader.readBool(offsets[16]);
+  object.noteContent = reader.readString(offsets[17]);
+  object.rangeFingerprint = reader.readString(offsets[18]);
+  object.selectedText = reader.readString(offsets[19]);
+  object.serverId = reader.readStringOrNull(offsets[20]);
+  object.startOffset = reader.readLong(offsets[21]);
+  object.startXPath = reader.readString(offsets[22]);
+  object.updateTimestamp = reader.readLong(offsets[23]);
+  object.updatedAt = reader.readDateTime(offsets[24]);
+  object.userId = reader.readString(offsets[25]);
+  object.version = reader.readLong(offsets[26]);
   return object;
 }
 
@@ -399,20 +465,26 @@ P _enhancedAnnotationDbDeserializeProp<P>(
     case 15:
       return (reader.readString(offset)) as P;
     case 16:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 17:
       return (reader.readString(offset)) as P;
     case 18:
       return (reader.readString(offset)) as P;
     case 19:
-      return (reader.readLong(offset)) as P;
-    case 20:
       return (reader.readString(offset)) as P;
+    case 20:
+      return (reader.readStringOrNull(offset)) as P;
     case 21:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 22:
       return (reader.readString(offset)) as P;
     case 23:
+      return (reader.readLong(offset)) as P;
+    case 24:
+      return (reader.readDateTime(offset)) as P;
+    case 25:
+      return (reader.readString(offset)) as P;
+    case 26:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -539,6 +611,24 @@ extension EnhancedAnnotationDbQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'articleContentId'),
+      );
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhere>
+      anyIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'isSynced'),
+      );
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhere>
+      anyUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'updateTimestamp'),
       );
     });
   }
@@ -923,6 +1013,211 @@ extension EnhancedAnnotationDbQueryWhere
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      serverIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serverId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      serverIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'serverId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      serverIdEqualTo(String? serverId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serverId',
+        value: [serverId],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      serverIdNotEqualTo(String? serverId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serverId',
+              lower: [],
+              upper: [serverId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serverId',
+              lower: [serverId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serverId',
+              lower: [serverId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serverId',
+              lower: [],
+              upper: [serverId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      isSyncedEqualTo(bool isSynced) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'isSynced',
+        value: [isSynced],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      isSyncedNotEqualTo(bool isSynced) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isSynced',
+              lower: [],
+              upper: [isSynced],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isSynced',
+              lower: [isSynced],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isSynced',
+              lower: [isSynced],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isSynced',
+              lower: [],
+              upper: [isSynced],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampEqualTo(int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'updateTimestamp',
+        value: [updateTimestamp],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampNotEqualTo(int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampGreaterThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [updateTimestamp],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampLessThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [],
+        upper: [updateTimestamp],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampBetween(
+    int lowerUpdateTimestamp,
+    int upperUpdateTimestamp, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [lowerUpdateTimestamp],
+        includeLower: includeLower,
+        upper: [upperUpdateTimestamp],
+        includeUpper: includeUpper,
+      ));
     });
   }
 
@@ -2676,6 +2971,16 @@ extension EnhancedAnnotationDbQueryFilter on QueryBuilder<EnhancedAnnotationDb,
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> isSyncedEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isSynced',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
       QAfterFilterCondition> noteContentEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -3090,6 +3395,162 @@ extension EnhancedAnnotationDbQueryFilter on QueryBuilder<EnhancedAnnotationDb,
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'serverId',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'serverId',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serverId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'serverId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'serverId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'serverId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'serverId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'serverId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+          QAfterFilterCondition>
+      serverIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'serverId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+          QAfterFilterCondition>
+      serverIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'serverId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serverId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serverIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'serverId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
       QAfterFilterCondition> startOffsetEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -3279,6 +3740,62 @@ extension EnhancedAnnotationDbQueryFilter on QueryBuilder<EnhancedAnnotationDb,
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'startXPath',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> updateTimestampEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'updateTimestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> updateTimestampGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'updateTimestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> updateTimestampLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'updateTimestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> updateTimestampBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'updateTimestamp',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -3767,6 +4284,20 @@ extension EnhancedAnnotationDbQuerySortBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByIsSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       sortByNoteContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'noteContent', Sort.asc);
@@ -3809,6 +4340,20 @@ extension EnhancedAnnotationDbQuerySortBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByServerId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serverId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByServerIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serverId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       sortByStartOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startOffset', Sort.asc);
@@ -3833,6 +4378,20 @@ extension EnhancedAnnotationDbQuerySortBy
       sortByStartXPathDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startXPath', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByUpdateTimestampDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.desc);
     });
   }
 
@@ -4120,6 +4679,20 @@ extension EnhancedAnnotationDbQuerySortThenBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByIsSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       thenByNoteContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'noteContent', Sort.asc);
@@ -4162,6 +4735,20 @@ extension EnhancedAnnotationDbQuerySortThenBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByServerId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serverId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByServerIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serverId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       thenByStartOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startOffset', Sort.asc);
@@ -4186,6 +4773,20 @@ extension EnhancedAnnotationDbQuerySortThenBy
       thenByStartXPathDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startXPath', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByUpdateTimestampDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updateTimestamp', Sort.desc);
     });
   }
 
@@ -4348,6 +4949,13 @@ extension EnhancedAnnotationDbQueryWhereDistinct
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
+      distinctByIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isSynced');
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
       distinctByNoteContent({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'noteContent', caseSensitive: caseSensitive);
@@ -4370,6 +4978,13 @@ extension EnhancedAnnotationDbQueryWhereDistinct
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
+      distinctByServerId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'serverId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
       distinctByStartOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'startOffset');
@@ -4380,6 +4995,13 @@ extension EnhancedAnnotationDbQueryWhereDistinct
       distinctByStartXPath({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'startXPath', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
+      distinctByUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'updateTimestamp');
     });
   }
 
@@ -4525,6 +5147,13 @@ extension EnhancedAnnotationDbQueryProperty on QueryBuilder<
     });
   }
 
+  QueryBuilder<EnhancedAnnotationDb, bool, QQueryOperations>
+      isSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isSynced');
+    });
+  }
+
   QueryBuilder<EnhancedAnnotationDb, String, QQueryOperations>
       noteContentProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -4546,6 +5175,13 @@ extension EnhancedAnnotationDbQueryProperty on QueryBuilder<
     });
   }
 
+  QueryBuilder<EnhancedAnnotationDb, String?, QQueryOperations>
+      serverIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'serverId');
+    });
+  }
+
   QueryBuilder<EnhancedAnnotationDb, int, QQueryOperations>
       startOffsetProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -4557,6 +5193,13 @@ extension EnhancedAnnotationDbQueryProperty on QueryBuilder<
       startXPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'startXPath');
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, int, QQueryOperations>
+      updateTimestampProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'updateTimestamp');
     });
   }
 

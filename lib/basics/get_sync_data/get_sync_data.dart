@@ -19,10 +19,10 @@ class GetSyncData {
 
 
   List<String> dbList = [
-    "article",
-    "article_content",
     "category",
     "tag",
+    "article",
+    "article_content",
     "annotation",
   ];
 
