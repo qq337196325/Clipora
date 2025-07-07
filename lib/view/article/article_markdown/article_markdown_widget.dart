@@ -560,12 +560,9 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     getLogger().d('📍 最终菜单位置: x=${menuX.toInt()}, y=${menuY.toInt()}');
 
      _backgroundCatcher = OverlayEntry(
-      builder: (context) => Positioned.fill(
-        child: GestureDetector(
-          onTap: hideEnhancedSelectionMenu,
-          behavior: HitTestBehavior.translucent,
-          child: Container(color: Colors.transparent),
-        ),
+      builder: (context) => ModalBarrier(
+        onDismiss: hideEnhancedSelectionMenu,
+        color: Colors.transparent,
       ),
     );
 
@@ -1142,12 +1139,9 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
     // 创建背景点击捕获器
     _highlightMenuBackgroundCatcher = OverlayEntry(
-      builder: (context) => Positioned.fill(
-        child: GestureDetector(
-          onTap: hideHighlightActionMenu,
-          behavior: HitTestBehavior.translucent,
-          child: Container(color: Colors.transparent),
-        ),
+      builder: (context) => ModalBarrier(
+        onDismiss: hideHighlightActionMenu,
+        color: Colors.transparent,
       ),
     );
 
