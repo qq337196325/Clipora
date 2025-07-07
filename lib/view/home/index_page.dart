@@ -420,18 +420,12 @@ mixin IndexPageBLoC on State<IndexPage> {
   /// 新用户检查全量更新
   checkCompleteSync() async {
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 100));
 
-    box.write('completeSyncStatus', false);
     bool? completeSyncStatus = box.read('completeSyncStatus');
     getLogger().i('更新预热URL列表222');
 
-    final serviceCurrentTime = await getServiceCurrentTime();
-    box.write('serviceCurrentTime', serviceCurrentTime);
-    getLogger().i('📅 服务端时间已更新: $serviceCurrentTime');
 
-    /// 只有全量更新完或者不需要全量更新的时候初始化
-    Get.put(DataSyncService(), permanent: true);
 
     // 如果需要全量同步，显示对话框
     if (completeSyncStatus == null || completeSyncStatus == false) {
@@ -453,6 +447,9 @@ mixin IndexPageBLoC on State<IndexPage> {
         // 开始同步过程
         _startSyncProcess();
       }
+    }else{
+      /// 只有全量更新完或者不需要全量更新的时候初始化
+      Get.put(DataSyncService(), permanent: true);
     }
 
   }
@@ -485,39 +482,42 @@ mixin IndexPageBLoC on State<IndexPage> {
         _updateSyncProgress('同步完成！', 1.0);
         
         // 等待一下让用户看到完成状态
-        await Future.delayed(const Duration(milliseconds: 1500));
-        
+        await Future.delayed(const Duration(milliseconds: 1000));
+
         // 保存同步完成状态并关闭对话框
         if (mounted) {
           box.write('completeSyncStatus', true);
-          Navigator.of(context).pop(true);
         }
       } else {
         getLogger().e('❌ 全量同步失败');
         
         // 更新同步状态显示
         _updateSyncProgress('同步失败，请检查网络连接后重试', 0.0);
-        
+
         // 等待一下然后关闭对话框
         await Future.delayed(const Duration(milliseconds: 1000));
-        
-        if (mounted) {
-          Navigator.of(context).pop(false);
-        }
       }
     } catch (e) {
       getLogger().e('❌ 同步过程发生异常: $e');
       
       // 更新同步状态显示
       _updateSyncProgress('同步异常: ${e.toString().length > 50 ? e.toString().substring(0, 50) + '...' : e.toString()}', 0.0);
-      
+    } finally {
+
+      final serviceCurrentTime = await getServiceCurrentTime();
+      box.write('serviceCurrentTime', serviceCurrentTime);
+
+      /// 只有全量更新完或者不需要全量更新的时候初始化
+      Get.put(DataSyncService(), permanent: true);
+
       // 等待一下然后关闭对话框
       await Future.delayed(const Duration(milliseconds: 1000));
-      
       if (mounted) {
         Navigator.of(context).pop(false);
       }
     }
+
+
   }
 
   /// 更新同步进度

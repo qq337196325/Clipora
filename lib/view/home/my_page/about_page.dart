@@ -196,6 +196,8 @@ class _AboutPageState extends State<AboutPage> {
           _buildInfoRow('版本号', version),
           const SizedBox(height: 12),
           _buildInfoRow('构建号', clientVersion.toString()),
+          const SizedBox(height: 12),
+          _buildInfoRow('备案号', "粤ICP备2021048632号-5A"),
           // const SizedBox(height: 12),
           // _buildInfoRow('发布日期', '2024年3月'),
         ],

@@ -68,17 +68,21 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                   const SizedBox(height: 24),
                   
                   // 注销账号
-                  Container(
-                    alignment: Alignment.center,
-                    child: Text(
-                      '注销账号',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: UiColour.neutral_6,
-                        letterSpacing: 0.3,
+                  InkWell(
+                    onTap: ()=>_handleDeleteAccount(),
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        '注销账号',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: UiColour.neutral_6,
+                          letterSpacing: 0.3,
+                        ),
                       ),
                     ),
                   ),
+
 
                   const SizedBox(height: 36),
                 ],

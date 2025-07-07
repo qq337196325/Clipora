@@ -472,7 +472,8 @@ class GetSyncData {
       ..articleDate = _parseDateTime(model.articleDate)
       ..url = model.url
       ..shareOriginalContent = model.shareOriginalContent
-      ..mhtmlPath = model.mhtmlPath
+      ..mhtmlPath = ""//model.mhtmlPath
+      ..isGenerateMhtml = false//model.mhtmlPath.isNotEmpty
       ..markdownStatus = model.markdownStatus
       ..isRead = model.isRead
       ..readCount = model.readCount
@@ -481,7 +482,6 @@ class GetSyncData {
       ..isArchived = model.isArchived
       ..isImportant = model.isImportant
       ..isCreateService = true
-      ..isGenerateMhtml = true//model.mhtmlPath.isNotEmpty
       ..isGenerateMarkdown = model.markdownStatus == 1
       ..version = model.version
       ..updateTimestamp = model.updateTimestamp
@@ -501,7 +501,8 @@ class GetSyncData {
     article.articleDate = _parseDateTime(model.articleDate);
     article.url = model.url;
     article.shareOriginalContent = model.shareOriginalContent;
-    article.mhtmlPath = model.mhtmlPath;
+    article.mhtmlPath = "";//model.mhtmlPath;
+    article.isGenerateMhtml = false;//model.mhtmlPath.isNotEmpty;
     article.markdownStatus = model.markdownStatus;
     article.isRead = model.isRead;
     article.readCount = model.readCount;
@@ -510,7 +511,6 @@ class GetSyncData {
     article.isArchived = model.isArchived;
     article.isImportant = model.isImportant;
     article.isCreateService = true;
-    article.isGenerateMhtml = true;//model.mhtmlPath.isNotEmpty;
     article.isGenerateMarkdown = model.markdownStatus == 1;
     article.version = model.version;
     article.updateTimestamp = model.updateTimestamp;
