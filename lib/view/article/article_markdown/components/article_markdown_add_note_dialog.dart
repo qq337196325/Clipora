@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 /// 显示一个美观的对话框，用于为选定的文本添加笔记。
 ///
@@ -11,10 +12,10 @@ Future<String?> showArticleAddNoteDialog({
   required BuildContext context,
   required String selectedText,
 }) {
-  return showDialog<String>(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => _ArticleAddNoteDialog(selectedText: selectedText),
+  return SmartDialog.show<String>(
+    alignment: Alignment.center,
+    // isDismissible: false,
+    builder: (_) => _ArticleAddNoteDialog(selectedText: selectedText),
   );
 }
 
@@ -127,7 +128,7 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
   void _handleSubmit() {
     if (_isInputValid) {
       HapticFeedback.mediumImpact();
-      Navigator.of(context).pop(_noteController.text.trim());
+      SmartDialog.dismiss(result: _noteController.text.trim());
     }
   }
   
@@ -373,7 +374,7 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
         TextButton(
           onPressed: () {
             HapticFeedback.lightImpact();
-            Navigator.of(context).pop(null);
+            SmartDialog.dismiss(result: null);
           },
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -455,76 +456,78 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
         opacity: _fadeAnimation,
         child: ScaleTransition(
           scale: _scaleAnimation,
-          child: AlertDialog(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            surfaceTintColor: Colors.transparent,
-            elevation: 8,
-            shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            // title: Row(
-            //   children: [
-            //     Container(
-            //       padding: const EdgeInsets.all(8),
-            //       decoration: BoxDecoration(
-            //         color: Theme.of(context).colorScheme.primary,
-            //         borderRadius: BorderRadius.circular(8),
-            //       ),
-            //       child: Icon(
-            //         Icons.note_add_rounded,
-            //         color: Theme.of(context).colorScheme.onPrimary,
-            //         size: 20,
-            //       ),
-            //     ),
-            //     const SizedBox(width: 12),
-            //     Expanded(
-            //       child: Column(
-            //         crossAxisAlignment: CrossAxisAlignment.start,
-            //         children: [
-            //           Text(
-            //             '添加笔记',
-            //             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            //               fontWeight: FontWeight.w600,
-            //               color: Theme.of(context).colorScheme.onSurface,
-            //             ),
-            //           ),
-            //           Text(
-            //             '记录思考与感悟',
-            //             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            //               color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
-            //             ),
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            content: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: dialogMaxHeight,
-                maxWidth: screenWidth * 0.85,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: screenWidth * 0.85),
+            child: AlertDialog(
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              surfaceTintColor: Colors.transparent,
+              elevation: 8,
+              shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 10),
-                    _buildSelectedTextCard(),
-                    const SizedBox(height: 16),
-                    _buildNoteInputSection(),
-                  ],
+              // title: Row(
+              //   children: [
+              //     Container(
+              //       padding: const EdgeInsets.all(8),
+              //       decoration: BoxDecoration(
+              //         color: Theme.of(context).colorScheme.primary,
+              //         borderRadius: BorderRadius.circular(8),
+              //       ),
+              //       child: Icon(
+              //         Icons.note_add_rounded,
+              //         color: Theme.of(context).colorScheme.onPrimary,
+              //         size: 20,
+              //       ),
+              //     ),
+              //     const SizedBox(width: 12),
+              //     Expanded(
+              //       child: Column(
+              //         crossAxisAlignment: CrossAxisAlignment.start,
+              //         children: [
+              //           Text(
+              //             '添加笔记',
+              //             style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              //               fontWeight: FontWeight.w600,
+              //               color: Theme.of(context).colorScheme.onSurface,
+              //             ),
+              //           ),
+              //           Text(
+              //             '记录思考与感悟',
+              //             style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              //               color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: dialogMaxHeight,
+                ),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      _buildSelectedTextCard(),
+                      const SizedBox(height: 16),
+                      _buildNoteInputSection(),
+                    ],
+                  ),
                 ),
               ),
+              actions: [
+                _buildActionButtons(),
+              ],
+              actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             ),
-            actions: [
-              _buildActionButtons(),
-            ],
-            actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
           ),
         ),
       ),

@@ -127,66 +127,60 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
                 ),
               ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(32),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // 左侧 - 返回按钮
+                  _buildActionButton(
+                    context,
+                    icon: Icons.keyboard_arrow_left_rounded,
+                    label: '返回',
+                    isPrimary: true,
+                    onPressed: widget.onBack,
+                  ),
+                  
+                  // 中间 - 操作按钮组
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // 左侧 - 返回按钮
-                      _buildActionButton(
+                      Obx(() => _buildFloatingButton(
                         context,
-                        icon: Icons.keyboard_arrow_left_rounded,
-                        label: '返回',
-                        isPrimary: true,
-                        onPressed: widget.onBack,
-                      ),
-                      
-                      // 中间 - 操作按钮组
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Obx(() => _buildFloatingButton(
-                            context,
-                            icon: Icons.explore_outlined,
-                            tooltip: '浏览器打开',
-                            onPressed: _openInBrowser,
-                            isEnabled: articleController.articleUrl.isNotEmpty,
-                          )),
-                        ],
-                      ),
-                      
-                      // 右侧 - 更多操作
-                      _buildActionButton(
-                        context,
-                        icon: Icons.tune_rounded,
-                        label: '更多',
-                        isPrimary: false,
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            backgroundColor: Colors.transparent,
-                            isScrollControlled: true,
-                            useRootNavigator: true,
-                            builder: (BuildContext context) {
-                              return MoreActionsModal(
-                                articleId: widget.articleId,
-                                onReGenerateSnapshot: widget.onReGenerateSnapshot,
-                                onReGenerateMarkdown: widget.onReGenerateMarkdown,
-                                currentTab: widget.currentTab,
-                                webTabIndex: widget.webTabIndex,
-                                tabs: widget.tabs,
-                              );
-                            },
-                          );
-                        },
-                      ),
+                        icon: Icons.explore_outlined,
+                        tooltip: '浏览器打开',
+                        onPressed: _openInBrowser,
+                        isEnabled: articleController.articleUrl.isNotEmpty,
+                      )),
                     ],
                   ),
-                ),
+                  
+                  // 右侧 - 更多操作
+                  _buildActionButton(
+                    context,
+                    icon: Icons.tune_rounded,
+                    label: '更多',
+                    isPrimary: false,
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        isScrollControlled: true,
+                        useRootNavigator: true,
+                        builder: (BuildContext context) {
+                          return MoreActionsModal(
+                            articleId: widget.articleId,
+                            onReGenerateSnapshot: widget.onReGenerateSnapshot,
+                            onReGenerateMarkdown: widget.onReGenerateMarkdown,
+                            currentTab: widget.currentTab,
+                            webTabIndex: widget.webTabIndex,
+                            tabs: widget.tabs,
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ),

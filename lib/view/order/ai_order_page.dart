@@ -961,6 +961,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
       // 构建验证参数
       Map<String, dynamic> param = {
         "platform": "ios",
+        "pay_type": 3,
         "local_verification_data": purchaseDetails.verificationData.localVerificationData,
         "server_verification_data": purchaseDetails.verificationData.serverVerificationData,
         "source": purchaseDetails.verificationData.source,

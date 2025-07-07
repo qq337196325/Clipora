@@ -17,7 +17,7 @@ class ArticleTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: MediaQuery.of(context).padding.top + 12, // 上方空隙
+      top: MediaQuery.of(context).padding.top + 6, // 上方空隙
       left: 16, // 左侧空隙
       right: 16, // 右侧空隙
       child: AnimatedSlide(

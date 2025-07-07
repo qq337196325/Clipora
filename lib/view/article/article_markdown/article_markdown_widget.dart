@@ -561,6 +561,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
      _backgroundCatcher = OverlayEntry(
       builder: (context) => ModalBarrier(
+        // barrierSemanticsDismissible:false,
         onDismiss: hideEnhancedSelectionMenu,
         color: Colors.transparent,
       ),
@@ -1071,7 +1072,13 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     // 强制优先上方显示（用户的要求）
     if (availableTop >= menuHeight + menuMargin) {
       // 上方有充足空间，在标注上方显示，增加更多间距
-      menuY = highlightRectOnScreen.top - menuHeight - menuMargin - 42;
+      // menuY = highlightRectOnScreen.top - menuHeight - menuMargin - 42;
+      if (Platform.isIOS) {
+        menuY = highlightRectOnScreen.top - menuHeight - 180;
+      }else{
+        menuY = highlightRectOnScreen.top - menuHeight - 50;
+      }
+
       isMenuAbove = true;
       getLogger().d('🎯 菜单位置选择: 上方 (有充足空间)');
       print('菜单位置选择: 上方 (有充足空间)');

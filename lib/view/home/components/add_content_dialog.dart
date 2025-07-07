@@ -325,7 +325,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
     
     // 对话框高度计算
     final reservedSpace = topSafeArea + bottomSafeArea + 150;
-    final dialogMaxHeight = (visibleHeight - reservedSpace).clamp(300.0, 500.0);
+    final dialogMaxHeight = (visibleHeight - reservedSpace).clamp(300.0, 420.0);
     
     // 键盘弹出时的偏移
     final keyboardOffset = keyboardHeight > 0 
@@ -352,14 +352,14 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
             content: Container(
               constraints: BoxConstraints(
                 maxHeight: dialogMaxHeight,
-                maxWidth: 400,
+                maxWidth: 430,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   _buildContentInput(),
                   const SizedBox(height: 16),
                   // if (_hasUrl) _buildUrlDetectionHint(),
@@ -404,7 +404,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
   
   Widget _buildContentInput() {
     return Container(
-      constraints: const BoxConstraints(minHeight: 120),
+      constraints: const BoxConstraints(minHeight: 90),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
@@ -428,7 +428,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       child: TextField(
         controller: _contentController,
         focusNode: _focusNode,
-        maxLines: null,
+        maxLines: 7,
         minLines: 4,
         style: TextStyle(
           fontSize: 16,
