@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
+import 'dart:io' show Platform;
 
 import 'package:flutter/services.dart';
 import '../../../basics/logger.dart';
@@ -500,17 +501,24 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
     // 考虑内容padding
     final padding = contentPadding.resolve(Directionality.of(context));
+    final systemPadding = MediaQuery.of(context).padding;
+
+    var absoluteY = webViewOffset.dy + rectY;
+    // 针对iOS全面屏下坐标系差异的修正
+    // 在iOS上，如果WebView是全面屏显示的(紧贴屏幕顶部)，JS的getBoundingClientRect().y可能是相对于SafeArea的，而不是屏幕绝对坐标
+    if (Platform.isIOS && webViewOffset.dy < systemPadding.top) {
+      absoluteY += systemPadding.top;
+    }
 
     // 计算在屏幕上的绝对位置
     final selectionRectOnScreen = Rect.fromLTWH(
       webViewOffset.dx + rectX + padding.left,
-      webViewOffset.dy + rectY + padding.top,
+      absoluteY + padding.top,
       rectWidth,
       rectHeight,
     );
 
     final screenSize = MediaQuery.of(context).size;
-    final systemPadding = MediaQuery.of(context).padding;
     const menuHeight = 60.0;
     const menuWidth = 250.0;
 
@@ -523,7 +531,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     // 智能位置选择：优先上方，但选择空间较大的位置
     if (spaceAbove >= menuHeight) {
       // 上方有足够空间
-      menuY = selectionRectOnScreen.top - menuHeight - 54;
+      menuY = selectionRectOnScreen.top - menuHeight - 120;
     } else if (spaceBelow >= menuHeight) {
       // 下方有足够空间
       menuY = selectionRectOnScreen.bottom - 20;
@@ -1022,18 +1030,24 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
     // 考虑内容padding
     final padding = contentPadding.resolve(Directionality.of(context));
+    final systemPadding = MediaQuery.of(context).padding;
     getLogger().d('📊 内容padding: left=${padding.left}, top=${padding.top}, right=${padding.right}, bottom=${padding.bottom}');
+
+    var absoluteY = webViewOffset.dy + rectY;
+    // 针对iOS全面屏下坐标系差异的修正
+    if (Platform.isIOS && webViewOffset.dy < systemPadding.top) {
+      absoluteY += systemPadding.top;
+    }
 
     // 计算标注在屏幕上的绝对位置（这是关键！）
     final highlightRectOnScreen = Rect.fromLTWH(
       webViewOffset.dx + rectX + padding.left,
-      webViewOffset.dy + rectY + padding.top,
+      absoluteY + padding.top,
       rectWidth,
       rectHeight,
     );
 
     final screenSize = MediaQuery.of(context).size;
-    final systemPadding = MediaQuery.of(context).padding;
     const menuHeight = 60.0;
     const menuWidth = 180.0;
     const menuMargin = 12.0; // 增加间距，确保不遮挡
