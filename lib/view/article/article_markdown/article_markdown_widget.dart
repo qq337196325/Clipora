@@ -560,7 +560,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       builder: (context) => SizedBox.expand(
         child: GestureDetector(
           onTap: hideEnhancedSelectionMenu,
-          behavior: HitTestBehavior.translucent,
+          // behavior: HitTestBehavior.translucent,
         ),
       ),
     );
