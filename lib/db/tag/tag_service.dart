@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import '../../basics/utils/user_utils.dart';
 import '../database_service.dart';
 import 'tag_db.dart';
 import '../article/article_db.dart';
@@ -23,6 +24,8 @@ class TagService {
     for (final tag in tags) {
       // 查询该标签关联的未删除文章数量
       final count = await isar.articleDbs
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .deletedAtIsNull() // 过滤未删除的文章
           .and()
@@ -43,6 +46,8 @@ class TagService {
   /// 获取特定标签的未删除文章列表
   Future<List<ArticleDb>> getArticlesByTag(int tagId, {int limit = 20}) async {
     return await isar.articleDbs
+        .where()
+        .userIdEqualTo(getUserId())
         .filter()
         .deletedAtIsNull() // 过滤未删除的文章
         .and()
@@ -55,6 +60,8 @@ class TagService {
   /// 获取特定标签的未删除文章数量
   Future<int> getArticleCountByTag(int tagId) async {
     return await isar.articleDbs
+        .where()
+        .userIdEqualTo(getUserId())
         .filter()
         .deletedAtIsNull() // 过滤未删除的文章
         .and()
@@ -64,12 +71,12 @@ class TagService {
 
   /// 获取所有标签（包括没有文章的标签）
   Future<List<TagDb>> getAllTags() async {
-    return await isar.tagDbs.where().sortByName().findAll();
+    return await isar.tagDbs.where().userIdEqualTo(getUserId()).sortByName().findAll();
   }
 
   /// 根据名称查找标签
   Future<TagDb?> findTagByName(String name) async {
-    return await isar.tagDbs.filter().nameEqualTo(name).findFirst();
+    return await isar.tagDbs.where().userIdEqualTo(getUserId()).filter().nameEqualTo(name).findFirst();
   }
 
   /// 创建新标签

@@ -3,6 +3,7 @@ import 'package:isar/isar.dart';
 import 'package:get/get.dart';
 
 import '../../../basics/ui.dart';
+import '../../../basics/utils/user_utils.dart';
 import '../article_db.dart';
 import '../../database_service.dart';
 import '../../../basics/logger.dart';
@@ -48,7 +49,7 @@ class ArticleBaseService extends GetxService {
           // 设置删除时间
           article.deletedAt = DateTime.now();
           article.updatedAt = DateTime.now();
-          article.updateTimestamp = getStorageServiceCurrentTime();
+          article.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
           await dbService.articles.put(article);
           await logSyncOperation(SyncOp.update, article);
@@ -75,6 +76,8 @@ class ArticleBaseService extends GetxService {
       await dbService.isar.writeTxn(() async {
         // 获取所有已删除的文章
         final deletedArticles = await dbService.articles
+            .where()
+            .userIdEqualTo(getUserId())
             .filter()
             .deletedAtIsNotNull()
             .findAll();
@@ -104,6 +107,8 @@ class ArticleBaseService extends GetxService {
     try {
       final deletedCount = await dbService.isar.writeTxn(() async {
         return await dbService.articleContent
+            .where()
+            .userIdEqualTo(getUserId())
             .filter()
             .articleIdEqualTo(articleId)
             .deleteAll();

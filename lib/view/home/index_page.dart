@@ -8,15 +8,15 @@ import 'package:get/get.dart';
 
 import '../../basics/logger.dart';
 import '../../basics/ui.dart';
-import '../../services/data_sync/data_sync_service.dart';
+import '../../services/get_sync_data/get_sync_data.dart';
 import '../../services/snapshot_service_widget.dart';
+import '../../services/update_data_sync/data_sync_service.dart';
 import 'utils/upgrade_service.dart';
 import 'group/group_widget.dart';
 import 'index_widget.dart';
 import 'my_page/my_page.dart';
 import '../../route/route_name.dart';
 import 'components/add_content_dialog.dart';
-import '../../basics/get_sync_data/get_sync_data.dart';
 
 
 class IndexPage extends StatefulWidget {

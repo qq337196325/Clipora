@@ -1,3 +1,4 @@
+import 'package:clipora/basics/utils/user_utils.dart';
 import 'package:isar/isar.dart';
 
 import 'article_base_service.dart';
@@ -16,6 +17,7 @@ class ArticleUpdateService extends ArticleBaseService {
 
       final now = DateTime.now();
       article.updatedAt = now;
+      article.userId = getUserId();
 
       final isCreating = article.id == Isar.autoIncrement;
 

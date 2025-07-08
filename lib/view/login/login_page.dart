@@ -471,11 +471,6 @@ mixin LoginPageBLoC on State<LoginPage> {
         'platform': Platform.isAndroid ? 'android' : 'ios',
       };
       
-      getLogger().i('🚀 调用微信登录API');
-      getLogger().i('📤 请求参数: $params');
-      getLogger().i('🔑 客户端使用的AppID: wx629011ac595bee08');
-      getLogger().i('⏰ 当前时间: ${DateTime.now().toIso8601String()}');
-      
       // 调用微信登录API
       final res = await UserApi.wechatLoginApi(params);
       
@@ -495,6 +490,11 @@ mixin LoginPageBLoC on State<LoginPage> {
       
       // 获取token
       final String? token = res['data']?['token'];
+
+      globalBoxStorage.write('user_id', res['data']["id"]);
+      globalBoxStorage.write('user_name', res['data']["name"]);
+      globalBoxStorage.write('token', res['data']["token"]);
+
       if (token == null || token.isEmpty) {
         getLogger().e('微信登录成功但未获取到token');
         _showErrorDialog('登录失败', '服务器未返回有效的登录凭证');
@@ -743,7 +743,6 @@ mixin LoginPageBLoC on State<LoginPage> {
       builder: (fcontext) => UiBorderRadiusWidget(
         width: 300,
         child: Container(
-
           margin: const EdgeInsets.only(left: 20, right: 20),
           padding: EdgeInsets.only(left: 10, right: 10, top: 4, bottom: 20),
           child: Column(

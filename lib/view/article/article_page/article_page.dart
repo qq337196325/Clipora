@@ -418,6 +418,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
               : null,
             articleId: widget.id,
             onScroll: _handleScroll,
+            onTap: _handlePageTap, // 添加点击回调
             contentPadding: padding,
             onMarkdownGenerated: _onMarkdownGenerated,
           )),
@@ -483,6 +484,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
             markdownContent: articleController.currentMarkdownContent,
             article: articleController.currentArticle,
             onScroll: _handleScroll,
+            onTap: _handlePageTap, // 添加点击回调
             contentPadding: padding,
           )),
         );
@@ -497,6 +499,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
               : null,
             articleId: widget.id,
             onScroll: _handleScroll,
+            onTap: _handlePageTap, // 添加点击回调
             contentPadding: padding,
             onMarkdownGenerated: _onMarkdownGenerated,
           )),
@@ -510,6 +513,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
             mhtmlPath: article.mhtmlPath,
             title: article.title,
             onScroll: _handleScroll,
+            onTap: _handlePageTap, // 添加点击回调
             contentPadding: padding,
           ),
         );
@@ -537,6 +541,13 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     getLogger().d('🔄 更新缓存widget的padding: $padding');
   }
 
+  /// 处理页面点击事件，切换操作栏显示/隐藏状态
+  void _handlePageTap() {
+    setState(() {
+      _isBottomBarVisible = !_isBottomBarVisible;
+    });
+    getLogger().d('🎯 用户点击页面，切换操作栏状态: ${_isBottomBarVisible ? "显示" : "隐藏"}');
+  }
 
   /// 处理滚动事件，用于显示/隐藏UI元素
   void _handleScroll(ScrollDirection direction, double scrollY) {

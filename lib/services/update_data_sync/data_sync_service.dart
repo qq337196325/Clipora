@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:clipora/basics/utils/user_utils.dart';
 import 'package:clipora/db/annotation/enhanced_annotation_db.dart';
 import 'package:clipora/db/tag/tag_db.dart';
 import 'package:get/get.dart';
@@ -25,18 +26,20 @@ class DataSyncService extends GetxService {
     getLogger().i('SyncService Initialized');
 
     // 每30秒触发一次同步检查
-    _timer = Timer.periodic(const Duration(seconds: 30), (timer) async {
-      triggerSync();
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      await triggerSync();
 
       /// 获取服务器时间
       final serviceCurrentTime = await getServiceCurrentTime();
-      box.write('serviceCurrentTime', serviceCurrentTime);
+      if(serviceCurrentTime != 0){
+        box.write('serviceCurrentTime', serviceCurrentTime);
+      }
     });
   }
 
 
   /// 触发同步流程
-  void triggerSync() async {
+  Future<void> triggerSync() async {
     if (isSyncing) {
       getLogger().i('当前同步任务在执行....');
       return;
@@ -231,6 +234,7 @@ class DataSyncService extends GetxService {
       // 查询需要同步的分类数据（updateTimestamp > serviceCurrentTime）
       final categoriesToSync = await DatabaseService.instance.categories
           .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .updateTimestampGreaterThan(serviceCurrentTime)
           .findAll();

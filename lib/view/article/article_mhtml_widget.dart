@@ -58,6 +58,7 @@ class ArticleMhtmlWidget extends StatefulWidget {
   final String mhtmlPath;  // MHTML文件路径
   final String? title;     // 可选的标题显示
   final void Function(ScrollDirection direction, double scrollY)? onScroll;
+  final VoidCallback? onTap; // 添加点击回调
   final EdgeInsetsGeometry contentPadding;
   
   const ArticleMhtmlWidget({
@@ -65,6 +66,7 @@ class ArticleMhtmlWidget extends StatefulWidget {
     required this.mhtmlPath,
     this.title,
     this.onScroll,
+    this.onTap, // 添加点击回调
     this.contentPadding = EdgeInsets.zero,
   });
 
@@ -205,6 +207,9 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                   // 注入移动端弹窗处理脚本 - 恢复滚动功能
                   await WebViewUtils.injectMobilePopupHandler(controller);
 
+                  // 注入页面点击监听器
+                  await _injectPageClickListener();
+
                   // 页面加载完成后进行优化设置
                   finalizeWebPageOptimization(url,webViewController);
                   
@@ -334,6 +339,68 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
   void initState() {
     super.initState();
     _initializeMhtmlView();
+  }
+
+  /// 处理页面点击事件
+  void _handlePageClick(List<dynamic> args) {
+    getLogger().d('🎯 MHTML页面被点击');
+    if (widget.onTap != null) {
+      widget.onTap!();
+    }
+  }
+
+  /// 注入页面点击监听器
+  Future<void> _injectPageClickListener() async {
+    try {
+      getLogger().d('🔄 开始注入MHTML页面点击监听器...');
+      
+      // 注册JavaScript Handler
+      webViewController!.addJavaScriptHandler(
+        handlerName: 'onPageClicked',
+        callback: _handlePageClick,
+      );
+      
+      await webViewController!.evaluateJavascript(source: '''
+        (function() {
+          // 防止重复注册
+          if (window.mhtmlPageClickListenerInstalled) {
+            console.log('⚠️ MHTML页面点击监听器已存在，跳过重复注册');
+            return;
+          }
+          
+          // 添加全局点击事件监听器
+          document.addEventListener('click', function(e) {
+            try {
+              console.log('🎯 检测到MHTML页面点击');
+              
+              // 调用Flutter Handler
+              if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                window.flutter_inappwebview.callHandler('onPageClicked', {
+                  timestamp: Date.now(),
+                  target: e.target.tagName,
+                  type: 'mhtml'
+                });
+                console.log('✅ MHTML页面点击数据已发送到Flutter');
+              } else {
+                console.error('❌ Flutter桥接不可用，无法发送MHTML页面点击数据');
+              }
+            } catch (error) {
+              console.error('❌ 处理MHTML页面点击异常:', error);
+            }
+          }, false);
+          
+          // 标记监听器已安装
+          window.mhtmlPageClickListenerInstalled = true;
+          console.log('✅ MHTML页面点击监听器安装完成');
+          
+        })();
+      ''');
+
+      getLogger().i('✅ MHTML页面点击监听脚本注入成功');
+
+    } catch (e) {
+      getLogger().e('❌ 注入MHTML页面点击监听脚本失败: $e');
+    }
   }
 
   @override

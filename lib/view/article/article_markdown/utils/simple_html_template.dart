@@ -66,21 +66,6 @@ class SimpleHtmlTemplate {
             100% { opacity: 1; }
         }
         
-        /* 暗色主题适配 */
-        @media (prefers-color-scheme: dark) {
-            #smooth-loading-overlay {
-                background-color: rgba(33, 33, 33, 0.95);
-            }
-            
-            .loading-text {
-                color: #64B5F6;
-            }
-            
-            .loading-spinner {
-                border: 3px solid rgba(100, 181, 246, 0.1);
-                border-left: 3px solid #64B5F6;
-            }
-        }
 
         /* 基础重置和主题适配 */
         body {
@@ -89,7 +74,7 @@ class SimpleHtmlTemplate {
             background-color: transparent !important;
             margin: 0;
             padding: 20px;
-            padding-top: 180px;
+            padding-top: 40px;
             padding-bottom: 60px;
             word-wrap: break-word;
         }
@@ -106,7 +91,6 @@ class SimpleHtmlTemplate {
         .markdown-body {
             font-size: 16px;
             line-height: 1.6;
-            padding-top: 60px;
         }
         
         .markdown-body h1,
@@ -329,6 +313,18 @@ class SimpleHtmlTemplate {
         
         // 暴露渲染函数给Flutter调用
         window.renderMarkdown = renderMarkdown;
+        
+        // 用于动态设置 .markdown-body 的 padding-top
+        function setMarkdownPaddingTop(padding) {
+            const contentElement = document.querySelector('.markdown-body');
+            if (contentElement) {
+                contentElement.style.paddingTop = padding + 'px';
+                console.log(`✅ Set .markdown-body padding-top to \${padding}px`);
+            } else {
+                console.warn('⚠️ Could not find .markdown-body element to set padding.');
+            } 
+        }
+        window.setMarkdownPaddingTop = setMarkdownPaddingTop;
         
         console.log('✅ HTML模板初始化完成');
     </script>

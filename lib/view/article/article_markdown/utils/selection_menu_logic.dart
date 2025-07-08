@@ -243,7 +243,7 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
 
       // 设置 articleContentId（新架构）
       annotation.articleContentId = articleContentId;
-      annotation.updateTimestamp = getStorageServiceCurrentTime();
+      annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);
@@ -306,7 +306,7 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
 
       // 设置 articleContentId（新架构）
       annotation.articleContentId = articleContentId;
-      annotation.updateTimestamp = getStorageServiceCurrentTime();
+      annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);

@@ -28,6 +28,7 @@ class ArticleMarkdownWidget extends StatefulWidget {
   final String markdownContent;
   final ArticleDb? article;
   final void Function(ScrollDirection direction, double scrollY)? onScroll;
+  final VoidCallback? onTap; // 添加点击回调
   final EdgeInsetsGeometry contentPadding;
 
   const ArticleMarkdownWidget({
@@ -36,6 +37,7 @@ class ArticleMarkdownWidget extends StatefulWidget {
     required this.markdownContent,
     this.article,
     this.onScroll,
+    this.onTap, // 添加点击回调
     this.contentPadding = EdgeInsets.zero,
   });
 
@@ -111,7 +113,15 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Artic
 
           await _injectHighlightClickListener();
 
+          // 注入页面点击监听器
+          await _injectPageClickListener();
+
           await _renderMarkdownContent(); // 渲染文档
+
+          // 您可以在这里根据业务逻辑计算动态高度，并设置顶部内边距
+          // 例如，可以根据文章标题、作者信息等元素的高度来计算
+          double dynamicPadding = MediaQuery.of(context).padding.top + 20.0; // 这是一个示例值，请替换为您的计算逻辑
+          await setMarkdownPaddingTop(dynamicPadding);
 
           // 添加小延迟，避免过快操作
           await Future.delayed(const Duration(milliseconds: 20));
@@ -251,6 +261,22 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   }
 
 
+  /// 设置Markdown内容的顶部内边距
+  /// [padding] - The padding value in pixels.
+  Future<void> setMarkdownPaddingTop(double padding) async {
+    if (webViewController == null) {
+      getLogger().w('⚠️ WebView controller is not ready, cannot set padding.');
+      return;
+    }
+    try {
+      await webViewController!.evaluateJavascript(source: 'window.setMarkdownPaddingTop($padding);');
+      getLogger().i('✅ Successfully called setMarkdownPaddingTop with value: $padding');
+    } catch (e) {
+      getLogger().e('❌ Failed to set markdown padding top: $e');
+    }
+  }
+
+
   // === 内容渲染 ===
   Future<void> _renderMarkdownContent() async {
 
@@ -358,6 +384,13 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
         callback: handleEnhancedSelectionCleared,
       );
       getLogger().d('🔥 已注册: onEnhancedSelectionCleared');
+
+      // 注册页面点击回调
+      webViewController!.addJavaScriptHandler(
+        handlerName: 'onPageClicked',
+        callback: _handlePageClick,
+      );
+      getLogger().d('🔥 已注册: onPageClicked');
 
       // webViewController!.addJavaScriptHandler(
       //   handlerName: 'onHighlightCreated',
@@ -634,7 +667,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
       // 设置 articleContentId（新架构）
       annotation.articleContentId = articleController.currentArticleContent!.id;
-      annotation.updateTimestamp = getStorageServiceCurrentTime();
+      annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);
@@ -692,7 +725,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
       // 设置 articleContentId（新架构）
       annotation.articleContentId = articleController.currentArticleContent!.id;
-      annotation.updateTimestamp = getStorageServiceCurrentTime();
+      annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);
@@ -762,6 +795,68 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   }
 
 
+
+  // === 页面点击处理 ===
+  /// 处理页面点击事件
+  void _handlePageClick(List<dynamic> args) {
+    getLogger().d('🎯 Markdown页面被点击');
+    if (widget.onTap != null) {
+      widget.onTap!();
+    }
+  }
+
+  /// 注入页面点击监听器
+  Future<void> _injectPageClickListener() async {
+    try {
+      getLogger().d('🔄 开始注入页面点击监听器...');
+      
+      await webViewController!.evaluateJavascript(source: '''
+        (function() {
+          // 防止重复注册
+          if (window.pageClickListenerInstalled) {
+            console.log('⚠️ 页面点击监听器已存在，跳过重复注册');
+            return;
+          }
+          
+          // 添加全局点击事件监听器
+          document.addEventListener('click', function(e) {
+            try {
+              // 检查点击的是否为标注元素
+              const highlightElement = e.target.closest('[data-highlight-id]');
+              
+              if (!highlightElement) {
+                // 不是标注元素，触发页面点击事件
+                console.log('🎯 检测到页面点击');
+                
+                // 调用Flutter Handler
+                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                  window.flutter_inappwebview.callHandler('onPageClicked', {
+                    timestamp: Date.now(),
+                    target: e.target.tagName
+                  });
+                  console.log('✅ 页面点击数据已发送到Flutter');
+                } else {
+                  console.error('❌ Flutter桥接不可用，无法发送页面点击数据');
+                }
+              }
+            } catch (error) {
+              console.error('❌ 处理页面点击异常:', error);
+            }
+          }, false);
+          
+          // 标记监听器已安装
+          window.pageClickListenerInstalled = true;
+          console.log('✅ 页面点击监听器安装完成');
+          
+        })();
+      ''');
+
+      getLogger().i('✅ 页面点击监听脚本注入成功');
+
+    } catch (e) {
+      getLogger().e('❌ 注入页面点击监听脚本失败: $e');
+    }
+  }
 
   // === 增强标注恢复 ===
   Future<void> _restoreEnhancedAnnotations() async {

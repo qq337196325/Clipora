@@ -1,3 +1,4 @@
+import 'package:clipora/basics/utils/user_utils.dart';
 import 'package:isar/isar.dart';
 
 import 'package:get/get.dart';
@@ -20,6 +21,7 @@ class EnhancedAnnotationService {
   Future<void> saveAnnotation(EnhancedAnnotationDb annotation) async {
     try {
       await _isar.writeTxn(() async {
+        annotation.userId = getUserId();
         await _isar.enhancedAnnotationDbs.put(annotation);
       });
       
@@ -36,6 +38,8 @@ class EnhancedAnnotationService {
     try {
       // final isar = _databaseService.isar;
       final annotations = await _isar.enhancedAnnotationDbs
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .articleIdEqualTo(articleId)
           .sortByCreatedAt()
@@ -71,7 +75,7 @@ class EnhancedAnnotationService {
   Future<void> deleteAnnotation(EnhancedAnnotationDb annotation) async {
     try {
       // final isar = _databaseService.isar;
-      annotation.updateTimestamp = getStorageServiceCurrentTime();
+      annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
       await _isar.writeTxn(() async {
         await _isar.enhancedAnnotationDbs.delete(annotation.id);
       });

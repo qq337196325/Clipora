@@ -1,3 +1,4 @@
+import 'package:clipora/basics/utils/user_utils.dart';
 import 'package:isar/isar.dart';
 import 'package:get/get.dart';
 
@@ -14,12 +15,6 @@ class CategoryService extends GetxService {
   /// 获取数据库实例
   DatabaseService get _dbService => DatabaseService.instance;
 
-  /// 确保数据库已初始化
-  Future<void> _ensureDatabaseInitialized() async {
-    if (!_dbService.isInitialized) {
-      getLogger().i('⏳ 等待数据库初始化...');
-    }
-  }
 
   /// 创建分类
   Future<CategoryDb> createCategory({
@@ -30,19 +25,19 @@ class CategoryService extends GetxService {
     int? parentId,
     int sortOrder = 0,
   }) async {
-    await _ensureDatabaseInitialized();
 
     try {
       getLogger().i('📁 创建分类: $name');
 
       final category = CategoryDb()
+        ..userId = getUserId()
         ..name = name
         ..description = description
         ..icon = icon
         ..color = color
         ..parentId = parentId
         ..sortOrder = sortOrder
-        ..updateTimestamp = getStorageServiceCurrentTime()
+        ..updateTimestamp = getStorageServiceCurrentTimeAdding()
         ..isEnabled = true; // getStorageServiceCurrentTime()
 
 
@@ -72,7 +67,6 @@ class CategoryService extends GetxService {
 
   /// 更新分类
   Future<bool> updateCategory(CategoryDb category) async {
-    await _ensureDatabaseInitialized();
 
     try {
       getLogger().i('📝 更新分类: ${category.name}');
@@ -97,7 +91,6 @@ class CategoryService extends GetxService {
     int categoryId, {
     bool moveArticlesToUncategorized = true,
   }) async {
-    await _ensureDatabaseInitialized();
 
     try {
       final category = await getCategoryById(categoryId);
@@ -151,15 +144,12 @@ class CategoryService extends GetxService {
 
   /// 根据ID获取分类
   Future<CategoryDb?> getCategoryById(int id) async {
-    await _ensureDatabaseInitialized();
     return await _dbService.categories.get(id);
   }
 
   /// 获取所有分类
   Future<List<CategoryDb>> getAllCategories({bool includeDisabled = false}) async {
-    await _ensureDatabaseInitialized();
-
-    final query = _dbService.categories.where();
+    final query = _dbService.categories.where().userIdEqualTo(getUserId());
     if (!includeDisabled) {
       return await query.filter().isEnabledEqualTo(true).findAll();
     }
@@ -169,10 +159,9 @@ class CategoryService extends GetxService {
 
   /// 获取子分类
   Future<List<CategoryDb>> getChildCategories(int parentId) async {
-    await _ensureDatabaseInitialized();
-
     return await _dbService.categories
         .where()
+        .userIdEqualTo(getUserId())
         .filter()
         .parentIdEqualTo(parentId)
         .and()
@@ -185,8 +174,6 @@ class CategoryService extends GetxService {
 
   /// 获取分类的文章数量
   Future<int> getArticleCountByCategory(int categoryId) async {
-    await _ensureDatabaseInitialized();
-
     final category = await getCategoryById(categoryId);
     if (category == null) return 0;
 
@@ -195,8 +182,6 @@ class CategoryService extends GetxService {
 
   /// 批量获取多个分类的文章数量
   Future<Map<int, int>> getBatchArticleCountsByCategories(List<int> categoryIds) async {
-    await _ensureDatabaseInitialized();
-
     final Map<int, int> result = {};
     
     for (final categoryId in categoryIds) {
@@ -230,13 +215,5 @@ class CategoryService extends GetxService {
       childCategoryCount: childCategories.length,
     );
   }
-
-
-
-
-
-
-
-
 
 } 

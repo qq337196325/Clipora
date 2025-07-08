@@ -33,7 +33,7 @@ class UiColour {
   static Color funFF6600 = const Color(0xFFFF6600);
 
 }
-final box = GetStorage();
+final globalBoxStorage = GetStorage();
 
 
 // 获取服务端当前时间戳
@@ -48,7 +48,7 @@ Future<int> getServiceCurrentTime() async {
 
 // 获取存储的服务端时间
 int getStorageServiceCurrentTime(){
-  int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+  int serviceCurrentTime = globalBoxStorage.read('serviceCurrentTime') ?? 0;
   return serviceCurrentTime;
 }
 
@@ -58,8 +58,9 @@ int getStorageServiceCurrentTimeAdding(){
   final localTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
   final serverLocalDiff = localTime - serverTime;
 
-  return localTime + (serverLocalDiff > 0 ? serverLocalDiff : 0) + 10;
+  return serverTime + (serverLocalDiff > 0 ? serverLocalDiff : 0) + 10;
 }
+
 
 /// 跳转链接
 Future<void> goLaunchUrl(Uri _url) async {

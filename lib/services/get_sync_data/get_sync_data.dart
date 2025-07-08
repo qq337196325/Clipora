@@ -1,7 +1,7 @@
 import 'package:isar/isar.dart';
-import '../logger.dart';
-import '../ui.dart';
 import '../../api/user_api.dart';
+import '../../basics/logger.dart';
+import '../../basics/ui.dart';
 import '../../db/database_service.dart';
 import '../../db/category/category_db.dart';
 import '../../db/category/category_service.dart';
@@ -93,7 +93,7 @@ class GetSyncData {
         getLogger().i('✅ 全量同步完成');
         _updateProgress('全量同步完成', 0.95);
         // 标记全量同步完成
-        box.write('completeSyncStatus', true);
+        globalBoxStorage.write('completeSyncStatus', true);
       } else {
         getLogger().e('❌ 全量同步失败，部分数据同步出错');
         _updateProgress('同步失败，部分数据出错', 0.0);
@@ -569,6 +569,7 @@ class GetSyncData {
         } else {
           // 创建新内容
           final newContent = ArticleContentDb()
+            ..userId = model.userId
             ..articleId = articleId
             ..markdown = model.markdown
             ..textContent = model.textContent
@@ -742,6 +743,7 @@ class GetSyncData {
   ArticleContentDb _createArticleContentFromModel(ArticleContentModel model, int localArticleId) {
     final now = DateTime.now();
     return ArticleContentDb()
+      ..userId = model.userId
       ..articleId = localArticleId
       ..serviceId = model.id
       ..languageCode = model.languageCode
@@ -771,9 +773,9 @@ class GetSyncData {
     var allCategories = await _categoryService.getAllCategories();
     if (allCategories.isEmpty) {
 
-      final serviceCurrentTime = await getServiceCurrentTime();
-      box.write('serviceCurrentTime', serviceCurrentTime + 1000);
-      getLogger().i('📅 服务端时间已更新: $serviceCurrentTime');
+      // final serviceCurrentTime = await getServiceCurrentTime();
+      // globalBoxStorage.write('serviceCurrentTime', serviceCurrentTime + 1000);
+      // getLogger().i('📅 服务端时间已更新: $serviceCurrentTime');
 
       await _categoryService.createCategory(name: '默认分组', icon: '👋');
       allCategories = await _categoryService.getAllCategories();

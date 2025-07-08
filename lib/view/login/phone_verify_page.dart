@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/user_api.dart';
@@ -244,6 +245,8 @@ mixin PhoneVerifyPageBLoC on State<PhoneVerifyPage> {
   int countDown = 60;
   Timer? _timer;
 
+  final box = GetStorage();
+
   @override
   void initState() {
     super.initState();
@@ -343,6 +346,9 @@ mixin PhoneVerifyPageBLoC on State<PhoneVerifyPage> {
 
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('token', res['data']["token"]);
+      box.write('user_id', res['data']["id"]);
+      box.write('user_name', res['data']["name"]);
+      box.write('token', res['data']["token"]);
 
       // 验证成功，清空导航栈并跳转到首页 
       if (mounted) {

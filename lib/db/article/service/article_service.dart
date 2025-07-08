@@ -6,6 +6,7 @@ import 'package:isar/isar.dart';
 
 import '../../../basics/logger.dart';
 import '../../../basics/ui.dart';
+import '../../../basics/utils/user_utils.dart';
 import '../../sync_operation/sync_operation.dart';
 import '../article_db.dart';
 import 'article_create_service.dart';
@@ -25,6 +26,7 @@ class ArticleService extends ArticleCreateService {
       final article = await dbService.articles
           .filter()
           .urlEqualTo(url)
+          .userIdEqualTo(getUserId())
           .findFirst();
       
       if (article != null) {
@@ -44,6 +46,7 @@ class ArticleService extends ArticleCreateService {
     try {
       return await dbService.articles
           .where()
+          .userIdEqualTo(getUserId())
           .sortByCreatedAtDesc()
           .findAll();
     } catch (e) {
@@ -58,6 +61,7 @@ class ArticleService extends ArticleCreateService {
     try {
       return await dbService.articles
           .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .isReadEqualTo(0)
           .sortByCreatedAtDesc()
@@ -75,6 +79,7 @@ class ArticleService extends ArticleCreateService {
     try {
       return await dbService.articles
           .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .isReadEqualTo(0)
           .count();
@@ -90,6 +95,7 @@ class ArticleService extends ArticleCreateService {
     try {
       return await dbService.articles
           .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .deletedAtIsNull() // 过滤未删除的文章
           .isReadEqualTo(1)
@@ -168,7 +174,7 @@ class ArticleService extends ArticleCreateService {
           getLogger().i('📝 更新前的serviceId: "${article.serviceId}"');
           article.serviceId = serviceId;
           article.updatedAt = DateTime.now();
-          article.updateTimestamp = getStorageServiceCurrentTime();
+          article.updateTimestamp = getStorageServiceCurrentTimeAdding();
           await dbService.articles.put(article);
           
           // 验证更新是否成功
@@ -208,6 +214,7 @@ class ArticleService extends ArticleCreateService {
       // 使用 isar 索引查询 isCreateService == false 的数据
       return await dbService.articles
           .filter()
+          .userIdEqualTo(getUserId())
           .isCreateServiceEqualTo(false)
           .findAll();
     } catch (e) {
@@ -221,6 +228,8 @@ class ArticleService extends ArticleCreateService {
   Future<List<ArticleDb>> getUnsnapshottedArticles() async {
     try {
       return await dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .isGenerateMhtmlEqualTo(false)
           .deletedAtIsNull() // 过滤未删除的文章
@@ -245,6 +254,7 @@ class ArticleService extends ArticleCreateService {
       // 先获取所有状态为3的文章
       final articles = await dbService.articles
           .filter()
+          .userIdEqualTo(getUserId())
           .markdownStatusEqualTo(3) // 正在生成状态
           .findAll();
       
@@ -277,6 +287,8 @@ class ArticleService extends ArticleCreateService {
       
       // 搜索标题匹配的文章
       final titleResults = await dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .deletedAtIsNull()
           .and()
@@ -286,6 +298,8 @@ class ArticleService extends ArticleCreateService {
       
       // 搜索内容匹配的文章ID
       final contentResults = await dbService.articleContent
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .group((q) => q
               .textContentContains(cleanQuery, caseSensitive: false)
@@ -358,6 +372,8 @@ class ArticleService extends ArticleCreateService {
       
       // 搜索标题匹配的文章（限制数量以保持响应速度）
       final titleResults = await dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .deletedAtIsNull()
           .and()
@@ -368,6 +384,8 @@ class ArticleService extends ArticleCreateService {
       
       // 搜索内容匹配的文章ID（限制数量）
       final contentResults = await dbService.articleContent
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .group((q) => q
               .textContentContains(cleanQuery, caseSensitive: false)
@@ -386,6 +404,8 @@ class ArticleService extends ArticleCreateService {
       final contentArticles = <ArticleDb>[];
       if (contentArticleIds.isNotEmpty) {
         final articles = await dbService.articles
+            .where()
+            .userIdEqualTo(getUserId())
             .filter()
             .deletedAtIsNull()
             .and()
@@ -495,7 +515,11 @@ class ArticleService extends ArticleCreateService {
   }) async {
 
     try {
-      final query = dbService.articles.filter().deletedAtIsNull();
+      final query = dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
+          .filter()
+          .deletedAtIsNull();
       final sortedQuery = _applySorting(query, sortBy, isDescending);
       return await _fetchPaginatedArticles(sortedQuery, offset, limit);
     } catch (e) {
@@ -513,7 +537,11 @@ class ArticleService extends ArticleCreateService {
   }) async {
 
     try {
-      final query = dbService.articles.filter().deletedAtIsNull().and().isReadEqualTo(0);
+      final query = dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
+          .filter().
+          deletedAtIsNull().and().isReadEqualTo(0);
       final sortedQuery = _applySorting(query, sortBy, isDescending);
       return await _fetchPaginatedArticles(sortedQuery, offset, limit);
     } catch (e) {
@@ -531,7 +559,8 @@ class ArticleService extends ArticleCreateService {
   }) async {
 
     try {
-      final query = dbService.articles.filter().deletedAtIsNull().and().isImportantEqualTo(true);
+      final query = dbService.articles.where()
+          .userIdEqualTo(getUserId()).filter().deletedAtIsNull().and().isImportantEqualTo(true);
       final sortedQuery = _applySorting(query, sortBy, isDescending);
       return await _fetchPaginatedArticles(sortedQuery, offset, limit);
     } catch (e) {
@@ -551,13 +580,16 @@ class ArticleService extends ArticleCreateService {
 
     try {
       // 日志和检查逻辑保持不变
-      final categoryExists = await dbService.categories.filter().idEqualTo(categoryId).findFirst();
+      final categoryExists = await dbService.categories .where()
+          .userIdEqualTo(getUserId()).filter().idEqualTo(categoryId).findFirst();
       print('🔍 [ArticleService] 分类是否存在: ${categoryExists != null ? '是' : '否'}');
       if (categoryExists != null) {
         print('🔍 [ArticleService] 分类名称: ${categoryExists.name}');
       }
       
       final totalArticlesInCategory = await dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .deletedAtIsNull()
           .and()
@@ -566,7 +598,12 @@ class ArticleService extends ArticleCreateService {
       print('🔍 [ArticleService] 该分类下未删除文章总数: $totalArticlesInCategory');
       
       // 使用重构的逻辑
-      final query = dbService.articles.filter().deletedAtIsNull().and().category((q) => q.idEqualTo(categoryId));
+      final query = dbService.articles .where()
+          .userIdEqualTo(getUserId())
+          .filter()
+          .deletedAtIsNull()
+          .and()
+          .category((q) => q.idEqualTo(categoryId));
       final sortedQuery = _applySorting(query, sortBy, isDescending);
       final results = await _fetchPaginatedArticles(sortedQuery, offset, limit);
       
@@ -594,7 +631,8 @@ class ArticleService extends ArticleCreateService {
   }) async {
 
     try {
-      final query = dbService.articles.filter().deletedAtIsNull().and().isArchivedEqualTo(true);
+      final query = dbService.articles.where()
+          .userIdEqualTo(getUserId()).filter().deletedAtIsNull().and().isArchivedEqualTo(true);
       final sortedQuery = _applySorting(query, sortBy, isDescending);
       return await _fetchPaginatedArticles(sortedQuery, offset, limit);
     } catch (e) {
@@ -624,6 +662,8 @@ class ArticleService extends ArticleCreateService {
       
       // 搜索标题匹配的文章
       final titleResults = await dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .deletedAtIsNull()
           .and()
@@ -632,6 +672,8 @@ class ArticleService extends ArticleCreateService {
       
       // 搜索内容匹配的文章ID
       final contentResults = await dbService.articleContent
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .group((q) => q
               .textContentContains(cleanQuery, caseSensitive: false)
@@ -649,6 +691,8 @@ class ArticleService extends ArticleCreateService {
       final contentArticles = <ArticleDb>[];
       if (contentArticleIds.isNotEmpty) {
         final articles = await dbService.articles
+            .where()
+            .userIdEqualTo(getUserId())
             .filter()
             .deletedAtIsNull()
             .and()
@@ -770,7 +814,8 @@ class ArticleService extends ArticleCreateService {
   }) async {
 
     try {
-      final query = dbService.articles.filter().deletedAtIsNotNull();
+      final query = dbService.articles.where()
+          .userIdEqualTo(getUserId()).filter().deletedAtIsNotNull();
       final sortedQuery = _applySorting(query, sortBy, isDescending, isForDeleted: true);
       return await _fetchPaginatedArticles(sortedQuery, offset, limit);
     } catch (e) {
@@ -825,6 +870,8 @@ class ArticleService extends ArticleCreateService {
       // 首先查询是否已存在该文章的内容（根据 articleId 和 languageCode）
       final existingContent = await dbService.isar.writeTxn(() async {
         final existing = await dbService.articleContent
+            .where()
+            .userIdEqualTo(getUserId())
             .filter()
             .articleIdEqualTo(articleId)
             .and()
@@ -845,6 +892,7 @@ class ArticleService extends ArticleCreateService {
         } else {
           // 创建新内容
           final newContent = ArticleContentDb()
+            ..userId = getUserId()
             ..articleId = articleId
             ..markdown = markdown
             ..textContent = textContent
@@ -871,6 +919,8 @@ class ArticleService extends ArticleCreateService {
   Future<ArticleContentDb?> getOriginalArticleContent(int articleId) async {
     try {
       return await dbService.articleContent
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .articleIdEqualTo(articleId)
           .and()
@@ -886,6 +936,8 @@ class ArticleService extends ArticleCreateService {
   Future<List<ArticleContentDb>> getAllArticleContents(int articleId) async {
     try {
       return await dbService.articleContent
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .articleIdEqualTo(articleId)
           .sortByLanguageCode()
@@ -900,6 +952,8 @@ class ArticleService extends ArticleCreateService {
   Future<ArticleContentDb?> getArticleContentByLanguage(int articleId, String language) async {
     try {
       return await dbService.articleContent
+          .where()
+          .userIdEqualTo(getUserId())
           .filter()
           .articleIdEqualTo(articleId)
           .and()

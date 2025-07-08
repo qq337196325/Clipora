@@ -20,6 +20,7 @@ class ArticleWebWidget extends StatefulWidget {
   final String? url;
   final int? articleId;  // 添加文章ID参数
   final void Function(ScrollDirection direction, double scrollY)? onScroll;
+  final VoidCallback? onTap; // 添加点击回调
   final EdgeInsetsGeometry contentPadding;
   final VoidCallback? onMarkdownGenerated; // 添加 Markdown 生成成功回调
   
@@ -29,6 +30,7 @@ class ArticleWebWidget extends StatefulWidget {
     this.url,
     this.articleId,  // 添加文章ID参数
     this.onScroll,
+    this.onTap, // 添加点击回调
     this.contentPadding = EdgeInsets.zero,
     this.onMarkdownGenerated, // 添加 Markdown 生成成功回调
   });
@@ -219,6 +221,9 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                 
                 // 注入移动端弹窗处理脚本 - 恢复滚动功能
                 await WebViewUtils.injectMobilePopupHandler(controller);
+                
+                // 注入页面点击监听器
+                await _injectPageClickListener();
                 
                 // 页面加载完成后进行优化设置
                 finalizeWebPageOptimization(url,webViewController);
@@ -487,9 +492,80 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       // 创建JavaScript注入器
       _jsInjector = JSInjector(_simulationManager!.storageManager);
       
+      // 注册页面点击回调
+      _setupPageClickHandler();
+      
       getLogger().i('🎯 浏览器仿真功能初始化完成');
     } catch (e) {
       getLogger().e('❌ 浏览器仿真功能初始化失败: $e');
+    }
+  }
+
+  /// 设置页面点击处理器
+  void _setupPageClickHandler() {
+    // 这个方法会在webViewController可用时被调用
+    // 实际的Handler注册会在_injectPageClickListener中进行
+  }
+
+  /// 处理页面点击事件
+  void _handlePageClick(List<dynamic> args) {
+    getLogger().d('🎯 Web页面被点击');
+    if (widget.onTap != null) {
+      widget.onTap!();
+    }
+  }
+
+  /// 注入页面点击监听器
+  Future<void> _injectPageClickListener() async {
+    try {
+      getLogger().d('🔄 开始注入Web页面点击监听器...');
+      
+      // 注册JavaScript Handler
+      webViewController!.addJavaScriptHandler(
+        handlerName: 'onPageClicked',
+        callback: _handlePageClick,
+      );
+      
+      await webViewController!.evaluateJavascript(source: '''
+        (function() {
+          // 防止重复注册
+          if (window.webPageClickListenerInstalled) {
+            console.log('⚠️ Web页面点击监听器已存在，跳过重复注册');
+            return;
+          }
+          
+          // 添加全局点击事件监听器
+          document.addEventListener('click', function(e) {
+            try {
+              console.log('🎯 检测到Web页面点击');
+              
+              // 调用Flutter Handler
+              if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                window.flutter_inappwebview.callHandler('onPageClicked', {
+                  timestamp: Date.now(),
+                  target: e.target.tagName,
+                  url: window.location.href
+                });
+                console.log('✅ Web页面点击数据已发送到Flutter');
+              } else {
+                console.error('❌ Flutter桥接不可用，无法发送Web页面点击数据');
+              }
+            } catch (error) {
+              console.error('❌ 处理Web页面点击异常:', error);
+            }
+          }, false);
+          
+          // 标记监听器已安装
+          window.webPageClickListenerInstalled = true;
+          console.log('✅ Web页面点击监听器安装完成');
+          
+        })();
+      ''');
+
+      getLogger().i('✅ Web页面点击监听脚本注入成功');
+
+    } catch (e) {
+      getLogger().e('❌ 注入Web页面点击监听脚本失败: $e');
     }
   }
 

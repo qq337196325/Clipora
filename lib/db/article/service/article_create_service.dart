@@ -1,3 +1,5 @@
+import 'package:clipora/basics/utils/user_utils.dart';
+
 import '../../../api/user_api.dart';
 import '../../../basics/ui.dart';
 import '../article_db.dart';
@@ -22,17 +24,20 @@ class ArticleCreateService extends ArticleUpdateService {
 
     try {
       getLogger().i('📝 从分享内容创建文章: $title');
+      getLogger().i('📝 从分享内容创建文章: ${getUserId()}');
 
       final article = ArticleDb()
         ..title = title
+        // ..userId = getUserId()
         ..url = url
         ..shareOriginalContent = originalContent
         ..excerpt = excerpt
         ..isRead = 0
         ..readCount = 0
         ..readDuration = 0
-        ..updateTimestamp = getStorageServiceCurrentTime()
+        ..updateTimestamp = getStorageServiceCurrentTimeAdding()
         ..readProgress = 0.0;
+
 
 
       final savedArticle = await saveArticle(article);

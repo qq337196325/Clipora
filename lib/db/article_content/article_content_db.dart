@@ -7,13 +7,18 @@ class ArticleContentDb {
 
   Id id = Isar.autoIncrement;
 
+
   // 关联文章
   @Index()
   int articleId = 0;
 
+  String serviceId = "";                          // 服务端ID
+
+  @Index() String userId = "";
+
   @Index()
   String languageCode = "";
-  String serviceId = "";                          // 服务端ID
+
 
   @Index() String markdown = "";                  // Markdown文档
   @Index() String textContent = "";               // [考虑是否停用，因为翻译的话是翻译 Markdown文档 ]纯文本、可以用于做搜索
