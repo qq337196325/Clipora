@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import '../../../api/user_api.dart';
+import '../../../basics/config.dart';
 import '../../../route/route_name.dart';
 import '../../../basics/logger.dart';
 import 'about_page.dart';
@@ -662,18 +663,16 @@ mixin MyPageBLoC on State<MyPage> {
     }
   }
 
-  void _handleThirdPartyInfo() {
+  void _handleThirdPartyInfo() { // 用户协议
     getLogger().i('第三方信息共享清单');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('跳转到第三方信息共享清单页面')),
-    );
+    final Uri _url = Uri.parse(urlPrivacy);
+    goLaunchUrl(_url);
   }
 
   void _handlePrivacyPolicy() {
     getLogger().i('隐私公约');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('跳转到隐私公约页面')),
-    );
+    final Uri _url = Uri.parse(urlAgreement);
+    goLaunchUrl(_url);
   }
 
   void _handleClearCache() async {

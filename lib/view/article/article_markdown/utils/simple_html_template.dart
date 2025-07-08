@@ -89,7 +89,8 @@ class SimpleHtmlTemplate {
             background-color: transparent !important;
             margin: 0;
             padding: 20px;
-            padding-top: 100px;
+            padding-top: 180px;
+            padding-bottom: 60px;
             word-wrap: break-word;
         }
         
@@ -105,7 +106,7 @@ class SimpleHtmlTemplate {
         .markdown-body {
             font-size: 16px;
             line-height: 1.6;
-            padding-top: 30px;
+            padding-top: 60px;
         }
         
         .markdown-body h1,
@@ -233,28 +234,6 @@ class SimpleHtmlTemplate {
             border: 0;
         }
         
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            body {
-                padding-top: 20px;
-            }
-            
-            .markdown-body {
-                font-size: 14px;
-            }
-            
-            .markdown-body h1 { font-size: 1.8em; }
-            .markdown-body h2 { font-size: 1.4em; }
-            .markdown-body h3 { font-size: 1.2em; }
-            
-            .markdown-body pre {
-                font-size: 14px;
-            }
-            
-            .markdown-body table {
-                font-size: 14px;
-            }
-        }
     </style>
 
 </head>

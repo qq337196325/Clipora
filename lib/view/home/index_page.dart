@@ -421,7 +421,7 @@ mixin IndexPageBLoC on State<IndexPage> {
   checkCompleteSync() async {
 
     await Future.delayed(const Duration(milliseconds: 100));
-
+    // box.write('completeSyncStatus', false);  /// 测试用
     bool? completeSyncStatus = box.read('completeSyncStatus');
     getLogger().i('更新预热URL列表222');
 
