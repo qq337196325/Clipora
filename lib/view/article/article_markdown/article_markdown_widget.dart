@@ -514,7 +514,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     // 计算在屏幕上的绝对位置
     final selectionRectOnScreen = Rect.fromLTWH(
       webViewOffset.dx + rectX + padding.left,
-      absoluteY + padding.top,
+      absoluteY,
       rectWidth,
       rectHeight,
     );
@@ -531,14 +531,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
     // 智能位置选择：优先上方，但选择空间较大的位置
     if (spaceAbove >= menuHeight) {
-      // 上方有足够空间
-      // menuY = selectionRectOnScreen.top - menuHeight - 180;
-      if (Platform.isIOS) { 
-        menuY = selectionRectOnScreen.top - menuHeight - 180;
-      }else{
-        menuY = selectionRectOnScreen.top - menuHeight - 50;
-      }
-
+      menuY = selectionRectOnScreen.top - menuHeight;
     } else if (spaceBelow >= menuHeight) {
       // 下方有足够空间
       menuY = selectionRectOnScreen.bottom - 20;
