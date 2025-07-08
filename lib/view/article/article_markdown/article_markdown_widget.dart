@@ -11,6 +11,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/services.dart';
 import '../../../basics/logger.dart';
+import '../../../basics/ui.dart';
 import '../../../db/annotation/enhanced_annotation_db.dart';
 import '../../../db/annotation/enhanced_annotation_service.dart';
 import '../../../db/article/article_db.dart';
@@ -643,6 +644,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
       // 设置 articleContentId（新架构）
       annotation.articleContentId = articleController.currentArticleContent!.id;
+      annotation.updateTimestamp = getStorageServiceCurrentTime();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);
@@ -700,6 +702,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
       // 设置 articleContentId（新架构）
       annotation.articleContentId = articleController.currentArticleContent!.id;
+      annotation.updateTimestamp = getStorageServiceCurrentTime();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);

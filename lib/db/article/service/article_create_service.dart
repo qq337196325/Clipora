@@ -1,4 +1,5 @@
 import '../../../api/user_api.dart';
+import '../../../basics/ui.dart';
 import '../article_db.dart';
 import '../../../basics/logger.dart';
 import 'article_service.dart';
@@ -30,7 +31,9 @@ class ArticleCreateService extends ArticleUpdateService {
         ..isRead = 0
         ..readCount = 0
         ..readDuration = 0
+        ..updateTimestamp = getStorageServiceCurrentTime()
         ..readProgress = 0.0;
+
 
       final savedArticle = await saveArticle(article);
 

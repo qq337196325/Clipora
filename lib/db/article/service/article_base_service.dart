@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:isar/isar.dart';
 import 'package:get/get.dart';
 
+import '../../../basics/ui.dart';
 import '../article_db.dart';
 import '../../database_service.dart';
 import '../../../basics/logger.dart';
@@ -47,6 +48,7 @@ class ArticleBaseService extends GetxService {
           // 设置删除时间
           article.deletedAt = DateTime.now();
           article.updatedAt = DateTime.now();
+          article.updateTimestamp = getStorageServiceCurrentTime();
 
           await dbService.articles.put(article);
           await logSyncOperation(SyncOp.update, article);

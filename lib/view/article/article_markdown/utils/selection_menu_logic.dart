@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../basics/ui.dart';
 import '../../../../db/article/service/article_service.dart';
 import '../components/article_markdown_add_note_dialog.dart';
 import '../../../../basics/logger.dart';
@@ -242,6 +243,7 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
 
       // 设置 articleContentId（新架构）
       annotation.articleContentId = articleContentId;
+      annotation.updateTimestamp = getStorageServiceCurrentTime();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);
@@ -304,6 +306,7 @@ mixin SelectionMenuLogic<T extends StatefulWidget> on State<T> {
 
       // 设置 articleContentId（新架构）
       annotation.articleContentId = articleContentId;
+      annotation.updateTimestamp = getStorageServiceCurrentTime();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);

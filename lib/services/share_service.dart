@@ -127,6 +127,66 @@ class ShareService extends GetxService {
 
   /// 处理媒体文件分享 (包括文本、URL、图片、文件等所有类型)
   _handleMediaShare(List<SharedMediaFile> mediaFiles) async {
+    
+    if (mediaFiles.isEmpty) {
+      return;
+    }
+
+    // 在iOS上，某些应用会将标题和URL作为单独的媒体文件分享。
+    // 我们需要一个启发式方法来将它们合并成一个分享项目。
+    if (Platform.isIOS && mediaFiles.length > 1) {
+      final urlLikeFiles = mediaFiles
+          .where((f) =>
+              f.type == SharedMediaType.url ||
+              _containsUrl(f.message ?? f.path))
+          .toList();
+      
+      final textLikeFiles = mediaFiles
+          .where((f) =>
+              f.type == SharedMediaType.text &&
+              !_containsUrl(f.message ?? f.path))
+          .toList();
+
+      // 如果我们同时找到了URL和纯文本，就进行合并
+      if (urlLikeFiles.isNotEmpty && textLikeFiles.isNotEmpty) {
+        getLogger().i('🤝 iOS分享组合: 发现文本和URL，尝试合并。');
+        
+        // 创建一个可修改的列表来处理剩余的文件
+        List<SharedMediaFile> remainingFiles = List.from(mediaFiles);
+
+        // 遍历所有找到的URL
+        for (var urlFile in urlLikeFiles) {
+          // 如果还有纯文本文件可用，就取第一个进行组合
+          if (textLikeFiles.isNotEmpty) {
+            final textFile = textLikeFiles.removeAt(0);
+            
+            // 从原始列表中移除已处理的文件
+            remainingFiles.remove(urlFile);
+            remainingFiles.remove(textFile);
+
+            final url = _extractUrl(urlFile.message ?? urlFile.path);
+            final text = textFile.message ?? textFile.path;
+            
+            // 将标题和URL组合成一个完整的分享内容
+            final combinedText = '$text $url';
+
+            final content = SharedContent(
+              type: ShareContentType.url,
+              url: url,
+              text: combinedText,
+              title: text,
+            );
+
+            _sharedContentController.add(content);
+            await _saveSharedContentToDatabase(content, combinedText);
+          }
+        }
+        
+        // 更新mediaFiles列表，只包含未处理的文件
+        mediaFiles = remainingFiles;
+      }
+    }
+
 
     for (final mediaFile in mediaFiles) {
       SharedContent content;
@@ -290,12 +350,6 @@ class ShareService extends GetxService {
         title = parseResult['title'] ?? '分享的链接';
         url = parseResult['url'] ?? content.url ?? '';
       } else {
-
-        print('📝 11处理文本类型内容: ${content.text}'  );
-        print('📝 22处理文本类型内容: ${content.url}'  );
-        print('📝 33处理文本类型内容: ${content.type}'  );
-        print('📝 33处理文本类型内容: ${content.title}'  );
-
         // 纯文本类型
         title = _extractTitleFromText(content.text ?? originalContent);
         url = '';

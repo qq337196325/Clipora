@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:isar/isar.dart';
 
 import '../../../basics/logger.dart';
+import '../../../basics/ui.dart';
 import '../../sync_operation/sync_operation.dart';
 import '../article_db.dart';
 import 'article_create_service.dart';
@@ -167,6 +168,7 @@ class ArticleService extends ArticleCreateService {
           getLogger().i('📝 更新前的serviceId: "${article.serviceId}"');
           article.serviceId = serviceId;
           article.updatedAt = DateTime.now();
+          article.updateTimestamp = getStorageServiceCurrentTime();
           await dbService.articles.put(article);
           
           // 验证更新是否成功

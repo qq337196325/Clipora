@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 
 import 'package:get/get.dart';
+import '../../basics/ui.dart';
 import '../database_service.dart';
 import 'enhanced_annotation_db.dart';
 import '../../basics/logger.dart';
@@ -70,6 +71,7 @@ class EnhancedAnnotationService {
   Future<void> deleteAnnotation(EnhancedAnnotationDb annotation) async {
     try {
       // final isar = _databaseService.isar;
+      annotation.updateTimestamp = getStorageServiceCurrentTime();
       await _isar.writeTxn(() async {
         await _isar.enhancedAnnotationDbs.delete(annotation.id);
       });
