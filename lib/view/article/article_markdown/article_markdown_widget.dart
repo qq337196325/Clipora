@@ -556,19 +556,16 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     // 水平居中，但确保不超出屏幕边界
     double menuX = (menuWidth / 2);
 
-    getLogger().d('📍 选择区域(屏幕): ${selectionRectOnScreen.toString()}');
-    getLogger().d('📍 可用空间: 上方=${spaceAbove.toInt()}px, 下方=${spaceBelow.toInt()}px');
-    getLogger().d('📍 最终菜单位置: x=${menuX.toInt()}, y=${menuY.toInt()}');
-
-     _backgroundCatcher = OverlayEntry(
-      builder: (context) => ModalBarrier(
-        // barrierSemanticsDismissible:false,
-        onDismiss: hideEnhancedSelectionMenu,
-        color: Colors.transparent,
+    _backgroundCatcher = OverlayEntry(
+      builder: (context) => SizedBox.expand(
+        child: GestureDetector(
+          onTap: hideEnhancedSelectionMenu,
+          behavior: HitTestBehavior.translucent,
+        ),
       ),
     );
 
-     _enhancedSelectionMenuOverlay = OverlayEntry(
+    _enhancedSelectionMenuOverlay = OverlayEntry(
       builder: (context) => Positioned(
         left: menuX,
         top: menuY,
@@ -1149,9 +1146,11 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
     // 创建背景点击捕获器
     _highlightMenuBackgroundCatcher = OverlayEntry(
-      builder: (context) => ModalBarrier(
-        onDismiss: hideHighlightActionMenu,
-        color: Colors.transparent,
+      builder: (context) => SizedBox.expand(
+        child: GestureDetector(
+          onTap: hideHighlightActionMenu,
+          behavior: HitTestBehavior.translucent,
+        ),
       ),
     );
 
