@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../../../../db/tag/tag_service.dart';
 import '/db/tag/tag_db.dart';
-import '/services/tag_service.dart';
 
 class TagEditModal extends StatefulWidget {
   final int articleId;
@@ -14,7 +14,6 @@ class TagEditModal extends StatefulWidget {
 }
 
 class _TagEditModalState extends State<TagEditModal> {
-  final _tagService = TagService();
   final _searchController = TextEditingController();
   late final StreamSubscription<List<TagDb>> _tagsSubscription;
 
@@ -27,7 +26,7 @@ class _TagEditModalState extends State<TagEditModal> {
   void initState() {
     super.initState();
     _loadInitialTags();
-    _tagsSubscription = _tagService.watchAllTags().listen((tags) {
+    _tagsSubscription = TagService.instance.watchAllTags().listen((tags) {
       if (mounted) {
         setState(() {
           _allTags = tags;
@@ -51,7 +50,7 @@ class _TagEditModalState extends State<TagEditModal> {
   }
 
   Future<void> _loadInitialTags() async {
-    final articleTags = await _tagService.getTagsForArticle(widget.articleId);
+    final articleTags = await TagService.instance.getTagsForArticle(widget.articleId);
     if (mounted) {
       setState(() {
         _selectedTagIds.addAll(articleTags.map((t) => t.id));
@@ -61,7 +60,7 @@ class _TagEditModalState extends State<TagEditModal> {
   }
 
   Future<void> _saveTags() async {
-    await _tagService.updateArticleTags(widget.articleId, _selectedTagIds);
+    await TagService.instance.updateArticleTags(widget.articleId, _selectedTagIds);
     if (mounted) {
       Navigator.of(context).pop();
     }
@@ -69,7 +68,7 @@ class _TagEditModalState extends State<TagEditModal> {
 
   Future<void> _createTag() async {
     if (_searchText.trim().isEmpty) return;
-    await _tagService.createTag(_searchText.trim());
+    await TagService.instance.createTag(_searchText.trim());
     _searchController.clear();
   }
 

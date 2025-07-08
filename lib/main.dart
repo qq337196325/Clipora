@@ -13,6 +13,7 @@ import 'basics/app_theme.dart';
 import 'basics/apps_state.dart';
 import 'db/article/service/article_service.dart';
 import 'db/article_content/article_content_service.dart';
+import 'db/tag/tag_service.dart';
 
 
 void main() async {
@@ -29,6 +30,7 @@ void main() async {
   // 注册文章服务
   Get.put(ArticleService(), permanent: true);
   Get.put(ArticleContentService(), permanent: true);
+  Get.put(TagService(), permanent: true);
 
   // 注册标注服务  已经放到 AppsState 处理
   // Get.put(AnnotationService(), permanent: true);

@@ -28,6 +28,8 @@ class ArticleModel {
   final bool isImportant;
   final int version;
   final int updateTimestamp;
+  final List<String> tagServiceIds;
+  final List<String> categoryServiceIds;
 
   const ArticleModel({
     required this.id,
@@ -59,6 +61,8 @@ class ArticleModel {
     required this.isImportant,
     required this.version,
     required this.updateTimestamp,
+    required this.tagServiceIds,
+    required this.categoryServiceIds,
   });
 
   factory ArticleModel.fromJson(Map<String, dynamic> json) {
@@ -92,6 +96,8 @@ class ArticleModel {
       isImportant: json['is_important'] as bool? ?? false,
       version: json['version'] as int? ?? 0,
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
+      tagServiceIds: json['tag_service_ids'] == null ? [] : List<String>.from(json["tag_service_ids"].map((x) => x)),
+      categoryServiceIds: json['category_service_ids'] == null ? [] : List<String>.from(json["category_service_ids"].map((x) => x)),
     );
   }
 
@@ -159,6 +165,9 @@ class ArticleModel {
     bool? isImportant,
     int? version,
     int? updateTimestamp,
+
+    List<String>? tagServiceIds,
+    List<String>? categoryServiceIds,
   }) {
     return ArticleModel(
       id: id ?? this.id,
@@ -190,6 +199,8 @@ class ArticleModel {
       isImportant: isImportant ?? this.isImportant,
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
+      tagServiceIds: tagServiceIds ?? this.tagServiceIds,
+      categoryServiceIds: categoryServiceIds ?? this.categoryServiceIds,
     );
   }
 

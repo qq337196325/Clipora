@@ -1,4 +1,7 @@
 import 'package:isar/isar.dart';
+import 'package:get/get.dart';
+
+import '../../basics/ui.dart';
 import '../../basics/utils/user_utils.dart';
 import '../database_service.dart';
 import 'tag_db.dart';
@@ -11,9 +14,11 @@ class TagWithCount {
   TagWithCount({required this.tag, required this.count});
 }
 
-class TagService {
-  TagService._();
-  static final TagService instance = TagService._();
+class TagService extends GetxService  {
+  static TagService get instance => Get.find<TagService>();
+
+  /// 获取数据库实例
+  DatabaseService get _dbService => DatabaseService.instance;
 
   Isar get isar => DatabaseService.instance.isar;
 
@@ -43,72 +48,57 @@ class TagService {
     return tagsWithCount;
   }
 
-  /// 获取特定标签的未删除文章列表
-  Future<List<ArticleDb>> getArticlesByTag(int tagId, {int limit = 20}) async {
-    return await isar.articleDbs
-        .where()
-        .userIdEqualTo(getUserId())
-        .filter()
-        .deletedAtIsNull() // 过滤未删除的文章
-        .and()
-        .tags((q) => q.idEqualTo(tagId)) // 过滤包含此标签的文章
-        .sortByCreatedAtDesc()
-        .limit(limit)
-        .findAll();
+
+  Future<List<TagDb>> getAllTags() {
+    return isar.tagDbs.where().userIdEqualTo(getUserId()).sortByCreatedAtDesc().findAll();
   }
 
-  /// 获取特定标签的未删除文章数量
-  Future<int> getArticleCountByTag(int tagId) async {
-    return await isar.articleDbs
-        .where()
-        .userIdEqualTo(getUserId())
-        .filter()
-        .deletedAtIsNull() // 过滤未删除的文章
-        .and()
-        .tags((q) => q.idEqualTo(tagId)) // 过滤包含此标签的文章
-        .count();
+  Stream<List<TagDb>> watchAllTags() {
+    return isar.tagDbs.where().userIdEqualTo(getUserId()).sortByCreatedAtDesc().watch(fireImmediately: true);
   }
 
-  /// 获取所有标签（包括没有文章的标签）
-  Future<List<TagDb>> getAllTags() async {
-    return await isar.tagDbs.where().userIdEqualTo(getUserId()).sortByName().findAll();
+  Future<List<TagDb>> getTagsForArticle(int articleId) async {
+    final article = await isar.articleDbs.get(articleId);
+    if (article != null) {
+      await article.tags.load();
+      return article.tags.toList();
+    }
+    return [];
   }
 
-  /// 根据名称查找标签
-  Future<TagDb?> findTagByName(String name) async {
-    return await isar.tagDbs.where().userIdEqualTo(getUserId()).filter().nameEqualTo(name).findFirst();
+  Future<void> updateArticleTags(int articleId, Set<int> tagIds) async {
+    await isar.writeTxn(() async {
+      final article = await isar.articleDbs.get(articleId);
+      if (article != null) {
+        final tagsToAssign = await isar.tagDbs.getAll(tagIds.toList());
+        article.tags.clear();
+        article.tags.addAll(tagsToAssign.whereType<TagDb>());
+
+        article.updateTimestamp = getStorageServiceCurrentTimeAdding();
+        await isar.articleDbs.put(article);
+        await article.tags.save();
+      }
+    });
   }
 
-  /// 创建新标签
-  Future<TagDb> createTag(String name) async {
-    final existingTag = await findTagByName(name);
+  Future<void> createTag(String name) async {
+    final existingTag = await isar.tagDbs.filter().nameEqualTo(name).findFirst();
     if (existingTag != null) {
-      return existingTag;
+      return;
     }
 
-    final tag = TagDb()
+    final newTag = TagDb()
+      ..updateTimestamp = getStorageServiceCurrentTimeAdding()
+      ..userId = getUserId()
       ..name = name
       ..createdAt = DateTime.now()
       ..updatedAt = DateTime.now();
 
     await isar.writeTxn(() async {
-      await isar.tagDbs.put(tag);
+      await isar.tagDbs.put(newTag);
     });
-
-    return tag;
   }
 
-  /// 删除标签（只有当标签没有关联任何未删除文章时才能删除）
-  Future<bool> deleteTag(int tagId) async {
-    final articleCount = await getArticleCountByTag(tagId);
-    if (articleCount > 0) {
-      return false; // 还有文章关联此标签，不能删除
-    }
 
-    await isar.writeTxn(() async {
-      await isar.tagDbs.delete(tagId);
-    });
 
-    return true;
-  }
 } 

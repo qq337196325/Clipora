@@ -9,7 +9,7 @@ class TagDb {
   @Index() String userId = "";
   @Index() String serviceId = "";
 
-  @Index(unique: true, caseSensitive: false)
+  @Index(caseSensitive: false)
   late String name;
 
   @Backlink(to: 'tags')

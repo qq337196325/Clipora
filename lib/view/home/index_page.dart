@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import '../../basics/logger.dart';
 import '../../basics/ui.dart';
 import '../../services/get_sync_data/get_sync_data.dart';
+import '../../services/get_sync_data/increment_sync_data.dart';
 import '../../services/snapshot_service_widget.dart';
 import '../../services/update_data_sync/data_sync_service.dart';
 import 'utils/upgrade_service.dart';
@@ -450,6 +451,7 @@ mixin IndexPageBLoC on State<IndexPage> {
     }else{
       /// 只有全量更新完或者不需要全量更新的时候初始化
       Get.put(DataSyncService(), permanent: true);
+      Get.put(IncrementSyncData(), permanent: true);
     }
 
   }
@@ -509,6 +511,7 @@ mixin IndexPageBLoC on State<IndexPage> {
 
       /// 只有全量更新完或者不需要全量更新的时候初始化
       Get.put(DataSyncService(), permanent: true);
+      Get.put(IncrementSyncData(), permanent: true);
 
       // 等待一下然后关闭对话框
       await Future.delayed(const Duration(milliseconds: 1000));

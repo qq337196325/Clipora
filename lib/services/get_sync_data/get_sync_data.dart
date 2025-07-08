@@ -8,7 +8,9 @@ import '../../db/category/category_service.dart';
 import '../../db/article/article_db.dart';
 import '../../db/article/service/article_service.dart';
 import '../../db/article_content/article_content_db.dart';
+import '../../db/tag/tag_db.dart';
 import 'models/category_model.dart';
+import 'models/tag_model.dart';
 import 'models/article_model.dart';
 import 'models/article_content_model.dart';
 
@@ -54,17 +56,16 @@ class GetSyncData {
             case "category":
               success = await _syncCategoryData(dbName);
               break;
+            case "tag":
+              success = await _syncTagData(dbName);
+              break;
             case "article":
               success = await _syncArticleData(dbName);
               break;
             case "article_content":
               success = await _syncArticleContentData(dbName);
               break;
-            case "tag":
-              // TODO: 实现标签同步
-              getLogger().i('⏭️ 跳过标签同步（待实现）');
-              success = true;
-              break;
+
             case "annotation":
               // TODO: 实现标注同步
               getLogger().i('⏭️ 跳过标注同步（待实现）');
@@ -113,11 +114,20 @@ class GetSyncData {
     onProgress?.call(message, progress);
   }
 
-  /// 同步分类数据
-  Future<bool> _syncCategoryData(String dbName) async {
+  /// 通用数据同步方法
+  Future<bool> _syncDataGeneric<T>({
+    required String dbName,
+    required String dataTypeName,
+    required bool isCompleteSync,
+    required int currentTime,
+    required T Function(dynamic) parseRecord,
+    required Future<bool> Function(List<T>) saveDataToLocal,
+    required double progressOffset,
+  }) async {
     try {
-      getLogger().i('🔄 开始分类数据全量同步...');
-      _updateProgress('初始化分类数据同步...', 0.3);
+      final syncType = isCompleteSync ? '全量' : '增量';
+      getLogger().i('🔄 开始${dataTypeName}数据${syncType}同步...');
+      _updateProgress('初始化${dataTypeName}数据同步...', progressOffset);
       
       // 获取数据库服务实例
       final dbService = DatabaseService.instance;
@@ -127,21 +137,21 @@ class GetSyncData {
         return false;
       }
       
-      // 分页获取所有分类数据
+      // 分页获取数据
       int page = 0;
       const int limit = 100; // 每页100条
       bool hasMoreData = true;
       
-      List<CategoryModel> allCategories = [];
+      List<T> allData = [];
       while (hasMoreData) {
         try {
-          getLogger().i('📄 获取第 ${page + 1} 页分类数据 (每页 $limit 条)...');
-          _updateProgress('获取第 ${page + 1} 页分类数据...', 0.35 + (page * 0.1));
+          getLogger().i('📄 获取第 ${page + 1} 页${dataTypeName}数据 (每页 $limit 条)...');
+          _updateProgress('获取第 ${page + 1} 页${dataTypeName}数据...', progressOffset + 0.05 + (page * 0.1));
           
           // 构建请求参数
           final requestParams = {
-            "complete_sync": true,
-            "current_time": 0,
+            "complete_sync": isCompleteSync,
+            "current_time": currentTime,
             "db_name": dbName,
             "page": page,
             "limit": limit,
@@ -151,8 +161,8 @@ class GetSyncData {
           final response = await UserApi.getSyncAllDataApi(requestParams);
           
           if (response['code'] != 0) {
-            getLogger().e('❌ 获取分类数据失败: ${response['msg']}');
-            _updateProgress('获取分类数据失败: ${response['msg']}', 0.0);
+            getLogger().e('❌ 获取${dataTypeName}数据失败: ${response['msg']}');
+            _updateProgress('获取${dataTypeName}数据失败: ${response['msg']}', 0.0);
             return false;
           }
           
@@ -160,48 +170,162 @@ class GetSyncData {
           final records = data['records'] as List<dynamic>? ?? [];
           final total = data['total'] as int? ?? 0;
           
-          getLogger().i('📋 第 ${page + 1} 页获取到 ${records.length} 条分类数据，总计 $total 条');
+          getLogger().i('📋 第 ${page + 1} 页获取到 ${records.length} 条${dataTypeName}数据，总计 $total 条');
           
-          // 转换为CategoryModel
+          // 转换为Model
           for (final record in records) {
             try {
-              final categoryModel = CategoryModel.fromJson(record as Map<String, dynamic>);
-              allCategories.add(categoryModel);
+              final model = parseRecord(record);
+              allData.add(model);
             } catch (e) {
-              getLogger().e('❌ 解析分类数据失败: $e, 数据: $record');
+              getLogger().e('❌ 解析${dataTypeName}数据失败: $e, 数据: $record');
             }
           }
           
           // 检查是否还有更多数据
-          hasMoreData = records.length == limit && allCategories.length < total;
+          hasMoreData = records.length == limit && allData.length < total;
           page++;
           
         } catch (e) {
-          getLogger().e('❌ 获取第 ${page + 1} 页分类数据时发生异常: $e');
-          _updateProgress('获取分类数据异常: $e', 0.0);
+          getLogger().e('❌ 获取第 ${page + 1} 页${dataTypeName}数据时发生异常: $e');
+          _updateProgress('获取${dataTypeName}数据异常: $e', 0.0);
           return false;
         }
       }
       
-      getLogger().i('📊 总共获取到 ${allCategories.length} 条分类数据');
-      _updateProgress('获取到 ${allCategories.length} 条分类数据，开始保存到本地...', 0.6);
+      getLogger().i('📊 总共获取到 ${allData.length} 条${dataTypeName}数据');
+      _updateProgress('获取到 ${allData.length} 条${dataTypeName}数据，开始保存到本地...', progressOffset + 0.3);
       
-      if (allCategories.isEmpty) {
-        getLogger().i('✅ 服务端暂无分类数据');
-        _updateProgress('服务端暂无分类数据', 0.65);
-
-        /// 表示新用户，添加分组
-        createCategory();
+      if (allData.isEmpty) {
+        getLogger().i('✅ 服务端暂无${dataTypeName}数据');
+        _updateProgress('服务端暂无${dataTypeName}数据', progressOffset + 0.35);
         return true;
       }
       
-      // 保存分类数据到本地数据库
-      return await _saveCategoryDataToLocal(allCategories);
+      // 保存数据到本地数据库
+      return await saveDataToLocal(allData);
       
     } catch (e) {
-      getLogger().e('❌ 分类数据同步发生异常: $e');
+      getLogger().e('❌ ${dataTypeName}数据同步发生异常: $e');
       return false;
     }
+  }
+
+  /// 同步标签数据
+  Future<bool> _syncTagData(String dbName) async {
+    return await _syncDataGeneric<TagModel>(
+      dbName: dbName,
+      dataTypeName: '标签',
+      isCompleteSync: true,
+      currentTime: 0,
+      parseRecord: (record) => TagModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveTagDataToLocal,
+      progressOffset: 0.3,
+    );
+  }
+
+  /// 同步分类数据
+  Future<bool> _syncCategoryData(String dbName) async {
+    final result = await _syncDataGeneric<CategoryModel>(
+      dbName: dbName,
+      dataTypeName: '分类',
+      isCompleteSync: true,
+      currentTime: 0,
+      parseRecord: (record) => CategoryModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveCategoryDataToLocal,
+      progressOffset: 0.3,
+    );
+    
+    // 如果是空数据，创建默认分类
+    if (result) {
+      final dbService = DatabaseService.instance;
+      final categories = await dbService.categories.count();
+      if (categories == 0) {
+        getLogger().i('📁 服务端暂无分类数据，创建默认分类');
+        await createCategory();
+      }
+    }
+    
+    return result;
+  }
+
+  /// 保存标签数据到本地数据库
+  Future<bool> _saveTagDataToLocal(List<TagModel> tags) async {
+    try {
+      getLogger().i('💾 开始保存 ${tags.length} 条标签数据到本地数据库...');
+      _updateProgress('正在保存标签数据到本地数据库...', 0.65);
+      
+      final dbService = DatabaseService.instance;
+
+      int successCount = 0;
+      int updateCount = 0;
+      int createCount = 0;
+      
+      await dbService.isar.writeTxn(() async {
+        for (final tagModel in tags) {
+          try {
+            // 检查本地是否已存在该标签（通过serviceId查找）
+            final existingTag = await dbService.tags
+                .where()
+                .serviceIdEqualTo(tagModel.id)
+                .findFirst();
+            
+            if (existingTag != null) {
+              // 更新现有标签
+              if (tagModel.updateTimestamp > existingTag.updateTimestamp) {
+                _updateTagFromModel(existingTag, tagModel);
+                await dbService.tags.put(existingTag);
+                updateCount++;
+                getLogger().d('🔄 更新标签: ${tagModel.name} (serviceId: ${tagModel.id})');
+              } else {
+                getLogger().d('⏭️ 跳过标签（本地数据较新）: ${tagModel.name}');
+              }
+            } else {
+              // 创建新标签
+              final newTag = _createTagFromModel(tagModel);
+              await dbService.tags.put(newTag);
+              createCount++;
+              getLogger().d('✨ 创建标签: ${tagModel.name} (serviceId: ${tagModel.id})');
+            }
+            
+            successCount++;
+          } catch (e) {
+            getLogger().e('❌ 保存标签失败: ${tagModel.name}, 错误: $e');
+          }
+        }
+      });
+      
+      getLogger().i('✅ 标签数据保存完成: 总计 $successCount 条，新建 $createCount 条，更新 $updateCount 条');
+      _updateProgress('标签数据保存完成: 新建 $createCount 条，更新 $updateCount 条', 0.7);
+      return successCount == tags.length;
+      
+    } catch (e) {
+      getLogger().e('❌ 保存标签数据到本地数据库失败: $e');
+      return false;
+    }
+  }
+
+  /// 从TagModel创建TagDb
+  TagDb _createTagFromModel(TagModel model) {
+    final now = DateTime.now();
+    return TagDb()
+      ..userId = model.userId
+      ..serviceId = model.id
+      ..name = model.name
+      ..version = model.version
+      ..updateTimestamp = model.updateTimestamp
+      ..createdAt = _parseDateTime(model.createTime) ?? now
+      ..updatedAt = _parseDateTime(model.updateTime) ?? now;
+  }
+
+  /// 更新TagDb从TagModel
+  void _updateTagFromModel(TagDb tag, TagModel model) {
+    tag.userId = model.userId;
+    tag.serviceId = model.id;
+    tag.name = model.name;
+    tag.version = model.version;
+    tag.updateTimestamp = model.updateTimestamp;
+    tag.updatedAt = _parseDateTime(model.updateTime) ?? DateTime.now();
   }
 
   /// 保存分类数据到本地数据库
@@ -307,90 +431,15 @@ class GetSyncData {
 
   /// 同步文章数据
   Future<bool> _syncArticleData(String dbName) async {
-    try {
-      getLogger().i('🔄 开始文章数据全量同步...');
-      _updateProgress('初始化文章数据同步...', 0.3);
-      
-      // 获取数据库服务实例
-      final dbService = DatabaseService.instance;
-      if (!dbService.isInitialized) {
-        getLogger().e('❌ 数据库未初始化');
-        _updateProgress('数据库未初始化', 0.0);
-        return false;
-      }
-      
-      // 分页获取所有文章数据
-      int page = 0;
-      const int limit = 100; // 每页100条
-      bool hasMoreData = true;
-      
-      List<ArticleModel> allArticles = [];
-      while (hasMoreData) {
-        try {
-          getLogger().i('📄 获取第 ${page + 1} 页文章数据 (每页 $limit 条)...');
-          _updateProgress('获取第 ${page + 1} 页文章数据...', 0.35 + (page * 0.1));
-          
-          // 构建请求参数
-          final requestParams = {
-            "complete_sync": true,
-            "current_time": 0,
-            "db_name": dbName,
-            "page": page,
-            "limit": limit,
-          };
-          
-          // 调用同步接口
-          final response = await UserApi.getSyncAllDataApi(requestParams);
-          
-          if (response['code'] != 0) {
-            getLogger().e('❌ 获取文章数据失败: ${response['msg']}');
-            _updateProgress('获取文章数据失败: ${response['msg']}', 0.0);
-            return false;
-          }
-          
-          final data = response['data'];
-          final records = data['records'] as List<dynamic>? ?? [];
-          final total = data['total'] as int? ?? 0;
-          
-          getLogger().i('📋 第 ${page + 1} 页获取到 ${records.length} 条文章数据，总计 $total 条');
-          
-          // 转换为ArticleModel
-          for (final record in records) {
-            try {
-              final articleModel = ArticleModel.fromJson(record as Map<String, dynamic>);
-              allArticles.add(articleModel);
-            } catch (e) {
-              getLogger().e('❌ 解析文章数据失败: $e, 数据: $record');
-            }
-          }
-          
-          // 检查是否还有更多数据
-          hasMoreData = records.length == limit && allArticles.length < total;
-          page++;
-          
-        } catch (e) {
-          getLogger().e('❌ 获取第 ${page + 1} 页文章数据时发生异常: $e');
-          _updateProgress('获取文章数据异常: $e', 0.0);
-          return false;
-        }
-      }
-      
-      getLogger().i('📊 总共获取到 ${allArticles.length} 条文章数据');
-      _updateProgress('获取到 ${allArticles.length} 条文章数据，开始保存到本地...', 0.6);
-      
-      if (allArticles.isEmpty) {
-        getLogger().i('✅ 服务端暂无文章数据');
-        _updateProgress('服务端暂无文章数据', 0.65);
-        return true;
-      }
-      
-      // 保存文章数据到本地数据库
-      return await _saveArticleDataToLocal(allArticles);
-      
-    } catch (e) {
-      getLogger().e('❌ 文章数据同步发生异常: $e');
-      return false;
-    }
+    return await _syncDataGeneric<ArticleModel>(
+      dbName: dbName,
+      dataTypeName: '文章',
+      isCompleteSync: true,
+      currentTime: 0,
+      parseRecord: (record) => ArticleModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveArticleDataToLocal,
+      progressOffset: 0.3,
+    );
   }
 
   /// 保存文章数据到本地数据库
@@ -424,6 +473,9 @@ class GetSyncData {
                 // 更新文章内容
                 await _saveOrUpdateArticleContent(existingArticle.id, articleModel);
                 
+                // 更新文章的标签和分类关联
+                await _updateArticleAssociations(existingArticle, articleModel);
+                
                 updateCount++;
                 getLogger().d('🔄 更新文章: ${articleModel.title} (serverId: ${articleModel.id})');
               } else {
@@ -436,6 +488,9 @@ class GetSyncData {
               
               // 保存文章内容
               await _saveOrUpdateArticleContent(newArticle.id, articleModel);
+              
+              // 设置文章的标签和分类关联
+              await _updateArticleAssociations(newArticle, articleModel);
               
               createCount++;
               getLogger().d('✨ 创建文章: ${articleModel.title} (serverId: ${articleModel.id})');
@@ -539,6 +594,69 @@ class GetSyncData {
     return '${text.substring(0, maxLength)}...';
   }
 
+  /// 更新文章的标签和分类关联关系
+  Future<void> _updateArticleAssociations(ArticleDb article, ArticleModel model) async {
+    try {
+      final dbService = DatabaseService.instance;
+      
+      // 处理标签关联
+      if (model.tagServiceIds.isNotEmpty) {
+        // 根据serviceId查找对应的本地标签
+        final localTags = <TagDb>[];
+        for (final serviceId in model.tagServiceIds) {
+          final tag = await dbService.tags
+              .where()
+              .serviceIdEqualTo(serviceId)
+              .findFirst();
+          if (tag != null) {
+            localTags.add(tag);
+          }
+        }
+        
+        if (localTags.isNotEmpty) {
+          // 清除现有标签关联并设置新的关联
+          article.tags.clear();
+          article.tags.addAll(localTags);
+          await article.tags.save();
+          getLogger().d('🏷️ 为文章 ${article.title} 关联了 ${localTags.length} 个标签');
+        } else {
+          getLogger().w('⚠️ 未找到对应的本地标签: ${model.tagServiceIds}');
+        }
+      } else {
+        // 清除所有标签关联
+        article.tags.clear();
+        await article.tags.save();
+      }
+      
+      // 处理分类关联
+      if (model.categoryServiceIds.isNotEmpty) {
+        // 取第一个分类ID（文章只能属于一个分类）
+        final categoryServiceId = model.categoryServiceIds.first;
+        
+        // 根据serverId查找对应的本地分类
+        final localCategory = await dbService.categories
+            .where()
+            .serverIdEqualTo(categoryServiceId)
+            .findFirst();
+        
+        if (localCategory != null) {
+          article.category.value = localCategory;
+          await article.category.save();
+          getLogger().d('📁 为文章 ${article.title} 关联了分类: ${localCategory.name}');
+        } else {
+          getLogger().w('⚠️ 未找到对应的本地分类，serverId: $categoryServiceId');
+        }
+      } else {
+        // 清除分类关联
+        article.category.value = null;
+        await article.category.save();
+      }
+      
+    } catch (e) {
+      getLogger().e('❌ 更新文章关联关系失败: ${article.title}, 错误: $e');
+    }
+  }
+
   /// 保存或更新文章内容（在当前事务中执行，避免嵌套事务）
   Future<void> _saveOrUpdateArticleContent(int articleId, ArticleModel model) async {
     try {
@@ -590,83 +708,15 @@ class GetSyncData {
 
   /// 同步文章内容数据
   Future<bool> _syncArticleContentData(String dbName) async {
-    try {
-      getLogger().i('🔄 开始文章内容数据全量同步...');
-      _updateProgress('初始化文章内容数据同步...', 0.7);
-
-      final dbService = DatabaseService.instance;
-      if (!dbService.isInitialized) {
-        getLogger().e('❌ 数据库未初始化');
-        _updateProgress('数据库未初始化', 0.0);
-        return false;
-      }
-
-      int page = 0;
-      const int limit = 100;
-      bool hasMoreData = true;
-
-      List<ArticleContentModel> allArticleContents = [];
-      while (hasMoreData) {
-        try {
-          getLogger().i('📄 获取第 ${page + 1} 页文章内容数据 (每页 $limit 条)...');
-          _updateProgress('获取第 ${page + 1} 页文章内容数据...', 0.7 + (page * 0.05));
-
-          final requestParams = {
-            "complete_sync": true,
-            "current_time": 0,
-            "db_name": dbName,
-            "page": page,
-            "limit": limit,
-          };
-
-          final response = await UserApi.getSyncAllDataApi(requestParams);
-
-          if (response['code'] != 0) {
-            getLogger().e('❌ 获取文章内容数据失败: ${response['msg']}');
-            _updateProgress('获取文章内容数据失败: ${response['msg']}', 0.0);
-            return false;
-          }
-
-          final data = response['data'];
-          final records = data['records'] as List<dynamic>? ?? [];
-          final total = data['total'] as int? ?? 0;
-
-          getLogger().i('📋 第 ${page + 1} 页获取到 ${records.length} 条文章内容数据，总计 $total 条');
-
-          for (final record in records) {
-            try {
-              final contentModel = ArticleContentModel.fromJson(record as Map<String, dynamic>);
-              allArticleContents.add(contentModel);
-            } catch (e) {
-              getLogger().e('❌ 解析文章内容数据失败: $e, 数据: $record');
-            }
-          }
-
-          hasMoreData = records.length == limit && allArticleContents.length < total;
-          page++;
-
-        } catch (e) {
-          getLogger().e('❌ 获取第 ${page + 1} 页文章内容数据时发生异常: $e');
-          _updateProgress('获取文章内容数据异常: $e', 0.0);
-          return false;
-        }
-      }
-
-      getLogger().i('📊 总共获取到 ${allArticleContents.length} 条文章内容数据');
-      _updateProgress('获取到 ${allArticleContents.length} 条文章内容数据，开始保存到本地...', 0.8);
-
-      if (allArticleContents.isEmpty) {
-        getLogger().i('✅ 服务端暂无文章内容数据');
-        _updateProgress('服务端暂无文章内容数据', 0.85);
-        return true;
-      }
-
-      return await _saveArticleContentDataToLocal(allArticleContents);
-
-    } catch (e) {
-      getLogger().e('❌ 文章内容数据同步发生异常: $e');
-      return false;
-    }
+    return await _syncDataGeneric<ArticleContentModel>(
+      dbName: dbName,
+      dataTypeName: '文章内容',
+      isCompleteSync: true,
+      currentTime: 0,
+      parseRecord: (record) => ArticleContentModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveArticleContentDataToLocal,
+      progressOffset: 0.7,
+    );
   }
 
   /// 保存文章内容数据到本地数据库
@@ -767,6 +817,58 @@ class GetSyncData {
     content.version = model.version;
     content.updateTimestamp = model.updateTimestamp;
     content.updatedAt = _parseDateTime(model.updateTime) ?? DateTime.now();
+  }
+
+  /// 增量同步分类数据
+  Future<bool> incrementSyncCategoryData(String dbName, int currentTime) async {
+    return await _syncDataGeneric<CategoryModel>(
+      dbName: dbName,
+      dataTypeName: '分类',
+      isCompleteSync: false,
+      currentTime: currentTime,
+      parseRecord: (record) => CategoryModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveCategoryDataToLocal,
+      progressOffset: 0.1,
+    );
+  }
+
+  /// 增量同步标签数据
+  Future<bool> incrementSyncTagData(String dbName, int currentTime) async {
+    return await _syncDataGeneric<TagModel>(
+      dbName: dbName,
+      dataTypeName: '标签',
+      isCompleteSync: false,
+      currentTime: currentTime,
+      parseRecord: (record) => TagModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveTagDataToLocal,
+      progressOffset: 0.3,
+    );
+  }
+
+  /// 增量同步文章数据
+  Future<bool> incrementSyncArticleData(String dbName, int currentTime) async {
+    return await _syncDataGeneric<ArticleModel>(
+      dbName: dbName,
+      dataTypeName: '文章',
+      isCompleteSync: false,
+      currentTime: currentTime,
+      parseRecord: (record) => ArticleModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveArticleDataToLocal,
+      progressOffset: 0.5,
+    );
+  }
+
+  /// 增量同步文章内容数据
+  Future<bool> incrementSyncArticleContentData(String dbName, int currentTime) async {
+    return await _syncDataGeneric<ArticleContentModel>(
+      dbName: dbName,
+      dataTypeName: '文章内容',
+      isCompleteSync: false,
+      currentTime: currentTime,
+      parseRecord: (record) => ArticleContentModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveArticleContentDataToLocal,
+      progressOffset: 0.7,
+    );
   }
 
   createCategory() async {

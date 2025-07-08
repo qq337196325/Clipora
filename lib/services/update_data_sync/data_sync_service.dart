@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:clipora/basics/utils/user_utils.dart';
 import 'package:clipora/db/annotation/enhanced_annotation_db.dart';
+import 'package:clipora/db/article/article_db.dart';
 import 'package:clipora/db/tag/tag_db.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -26,7 +27,7 @@ class DataSyncService extends GetxService {
     getLogger().i('SyncService Initialized');
 
     // 每30秒触发一次同步检查
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 12), (timer) async {
       await triggerSync();
 
       /// 获取服务器时间
@@ -71,6 +72,9 @@ class DataSyncService extends GetxService {
               break;
             case "tag":
               await updateSyncTagData(dbName);
+              break;
+            case "article":
+              await updateSyncArticleData(dbName);
               break;
             case "annotation":
               await updateSyncAnnotationData(dbName);
@@ -125,7 +129,7 @@ class DataSyncService extends GetxService {
       // 构建请求参数
       final requestData = {
         'db_name': dbName,
-        'category': categoryDataList,
+        'tag': categoryDataList,
       };
       getLogger().i('🚀 开始调用同步接口...');
 
@@ -219,6 +223,102 @@ class DataSyncService extends GetxService {
       getLogger().e('❌ 同步标注数据异常: $e');
     } finally {
       getLogger().i('🔄 标注数据同步流程结束');
+    }
+  }
+
+  // 同步文章数据
+  updateSyncArticleData(String dbName) async {
+    try {
+      getLogger().i('🔄 开始同步文章数据...');
+      
+      int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+      getLogger().i('📅 服务端当前时间: $serviceCurrentTime');
+      
+      // 查询需要同步的文章数据（serviceId不为空且updateTimestamp > serviceCurrentTime）
+      final articlesToSync = await DatabaseService.instance.articles
+          .where()
+          .userIdEqualTo(getUserId())
+          .filter()
+          .serviceIdIsNotEmpty()
+          .and()
+          .updateTimestampGreaterThan(serviceCurrentTime)
+          .findAll();
+      
+      if (articlesToSync.isEmpty) {
+        getLogger().i('✅ 没有需要同步的文章数据');
+        return;
+      }
+      
+      getLogger().i('📋 找到 ${articlesToSync.length} 个需要同步的文章');
+      
+      // 将文章数据转换为服务端接口格式
+      final List<Map<String, dynamic>> articleDataList = [];
+      
+      for (final article in articlesToSync) {
+        // 获取关联的标签serviceId数组
+        await article.tags.load();
+        final List<String> tagServiceIds = article.tags
+            .where((tag) => tag.serviceId.isNotEmpty)
+            .map((tag) => tag.serviceId)
+            .toList();
+        
+        // 获取关联的分类serverId数组
+        await article.category.load();
+        final List<String> categoryServiceIds = [];
+        if (article.category.value != null && 
+            article.category.value!.serverId != null && 
+            article.category.value!.serverId!.isNotEmpty) {
+          categoryServiceIds.add(article.category.value!.serverId!);
+        }
+        
+        final articleData = {
+          'client_id': article.id,
+          'service_id': article.serviceId,
+          'is_archived': article.isArchived,
+          'is_important': article.isImportant,
+          'delete_time': article.deletedAt?.toIso8601String() ?? '',
+          'is_read': article.isRead,
+          'read_count': article.readCount,
+          'read_duration': article.readDuration,
+          'read_progress': article.readProgress,
+          'tag_service_ids': tagServiceIds,
+          'category_service_ids': categoryServiceIds,
+        };
+        
+        articleDataList.add(articleData);
+        getLogger().d('📝 准备同步文章: ${article.title} (ID: ${article.id}), Tags: ${tagServiceIds.length}, Category: ${categoryServiceIds.length}');
+      }
+      
+      final requestData = {
+        'db_name': dbName,
+        'article': articleDataList,
+      };
+      
+      getLogger().i('🚀 开始调用同步接口...');
+      
+      final response = await UserApi.updateSyncDataApi(requestData);
+      
+      if (response['code'] == 0) {
+        getLogger().i('✅ 文章数据同步成功');
+        
+        // 更新本地数据的同步状态
+        await DatabaseService.instance.isar.writeTxn(() async {
+          for (final article in articlesToSync) {
+            article.updatedAt = DateTime.now();
+            await DatabaseService.instance.articles.put(article);
+          }
+        });
+        
+        getLogger().i('✅ 本地文章同步状态更新完成');
+      } else {
+        getLogger().e('❌ 文章数据同步失败: ${response['message']}');
+        throw Exception('同步失败: ${response['message']}');
+      }
+      
+    } catch (e) {
+      getLogger().e('❌ 同步文章数据异常: $e');
+    } finally {
+      getLogger().i('🔄 文章数据同步流程结束');
     }
   }
 
