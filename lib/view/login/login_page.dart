@@ -128,15 +128,16 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
         // const SizedBox(height: 16),
         
         // 微信登录按钮
-        _buildLoginButton(
-          icon: Icons.wechat,
-          text: '使用微信登录',
-          backgroundColor: const Color(0xFF07C160),
-          textColor: Colors.white,
-          onPressed: onWechatLogin,
-        ),
-        
-        const SizedBox(height: 16),
+        if (_showWeChatLogin) ...[
+          _buildLoginButton(
+            icon: Icons.wechat,
+            text: '使用微信登录',
+            backgroundColor: const Color(0xFF07C160),
+            textColor: Colors.white,
+            onPressed: onWechatLogin,
+          ),
+          const SizedBox(height: 16),
+        ],
         
         // 手机号登录按钮
         _buildLoginButton(
@@ -297,6 +298,7 @@ mixin LoginPageBLoC on State<LoginPage> {
   StreamSubscription<WeChatAuthResponse>? _authSubscription;
   bool isAgreePrivacyAgreement = false;
   late SharedPreferences prefs;
+  bool _showWeChatLogin = !Platform.isIOS;
   
   @override
   void initState() {
@@ -308,6 +310,16 @@ mixin LoginPageBLoC on State<LoginPage> {
     // 初始化登录页面
     // 可以在这里添加一些初始化逻辑，比如检查登录状态等
     
+    if (Platform.isIOS) {
+      _fluwx.isWeChatInstalled.then((installed) {
+        if (mounted) {
+          setState(() {
+            _showWeChatLogin = installed;
+          });
+        }
+      });
+    }
+
     // 监听微信授权响应
     _listenWeChatAuthResponse();
 
