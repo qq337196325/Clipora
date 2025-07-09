@@ -26,7 +26,7 @@ class DataSyncService extends GetxService {
     super.onInit();
     getLogger().i('SyncService Initialized');
 
-    // 每30秒触发一次同步检查
+    // 每12秒触发一次同步检查
     _timer = Timer.periodic(const Duration(seconds: 12), (timer) async {
       await triggerSync();
 

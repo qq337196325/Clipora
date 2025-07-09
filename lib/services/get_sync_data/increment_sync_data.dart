@@ -85,9 +85,7 @@ class IncrementSyncData extends GetxService {
               success = await _incrementSyncArticleContentData(dbName, lastIncrementSyncTime);
               break;
             case "annotation":
-              // TODO: 实现标注增量同步
-              getLogger().i('⏭️ 跳过标注增量同步（待实现）');
-              success = true;
+              success = await _incrementSyncAnnotationData(dbName, lastIncrementSyncTime);
               break;
           }
           
@@ -160,6 +158,17 @@ class IncrementSyncData extends GetxService {
       return await _getSyncData.incrementSyncArticleContentData(dbName, currentTime);
     } catch (e) {
       getLogger().e('❌ 文章内容数据增量同步异常: $e');
+      return false;
+    }
+  }
+
+  /// 增量同步标注数据
+  Future<bool> _incrementSyncAnnotationData(String dbName, int currentTime) async {
+    try {
+      getLogger().i('🔄 开始标注数据增量同步，时间戳: $currentTime');
+      return await _getSyncData.incrementSyncAnnotationData(dbName, currentTime);
+    } catch (e) {
+      getLogger().e('❌ 标注数据增量同步异常: $e');
       return false;
     }
   }

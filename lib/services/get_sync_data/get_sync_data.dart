@@ -9,10 +9,12 @@ import '../../db/article/article_db.dart';
 import '../../db/article/service/article_service.dart';
 import '../../db/article_content/article_content_db.dart';
 import '../../db/tag/tag_db.dart';
+import '../../db/annotation/enhanced_annotation_db.dart';
 import 'models/category_model.dart';
 import 'models/tag_model.dart';
 import 'models/article_model.dart';
 import 'models/article_content_model.dart';
+import 'models/annotation_model.dart';
 
 /// 获取同步数据
 class GetSyncData {
@@ -67,9 +69,7 @@ class GetSyncData {
               break;
 
             case "annotation":
-              // TODO: 实现标注同步
-              getLogger().i('⏭️ 跳过标注同步（待实现）');
-              success = true;
+              success = await _syncAnnotationData(dbName);
               break;
             default:
               getLogger().w('⚠️ 未知的数据库类型: $dbName');
@@ -221,6 +221,19 @@ class GetSyncData {
       parseRecord: (record) => TagModel.fromJson(record as Map<String, dynamic>),
       saveDataToLocal: _saveTagDataToLocal,
       progressOffset: 0.3,
+    );
+  }
+
+  /// 同步标注数据
+  Future<bool> _syncAnnotationData(String dbName) async {
+    return await _syncDataGeneric<AnnotationModel>(
+      dbName: dbName,
+      dataTypeName: '标注',
+      isCompleteSync: true,
+      currentTime: 0,
+      parseRecord: (record) => AnnotationModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveAnnotationDataToLocal,
+      progressOffset: 0.8,
     );
   }
 
@@ -719,6 +732,104 @@ class GetSyncData {
     );
   }
 
+  /// 保存标注数据到本地数据库
+  Future<bool> _saveAnnotationDataToLocal(List<AnnotationModel> annotations) async {
+    try {
+      getLogger().i('💾 开始保存 ${annotations.length} 条标注数据到本地数据库...');
+      _updateProgress('正在保存标注数据到本地数据库...', 0.85);
+      
+      final dbService = DatabaseService.instance;
+
+      // 预加载所有需要的文章和文章内容映射
+      final clientArticleIds = annotations.map((a) => a.clientArticleId).toSet().toList();
+      final clientArticleContentIds = annotations.map((a) => a.clientArticleContentId).toSet().toList();
+      
+      // 查找本地文章ID映射（通过serviceId查找，因为clientArticleId可能不匹配）
+      final localArticles = await dbService.articles.where().findAll();
+      final articleMap = <int, int>{}; // clientArticleId -> localArticleId
+      
+      final localArticleContents = await dbService.articleContent.where().findAll();
+      final articleContentMap = <int, int>{}; // clientArticleContentId -> localArticleContentId
+
+      // 建立映射关系
+      for (final article in localArticles) {
+        // 这里可能需要根据实际情况调整映射逻辑
+        // 暂时假设直接通过ID匹配
+      }
+
+      int successCount = 0;
+      int updateCount = 0;
+      int createCount = 0;
+      int skipCount = 0;
+
+      await dbService.isar.writeTxn(() async {
+        for (final annotationModel in annotations) {
+          try {
+            // 查找对应的本地文章
+            final localArticle = await dbService.articles
+                .where()
+                .anyOf(clientArticleIds, (q, id) => q.idEqualTo(id))
+                .findFirst();
+            
+            if (localArticle == null) {
+              getLogger().w('⚠️ 未找到标注对应的本地文章，客户端文章ID: ${annotationModel.clientArticleId}。跳过此条标注。');
+              skipCount++;
+              continue;
+            }
+
+            // 查找对应的本地文章内容
+            final localArticleContent = await dbService.articleContent
+                .where()
+                .articleIdEqualTo(localArticle.id)
+                .findFirst();
+            
+            if (localArticleContent == null) {
+              getLogger().w('⚠️ 未找到标注对应的本地文章内容，文章ID: ${localArticle.id}。跳过此条标注。');
+              skipCount++;
+              continue;
+            }
+
+            // 检查本地是否已存在该标注（通过highlightId查找）
+            final existingAnnotation = await dbService.enhancedAnnotation
+                .where()
+                .highlightIdEqualTo(annotationModel.highlightId)
+                .findFirst();
+            
+            if (existingAnnotation != null) {
+              // 更新现有标注
+              if (annotationModel.updateTimestamp > existingAnnotation.updateTimestamp) {
+                _updateAnnotationFromModel(existingAnnotation, annotationModel, localArticle.id, localArticleContent.id);
+                await dbService.enhancedAnnotation.put(existingAnnotation);
+                updateCount++;
+                getLogger().d('🔄 更新标注: ${annotationModel.highlightId}');
+              } else {
+                getLogger().d('⏭️ 跳过标注（本地数据较新）: ${annotationModel.highlightId}');
+              }
+            } else {
+              // 创建新标注
+              final newAnnotation = _createAnnotationFromModel(annotationModel, localArticle.id, localArticleContent.id);
+              await dbService.enhancedAnnotation.put(newAnnotation);
+              createCount++;
+              getLogger().d('✨ 创建标注: ${annotationModel.highlightId}');
+            }
+            
+            successCount++;
+          } catch (e) {
+            getLogger().e('❌ 保存标注失败: ${annotationModel.highlightId}, 错误: $e');
+          }
+        }
+      });
+      
+      getLogger().i('✅ 标注数据保存完成: 总计 $successCount 条，新建 $createCount 条，更新 $updateCount 条, 跳过 $skipCount 条');
+      _updateProgress('标注数据保存完成: 新建 $createCount 条，更新 $updateCount 条', 0.9);
+      return successCount == (annotations.length - skipCount);
+      
+    } catch (e) {
+      getLogger().e('❌ 保存标注数据到本地数据库失败: $e');
+      return false;
+    }
+  }
+
   /// 保存文章内容数据到本地数据库
   Future<bool> _saveArticleContentDataToLocal(List<ArticleContentModel> contents) async {
     try {
@@ -819,6 +930,99 @@ class GetSyncData {
     content.updatedAt = _parseDateTime(model.updateTime) ?? DateTime.now();
   }
 
+  /// 从AnnotationModel创建EnhancedAnnotationDb
+  EnhancedAnnotationDb _createAnnotationFromModel(AnnotationModel model, int localArticleId, int localArticleContentId) {
+    final now = DateTime.now();
+    return EnhancedAnnotationDb()
+      ..userId = model.userId
+      ..articleId = localArticleId
+      ..articleContentId = localArticleContentId
+      ..highlightId = model.highlightId
+      ..startXPath = model.startXPath
+      ..startOffset = model.startOffset
+      ..endXPath = model.endXPath
+      ..endOffset = model.endOffset
+      ..selectedText = model.selectedText
+      ..beforeContext = model.beforeContext
+      ..afterContext = model.afterContext
+      ..annotationType = _parseAnnotationType(model.annotationType)
+      ..colorType = _parseAnnotationColor(model.colorType)
+      ..noteContent = model.noteContent
+      ..crossParagraph = model.crossParagraph
+      ..rangeFingerprint = model.rangeFingerprint
+      ..boundingX = model.boundingX
+      ..boundingY = model.boundingY
+      ..boundingWidth = model.boundingWidth
+      ..boundingHeight = model.boundingHeight
+      ..version = model.version
+      ..updateTimestamp = model.updateTimestamp
+      ..createdAt = _parseDateTime(model.createTime) ?? now
+      ..updatedAt = _parseDateTime(model.updateTime) ?? now
+      ..isSynced = true;
+  }
+
+  /// 更新EnhancedAnnotationDb从AnnotationModel
+  void _updateAnnotationFromModel(EnhancedAnnotationDb annotation, AnnotationModel model, int localArticleId, int localArticleContentId) {
+    annotation.userId = model.userId;
+    annotation.articleId = localArticleId;
+    annotation.articleContentId = localArticleContentId;
+    annotation.highlightId = model.highlightId;
+    annotation.startXPath = model.startXPath;
+    annotation.startOffset = model.startOffset;
+    annotation.endXPath = model.endXPath;
+    annotation.endOffset = model.endOffset;
+    annotation.selectedText = model.selectedText;
+    annotation.beforeContext = model.beforeContext;
+    annotation.afterContext = model.afterContext;
+    annotation.annotationType = _parseAnnotationType(model.annotationType);
+    annotation.colorType = _parseAnnotationColor(model.colorType);
+    annotation.noteContent = model.noteContent;
+    annotation.crossParagraph = model.crossParagraph;
+    annotation.rangeFingerprint = model.rangeFingerprint;
+    annotation.boundingX = model.boundingX;
+    annotation.boundingY = model.boundingY;
+    annotation.boundingWidth = model.boundingWidth;
+    annotation.boundingHeight = model.boundingHeight;
+    annotation.version = model.version;
+    annotation.updateTimestamp = model.updateTimestamp;
+    annotation.updatedAt = _parseDateTime(model.updateTime) ?? DateTime.now();
+    annotation.isSynced = true;
+  }
+
+  /// 解析标注类型字符串为枚举
+  AnnotationType _parseAnnotationType(String type) {
+    switch (type.toLowerCase()) {
+      case 'highlight':
+        return AnnotationType.highlight;
+      case 'note':
+        return AnnotationType.note;
+      default:
+        getLogger().w('⚠️ 未知的标注类型: $type，使用默认值 highlight');
+        return AnnotationType.highlight;
+    }
+  }
+
+  /// 解析颜色类型字符串为枚举
+  AnnotationColor _parseAnnotationColor(String color) {
+    switch (color.toLowerCase()) {
+      case 'yellow':
+        return AnnotationColor.yellow;
+      case 'green':
+        return AnnotationColor.green;
+      case 'blue':
+        return AnnotationColor.blue;
+      case 'red':
+        return AnnotationColor.red;
+      case 'purple':
+        return AnnotationColor.purple;
+      case 'pink':
+        return AnnotationColor.pink;
+      default:
+        getLogger().w('⚠️ 未知的颜色类型: $color，使用默认值 yellow');
+        return AnnotationColor.yellow;
+    }
+  }
+
   /// 增量同步分类数据
   Future<bool> incrementSyncCategoryData(String dbName, int currentTime) async {
     return await _syncDataGeneric<CategoryModel>(
@@ -868,6 +1072,19 @@ class GetSyncData {
       parseRecord: (record) => ArticleContentModel.fromJson(record as Map<String, dynamic>),
       saveDataToLocal: _saveArticleContentDataToLocal,
       progressOffset: 0.7,
+    );
+  }
+
+  /// 增量同步标注数据
+  Future<bool> incrementSyncAnnotationData(String dbName, int currentTime) async {
+    return await _syncDataGeneric<AnnotationModel>(
+      dbName: dbName,
+      dataTypeName: '标注',
+      isCompleteSync: false,
+      currentTime: currentTime,
+      parseRecord: (record) => AnnotationModel.fromJson(record as Map<String, dynamic>),
+      saveDataToLocal: _saveAnnotationDataToLocal,
+      progressOffset: 0.8,
     );
   }
 
