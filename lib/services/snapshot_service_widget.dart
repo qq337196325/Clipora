@@ -302,7 +302,7 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
       getLogger().e('❌ 执行快照任务时出错: $e');
     } finally {
       _isProcessing = false;
-      getLogger().i('✅ 快照生成任务执行完毕。');
+      // getLogger().i('✅ 快照生成任务执行完毕。');
     }
   }
 

@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:get/get.dart';
 import 'package:bot_toast/bot_toast.dart';
+import 'package:isar/isar.dart';
 
 import '../../../db/article_content/article_content_db.dart';
 import '../../../api/user_api.dart';
 import '../../../basics/logger.dart';
+import '../../../db/database_service.dart';
 import 'article_markdown_controller.dart';
 import 'models/translate_content_model.dart';
 
@@ -234,28 +236,6 @@ class ArticleController extends ArticleMarkdownController {
         _translationStatus[languageCode] = 'failed';
         final errorMsg = response['msg'] ?? '您的翻译额度已用完';
         return response['code'];
-        // getLogger().w('⚠️ 翻译额度用完: $errorMsg');
-        // Get.dialog(
-        //   AlertDialog(
-        //     title: const Text('额度不足'),
-        //     content: const Text('您的翻译额度已用完，是否前往充值？'),
-        //     actions: [
-        //       TextButton(
-        //         onPressed: () => Get.back(),
-        //         child: const Text('取消'),
-        //       ),
-        //       TextButton(
-        //         onPressed: () {
-        //           Get.back();
-        //           if (Get.context != null) {
-        //             GoRouter.of(Get.context!).push('/${RouteName.aiOrderPage}');
-        //           }
-        //         },
-        //         child: const Text('前往充值'),
-        //       ),
-        //     ],
-        //   ),
-        // );
       } else {
         _translationStatus[languageCode] = 'failed';
         final errorMsg = response['msg'] ?? '翻译请求失败';
@@ -281,7 +261,7 @@ class ArticleController extends ArticleMarkdownController {
     
     // 开始新的轮询，每3秒查询一次
     _pollingTimers[languageCode] = Timer.periodic(
-      const Duration(seconds: 5),
+      const Duration(seconds: 2),
       (timer) => _checkTranslationResult(languageCode, upId, timer),
     );
   }
@@ -295,37 +275,56 @@ class ArticleController extends ArticleMarkdownController {
         return;
       }
 
-      final response = await UserApi.getTranslateContentApi({
-        'up_id': upId,
-        'service_article_id': article.serviceId,
-      });
+      /// 已经有了自动数据同步，所以这里不需要再写入数据库了；
 
-      if (response['code'] == 0) {
-        // 翻译完成
+    //   articleId: translateContent.articleId,
+    // markdown: translateContent.markdown,
+    // languageCode: translateContent.languageCode,
+      final articleContent = await DatabaseService.instance.articleContent
+          .filter()
+          .articleIdEqualTo(articleId)
+          .languageCodeEqualTo(languageCode)
+          .findFirst();
+      if (articleContent != null) {
         timer.cancel();
         _pollingTimers.remove(languageCode);
         _translationUpIds.remove(languageCode);
-        
         _translationStatus[languageCode] = 'translated';
-        
-        final data = response['data'];
-        if (data != null) {
-          try {
-            // 解析翻译内容
-            final translateContent = TranslateContentModel.fromJson(data);
-            
-            // 保存翻译后的内容到数据库
-            await _saveTranslatedContent(translateContent);
-            getLogger().i('✅ 翻译完成并保存，语言: $languageCode，内容长度: ${translateContent.markdown.length}');
-          } catch (e) {
-            getLogger().e('❌ 解析翻译内容失败: $e');
-            _translationStatus[languageCode] = 'failed';
-          }
-        }
-      } else {
-        // 继续轮询（翻译仍在进行中）
-        getLogger().d('⏳ 翻译进行中，语言: $languageCode');
       }
+
+      // final response = await UserApi.getTranslateContentApi({
+      //   'up_id': upId,
+      //   'service_article_id': article.serviceId,
+      // });
+
+      // if (response['code'] == 0) {
+      //   // 翻译完成
+      //   timer.cancel();
+      //   _pollingTimers.remove(languageCode);
+      //   _translationUpIds.remove(languageCode);
+      //
+      //   _translationStatus[languageCode] = 'translated';
+      //
+      //   final data = response['data'];
+      //   if (data != null) {
+      //     try {
+      //       // 解析翻译内容
+      //       final translateContent = TranslateContentModel.fromJson(data);
+      //
+      //       // 保存翻译后的内容到数据库
+      //       await _saveTranslatedContent(translateContent);
+      //       getLogger().i('✅ 翻译完成并保存，语言: $languageCode，内容长度: ${translateContent.markdown.length}');
+      //     } catch (e) {
+      //       getLogger().e('❌ 解析翻译内容失败: $e');
+      //       _translationStatus[languageCode] = 'failed';
+      //     }
+      //   }
+      // } else {
+      //   // 继续轮询（翻译仍在进行中）
+      //   getLogger().d('⏳ 翻译进行中，语言: $languageCode');
+      // }
+
+      getLogger().d('⏳ 翻译进行中，语言: $languageCode');
     } catch (e) {
       getLogger().e('❌ 检查翻译结果异常: $e');
       // 网络错误不停止轮询，继续重试

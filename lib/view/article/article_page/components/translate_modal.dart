@@ -18,7 +18,7 @@ class _Language {
   });
 }
 
-class TranslateModal extends StatefulWidget { 
+class TranslateModal extends StatefulWidget {
   final int articleId;
 
   const TranslateModal({

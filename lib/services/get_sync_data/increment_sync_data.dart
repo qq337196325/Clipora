@@ -104,7 +104,7 @@ class IncrementSyncData extends GetxService {
         final currentServiceTime = getStorageServiceCurrentTime();
         if (currentServiceTime > 0) {
           globalBoxStorage.write('IncrementSyncDataTime', currentServiceTime);
-          getLogger().i('✅ 增量同步完成，更新同步时间: $currentServiceTime');
+          // getLogger().i('✅ 增量同步完成，更新同步时间: $currentServiceTime');
         }
       } else {
         getLogger().e('❌ 增量同步部分失败，不更新同步时间');
@@ -114,7 +114,7 @@ class IncrementSyncData extends GetxService {
       getLogger().e('❌ 增量同步异常: $e');
     } finally {
       isSyncing = false;
-      getLogger().i('🔄 增量同步流程结束');
+      // getLogger().i('🔄 增量同步流程结束');
     }
   }
 

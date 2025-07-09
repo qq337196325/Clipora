@@ -170,7 +170,7 @@ class GetSyncData {
           final records = data['records'] as List<dynamic>? ?? [];
           final total = data['total'] as int? ?? 0;
           
-          getLogger().i('📋 第 ${page + 1} 页获取到 ${records.length} 条${dataTypeName}数据，总计 $total 条');
+          // getLogger().i('📋 第 ${page + 1} 页获取到 ${records.length} 条${dataTypeName}数据，总计 $total 条');
           
           // 转换为Model
           for (final record in records) {
@@ -193,11 +193,11 @@ class GetSyncData {
         }
       }
       
-      getLogger().i('📊 总共获取到 ${allData.length} 条${dataTypeName}数据');
+      // getLogger().i('📊 总共获取到 ${allData.length} 条${dataTypeName}数据');
       _updateProgress('获取到 ${allData.length} 条${dataTypeName}数据，开始保存到本地...', progressOffset + 0.3);
       
       if (allData.isEmpty) {
-        getLogger().i('✅ 服务端暂无${dataTypeName}数据');
+        // getLogger().i('✅ 服务端暂无${dataTypeName}数据');
         _updateProgress('服务端暂无${dataTypeName}数据', progressOffset + 0.35);
         return true;
       }
