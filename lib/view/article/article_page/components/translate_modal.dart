@@ -302,7 +302,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
             ),
             const SizedBox(width: 6),
             Text(
-              '翻译中...',
+              '预计20秒至2分钟，正在翻译...',
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),

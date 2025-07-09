@@ -136,6 +136,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
   
   @override
   void dispose() {
+    _contentController.removeListener(_onTextChanged);
     _contentController.dispose();
     _focusNode.dispose();
     _fadeController.dispose();
@@ -143,7 +144,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
     super.dispose();
   }
   
-  bool get _canSubmit => _contentController.text.trim().isNotEmpty && !_isLoading;
+  bool get _canSubmit => _contentController.text.trim().isNotEmpty && _hasUrl && !_isLoading;
   
   Future<void> _handleSubmit() async {
     if (!_canSubmit) return;
@@ -154,43 +155,34 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       final content = _contentController.text.trim();
       
       String title = '';
-      String url = '';
       
-      if (_hasUrl) {
-        // 解析链接内容
-        final urlStartIndex = content.indexOf(_detectedUrl);
-        if (urlStartIndex > 0) {
-          // 提取URL前面的文本作为标题
-          title = content.substring(0, urlStartIndex).trim();
-        }
-        if (title.isEmpty) {
-          title = '手动添加的链接';
-        }
-        url = _detectedUrl;
-      } else {
-        // 提取文本标题（取前50个字符）
-        title = _extractTitleFromText(content);
-        url = '';
+      // 解析链接内容
+      final urlStartIndex = content.indexOf(_detectedUrl);
+      if (urlStartIndex > 0) {
+        // 提取URL前面的文本作为标题
+        title = content.substring(0, urlStartIndex).trim();
       }
+      if (title.isEmpty) {
+        title = '手动添加的链接';
+      }
+      final url = _detectedUrl;
       
       // 生成摘要
       final excerpt = _generateExcerpt(content);
       
-      // 检查是否已存在相同URL的文章（只对URL类型检查）
-      if (url.isNotEmpty) {
-        final existingArticle = await ArticleService.instance.findArticleByUrl(url);
-        if (existingArticle != null) {
-          getLogger().i('⚠️ 文章已存在，跳过保存: ${existingArticle.title}');
-          if (mounted) {
-            _showErrorMessage('该链接已存在');
-          }
-          setState(() => _isLoading = false);
-          return;
+      // 检查是否已存在相同URL的文章
+      final existingArticle = await ArticleService.instance.findArticleByUrl(url);
+      if (existingArticle != null) {
+        getLogger().i('⚠️ 文章已存在，跳过保存: ${existingArticle.title}');
+        if (mounted) {
+          _showErrorMessage('该链接已存在');
         }
+        setState(() => _isLoading = false);
+        return;
       }
       
       // 直接使用ArticleService创建文章
-      await ArticleService.instance.createArticleFromShare(
+      await ArticleService.instance.createArticleFromShare( 
         title: title,
         url: url,
         originalContent: content,
@@ -217,23 +209,6 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
         _showErrorMessage('添加失败，请重试');
       }
     }
-  }
-  
-  /// 从文本中提取标题（取前面部分作为标题）
-  String _extractTitleFromText(String text) {
-    if (text.isEmpty) return '未命名内容';
-    
-    // 取前50个字符作为标题，如果有换行符就在第一个换行符处截断
-    final firstLineEnd = text.indexOf('\n');
-    if (firstLineEnd > 0 && firstLineEnd < 50) {
-      return text.substring(0, firstLineEnd).trim();
-    }
-    
-    if (text.length <= 50) {
-      return text.trim();
-    }
-    
-    return text.substring(0, 50).trim() + '...';
   }
 
   /// 生成摘要
@@ -361,9 +336,10 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
                   _buildHeader(),
                   const SizedBox(height: 16),
                   _buildContentInput(),
-                  const SizedBox(height: 16),
-                  // if (_hasUrl) _buildUrlDetectionHint(),
-                  // const SizedBox(height: 18),
+                  const SizedBox(height: 12),
+                  if (_hasUrl) _buildUrlDetectionHint(),
+                  if (!_hasUrl && _contentController.text.isNotEmpty) _buildNoUrlHint(),
+                  const SizedBox(height: 12),
                   _buildButtons(),
                 ],
               ),
@@ -390,7 +366,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
               ),
               const SizedBox(height: 4),
               Text(
-                '输入链接或文本，系统自动识别链接',
+                '请输入包含链接的文本，系统将自动识别',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
@@ -436,7 +412,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
           height: 1.5,
         ),
         decoration: InputDecoration(
-          hintText: '请输入文本内容或链接...\n\n支持的链接格式：\n• https://example.com\n• http://example.com\n• www.example.com\n• baidu.com\n\n或者输入任意文本内容',
+          hintText: '粘贴包含链接的文本内容...\n\n支持的链接格式：\n• https://example.com\n• www.example.com\n• baidu.com',
           hintStyle: TextStyle(
             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             fontSize: 15,
@@ -446,6 +422,40 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
           contentPadding: const EdgeInsets.all(16),
         ),
         onChanged: (value) => setState(() {}),
+      ),
+    );
+  }
+  
+  Widget _buildNoUrlHint() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.orange.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.orange.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.orange[800],
+            size: 18,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '内容中未检测到有效链接',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.orange[800],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

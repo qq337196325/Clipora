@@ -171,8 +171,7 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
   /// 初始化服务
   Future<void> _initializeService() async {
     getLogger().i('🔧 开始初始化快照服务...');
-    
-    await _initializePermissions();
+
     await _initializeBrowserSimulation();
 
     getLogger().i('🔧 准备自动启动快照服务...');
@@ -188,6 +187,10 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     
     // 启动快照生成定时任务
     _snapshotTimer = Timer.periodic(Duration(seconds: 2), (timer) {
+
+
+
+
       if (!mounted) {
         timer.cancel();
         return;
@@ -240,15 +243,7 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     }
   }
 
-  /// 获取存储权限
-  Future<void> _initializePermissions() async {
-    try {
-      final status = await Permission.storage.request();
-      getLogger().i('存储权限状态: $status');
-    } catch (e) {
-      getLogger().e('❌ 请求存储权限失败: $e');
-    }
-  }
+
 
   /// 初始化浏览器仿真功能
   Future<void> _initializeBrowserSimulation() async {
@@ -270,7 +265,14 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
   /// 开始进行生成快照
   Future<void> processUnsnapshottedArticles() async {
     getLogger().d('🔍 检查快照任务状态: _isProcessing=$_isProcessing, _isLoadingSnapshot=$_isLoadingSnapshot, mounted=$mounted, _serviceStarted=$_serviceStarted');
-    
+
+    PermissionStatus status = await Permission.storage.status;
+    if (status != PermissionStatus.granted) {
+      getLogger().w('🔄 检测到没有存储权限....');
+      return;
+    }
+
+
     if (_isProcessing || _isLoadingSnapshot || !mounted || !_serviceStarted) {
       getLogger().i('🔍 检查快照任务状态: _isProcessing=$_isProcessing, _isLoadingSnapshot=$_isLoadingSnapshot, mounted=$mounted, _serviceStarted=$_serviceStarted');
       getLogger().i('🔄 快照任务正在处理中、Widget已销毁或服务未启动，跳过此次触发。');

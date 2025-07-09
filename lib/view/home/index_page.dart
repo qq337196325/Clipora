@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 
 import '../../basics/logger.dart';
 import '../../basics/ui.dart';
+import '../../basics/utils/user_utils.dart';
 import '../../services/get_sync_data/get_sync_data.dart';
 import '../../services/get_sync_data/increment_sync_data.dart';
 import '../../services/snapshot_service_widget.dart';
@@ -350,7 +351,9 @@ mixin IndexPageBLoC on State<IndexPage> {
   }
 
   _init() async {
+
     await _checkAppVersion(); // 在这里调用版本检查
+    await handleAndroidPermission(context);
     checkCompleteSync();
   }
 
@@ -425,8 +428,6 @@ mixin IndexPageBLoC on State<IndexPage> {
     // box.write('completeSyncStatus', false);  /// 测试用
     bool? completeSyncStatus = box.read('completeSyncStatus');
     getLogger().i('更新预热URL列表222');
-
-
 
     // 如果需要全量同步，显示对话框
     if (completeSyncStatus == null || completeSyncStatus == false) {
