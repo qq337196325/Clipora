@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bot_toast/bot_toast.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -51,6 +52,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 从 LanguageController 获取支持的语言列表
+    final supportedLocales = Get.find<LanguageController>()
+        .supportedLanguages
+        .map((lang) => lang.locale)
+        .toList();
+
     return GetMaterialApp.router(
       title: "Clipora",
       debugShowCheckedModeBanner: false,
@@ -58,8 +65,15 @@ class MyApp extends StatelessWidget {
       theme: readingTheme,
       // 多语言配置
       translations: AppTranslations(),
-      locale: Get.find<LanguageController>().currentLocale.value,
       fallbackLocale: const Locale('zh', 'CN'),
+      
+      // 新增以下内容以支持Flutter内置组件的国际化
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: supportedLocales,
       
       routeInformationParser: router.routeInformationParser,
       routerDelegate: router.routerDelegate,
