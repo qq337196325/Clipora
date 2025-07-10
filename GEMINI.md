@@ -25,7 +25,9 @@
 * `lib/db/`: Isar 数据库的 schema 和服务。
 * `lib/view/`: 存放所有的UI界面 (Widgets/Screens)。
 * `assets/`: 存放静态资源，如图片、JS脚本、CSS文件。
+* `lib/basics/translations`: i18n 多语言文件
 
 
 ## 6. 对我的指示 (Agent Instructions)
 *   **禁止操作:** "不要直接修改 `pubspec.lock` 文件。"
+*  **i18n语言key格式:** 前缀为 `i18n_` 加上 页面名称 加上中文，例如: `i18n_login_登录` i18n_ 为前缀，login 登录页面，登录 名称。

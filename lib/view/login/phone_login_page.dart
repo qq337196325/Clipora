@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+
 import '../../api/user_api.dart';
 import 'phone_verify_page.dart';
 
@@ -26,8 +28,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with PhoneLoginPageBLoC
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          '手机号登录',
+        title: Text(
+          'i18n_login_手机号登录'.tr,
           style: TextStyle(
             color: Color(0xFF3C3C3C),
             fontSize: 18,
@@ -45,8 +47,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with PhoneLoginPageBLoC
               const SizedBox(height: 32),
               
               // 标题
-              const Text(
-                '输入手机号',
+              Text(
+                'i18n_login_输入手机号'.tr,
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -56,8 +58,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with PhoneLoginPageBLoC
               
               const SizedBox(height: 8),
               
-              const Text(
-                '我们将向您的手机发送验证码',
+              Text(
+                'i18n_login_我们将向您的手机发送验证码'.tr,
                 style: TextStyle(
                   fontSize: 16,
                   color: Color(0xFF5A5A5A),
@@ -117,7 +119,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with PhoneLoginPageBLoC
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
-          hintText: '请输入手机号',
+          hintText: 'i18n_login_请输入手机号'.tr,
           hintStyle: const TextStyle(
             color: Color(0xFF8C8C8C),
             fontSize: 16,
@@ -181,7 +183,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with PhoneLoginPageBLoC
                     ),
                   )
                 : Text(
-                    '发送验证码',
+                    'i18n_login_发送验证码'.tr,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -228,7 +230,7 @@ mixin PhoneLoginPageBLoC on State<PhoneLoginPage> {
     // 再次验证手机号
     if (!_validatePhone(phone)) {
       setState(() {
-        phoneError = '请输入正确的手机号';
+        phoneError = 'i18n_login_请输入正确的手机号'.tr;
       });
       return;
     }
@@ -257,12 +259,12 @@ mixin PhoneLoginPageBLoC on State<PhoneLoginPage> {
         }
       } else {
         setState(() {
-          phoneError = res['message'] ?? '发送失败，请稍后重试';
+          phoneError = res['message'] ?? 'i18n_login_发送失败请稍后重试'.tr;
         });
       }
     } catch (e) {
       setState(() {
-        phoneError = '发送验证码失败，请检查网络';
+        phoneError = 'i18n_login_发送验证码失败请检查网络'.tr;
       });
     } finally {
       if (mounted) {

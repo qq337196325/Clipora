@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/user_api.dart';
 import '../../route/route_name.dart';
@@ -36,8 +38,8 @@ class _PhoneVerifyPageState extends State<PhoneVerifyPage> with PhoneVerifyPageB
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          '验证手机号',
+        title: Text(
+          'i18n_login_验证手机号'.tr,
           style: TextStyle(
             color: Color(0xFF3C3C3C),
             fontSize: 18,
@@ -55,8 +57,8 @@ class _PhoneVerifyPageState extends State<PhoneVerifyPage> with PhoneVerifyPageB
               const SizedBox(height: 32),
               
               // 标题
-              const Text(
-                '输入验证码',
+              Text(
+                'i18n_login_输入验证码'.tr,
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -67,7 +69,7 @@ class _PhoneVerifyPageState extends State<PhoneVerifyPage> with PhoneVerifyPageB
               const SizedBox(height: 8),
               
               Text(
-                '验证码已发送至 ${_formatPhone(widget.phone)}',
+                'i18n_login_我们已向您的手机发送验证码'.tr + ' ${_formatPhone(widget.phone)}',
                 style: const TextStyle(
                   fontSize: 16,
                   color: Color(0xFF5A5A5A),
@@ -134,7 +136,7 @@ class _PhoneVerifyPageState extends State<PhoneVerifyPage> with PhoneVerifyPageB
           letterSpacing: 8,
         ),
         decoration: InputDecoration(
-          hintText: '请输入4位验证码',
+          hintText: 'i18n_login_验证码'.tr,
           hintStyle: const TextStyle(
             color: Color(0xFF8C8C8C),
             fontSize: 16,
@@ -156,8 +158,8 @@ class _PhoneVerifyPageState extends State<PhoneVerifyPage> with PhoneVerifyPageB
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
-          '没有收到验证码？',
+        Text(
+          'i18n_login_没有收到验证码'.tr,
           style: TextStyle(
             fontSize: 14,
             color: Color(0xFF5A5A5A),
@@ -167,7 +169,7 @@ class _PhoneVerifyPageState extends State<PhoneVerifyPage> with PhoneVerifyPageB
         GestureDetector(
           onTap: canResend ? onResendCode : null,
           child: Text(
-            canResend ? '重新发送' : '重新发送(${countDown}s)',
+            canResend ? 'i18n_login_重新发送'.tr : 'i18n_login_重新发送'.tr + '(${countDown}s)',
             style: TextStyle(
               fontSize: 14,
               color: canResend ? const Color(0xFF005A9C) : const Color(0xFF8C8C8C),
@@ -215,7 +217,7 @@ class _PhoneVerifyPageState extends State<PhoneVerifyPage> with PhoneVerifyPageB
                     ),
                   )
                 : Text(
-                    '验证并登录',
+                    'i18n_login_验证并登录'.tr,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -297,7 +299,7 @@ mixin PhoneVerifyPageBLoC on State<PhoneVerifyPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('验证码已重新发送'),
+              content: Text('i18n_login_验证码已重新发送'.tr),
               backgroundColor: const Color(0xFF005A9C),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -308,12 +310,12 @@ mixin PhoneVerifyPageBLoC on State<PhoneVerifyPage> {
         }
       } else {
         setState(() {
-          codeError = res['message'] ?? '重新发送失败';
+          codeError = res['message'] ?? 'i18n_login_重新发送失败'.tr;
         });
       }
     } catch (e) {
       setState(() {
-        codeError = '重新发送失败，请检查网络';
+        codeError = 'i18n_login_重新发送失败请检查网络'.tr;
       });
     }
   }
@@ -339,7 +341,7 @@ mixin PhoneVerifyPageBLoC on State<PhoneVerifyPage> {
       final res = await UserApi.accountLoginApi(params);
       if(res["code"] != 0){
         setState(() {
-          codeError = res['message'] ?? '验证失败，请重试';
+          codeError = res['message'] ?? 'i18n_login_验证失败请重试'.tr;
         });
         return;
       }
@@ -356,7 +358,7 @@ mixin PhoneVerifyPageBLoC on State<PhoneVerifyPage> {
       }
     } catch (e) {
       setState(() {
-        codeError = '登录失败，请检查网络';
+        codeError = 'i18n_login_登录失败请检查网络'.tr;
       });
     } finally {
       if (mounted) {

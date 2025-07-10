@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart';
+
 import '../../basics/config.dart';
 import '../../basics/ui.dart';
 import '../../components/ui_border_radius_widget.dart';
@@ -92,7 +94,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
     return Column(
       children: [
         Text(
-          '欢迎使用 Clipora',
+          'i18n_login_欢迎使用Clipora'.tr,
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -102,7 +104,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
         ),
         const SizedBox(height: 12),
         Text(
-          '您的专属剪藏与阅读助手',
+          'i18n_login_您的专属剪藏与阅读助手'.tr,
           style: TextStyle(
             fontSize: 16,
             color: const Color(0xFF5A5A5A),
@@ -131,7 +133,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
         if (_showWeChatLogin) ...[
           _buildLoginButton(
             icon: Icons.wechat,
-            text: '使用微信登录',
+            text: 'i18n_login_使用微信登录'.tr,
             backgroundColor: const Color(0xFF07C160),
             textColor: Colors.white,
             onPressed: onWechatLogin,
@@ -142,7 +144,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
         // 手机号登录按钮
         _buildLoginButton(
           icon: Icons.phone_android,
-          text: '使用手机号登录',
+          text: 'i18n_login_使用手机号登录'.tr,
           backgroundColor: const Color(0xFF005A9C),
           textColor: Colors.white,
           onPressed: onPhoneLogin,
@@ -232,7 +234,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
                 isAgreePrivacyAgreement = !isAgreePrivacyAgreement;
               });
             },
-            child: Text("我已阅读并同意",
+            child: Text("i18n_login_我已阅读并同意".tr,
                 style: TextStyle(color: UiColour.neutral_6, fontSize: 13)),
           ),
 
@@ -257,7 +259,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
                 // ),
 
                 TextSpan(
-                    text: '《用户协议》',
+                    text: 'i18n_login_用户协议'.tr,
                     style: TextStyle(
                       color: const Color(0xFF005A9C),
                       fontWeight: FontWeight.w500,
@@ -267,9 +269,9 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
                     goLaunchUrl(_url);
                   }
                 ),
-                const TextSpan(text: '和'),
+                TextSpan(text: 'i18n_login_和'.tr),
                 TextSpan(
-                    text: '《隐私政策》',
+                    text: 'i18n_login_隐私政策链接'.tr,
                     style: TextStyle(
                       color: const Color(0xFF005A9C),
                       fontWeight: FontWeight.w500,
@@ -346,7 +348,7 @@ mixin LoginPageBLoC on State<LoginPage> {
         openSmartDialog();
         BotToast.showText(
           textStyle: TextStyle(color: UiColour.neutral_11),
-          text: "请阅读并勾选我们的隐私政策与用户协议",
+          text: 'i18n_login_请阅读并勾选我们的隐私政策与用户协议'.tr,
           contentColor: UiColour.neutral_5,
           align: Alignment(0, 0),
         );
@@ -359,8 +361,8 @@ mixin LoginPageBLoC on State<LoginPage> {
       // 检查微信是否已安装
       bool isInstalled = await _fluwx.isWeChatInstalled;
       if (!isInstalled) {
-        getLogger().w('微信未安装');
-        _showErrorDialog('微信未安装', '请先安装微信客户端后再试');
+        getLogger().w('i18n_login_微信未安装'.tr);
+        _showErrorDialog('i18n_login_微信未安装'.tr, 'i18n_login_请先安装微信客户端后再试'.tr);
         return;
       }
 
@@ -430,41 +432,41 @@ mixin LoginPageBLoC on State<LoginPage> {
         _processWeChatLogin(code);
       } else {
         getLogger().e('❌ 微信授权成功但未获取到code');
-        _showErrorDialog('授权失败', '未能获取到有效的授权码，请重试');
+        _showErrorDialog('i18n_login_授权失败'.tr, 'i18n_login_未能获取到有效的授权码'.tr);
       }
     } else {
       // 授权失败
       getLogger().w('❌ 微信授权失败: ${response.errCode} - ${response.errStr}');
-      String errorMessage = '授权失败';
+      String errorMessage = 'i18n_login_授权失败'.tr;
       
       // 根据错误码显示具体错误信息
       if (response.errCode != null) {
         switch (response.errCode) {
           case -4:
-            errorMessage = '用户拒绝授权';
+            errorMessage = 'i18n_login_用户拒绝授权'.tr;
             break;
           case -2:
-            errorMessage = '用户取消授权';
+            errorMessage = 'i18n_login_用户取消授权'.tr;
             break;
           case -1:
-            errorMessage = '发送授权请求失败';
+            errorMessage = 'i18n_login_发送授权请求失败'.tr;
             break;
           case -3:
-            errorMessage = '微信版本不支持';
+            errorMessage = 'i18n_login_微信版本不支持'.tr;
             break;
           default:
-            errorMessage = '未知错误(${response.errCode})，请重试';
+            errorMessage = 'i18n_login_未知错误'.tr + '(${response.errCode})，' + 'i18n_login_登录失败请重试'.tr;
             break;
         }
         
         // 用户取消时不显示错误提示，只记录日志
         if (response.errCode != -2) {
-          _showErrorDialog('微信登录失败', errorMessage);
+          _showErrorDialog('i18n_login_微信登录失败'.tr, errorMessage);
         } else {
-          getLogger().i('用户取消了微信授权');
+          getLogger().i('i18n_login_用户取消授权'.tr);
         }
       } else {
-        _showErrorDialog('微信登录失败', errorMessage);
+        _showErrorDialog('i18n_login_微信登录失败'.tr, errorMessage);
       }
     }
   }
@@ -475,7 +477,7 @@ mixin LoginPageBLoC on State<LoginPage> {
     
     try {
       // 显示登录中的加载状态
-      _showLoadingDialog('正在登录中...');
+      _showLoadingDialog('i18n_login_正在登录中'.tr);
       
       // 准备请求参数
       final params = {
@@ -495,8 +497,8 @@ mixin LoginPageBLoC on State<LoginPage> {
       
       // 检查响应结果
       if (res["code"] != 0) {
-        getLogger().e('微信登录失败: ${res["message"]}');
-        _showErrorDialog('微信登录失败', res['message'] ?? '登录失败，请重试');
+        getLogger().e('i18n_login_微信登录失败'.tr + ': ${res["message"]}');
+        _showErrorDialog('i18n_login_微信登录失败'.tr, res['message'] ?? 'i18n_login_登录失败请重试'.tr);
         return;
       }
       
@@ -508,8 +510,8 @@ mixin LoginPageBLoC on State<LoginPage> {
       globalBoxStorage.write('token', res['data']["token"]);
 
       if (token == null || token.isEmpty) {
-        getLogger().e('微信登录成功但未获取到token');
-        _showErrorDialog('登录失败', '服务器未返回有效的登录凭证');
+        getLogger().e('i18n_login_微信登录成功但未获取到token'.tr);
+        _showErrorDialog('i18n_login_登录失败'.tr, 'i18n_login_服务器未返回有效的登录凭证'.tr);
         return;
       }
       
@@ -537,7 +539,7 @@ mixin LoginPageBLoC on State<LoginPage> {
       }
       
       // 显示错误信息
-      _showErrorDialog('微信登录失败', '网络连接异常，请检查网络后重试');
+      _showErrorDialog('i18n_login_微信登录失败'.tr, 'i18n_login_网络连接异常'.tr);
     }
   }
 
@@ -603,9 +605,9 @@ mixin LoginPageBLoC on State<LoginPage> {
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      '知道了',
-                      style: TextStyle(
+                    child: Text(
+                      'i18n_login_知道了'.tr,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -702,7 +704,7 @@ mixin LoginPageBLoC on State<LoginPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '该功能正在开发中，敬请期待！',
+                  'i18n_login_该功能正在开发中敬请期待'.tr,
                   style: const TextStyle(
                     fontSize: 14,
                     color: Color(0xFF5A5A5A),
@@ -725,9 +727,9 @@ mixin LoginPageBLoC on State<LoginPage> {
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      '知道了',
-                      style: TextStyle(
+                    child: Text(
+                      'i18n_login_知道了'.tr,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -760,14 +762,14 @@ mixin LoginPageBLoC on State<LoginPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("隐私政策", style: TextStyle(fontWeight: FontWeight.w600)),
+              Text('i18n_login_隐私政策'.tr, style: TextStyle(fontWeight: FontWeight.w600)),
               SizedBox(height: 20),
               RichText(
                 text: TextSpan(
                   style: DefaultTextStyle.of(context).style,
                   children: <TextSpan>[
-                    TextSpan(text: '本应用尊重并保护所有用户的个人隐私权。为了给您提供更准确、更有个性化的服务，本应用会按照隐私政策的规定使用和披露您的个人信息。可阅读我们的'),
-                    TextSpan(text: '隐私政策', style: TextStyle(color: UiColour.primary),recognizer: TapGestureRecognizer()
+                    TextSpan(text: 'i18n_login_隐私政策内容'.tr),
+                    TextSpan(text: 'i18n_login_隐私政策链接'.tr, style: TextStyle(color: UiColour.primary),recognizer: TapGestureRecognizer()
                       ..onTap = () {
                         final Uri _url = Uri.parse(urlAgreement);
                         goLaunchUrl(_url);
@@ -787,7 +789,7 @@ mixin LoginPageBLoC on State<LoginPage> {
                   child: Container(
                     decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(40))),
                     padding: const EdgeInsets.all(8.0),
-                    child: const Text("同意", style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
+                    child: Text('i18n_login_同意'.tr, style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
                   ),
                   onPressed: () async {
                     setState(() {
@@ -810,7 +812,7 @@ mixin LoginPageBLoC on State<LoginPage> {
                   child: Container(
                     decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(40))),
                     padding: const EdgeInsets.all(8.0),
-                    child: const Text("不同意并退出APP", style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
+                    child: Text('i18n_login_不同意并退出APP'.tr, style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
                   ),
                   onPressed: () async {
                     SystemNavigator.pop();
