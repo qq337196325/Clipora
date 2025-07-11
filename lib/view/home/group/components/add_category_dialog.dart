@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../db/category/category_db.dart';
 
@@ -187,9 +188,9 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '编辑分类',
-                  style: TextStyle(
+                Text(
+                  'i18n_group_编辑分类'.tr,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xff667eea),
                     fontWeight: FontWeight.w500,
@@ -214,7 +215,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              widget.editCategory!.level == 0 ? '主分类' : '子分类',
+              widget.editCategory!.level == 0 ? 'i18n_group_主分类'.tr : 'i18n_group_子分类'.tr,
               style: const TextStyle(
                 fontSize: 12,
                 color: Color(0xff667eea),
@@ -262,9 +263,9 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '父分类',
-                  style: TextStyle(
+                Text(
+                  'i18n_group_父分类'.tr,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xff999999),
                   ),
@@ -311,7 +312,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
             controller: _nameController,
             autofocus: !_isEditMode, // 编辑模式时不自动聚焦
             decoration: InputDecoration(
-              hintText: _isEditMode ? '修改分类名称' : '请输入分类名称',
+              hintText: _isEditMode ? 'i18n_group_修改分类名称'.tr : 'i18n_group_请输入分类名称'.tr,
               hintStyle: const TextStyle(color: Color(0xff999999)),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -333,9 +334,9 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
       children: [
         Row(
           children: [
-            const Text(
-              '选择图标',
-              style: TextStyle(
+            Text(
+              'i18n_group_选择图标'.tr,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(0xff2a2a2a),
@@ -364,9 +365,9 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(width: 4),
-                  const Text(
-                    '已选择',
-                    style: TextStyle(
+                  Text(
+                    'i18n_group_已选择'.tr,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xff667eea),
                       fontWeight: FontWeight.w500,
@@ -444,9 +445,9 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                 side: const BorderSide(color: Color(0xffe0e0e0)),
               ),
             ),
-            child: const Text(
-              '取消',
-              style: TextStyle(
+            child: Text(
+              'i18n_group_取消'.tr,
+              style: const TextStyle(
                 fontSize: 16,
                 color: Color(0xff666666),
               ),
@@ -476,7 +477,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                     ),
                   )
                 : Text(
-                    _isEditMode ? '保存' : '创建',
+                    _isEditMode ? 'i18n_group_保存'.tr : 'i18n_group_创建'.tr,
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.white,

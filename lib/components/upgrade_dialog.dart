@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class UpgradeDialog extends StatelessWidget {
   final String version;
@@ -24,15 +25,15 @@ class UpgradeDialog extends StatelessWidget {
           children: [
             Icon(Icons.system_update_alt_rounded, color: Theme.of(context).primaryColor),
             const SizedBox(width: 8),
-            Text('发现新版本 v$version'),
+            Text('i18n_upgrade_发现新版本'.trParams({'version': version})),
           ],
         ),
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              const Text('我们建议您升级到最新版本，以获得更好的体验。'),
+               Text('i18n_upgrade_我们建议您升级到最新版本'.tr),
               const SizedBox(height: 16),
-              const Text('更新内容:', style: TextStyle(fontWeight: FontWeight.bold)),
+               Text('i18n_upgrade_更新内容'.tr, style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Text(releaseNotes),
             ],
@@ -42,7 +43,7 @@ class UpgradeDialog extends StatelessWidget {
         actions: <Widget>[
           if (!isForceUpgrade)
             TextButton(
-              child: const Text('稍后提醒'),
+              child: Text('i18n_upgrade_稍后提醒'.tr),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -50,7 +51,7 @@ class UpgradeDialog extends StatelessWidget {
           // 使用一个更有吸引力的按钮
           FilledButton.icon(
             icon: const Icon(Icons.download_rounded),
-            label: const Text('立即更新'),
+            label: Text('i18n_upgrade_立即更新'.tr),
             onPressed: onUpgrade,
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

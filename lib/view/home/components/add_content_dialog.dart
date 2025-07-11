@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 import '../../../basics/logger.dart';
 import '../../../db/article/service/article_service.dart';
@@ -163,7 +164,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
         title = content.substring(0, urlStartIndex).trim();
       }
       if (title.isEmpty) {
-        title = '手动添加的链接';
+        title = 'i18n_addContent_手动添加的链接'.tr;
       }
       final url = _detectedUrl;
       
@@ -175,7 +176,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       if (existingArticle != null) {
         getLogger().i('⚠️ 文章已存在，跳过保存: ${existingArticle.title}');
         if (mounted) {
-          _showErrorMessage('该链接已存在');
+          _showErrorMessage('i18n_addContent_该链接已存在'.tr);
         }
         setState(() => _isLoading = false);
         return;
@@ -206,7 +207,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       setState(() => _isLoading = false);
       
       if (mounted) {
-        _showErrorMessage('添加失败，请重试');
+        _showErrorMessage('i18n_addContent_添加失败请重试'.tr);
       }
     }
   }
@@ -235,7 +236,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
             ),
             const SizedBox(width: 8),
             Text(
-              _hasUrl ? '链接添加成功' : '文本添加成功',
+              _hasUrl ? 'i18n_addContent_链接添加成功'.tr : 'i18n_addContent_文本添加成功'.tr,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -358,7 +359,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '添加内容',
+                'i18n_addContent_添加内容'.tr,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -366,7 +367,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
               ),
               const SizedBox(height: 4),
               Text(
-                '请输入包含链接的文本，系统将自动识别',
+                'i18n_addContent_请输入包含链接的文本'.tr,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
@@ -412,7 +413,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
           height: 1.5,
         ),
         decoration: InputDecoration(
-          hintText: '粘贴包含链接的文本内容...\n\n支持的链接格式：\n• https://example.com\n• www.example.com\n• baidu.com',
+          hintText: 'i18n_addContent_粘贴包含链接的文本内容'.tr,
           hintStyle: TextStyle(
             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             fontSize: 15,
@@ -447,7 +448,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '内容中未检测到有效链接',
+              'i18n_addContent_内容中未检测到有效链接'.tr,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -491,7 +492,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '检测到链接',
+                  'i18n_addContent_检测到链接'.tr,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -532,7 +533,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
               ),
             ),
             child: Text(
-              '取消',
+              'i18n_addContent_取消'.tr,
               style: TextStyle(
                 fontSize: 16,
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
@@ -566,7 +567,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
                     ),
                   )
                 : Text(
-                    '添加',
+                    'i18n_addContent_添加'.tr,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

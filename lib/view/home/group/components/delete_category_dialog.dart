@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../db/category/category_db.dart';
 import '../utils/group_constants.dart';
 
@@ -29,9 +30,9 @@ class DeleteCategoryDialog extends StatelessWidget {
             size: 24,
           ),
           const SizedBox(width: 8),
-          const Text(
-            '删除分类',
-            style: TextStyle(
+          Text(
+            'i18n_group_删除分类'.tr,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: GroupConstants.itemText,
@@ -51,7 +52,7 @@ class DeleteCategoryDialog extends StatelessWidget {
                 height: 1.5,
               ),
               children: [
-                const TextSpan(text: '确定要删除分类 '),
+                TextSpan(text: 'i18n_group_确定要删除分类'.tr),
                 TextSpan(
                   text: '「${category.name}」',
                   style: const TextStyle(
@@ -59,7 +60,7 @@ class DeleteCategoryDialog extends StatelessWidget {
                     color: GroupConstants.primaryGradientStart,
                   ),
                 ),
-                const TextSpan(text: ' 吗？'),
+                TextSpan(text: 'i18n_group_吗'.tr),
               ],
             ),
           ),
@@ -85,7 +86,7 @@ class DeleteCategoryDialog extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '删除后目录下的 $articleCount 篇文章将移到未分类',
+                      'i18n_group_删除后目录下的文章将移到未分类'.trParams({'count': articleCount.toString()}),
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFFD48806),
@@ -106,9 +107,9 @@ class DeleteCategoryDialog extends StatelessWidget {
             foregroundColor: GroupConstants.hintText,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           ),
-          child: const Text(
-            '取消',
-            style: TextStyle(fontSize: 16),
+          child: Text(
+            'i18n_group_取消'.tr,
+            style: const TextStyle(fontSize: 16),
           ),
         ),
         const SizedBox(width: 8),
@@ -126,9 +127,9 @@ class DeleteCategoryDialog extends StatelessWidget {
             ),
             elevation: 0,
           ),
-          child: const Text(
-            '删除',
-            style: TextStyle(
+          child: Text(
+            'i18n_group_删除'.tr,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),

@@ -13,6 +13,8 @@ import 'package:get/get.dart';
 import '../../basics/config.dart';
 import '../../basics/ui.dart';
 import '../../components/ui_border_radius_widget.dart';
+import '../../basics/translations/select_language_widget.dart';
+import '../../controller/language_controller.dart';
 import 'phone_login_page.dart';
 import '../../api/user_api.dart';
 import '../../route/route_name.dart';
@@ -37,6 +39,9 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
+                // 顶部语言选择按钮
+                _buildLanguageSelector(),
+                
                 const Spacer(flex: 2),
                 
                 // Logo部分
@@ -205,6 +210,85 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelector() {
+    final languageController = Get.find<LanguageController>();
+    
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Obx(() {
+            final currentLanguage = languageController.supportedLanguages.firstWhere(
+              (lang) => languageController.isCurrentLanguage(lang.languageCode, lang.countryCode),
+              orElse: () => languageController.supportedLanguages.first,
+            );
+            
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    SelectLanguageWidget.show(context);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Center(
+                            child: Text(
+                              currentLanguage.flag,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          currentLanguage.languageCode.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF3C3C3C),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.keyboard_arrow_down,
+                          size: 16,
+                          color: Color(0xFF8C8C8C),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 
@@ -45,7 +46,7 @@ Widget buildSyncDialog() {
 
               // 标题
               Text(
-                '数据同步中',
+                'i18n_sync_数据同步中'.tr,
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -57,7 +58,7 @@ Widget buildSyncDialog() {
 
               // 动态消息文本
               Text(
-                "正在同步...",
+                'i18n_sync_正在同步'.tr,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 15,
@@ -90,7 +91,7 @@ Widget buildSyncDialog() {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        '新设备正在同步数据，请保持网络连接',
+                        'i18n_sync_新设备正在同步数据'.tr,
                         style: TextStyle(
                           fontSize: 13,
                           color: const Color(0xFF007AFF),

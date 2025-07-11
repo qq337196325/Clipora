@@ -1,6 +1,7 @@
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../logger.dart';
 import '../ui.dart';
@@ -38,9 +39,9 @@ Future<void> handleAndroidPermission(BuildContext context) async {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("请求存储文件权限", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
+            Text("i18n_permission_请求存储文件权限".tr, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
             SizedBox(height: 16),
-            Text("在使用过程中，我们需要获取您的存储存储文件权限，我们会将网页缓存到您本地存储中。",
+            Text("i18n_permission_存储文件权限说明".tr,
                 style: TextStyle(fontSize: 14)),
             SizedBox(height: 20),
             Row(
@@ -51,7 +52,7 @@ Future<void> handleAndroidPermission(BuildContext context) async {
                     backgroundColor: Colors.grey[200],
                     padding: EdgeInsets.symmetric(horizontal: 26, vertical: 10),
                   ),
-                  child: Text("不同意", style: TextStyle(color: Colors.black87)),
+                  child: Text("i18n_permission_不同意".tr, style: TextStyle(color: Colors.black87)),
                   onPressed: () {
                     SmartDialog.dismiss(tag: "permission_dialog");
                   },
@@ -61,7 +62,7 @@ Future<void> handleAndroidPermission(BuildContext context) async {
                     backgroundColor: Colors.blue,
                     padding: EdgeInsets.symmetric(horizontal: 26, vertical: 10),
                   ),
-                  child: Text("同意", style: TextStyle(color: Colors.white)),
+                  child: Text("i18n_permission_同意".tr, style: TextStyle(color: Colors.white)),
                   onPressed: () {
                     SmartDialog.dismiss(tag: "permission_dialog");
                     initializePermissions();

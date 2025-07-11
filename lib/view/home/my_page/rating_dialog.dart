@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'dart:io';
 import '../utils/app_store_helper.dart';
 import '../../../basics/logger.dart';
@@ -54,9 +55,9 @@ class RatingDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             
-            const Text(
-              '评价一下我们的应用',
-              style: TextStyle(
+            Text(
+              'i18n_my_评价一下我们的应用'.tr,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1D1D1F),
@@ -65,11 +66,11 @@ class RatingDialog extends StatelessWidget {
             const SizedBox(height: 8),
             
             Text(
-              '您的评价是我们前进的动力\n喜欢我们的应用吗？',
+              'i18n_my_您的评价是我们前进的动力描述'.tr,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
-                color: const Color(0xFF8E8E93),
+                color: Color(0xFF8E8E93),
                 height: 1.4,
               ),
             ),
@@ -98,10 +99,10 @@ class RatingDialog extends StatelessWidget {
             const SizedBox(height: 20),
             
             Text(
-              '点击星星直接跳转到应用商店评价',
-              style: TextStyle(
+              'i18n_my_点击星星直接跳转到应用商店评价'.tr,
+              style: const TextStyle(
                 fontSize: 12,
-                color: const Color(0xFF8E8E93),
+                color: Color(0xFF8E8E93),
               ),
             ),
             const SizedBox(height: 24),
@@ -119,9 +120,9 @@ class RatingDialog extends StatelessWidget {
                         side: const BorderSide(color: Color(0xFFE5E5E7)),
                       ),
                     ),
-                    child: const Text(
-                      '稍后再说',
-                      style: TextStyle(
+                    child: Text(
+                      'i18n_my_稍后再说'.tr,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF8E8E93),
                         fontWeight: FontWeight.w500,
@@ -142,9 +143,9 @@ class RatingDialog extends StatelessWidget {
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      '立即评价',
-                      style: TextStyle(
+                    child: Text(
+                      'i18n_my_立即评价'.tr,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -174,8 +175,8 @@ class RatingDialog extends StatelessWidget {
                   Expanded(
                     child: Text(
                       Platform.isIOS 
-                        ? '将跳转到App Store进行评价'
-                        : '将根据您的设备自动选择应用商店',
+                        ? 'i18n_my_将跳转到AppStore进行评价'.tr
+                        : 'i18n_my_将根据您的设备自动选择应用商店'.tr,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF8E8E93),
@@ -211,18 +212,18 @@ class RatingDialog extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.error_outline,
                   color: Colors.white,
                   size: 20,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '暂时无法打开应用商店，请稍后重试',
-                    style: TextStyle(
+                    'i18n_my_暂时无法打开应用商店请稍后重试'.tr,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -238,7 +239,7 @@ class RatingDialog extends StatelessWidget {
             margin: const EdgeInsets.all(16),
             duration: const Duration(seconds: 3),
             action: SnackBarAction(
-              label: '确定',
+              label: 'i18n_my_确定'.tr,
               textColor: Colors.white,
               onPressed: () {},
             ),

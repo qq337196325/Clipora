@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
 
 import '../../../route/route_name.dart';
 import '../../../db/category/category_db.dart';
@@ -88,8 +89,8 @@ class _GroupPageState extends State<GroupPage>
               Expanded(
                 child: _buildQuickEntryItem(
                   icon: Icons.library_books_rounded,
-                  title: '全部',
-                  subtitle: '所有内容',
+                  title: 'i18n_group_全部'.tr,
+                  subtitle: 'i18n_group_所有内容'.tr,
                   gradient: const LinearGradient(
                     colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
                     begin: Alignment.topLeft,
@@ -97,7 +98,7 @@ class _GroupPageState extends State<GroupPage>
                   ),
                   onTap: () {
                     // 跳转到全部文章列表页面
-                    context.push('/${RouteName.articleList}?type=all&title=${Uri.encodeComponent('全部文章')}');
+                    context.push('/${RouteName.articleList}?type=all&title=${Uri.encodeComponent('i18n_group_全部文章'.tr)}');
                   },
                 ),
               ),
@@ -105,8 +106,8 @@ class _GroupPageState extends State<GroupPage>
               Expanded(
                 child: _buildQuickEntryItem(
                   icon: Icons.star_rounded,
-                  title: '重要',
-                  subtitle: '标记重要',
+                  title: 'i18n_group_重要'.tr,
+                  subtitle: 'i18n_group_标记重要'.tr,
                   gradient: const LinearGradient(
                     colors: [Color(0xFFFF8A65), Color(0xFFFF7043)],
                     begin: Alignment.topLeft,
@@ -114,7 +115,7 @@ class _GroupPageState extends State<GroupPage>
                   ),
                   onTap: () {
                     // 跳转到重要文章列表页面
-                    context.push('/${RouteName.articleList}?type=bookmark&title=${Uri.encodeComponent('重要文章')}');
+                    context.push('/${RouteName.articleList}?type=bookmark&title=${Uri.encodeComponent('i18n_group_重要文章'.tr)}');
                   },
                 ),
               ),
@@ -215,22 +216,22 @@ class _GroupPageState extends State<GroupPage>
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '分组管理',
-                      style: TextStyle(
+                      'i18n_group_分组管理'.tr,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: GroupConstants.primaryText,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      '管理你的内容分类',
-                      style: TextStyle(
+                      'i18n_group_管理你的内容分类'.tr,
+                      style: const TextStyle(
                         fontSize: 12,
                         color: GroupConstants.secondaryText,
                       ),
@@ -252,17 +253,17 @@ class _GroupPageState extends State<GroupPage>
       children: [
         _buildManageTag(
           icon: Icons.archive_outlined,
-          label: '归档',
+          label: 'i18n_group_归档'.tr,
           onTap: () {
-            context.push('/${RouteName.articleList}?type=archived&title=${Uri.encodeComponent('归档文章')}');
+            context.push('/${RouteName.articleList}?type=archived&title=${Uri.encodeComponent('i18n_group_归档文章'.tr)}');
           },
         ),
         const SizedBox(width: 8),
         _buildManageTag(
           icon: Icons.delete_outline,
-          label: '回收站',
+          label: 'i18n_group_回收站'.tr,
           onTap: () {
-            context.push('/${RouteName.articleList}?type=deleted&title=${Uri.encodeComponent('回收站')}');
+            context.push('/${RouteName.articleList}?type=deleted&title=${Uri.encodeComponent('i18n_group_回收站'.tr)}');
           },
         ),
         const Spacer(),
@@ -371,12 +372,12 @@ class _GroupPageState extends State<GroupPage>
       
       // 显示刷新成功提示
       if (mounted) {
-        GroupUtils.showSuccessMessage('刷新成功');
+        GroupUtils.showSuccessMessage('i18n_group_刷新成功'.tr);
       }
     } catch (e) {
       // 显示刷新失败提示
       if (mounted) {
-        GroupUtils.showErrorMessage('刷新失败: $e');
+        GroupUtils.showErrorMessage('i18n_group_刷新失败'.trParams({'error': e.toString()}));
       }
     }
   }
@@ -499,14 +500,14 @@ mixin GroupPageBLoC on State<GroupPage> {
 
       // 显示成功消息
       if (mounted) {
-        GroupUtils.showSuccessMessage('分类 "$name" 创建成功');
+        GroupUtils.showSuccessMessage('i18n_group_分类创建成功'.trParams({'name': name}));
       }
     } catch (e) {
       setState(() => isLoading = false);
       
       // 显示错误消息
       if (mounted) {
-        GroupUtils.showErrorMessage('创建分类失败: $e');
+        GroupUtils.showErrorMessage('i18n_group_创建分类失败'.trParams({'error': e.toString()}));
       }
     }
   }
@@ -539,14 +540,14 @@ mixin GroupPageBLoC on State<GroupPage> {
 
       // 显示成功消息
       if (mounted) {
-        GroupUtils.showSuccessMessage('子分类 "$name" 创建成功');
+        GroupUtils.showSuccessMessage('i18n_group_子分类创建成功'.trParams({'name': name}));
       }
     } catch (e) {
       setState(() => isLoading = false);
       
       // 显示错误消息
       if (mounted) {
-        GroupUtils.showErrorMessage('创建子分类失败: $e');
+        GroupUtils.showErrorMessage('i18n_group_创建子分类失败'.trParams({'error': e.toString()}));
       }
     }
   }
@@ -590,14 +591,14 @@ mixin GroupPageBLoC on State<GroupPage> {
 
       // 显示成功消息
       if (mounted) {
-        GroupUtils.showSuccessMessage('分类 "$name" 更新成功');
+        GroupUtils.showSuccessMessage('i18n_group_分类更新成功'.trParams({'name': name}));
       }
     } catch (e) {
       setState(() => isLoading = false);
       
       // 显示错误消息
       if (mounted) {
-        GroupUtils.showErrorMessage('更新分类失败: $e');
+        GroupUtils.showErrorMessage('i18n_group_更新分类失败'.trParams({'error': e.toString()}));
       }
     }
   }
@@ -623,7 +624,7 @@ mixin GroupPageBLoC on State<GroupPage> {
       );
     } catch (e) {
       if (mounted) {
-        GroupUtils.showErrorMessage('获取分类信息失败: $e');
+        GroupUtils.showErrorMessage('i18n_group_获取分类信息失败'.trParams({'error': e.toString()}));
       }
     }
   }
@@ -646,7 +647,7 @@ mixin GroupPageBLoC on State<GroupPage> {
 
         // 显示成功消息
         if (mounted) {
-          GroupUtils.showSuccessMessage('分类 "${category.name}" 删除成功');
+          GroupUtils.showSuccessMessage('i18n_group_分类删除成功'.trParams({'name': category.name}));
         }
       }
     } catch (e) {
@@ -654,7 +655,7 @@ mixin GroupPageBLoC on State<GroupPage> {
       
       // 显示错误消息
       if (mounted) {
-        GroupUtils.showErrorMessage('删除分类失败: $e');
+        GroupUtils.showErrorMessage('i18n_group_删除分类失败'.trParams({'error': e.toString()}));
       }
     }
   }

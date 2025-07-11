@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../basics/logger.dart';
@@ -81,9 +82,9 @@ class _GuidePageState extends State<GuidePage> with GuidePageBLoC {
         alignment: Alignment.topRight,
         child: TextButton(
           onPressed: skipGuide,
-          child: const Text(
-            '跳过',
-            style: TextStyle(
+          child: Text(
+            'i18n_guide_跳过'.tr,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -172,8 +173,8 @@ class _GuidePageState extends State<GuidePage> with GuidePageBLoC {
           width: currentPageIndex == index ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: currentPageIndex == index 
-                ? Colors.white 
+            color: currentPageIndex == index
+                ? Colors.white
                 : Colors.white.withOpacity(0.4),
             borderRadius: BorderRadius.circular(4),
           ),
@@ -184,7 +185,7 @@ class _GuidePageState extends State<GuidePage> with GuidePageBLoC {
 
   Widget _buildActionButton() {
     final isLastPage = currentPageIndex == guideItems.length - 1;
-    
+
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -199,7 +200,7 @@ class _GuidePageState extends State<GuidePage> with GuidePageBLoC {
           elevation: 0,
         ),
         child: Text(
-          isLastPage ? '开始使用' : '下一步',
+          isLastPage ? 'i18n_guide_开始使用'.tr : 'i18n_guide_下一步'.tr,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -214,30 +215,31 @@ class _GuidePageState extends State<GuidePage> with GuidePageBLoC {
 mixin GuidePageBLoC on State<GuidePage> {
   late PageController pageController;
   int currentPageIndex = 0;
-  
+
   List<GuideItem> get guideItems => [
-    GuideItem(
-      icon: Icons.bookmark_add_outlined,
-      title: '智能收藏',
-      description: '随时随地收集有价值的内容\n支持分享、链接方式进行收藏您感兴趣的内容\n让知识不再丢失',
-    ),
-    GuideItem(
-      icon: Icons.folder_outlined,
-      title: '分类整理',
-      description: '智能分类管理你的收藏\n标签、文件夹多维度组织\n快速找到所需内容',
-    ),
-    GuideItem(
-      icon: Icons.edit_note_outlined,
-      title: '深度阅读',
-      description: '专注的阅读体验\n支持标注、笔记、翻译\n让阅读更有价值',
-    ),
-  ];
+        GuideItem(
+          icon: Icons.bookmark_add_outlined,
+          title: 'i18n_guide_智能收藏'.tr,
+          description:
+              'i18n_guide_随时随地收集有价值的内容支持分享链接方式进行收藏您感兴趣的内容让知识不再丢失'.tr,
+        ),
+        GuideItem(
+          icon: Icons.folder_outlined,
+          title: 'i18n_guide_分类整理'.tr,
+          description: 'i18n_guide_智能分类管理你的收藏标签文件夹多维度组织快速找到所需内容'.tr,
+        ),
+        GuideItem(
+          icon: Icons.edit_note_outlined,
+          title: 'i18n_guide_深度阅读'.tr,
+          description: 'i18n_guide_专注的阅读体验支持标注笔记翻译让阅读更有价值'.tr,
+        ),
+      ];
 
   @override
   void initState() {
     super.initState();
     pageController = PageController();
-    
+
     // 记录页面访问
     buryingPoint();
   }
@@ -275,10 +277,10 @@ mixin GuidePageBLoC on State<GuidePage> {
     try {
       // 保存引导完成状态
       await GuideService.markGuideCompleted();
-      
+
       // 记录完成引导的埋点
       getLogger().i('用户完成引导页面，当前页面: ${currentPageIndex}');
-      
+
       // 跳转到主页面（使用现有的路由名称）
       if (mounted) {
         context.go('/${RouteName.login}');

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:get/get.dart';
 
 import '../../../route/route_name.dart';
 import '../../basics/logger.dart';
@@ -78,8 +79,8 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                '最近阅读',
+              Text(
+                'i18n_home_最近阅读'.tr,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -104,7 +105,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
             ),
             padding: const EdgeInsets.all(20),
             child: recentlyReadArticles.isEmpty
-                ? const Center(
+                ?  Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 32.0),
                 child: Column(
@@ -116,7 +117,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                     ),
                     SizedBox(height: 12),
                     Text(
-                      '暂无最近阅读记录',
+                      'i18n_home_暂无最近阅读记录'.tr,
                       style: TextStyle(
                         color: Color(0xFF8E8E93),
                         fontSize: 15,
@@ -228,8 +229,8 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                '我的标签',
+              Text(
+                'i18n_home_我的标签'.tr,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -248,7 +249,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                 child: InkWell(
                   onTap: () {
                     // 跳转到标签文章列表页面
-                    context.push('/${RouteName.articleList}?type=tag&title=${Uri.encodeComponent('标签: ${tagWithCount.tag.name}')}&tagId=${tagWithCount.tag.id}&tagName=${Uri.encodeComponent(tagWithCount.tag.name)}');
+                    context.push('/${RouteName.articleList}?type=tag&title=${Uri.encodeComponent('i18n_home_标签'.tr + tagWithCount.tag.name)}&tagId=${tagWithCount.tag.id}&tagName=${Uri.encodeComponent(tagWithCount.tag.name)}');
                   },
                   borderRadius: BorderRadius.circular(20),
                   splashColor: const Color(0xFFFF9500).withOpacity(0.2),
@@ -321,7 +322,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
         children: [
           InkWell(
             onTap: () {
-              context.push('/${RouteName.articleList}?type=read-later&title=稍后阅读');
+              context.push('/${RouteName.articleList}?type=read-later&title=${'i18n_home_稍后阅读'.tr}');
             },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
@@ -341,8 +342,8 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
-                    '稍后阅读',
+                  Text(
+                    'i18n_home_稍后阅读'.tr,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -361,7 +362,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '共 $unreadArticlesCount 篇',
+                          'i18n_home_共count篇'.trParams({'count': unreadArticlesCount.toString()}),
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -390,7 +391,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
             ),
             padding: const EdgeInsets.all(20),
             child: unreadArticles.isEmpty
-                ? const Center(
+                ? Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: Column(
@@ -402,7 +403,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                     ),
                     SizedBox(height: 12),
                     Text(
-                      '暂无需要稍后阅读的文章',
+                      'i18n_home_暂无需要稍后阅读的文章'.tr,
                       style: TextStyle(
                         color: Color(0xFF8E8E93),
                         fontSize: 15,

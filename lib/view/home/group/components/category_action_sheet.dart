@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../db/category/category_db.dart';
 import '../utils/group_constants.dart';
 
@@ -40,8 +41,8 @@ class CategoryActionSheet extends StatelessWidget {
                 if (category.level < 1)
                   _buildActionButton(
                     icon: Icons.add_circle_outline,
-                    title: '添加子分类',
-                    subtitle: '在此分类下创建子分类',
+                    title: 'i18n_group_添加子分类'.tr,
+                    subtitle: 'i18n_group_在此分类下创建子分类'.tr,
                     color: GroupConstants.primaryGradientStart,
                     onTap: () {
                       Navigator.pop(context);
@@ -50,8 +51,8 @@ class CategoryActionSheet extends StatelessWidget {
                   ),
                 _buildActionButton(
                   icon: Icons.edit_outlined,
-                  title: '重命名',
-                  subtitle: '修改分类名称和图标',
+                  title: 'i18n_group_重命名'.tr,
+                  subtitle: 'i18n_group_修改分类名称和图标'.tr,
                   color: GroupConstants.successColor,
                   onTap: () {
                     Navigator.pop(context);
@@ -60,8 +61,8 @@ class CategoryActionSheet extends StatelessWidget {
                 ),
                 _buildActionButton(
                   icon: Icons.delete_outline,
-                  title: '删除',
-                  subtitle: '删除此分类',
+                  title: 'i18n_group_删除'.tr,
+                  subtitle: 'i18n_group_删除此分类'.tr,
                   color: GroupConstants.errorColor,
                   isDestructive: true,
                   onTap: () {
@@ -126,13 +127,13 @@ class CategoryActionSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                category.level == 0 ? '主分类' : '子分类',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: GroupConstants.hintText,
+                              Text(
+                  category.level == 0 ? 'i18n_group_主分类'.tr : 'i18n_group_子分类'.tr,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: GroupConstants.hintText,
+                  ),
                 ),
-              ),
             ],
           ),
         ),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
 import '../../../basics/logger.dart';
 import '../../../db/article/article_db.dart';
 import '../../../db/article/service/article_service.dart';
@@ -86,7 +87,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                         focusNode: searchFocusNode,
                         onChanged: _onSearchChanged,
                         decoration: InputDecoration(
-                          hintText: '搜索内容...',
+                          hintText: 'i18n_search_搜索内容'.tr,
                           hintStyle: TextStyle(
                             color: Colors.grey.shade500,
                             fontSize: 16,
@@ -151,7 +152,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '搜索',
+                          'i18n_search_搜索'.tr,
                           style: TextStyle(
                             color: searchText.isNotEmpty 
                                 ? Colors.white 
@@ -260,7 +261,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                   child: Opacity(
                     opacity: value,
                     child: Text(
-                      hasSearched ? '没有找到相关内容' : '开始搜索',
+                      hasSearched ? 'i18n_search_没有找到相关内容'.tr : 'i18n_search_开始搜索'.tr,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -287,8 +288,8 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                     opacity: value,
                     child: Text(
                       hasSearched 
-                          ? '试试调整关键词或使用其他搜索词'
-                          : '输入关键词搜索文章、标题',
+                          ? 'i18n_search_试试调整关键词'.tr
+                          : 'i18n_search_输入关键词搜索文章标题'.tr,
                       style: TextStyle(
                         fontSize: 15,
                         color: Colors.grey.shade500,
@@ -434,7 +435,10 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '找到 ${searchResults.length} 条结果 (${_lastSearchDuration}ms)',
+                  'i18n_search_找到结果'.trParams({
+                    'count': searchResults.length.toString(),
+                    'duration': _lastSearchDuration.toString(),
+                  }),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade500,
@@ -449,7 +453,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '极快',
+                      'i18n_search_极快'.tr,
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.green.shade700,
@@ -465,7 +469,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '快速',
+                      'i18n_search_快速'.tr,
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.orange.shade700,
@@ -481,7 +485,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '较慢',
+                      'i18n_search_较慢'.tr,
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.red.shade700,
@@ -768,7 +772,7 @@ mixin SearchPageBLoC on State<SearchPage> {
       );
     }
     
-    return '无内容';
+    return 'i18n_search_无内容'.tr;
   }
 
 

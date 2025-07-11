@@ -32,6 +32,10 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
 
 @override
   Widget build(BuildContext context) {
+    final tabs = [
+      SegmentTab(label: 'i18n_home_首页'.tr, color: const Color(0xFF00BCF6)),
+      SegmentTab(label: 'i18n_home_分组'.tr, color: const Color(0xFF00BCF6)),
+    ];
     return Stack(
       children: [
         Scaffold(
@@ -153,10 +157,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             squeezeIntensity: 2,
                             height: 32,
                             tabPadding: const EdgeInsets.symmetric(horizontal: 12),
-                            tabs: tabs.map((tab) => SegmentTab(
-                              label: tab.label,
-                              color: tab.color,
-                            )).toList(),
+                            tabs: tabs,
                           ),
                         ),
                       ),
@@ -308,7 +309,6 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
 mixin IndexPageBLoC on State<IndexPage> {
 
   late TabController tabController;
-  List<SegmentTab> tabs = [];
   
   // 手势检测相关变量
   double _totalDx = 0.0; // 水平滑动总距离
@@ -321,7 +321,7 @@ mixin IndexPageBLoC on State<IndexPage> {
   
   // 同步进度相关
   double _syncProgress = 0.0;
-  String _syncMessage = '正在初始化...';
+  String _syncMessage = 'i18n_home_正在初始化'.tr;
 
   @override
   void initState() {
@@ -340,9 +340,6 @@ mixin IndexPageBLoC on State<IndexPage> {
         setState(() {});
       }
     });
-
-    tabs.add(const SegmentTab(label: '首页', color: Color(0xFF00BCF6)));
-    tabs.add(const SegmentTab(label: '分组', color: Color(0xFF00BCF6)));
 
     // 使用addPostFrameCallback确保在第一帧渲染后执行，避免阻塞UI
     WidgetsBinding.instance.addPostFrameCallback((_)  {
@@ -463,7 +460,7 @@ mixin IndexPageBLoC on State<IndexPage> {
       getLogger().i('🔄 开始执行全量同步...');
       
       // 更新同步状态显示
-      _updateSyncProgress('正在初始化同步...', 0.1);
+      _updateSyncProgress('i18n_home_正在初始化同步'.tr, 0.1);
       
       // 导入全量同步类
       final getSyncData = GetSyncData();
@@ -478,11 +475,11 @@ mixin IndexPageBLoC on State<IndexPage> {
       if (syncResult) {
         getLogger().i('✅ 全量同步成功完成');
         
-        _updateSyncProgress('正在完成同步...', 0.9);
+        _updateSyncProgress('i18n_home_正在完成同步'.tr, 0.9);
         await Future.delayed(const Duration(milliseconds: 500));
         
         // 更新同步状态显示
-        _updateSyncProgress('同步完成！', 1.0);
+        _updateSyncProgress('i18n_home_同步完成'.tr, 1.0);
         
         // 等待一下让用户看到完成状态
         await Future.delayed(const Duration(milliseconds: 1000));
@@ -495,7 +492,7 @@ mixin IndexPageBLoC on State<IndexPage> {
         getLogger().e('❌ 全量同步失败');
         
         // 更新同步状态显示
-        _updateSyncProgress('同步失败，请检查网络连接后重试', 0.0);
+        _updateSyncProgress('i18n_home_同步失败请检查网络连接后重试'.tr, 0.0);
 
         // 等待一下然后关闭对话框
         await Future.delayed(const Duration(milliseconds: 1000));
@@ -504,7 +501,7 @@ mixin IndexPageBLoC on State<IndexPage> {
       getLogger().e('❌ 同步过程发生异常: $e');
       
       // 更新同步状态显示
-      _updateSyncProgress('同步异常: ${e.toString().length > 50 ? e.toString().substring(0, 50) + '...' : e.toString()}', 0.0);
+      _updateSyncProgress('i18n_home_同步异常'.tr + (e.toString().length > 50 ? e.toString().substring(0, 50) + '...' : e.toString()), 0.0);
     } finally {
 
       final serviceCurrentTime = await getServiceCurrentTime();

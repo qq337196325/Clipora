@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:get/get.dart';
 import 'dart:io';
 import '../utils/app_store_helper.dart';
 
@@ -13,12 +14,13 @@ class AppStoreTestPage extends StatefulWidget {
 }
 
 class _AppStoreTestPageState extends State<AppStoreTestPage> {
-  String deviceInfo = '正在获取设备信息...';
+  String deviceInfo = '';
   List<String> testResults = [];
 
   @override
   void initState() {
     super.initState();
+    deviceInfo = 'i18n_my_正在获取设备信息'.tr;
     _loadDeviceInfo();
   }
 
@@ -28,11 +30,11 @@ class _AppStoreTestPageState extends State<AppStoreTestPage> {
       final androidInfo = await deviceInfoPlugin.androidInfo;
       setState(() {
         deviceInfo = '''
-设备品牌: ${androidInfo.brand}
-制造商: ${androidInfo.manufacturer}
-型号: ${androidInfo.model}
-Android版本: ${androidInfo.version.release}
-API级别: ${androidInfo.version.sdkInt}
+${'i18n_my_设备品牌'.tr}: ${androidInfo.brand}
+${'i18n_my_制造商'.tr}: ${androidInfo.manufacturer}
+${'i18n_my_型号'.tr}: ${androidInfo.model}
+${'i18n_my_Android版本'.tr}: ${androidInfo.version.release}
+${'i18n_my_API级别'.tr}: ${androidInfo.version.sdkInt}
 ''';
       });
     } else if (Platform.isIOS) {
@@ -40,10 +42,10 @@ API级别: ${androidInfo.version.sdkInt}
       final iosInfo = await deviceInfoPlugin.iosInfo;
       setState(() {
         deviceInfo = '''
-设备型号: ${iosInfo.model}
-系统名称: ${iosInfo.systemName}
-系统版本: ${iosInfo.systemVersion}
-设备名称: ${iosInfo.name}
+${'i18n_my_设备型号'.tr}: ${iosInfo.model}
+${'i18n_my_系统名称'.tr}: ${iosInfo.systemName}
+${'i18n_my_系统版本'.tr}: ${iosInfo.systemVersion}
+${'i18n_my_设备名称'.tr}: ${iosInfo.name}
 ''';
       });
     }
@@ -59,7 +61,7 @@ API级别: ${androidInfo.version.sdkInt}
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('应用商店测试'),
+        title: Text('i18n_my_应用商店测试页面标题'.tr),
         backgroundColor: const Color(0xFF667eea),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -91,9 +93,9 @@ API级别: ${androidInfo.version.sdkInt}
                       color: const Color(0xFF667eea),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
-                      '设备信息',
-                      style: TextStyle(
+                    Text(
+                      'i18n_my_设备信息'.tr,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -119,20 +121,20 @@ API级别: ${androidInfo.version.sdkInt}
             child: Column(
               children: [
                 _buildTestButton(
-                  '测试通用market://协议',
+                  'i18n_my_测试通用market协议'.tr,
                   Icons.store,
                   () => _testUniversalMarket(),
                 ),
                 const SizedBox(height: 12),
                 _buildTestButton(
-                  '测试完整应用商店流程',
+                  'i18n_my_测试完整应用商店流程'.tr,
                   Icons.star_rate,
                   () => _testCompleteFlow(),
                 ),
                 if (Platform.isAndroid) ...[
                   const SizedBox(height: 12),
                   _buildTestButton(
-                    '测试Google Play',
+                    'i18n_my_测试GooglePlay'.tr,
                     Icons.play_arrow,
                     () => _testGooglePlay(),
                   ),
@@ -156,17 +158,17 @@ API级别: ${androidInfo.version.sdkInt}
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.bug_report,
                         color: Color(0xFF667eea),
                         size: 20,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
-                        '测试日志',
-                        style: TextStyle(
+                        'i18n_my_测试日志'.tr,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -176,10 +178,10 @@ API级别: ${androidInfo.version.sdkInt}
                   const SizedBox(height: 12),
                   Expanded(
                     child: testResults.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              '点击上方按钮开始测试',
-                              style: TextStyle(
+                              'i18n_my_点击上方按钮开始测试'.tr,
+                              style: const TextStyle(
                                 color: Color(0xFF999999),
                                 fontSize: 14,
                               ),
@@ -244,27 +246,27 @@ API级别: ${androidInfo.version.sdkInt}
   }
 
   Future<void> _testUniversalMarket() async {
-    _addTestResult('开始测试通用market://协议');
+    _addTestResult('i18n_my_开始测试通用market协议'.tr);
     try {
       await AppStoreHelper.openAppStoreRating();
-      _addTestResult('✅ 成功打开应用商店');
+      _addTestResult('i18n_my_成功打开应用商店'.tr);
     } catch (e) {
-      _addTestResult('❌ 失败: $e');
+      _addTestResult('i18n_my_失败'.trParams({'error': e.toString()}));
     }
   }
 
   Future<void> _testCompleteFlow() async {
-    _addTestResult('开始测试完整应用商店流程');
+    _addTestResult('i18n_my_开始测试完整应用商店流程'.tr);
     try {
       await AppStoreHelper.openAppStoreRating();
-      _addTestResult('✅ 成功打开应用商店');
+      _addTestResult('i18n_my_成功打开应用商店'.tr);
     } catch (e) {
-      _addTestResult('❌ 失败: $e');
+      _addTestResult('i18n_my_失败'.trParams({'error': e.toString()}));
     }
   }
 
   Future<void> _testGooglePlay() async {
-    _addTestResult('开始测试Google Play');
+    _addTestResult('i18n_my_开始测试GooglePlay'.tr);
     try {
       // 直接测试Google Play
       const packageName = 'com.guanshangyun.clipora';
@@ -272,9 +274,9 @@ API级别: ${androidInfo.version.sdkInt}
       
       final uri = Uri.parse(playStoreUrl);
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-      _addTestResult('✅ 成功打开Google Play');
+      _addTestResult('i18n_my_成功打开GooglePlay'.tr);
     } catch (e) {
-      _addTestResult('❌ Google Play失败: $e');
+      _addTestResult('i18n_my_GooglePlay失败'.trParams({'error': e.toString()}));
     }
   }
 } 

@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import '../../../api/user_api.dart';
 import '../../../basics/config.dart';
+import '../../../basics/translations/select_language_widget.dart';
+import '../../../controller/language_controller.dart';
 import '../../../route/route_name.dart';
 import '../../../basics/logger.dart';
 import 'about_page.dart';
@@ -34,7 +37,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      height: MediaQuery.of(context).size.height * 0.65,
+      height: MediaQuery.of(context).size.height * 0.75,
       child: Column(
         children: [
           // 优化的顶部区域
@@ -51,12 +54,12 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                   const SizedBox(height: 4),
 
                   // 应用功能
-                  _buildSectionHeader('应用功能', Icons.apps),
+                  _buildSectionHeader('i18n_my_应用功能'.tr, Icons.apps),
                   const SizedBox(height: 12),
                   _buildFunctionSection(),
                   const SizedBox(height: 12),
                   // 隐私与安全
-                  _buildSectionHeader('信息', Icons.security), 
+                  _buildSectionHeader('i18n_my_信息'.tr, Icons.security), 
                   const SizedBox(height: 12),
                   _buildPrivacySection(),
                   
@@ -77,7 +80,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                     child: Container(
                       alignment: Alignment.center,
                       child: Text(
-                        '注销账号',
+                        'i18n_my_注销账号'.tr,
                         style: TextStyle(
                           fontSize: 15,
                           color: UiColour.neutral_6,
@@ -144,9 +147,9 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                 ),
               ),
               const SizedBox(width: 10),
-              const Text(
-                '设置',
-                style: TextStyle(
+              Text(
+                'i18n_my_设置'.tr,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF1D1D1F),
@@ -208,8 +211,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         children: [
           _buildModernSettingItem(
             icon: Icons.policy_outlined,
-            title: '用户协议',
-            subtitle: '了解我们的用户协议',
+            title: 'i18n_my_用户协议'.tr,
+            subtitle: 'i18n_my_了解我们的用户协议'.tr,
             iconColor: const Color(0xFFFF6B6B),
             iconBgColor: const Color(0xFFFF6B6B).withOpacity(0.1),
             onTap: () => _handleThirdPartyInfo(),
@@ -219,8 +222,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
           _buildDivider(),
           _buildModernSettingItem(
             icon: Icons.verified_user_outlined,
-            title: '隐私协议',
-            subtitle: '保护您的隐私权益',
+            title: 'i18n_my_隐私协议'.tr,
+            subtitle: 'i18n_my_保护您的隐私权益'.tr,
             iconColor: const Color(0xFF4ECDC4),
             iconBgColor: const Color(0xFF4ECDC4).withOpacity(0.1),
             onTap: () => _handlePrivacyPolicy(),
@@ -230,8 +233,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
           _buildDivider(),
           _buildModernSettingItem(
             icon: Icons.info_outline,
-            title: '关于我们',
-            subtitle: '了解更多应用信息',
+            title: 'i18n_my_关于我们'.tr,
+            subtitle: 'i18n_my_了解更多应用信息'.tr,
             iconColor: const Color(0xFF9B59B6),
             iconBgColor: const Color(0xFF9B59B6).withOpacity(0.1),
             onTap: () => _handleAboutUs(),
@@ -273,6 +276,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
           ),
           child: Column(
             children: [
+              _buildLanguageSetting(),
               // _buildModernSettingItem(
               //   icon: Icons.help_center_outlined,
               //   title: '使用帮助',
@@ -297,6 +301,27 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         ),
       ],
     );
+  }
+
+  Widget _buildLanguageSetting() {
+    final languageController = Get.find<LanguageController>();
+    return Obx(() {
+      final currentLanguage = languageController.supportedLanguages.firstWhere(
+        (lang) => languageController.isCurrentLanguage(
+            lang.languageCode, lang.countryCode),
+        orElse: () => languageController.supportedLanguages.first,
+      );
+      return _buildModernSettingItem(
+        icon: Icons.language_outlined,
+        title: 'i18n_my_语言设置'.tr,
+        subtitle: 'i18n_my_当前语言'.trParams({'language': currentLanguage.languageName}),
+        iconColor: const Color(0xFF34C759),
+        iconBgColor: const Color(0xFF34C759).withOpacity(0.1),
+        onTap: () => SelectLanguageWidget.show(context),
+        isFirst: true,
+        isLast: true,
+      );
+    });
   }
 
   Widget _buildAiTranslationCard() {
@@ -333,27 +358,27 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
   }
 
   Widget _buildAiCardLoading() {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
+        const SizedBox(
             width: 18,
             height: 18,
             child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF667eea))),
-        SizedBox(width: 12),
-        Text('正在获取AI翻译余量...', style: TextStyle(color: Color(0xFF8E8E93), fontSize: 14)),
+        const SizedBox(width: 12),
+        Text('i18n_my_正在获取AI翻译余量'.tr, style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 14)),
       ],
     );
   }
 
   Widget _buildAiCardError() {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.error_outline, color: Color(0xFFFF6B6B), size: 20),
-        SizedBox(width: 8),
-        Text('加载失败，请点击重试',
-            style: TextStyle(
+        const Icon(Icons.error_outline, color: Color(0xFFFF6B6B), size: 20),
+        const SizedBox(width: 8),
+        Text('i18n_my_加载失败请点击重试'.tr,
+            style: const TextStyle(
                 color: Color(0xFFFF6B6B),
                 fontSize: 14,
                 fontWeight: FontWeight.w600)),
@@ -371,30 +396,31 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 Text(
-                  'AI 翻译请求',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1D1D1F)),
-                ),
-                 SizedBox(height: 2),
-                 Text(
-                  '让阅读更智能，翻译更流畅',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF8E8E93),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'i18n_my_AI翻译请求'.tr,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1D1D1F)),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    'i18n_my_让阅读更智能翻译更流畅'.tr,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF8E8E93),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            
+            const SizedBox(width: 12),
             ElevatedButton(
               onPressed: () {
                 context.push('/${RouteName.aiOrderPage}');
@@ -410,7 +436,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                 elevation: 0,
                 shadowColor: Colors.transparent,
               ),
-              child: const Text('购买', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              child: Text('i18n_my_购买'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             )
           ],
         ),
@@ -430,11 +456,14 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '已用: ${_totalTranslateQuantity! - _remainingTranslateQuantity!}',
+              'i18n_my_已用'.trParams({'used': '${_totalTranslateQuantity! - _remainingTranslateQuantity!}'}),
               style: const TextStyle(fontSize: 12, color: Color(0xFF8E8E93)),
             ),
             Text(
-              '剩余: $_remainingTranslateQuantity / $_totalTranslateQuantity',
+              'i18n_my_剩余'.trParams({
+                'remaining': '$_remainingTranslateQuantity',
+                'total': '$_totalTranslateQuantity'
+              }),
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -462,7 +491,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          Navigator.pop(context);
+          // Navigator.pop(context);
           onTap();
         },
         borderRadius: BorderRadius.vertical(
@@ -559,6 +588,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
+            // 先关闭弹窗
+            Navigator.of(context).pop();
             _handleLogout();
           },
           borderRadius: BorderRadius.circular(14),
@@ -572,18 +603,18 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
               ),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.logout,
                   color: Colors.white,
                   size: 18,
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text(
-                  '退出登录',
-                  style: TextStyle(
+                  'i18n_my_退出登录'.tr,
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -762,18 +793,18 @@ mixin MyPageBLoC on State<MyPage> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出当前账号吗？'),
+        title: Text('i18n_my_退出登录'.tr),
+        content: Text('i18n_my_确定要退出当前账号吗'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text('i18n_my_取消'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              '退出',
-              style: TextStyle(color: Color(0xFFFF3B30)),
+            child: Text(
+              'i18n_my_退出'.tr,
+              style: const TextStyle(color: Color(0xFFFF3B30)),
             ),
           ),
         ],
@@ -785,7 +816,7 @@ mixin MyPageBLoC on State<MyPage> {
       await prefs.clear();
       
       // 先关闭弹窗，然后跳转到登录页
-      Navigator.of(context).pop(); // 关闭设置弹窗
+      // Navigator.of(context).pop(); // 关闭设置弹窗
       context.go('/${RouteName.login}');
     }
   }
@@ -796,18 +827,18 @@ mixin MyPageBLoC on State<MyPage> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('注销账号'),
-        content: const Text('确定要注销当前账号吗？这将删除所有数据并无法恢复。'),
+        title: Text('i18n_my_注销账号'.tr),
+        content: Text('i18n_my_确定要注销当前账号吗'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text('i18n_my_取消'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              '注销',
-              style: TextStyle(color: Color(0xFFFF3B30)),
+            child: Text(
+              'i18n_my_注销'.tr,
+              style: const TextStyle(color: Color(0xFFFF3B30)),
             ),
           ),
         ],
@@ -820,6 +851,8 @@ mixin MyPageBLoC on State<MyPage> {
       await prefs.clear();
       
       if (mounted) {
+        // 先关闭弹窗
+        Navigator.of(context).pop();
         context.go('/login');
       }
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import '../../../basics/config.dart';
 
 
@@ -22,9 +23,9 @@ class _AboutPageState extends State<AboutPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFBFC),
       appBar: AppBar(
-        title: const Text(
-          '关于我们',
-          style: TextStyle(
+        title: Text(
+          'i18n_my_关于我们页面标题'.tr,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Color(0xFF1D1D1F),
@@ -133,9 +134,9 @@ class _AboutPageState extends State<AboutPage> {
           const SizedBox(height: 8),
           
           // App Tagline
-          const Text(
-            '智能剪藏与笔记管理',
-            style: TextStyle(
+          Text(
+            'i18n_my_智能剪藏与笔记管理'.tr,
+            style: const TextStyle(
               fontSize: 14,
               color: Color(0xFF8E8E93),
               letterSpacing: 0.3,
@@ -180,9 +181,9 @@ class _AboutPageState extends State<AboutPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                '版本信息',
-                style: TextStyle(
+              Text(
+                'i18n_my_版本信息'.tr,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF1D1D1F),
@@ -193,11 +194,11 @@ class _AboutPageState extends State<AboutPage> {
           
           const SizedBox(height: 16),
           
-          _buildInfoRow('版本号', version),
+          _buildInfoRow('i18n_my_版本号'.tr, version),
           const SizedBox(height: 12),
-          _buildInfoRow('构建号', clientVersion.toString()),
+          _buildInfoRow('i18n_my_构建号'.tr, clientVersion.toString()),
           const SizedBox(height: 12),
-          _buildInfoRow('备案号', "粤ICP备2021048632号-5A"),
+          _buildInfoRow('i18n_my_备案号'.tr, "粤ICP备2021048632号-5A"),
           // const SizedBox(height: 12),
           // _buildInfoRow('发布日期', '2024年3月'),
         ],
@@ -262,9 +263,9 @@ class _AboutPageState extends State<AboutPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                '应用介绍',
-                style: TextStyle(
+              Text(
+                'i18n_my_应用介绍'.tr,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF1D1D1F),
@@ -275,9 +276,9 @@ class _AboutPageState extends State<AboutPage> {
           
           const SizedBox(height: 16),
           
-          const Text(
-            'Clipora 是一款专为现代用户设计的智能剪藏与笔记管理应用。我们致力于帮助用户高效地收集、整理和管理各类信息，让知识管理变得更加简单和高效。',
-            style: TextStyle(
+          Text(
+            'i18n_my_应用介绍内容'.tr,
+            style: const TextStyle(
               fontSize: 14,
               height: 1.6,
               color: Color(0xFF3C3C3C),
@@ -286,9 +287,9 @@ class _AboutPageState extends State<AboutPage> {
           
           const SizedBox(height: 16),
           
-          const Text(
-            '主要功能：',
-            style: TextStyle(
+          Text(
+            'i18n_my_主要功能'.tr,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Color(0xFF1D1D1F),
@@ -297,10 +298,10 @@ class _AboutPageState extends State<AboutPage> {
           
           const SizedBox(height: 8),
           
-          _buildFeatureItem('网页内容快速剪藏'),
-          _buildFeatureItem('智能笔记分类管理'),
-          _buildFeatureItem('全文搜索与标签系统'),
-          _buildFeatureItem('跨平台同步与分享'),
+          _buildFeatureItem('i18n_my_网页内容快速剪藏'.tr),
+          _buildFeatureItem('i18n_my_智能笔记分类管理'.tr),
+          _buildFeatureItem('i18n_my_全文搜索与标签系统'.tr),
+          _buildFeatureItem('i18n_my_跨平台同步与分享'.tr),
         ],
       ),
     );
@@ -366,9 +367,9 @@ class _AboutPageState extends State<AboutPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                '联系我们',
-                style: TextStyle(
+              Text(
+                'i18n_my_联系我们'.tr,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF1D1D1F),
@@ -381,25 +382,25 @@ class _AboutPageState extends State<AboutPage> {
           
           _buildContactItem(
             icon: Icons.email_outlined,
-            title: '邮箱',
+            title: 'i18n_my_邮箱'.tr,
             content: '337196325@qq.com',
-            onTap: () => _copyToClipboard('337196325@qq.com', '邮箱地址'),
+            onTap: () => _copyToClipboard('337196325@qq.com', 'i18n_my_邮箱地址已复制到剪贴板'.tr),
           ),
           
           const SizedBox(height: 12),
           
           _buildContactItem(
             icon: Icons.web_outlined,
-            title: '官网',
+            title: 'i18n_my_官网'.tr,
             content: 'clipora.guanshangyun.com',
-            onTap: () => _copyToClipboard('clipora.guanshangyun.com', '官网地址'),
+            onTap: () => _copyToClipboard('clipora.guanshangyun.com', 'i18n_my_官网地址已复制到剪贴板'.tr),
           ),
           
           const SizedBox(height: 16),
           
-          const Text(
-            '感谢您使用 Clipora，如有任何问题或建议，请随时联系我们！',
-            style: TextStyle(
+          Text(
+            'i18n_my_感谢您使用Clipora'.tr,
+            style: const TextStyle(
               fontSize: 12,
               color: Color(0xFF8E8E93),
               height: 1.4,
@@ -469,7 +470,7 @@ class _AboutPageState extends State<AboutPage> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$label已复制到剪贴板'),
+        content: Text(label),
         duration: const Duration(seconds: 2),
         backgroundColor: const Color(0xFF4ECDC4),
         behavior: SnackBarBehavior.floating,

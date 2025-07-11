@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../db/category/category_db.dart';
 import '../utils/group_constants.dart';
 
@@ -190,7 +191,7 @@ class CategoryItemWidget extends StatelessWidget {
             builder: (context, snapshot) {
               final count = snapshot.data ?? 0;
               return Text(
-                '$count 个项目',
+                '$count ${'i18n_group_个项目'.tr}',
                 style: const TextStyle(
                   fontSize: 12,
                   color: GroupConstants.hintText,
