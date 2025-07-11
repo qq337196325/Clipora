@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// 增强选择菜单动作类型
 enum EnhancedSelectionAction {
@@ -41,14 +42,14 @@ class EnhancedSelectionMenu extends StatelessWidget {
           _buildActionButton(
             context,
             icon: Icons.copy,
-            label: '复制',
+            label: 'i18n_article_复制'.tr,
             action: EnhancedSelectionAction.copy,
           ),
           _buildDivider(context),
           _buildActionButton(
             context,
             icon: Icons.highlight,
-            label: '高亮',
+            label: 'i18n_article_高亮'.tr,
             action: EnhancedSelectionAction.highlight,
             color: Colors.yellow[700],
           ),
@@ -56,7 +57,7 @@ class EnhancedSelectionMenu extends StatelessWidget {
           _buildActionButton(
             context,
             icon: Icons.note_add,
-            label: '笔记',
+            label: 'i18n_article_笔记'.tr,
             action: EnhancedSelectionAction.note,
             color: Colors.green[600],
           ),

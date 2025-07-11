@@ -1,18 +1,39 @@
+import 'package:get/get.dart';
+
 /// 文章列表类型枚举
 enum ArticleListType {
-  readLater('read-later', '稍后阅读'),
-  category('category', '分类文章'),
-  bookmark('bookmark', '我的收藏'),
-  search('search', '搜索结果'),
-  tag('tag', '标签文章'),
-  archived('archived', '归档文章'),
-  deleted('deleted', '回收站'),
-  all('all', '全部文章');
+  readLater('read-later'),
+  category('category'),
+  bookmark('bookmark'),
+  search('search'),
+  tag('tag'),
+  archived('archived'),
+  deleted('deleted'),
+  all('all');
 
-  const ArticleListType(this.value, this.title);
-  
+  const ArticleListType(this.value);
   final String value;
-  final String title;
+
+  String get title {
+    switch (this) {
+      case ArticleListType.readLater:
+        return 'i18n_article_list_read_later'.tr;
+      case ArticleListType.category:
+        return 'i18n_article_list_category_articles'.tr;
+      case ArticleListType.bookmark:
+        return 'i18n_article_list_my_bookmarks'.tr;
+      case ArticleListType.search:
+        return 'i18n_article_list_search_results'.tr;
+      case ArticleListType.tag:
+        return 'i18n_article_list_tag_articles'.tr;
+      case ArticleListType.archived:
+        return 'i18n_article_list_archived_articles'.tr;
+      case ArticleListType.deleted:
+        return 'i18n_article_list_recycle_bin'.tr;
+      case ArticleListType.all:
+        return 'i18n_article_list_all_articles'.tr;
+    }
+  }
 
   static ArticleListType fromValue(String value) {
     return ArticleListType.values.firstWhere(
@@ -44,9 +65,9 @@ class ArticleListConfig {
 
   /// 工厂构造函数：稍后阅读
   factory ArticleListConfig.readLater() {
-    return const ArticleListConfig(
+    return ArticleListConfig(
       type: ArticleListType.readLater,
-      title: '稍后阅读',
+      title: ArticleListType.readLater.title,
     );
   }
 
@@ -64,7 +85,7 @@ class ArticleListConfig {
   factory ArticleListConfig.tag(int tagId, String tagName) {
     return ArticleListConfig(
       type: ArticleListType.tag,
-      title: '标签: $tagName',
+      title: 'i18n_article_list_tag_title'.trParams({'tagName': tagName}),
       tagId: tagId,
       tagName: tagName,
     );
@@ -72,25 +93,25 @@ class ArticleListConfig {
 
   /// 工厂构造函数：收藏文章
   factory ArticleListConfig.bookmark() {
-    return const ArticleListConfig(
+    return ArticleListConfig(
       type: ArticleListType.bookmark,
-      title: '我的收藏',
+      title: ArticleListType.bookmark.title,
     );
   }
 
   /// 工厂构造函数：归档文章
   factory ArticleListConfig.archived() {
-    return const ArticleListConfig(
+    return ArticleListConfig(
       type: ArticleListType.archived,
-      title: '归档文章',
+      title: ArticleListType.archived.title,
     );
   }
 
   /// 工厂构造函数：回收站
   factory ArticleListConfig.deleted() {
-    return const ArticleListConfig(
+    return ArticleListConfig(
       type: ArticleListType.deleted,
-      title: '回收站',
+      title: ArticleListType.deleted.title,
     );
   }
 
@@ -98,16 +119,16 @@ class ArticleListConfig {
   factory ArticleListConfig.search(String keyword) {
     return ArticleListConfig(
       type: ArticleListType.search,
-      title: '搜索: $keyword',
+      title: 'i18n_article_list_search_title'.trParams({'keyword': keyword}),
       filters: {'keyword': keyword},
     );
   }
 
   /// 工厂构造函数：全部文章
   factory ArticleListConfig.all() {
-    return const ArticleListConfig(
+    return ArticleListConfig(
       type: ArticleListType.all,
-      title: '全部文章',
+      title: ArticleListType.all.title,
     );
   }
 

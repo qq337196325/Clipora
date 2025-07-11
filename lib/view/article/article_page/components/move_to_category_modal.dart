@@ -1,5 +1,6 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../db/article/service/article_service.dart';
 import '/basics/logger.dart';
 import '/db/category/category_db.dart';
@@ -52,7 +53,7 @@ class _MoveToCategoryModalState extends State<MoveToCategoryModal> {
         });
       }
     } catch (e) {
-      BotToast.showText(text: "加载分类失败: $e");
+      BotToast.showText(text: "${'i18n_article_加载分类失败'.tr}$e");
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -61,7 +62,7 @@ class _MoveToCategoryModalState extends State<MoveToCategoryModal> {
 
   Future<void> _moveArticleToCategory(CategoryDb? category) async {
     try {
-      final categoryName = category?.name ?? '未分类';
+      final categoryName = category?.name ?? 'i18n_article_未分类'.tr;
       getLogger().i("开始移动文章到分类: $categoryName");
       
       final article = await _articleService.getArticleById(widget.articleId);
@@ -76,15 +77,15 @@ class _MoveToCategoryModalState extends State<MoveToCategoryModal> {
         if (mounted) {
           // Pop the modal
           Navigator.of(context).pop();
-          BotToast.showText(text: "成功移动到 $categoryName");
+          BotToast.showText(text: "${'i18n_article_成功移动到'.tr}$categoryName");
         }
       } else {
         getLogger().w("未找到文章，ID: ${widget.articleId}");
-        BotToast.showText(text: "未找到文章");
+        BotToast.showText(text: 'i18n_article_未找到文章'.tr);
       }
     } catch (e) {
       getLogger().e("移动失败: ${e.toString()}"); 
-      BotToast.showText(text: "移动失败: ${e.toString()}");
+      BotToast.showText(text: "${'i18n_article_移动失败'.tr}${e.toString()}");
     }
   }
 
@@ -119,7 +120,7 @@ class _MoveToCategoryModalState extends State<MoveToCategoryModal> {
      widgets.add(
       _buildCategoryTile(
         context: context,
-        title: "设为未分类",
+        title: 'i18n_article_设为未分类'.tr,
         icon: Icon(Icons.folder_off_outlined, color: isUncategorized ? selectedColor: theme.iconTheme.color),
         level: 0,
         isSelected: isUncategorized,
@@ -209,7 +210,7 @@ class _MoveToCategoryModalState extends State<MoveToCategoryModal> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '移动到分组',
+                    'i18n_article_移动到分组'.tr,
                     style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   IconButton(

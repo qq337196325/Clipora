@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:get/get.dart';
 
 import '../models/sort_option.dart';
 
@@ -77,7 +78,7 @@ class SortBottomSheet extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   Text(
-                    '排序方式',
+                    'i18n_article_list_sort_by'.tr,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
@@ -193,7 +194,9 @@ class SortBottomSheet extends StatelessWidget {
                     if (isSelected && sortType != SortType.name) ...[
                       const SizedBox(height: 3),
                       Text(
-                        isDescending ? '最新在前' : '最旧在前',
+                        isDescending
+                            ? 'i18n_article_list_latest_first'.tr
+                            : 'i18n_article_list_oldest_first'.tr,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -240,7 +243,9 @@ class SortBottomSheet extends StatelessWidget {
                         ),
                         const SizedBox(width: 3),
                         Text(
-                          isDescending ? '降序' : '升序',
+                          isDescending
+                              ? 'i18n_article_list_descending'.tr
+                              : 'i18n_article_list_ascending'.tr,
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,

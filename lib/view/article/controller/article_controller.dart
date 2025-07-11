@@ -8,18 +8,13 @@ import '../../../api/user_api.dart';
 import '../../../basics/logger.dart';
 import '../../../db/database_service.dart';
 import 'article_markdown_controller.dart';
-import 'models/translate_content_model.dart';
 
 
 /// 文章控制器
 class ArticleController extends ArticleMarkdownController {
 
 
-
   /// ------------------------------------------------------------------------------
-
-
-
 
 
   // 加载状态
@@ -75,13 +70,6 @@ class ArticleController extends ArticleMarkdownController {
       // _isLoading.value = false;
     }
   }
-
-
-
-
-
-
-
 
   /// Markdown 生成成功回调
   Future<void> onMarkdownGenerated() async {
@@ -180,7 +168,7 @@ class ArticleController extends ArticleMarkdownController {
   bool get hasArticle => currentArticleRx.value != null;
 
   /// 获取文章标题
-  String get articleTitle => currentArticleRx.value?.title ?? '未知标题';
+  String get articleTitle => currentArticleRx.value?.title ?? 'i18n_article_未知标题'.tr;
 
   /// 获取文章URL
   String get articleUrl => currentArticleRx.value?.url ?? '';
@@ -205,7 +193,7 @@ class ArticleController extends ArticleMarkdownController {
 
     final article = currentArticleRx.value;
     if (article == null || article.serviceId.isEmpty) {
-      BotToast.showText(text: '文章信息获取失败');
+      BotToast.showText(text: 'i18n_article_文章信息获取失败'.tr);
       return 99;
     }
 
@@ -234,18 +222,18 @@ class ArticleController extends ArticleMarkdownController {
         return 0;
       } else if (response['code'] == 100) {
         _translationStatus[languageCode] = 'failed';
-        final errorMsg = response['msg'] ?? '您的翻译额度已用完';
+        final errorMsg = response['msg'] ?? 'i18n_article_您的翻译额度已用完'.tr;
         return response['code'];
       } else {
         _translationStatus[languageCode] = 'failed';
-        final errorMsg = response['msg'] ?? '翻译请求失败';
+        final errorMsg = response['msg'] ?? 'i18n_article_翻译请求失败'.tr;
         BotToast.showText(text: errorMsg);
         getLogger().e('❌ 翻译请求失败: $errorMsg');
         return response['code'];
       }
     } catch (e) {
       _translationStatus[languageCode] = 'failed';
-      BotToast.showText(text: '翻译请求失败，请重试');
+      BotToast.showText(text: 'i18n_article_翻译请求失败请重试'.tr);
       getLogger().e('❌ 翻译请求异常: $e');
       return 99;
     } finally {
@@ -292,38 +280,6 @@ class ArticleController extends ArticleMarkdownController {
         _translationStatus[languageCode] = 'translated';
       }
 
-      // final response = await UserApi.getTranslateContentApi({
-      //   'up_id': upId,
-      //   'service_article_id': article.serviceId,
-      // });
-
-      // if (response['code'] == 0) {
-      //   // 翻译完成
-      //   timer.cancel();
-      //   _pollingTimers.remove(languageCode);
-      //   _translationUpIds.remove(languageCode);
-      //
-      //   _translationStatus[languageCode] = 'translated';
-      //
-      //   final data = response['data'];
-      //   if (data != null) {
-      //     try {
-      //       // 解析翻译内容
-      //       final translateContent = TranslateContentModel.fromJson(data);
-      //
-      //       // 保存翻译后的内容到数据库
-      //       await _saveTranslatedContent(translateContent);
-      //       getLogger().i('✅ 翻译完成并保存，语言: $languageCode，内容长度: ${translateContent.markdown.length}');
-      //     } catch (e) {
-      //       getLogger().e('❌ 解析翻译内容失败: $e');
-      //       _translationStatus[languageCode] = 'failed';
-      //     }
-      //   }
-      // } else {
-      //   // 继续轮询（翻译仍在进行中）
-      //   getLogger().d('⏳ 翻译进行中，语言: $languageCode');
-      // }
-
       getLogger().d('⏳ 翻译进行中，语言: $languageCode');
     } catch (e) {
       getLogger().e('❌ 检查翻译结果异常: $e');
@@ -331,21 +287,7 @@ class ArticleController extends ArticleMarkdownController {
     }
   }
 
-  /// 保存翻译内容到数据库
-  Future<void> _saveTranslatedContent(TranslateContentModel translateContent) async {
-    try {
-      await articleService.saveOrUpdateArticleContent(
-        articleId: translateContent.articleId,
-        markdown: translateContent.markdown,
-        languageCode: translateContent.languageCode,
-        isOriginal: false,
-        serviceId: translateContent.id, // 保存服务端的翻译内容ID
-      );
-      getLogger().i('💾 翻译内容已保存到数据库，语言: ${translateContent.languageCode}，serviceId: ${translateContent.id}');
-    } catch (e) {
-      getLogger().e('❌ 保存翻译内容失败: $e');
-    }
-  }
+
 
   /// 重新翻译
   Future<int> retranslate(String languageCode) async {

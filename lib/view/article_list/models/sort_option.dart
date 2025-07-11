@@ -1,13 +1,25 @@
+import 'package:get/get.dart';
+
 /// 排序类型枚举
 enum SortType {
-  createTime('createTime', '按创建时间'),
-  modifyTime('modifyTime', '按修改时间'),
-  name('name', '按名称');
+  createTime('createTime'),
+  modifyTime('modifyTime'),
+  name('name');
 
-  const SortType(this.value, this.label);
-  
+  const SortType(this.value);
+
   final String value;
-  final String label;
+
+  String get label {
+    switch (this) {
+      case SortType.createTime:
+        return 'i18n_article_list_sort_by_create_time'.tr;
+      case SortType.modifyTime:
+        return 'i18n_article_list_sort_by_modify_time'.tr;
+      case SortType.name:
+        return 'i18n_article_list_sort_by_name'.tr;
+    }
+  }
 }
 
 /// 排序选项配置

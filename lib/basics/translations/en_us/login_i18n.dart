@@ -1,6 +1,6 @@
 // lib/basics/translations/en_us/login_i18n.dart
 
-const Map<String, String> loginI18nEn = {
+const Map<String, String> loginI18n = {
   'i18n_login_登录': 'Login',
   'i18n_login_立即登录': 'Log In Now',
   'i18n_login_请输入用户名': 'Please enter username',

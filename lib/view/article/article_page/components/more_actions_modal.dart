@@ -94,7 +94,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
 
   void _showToast(BuildContext context, String message) {
     Navigator.of(context).pop();
-    BotToast.showText(text: '$message 功能待开发');
+    BotToast.showText(text: '${message} ${'i18n_article_功能待开发'.tr}');
   }
 
   /// 复制链接功能
@@ -102,18 +102,18 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
     final url = articleController.articleUrl;
     
     if (url.isEmpty) {
-      BotToast.showText(text: '文章链接不存在');
+      BotToast.showText(text: 'i18n_article_文章链接不存在'.tr);
       return;
     }
 
     try {
       await Clipboard.setData(ClipboardData(text: url));
       Navigator.of(context).pop();
-      BotToast.showText(text: '链接已复制到剪贴板');
+      BotToast.showText(text: 'i18n_article_链接已复制到剪贴板'.tr);
       getLogger().i('✅ 链接已复制: $url');
     } catch (e) {
       Navigator.of(context).pop();
-      BotToast.showText(text: '复制失败: $e');
+      BotToast.showText(text: '${'i18n_article_复制失败'.tr}$e');
       getLogger().e('❌ 复制链接失败: $e');
     }
   }
@@ -147,7 +147,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
 
   Future<void> _toggleImportantStatus(BuildContext context) async {
     if (_article == null) {
-      BotToast.showText(text: '文章信息加载中，请稍后重试');
+      BotToast.showText(text: 'i18n_article_文章信息加载中请稍后重试'.tr);
       return;
     }
 
@@ -161,18 +161,18 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
         
         Navigator.of(context).pop();
         BotToast.showText(
-          text: newStatus ? '已标记为重要' : '已取消重要标记',
+          text: newStatus ? 'i18n_article_已标记为重要'.tr : 'i18n_article_已取消重要标记'.tr,
         );
       }
     } catch (e) {
       Navigator.of(context).pop();
-      BotToast.showText(text: '操作失败：$e');
+      BotToast.showText(text: '${'i18n_article_操作失败'.tr}$e');
     }
   }
 
   Future<void> _toggleArchiveStatus(BuildContext context) async {
     if (_article == null) {
-      BotToast.showText(text: '文章信息加载中，请稍后重试');
+      BotToast.showText(text: 'i18n_article_文章信息加载中请稍后重试'.tr);
       return;
     }
 
@@ -186,12 +186,12 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
         
         Navigator.of(context).pop();
         BotToast.showText(
-          text: newStatus ? '已归档' : '已取消归档',
+          text: newStatus ? 'i18n_article_已归档'.tr : 'i18n_article_已取消归档'.tr,
         );
       }
     } catch (e) {
       Navigator.of(context).pop();
-      BotToast.showText(text: '操作失败：$e');
+      BotToast.showText(text: '${'i18n_article_操作失败'.tr}$e');
     }
   }
 
@@ -213,7 +213,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
   void _showSwitchToWebTabHint(BuildContext context, String actionName) {
     Navigator.of(context).pop();
     BotToast.showText(
-      text: '请切换到"网页"标签页进行$actionName操作',
+      text: 'i18n_article_请切换到网页标签页进行操作'.trParams({'actionName': actionName}),
       duration: const Duration(seconds: 3),
     );
   }
@@ -221,7 +221,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
   /// 显示删除确认对话框
   Future<void> _showDeleteConfirmDialog(BuildContext context) async {
     if (_article == null) {
-      BotToast.showText(text: '文章信息加载中，请稍后重试');
+      BotToast.showText(text: 'i18n_article_文章信息加载中请稍后重试'.tr);
       return;
     }
 
@@ -249,7 +249,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
               ),
               const SizedBox(width: 8),
               Text(
-                '确认删除',
+                'i18n_article_确认删除'.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -263,7 +263,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '确定要删除这篇文章吗？',
+                'i18n_article_确定要删除这篇文章吗'.tr,
                 style: TextStyle(
                   fontSize: 16,
                   color: theme.colorScheme.onSurface.withOpacity(0.8),
@@ -301,7 +301,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
               ),
               const SizedBox(height: 12),
               Text(
-                '删除后的文章可以在回收站中找到。',
+                'i18n_article_删除后的文章可以在回收站中找到'.tr,
                 style: TextStyle(
                   fontSize: 14,
                   color: theme.colorScheme.onSurface.withOpacity(0.6),
@@ -315,7 +315,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
               style: TextButton.styleFrom(
                 foregroundColor: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
-              child: const Text('取消'),
+              child: Text('i18n_article_取消'.tr),
             ),
             ElevatedButton(
               onPressed: () {
@@ -329,7 +329,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text('删除'),
+              child: Text('i18n_article_删除'.tr),
             ),
           ],
         );
@@ -348,14 +348,14 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
       await ArticleService.instance.softDeleteArticle(widget.articleId);
       
       if (mounted) {
-        BotToast.showText(text: '文章已删除');
+        BotToast.showText(text: 'i18n_article_文章已删除'.tr);
         
         // 返回到文章列表页面
         // 确认对话框已经通过pop(true)关闭，这里只需要返回到文章列表
         Navigator.of(context).pop(); // 返回到文章列表页面
       }
     } catch (e) {
-      BotToast.showText(text: '删除失败：$e');
+      BotToast.showText(text: '${'i18n_article_删除失败'.tr}$e');
       getLogger().e('❌ 删除文章失败: $e');
     }
   }
@@ -376,16 +376,16 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
     final List<_ActionItem> actions = [
       _ActionItem(
         icon: Icons.link, 
-        label: '复制链接', 
+        label: 'i18n_article_复制链接'.tr, 
         onTap: () => _copyLink(context),
         isEnabled: hasUrl,
       ),
       _ActionItem(
         icon: Icons.refresh,
-        label: '刷新解析',
+        label: 'i18n_article_刷新解析'.tr,
         onTap: () {
           if (!_isInWebTab()) {
-            _showSwitchToWebTabHint(context, '刷新解析');
+            _showSwitchToWebTabHint(context, 'i18n_article_刷新解析'.tr);
             return;
           }
           
@@ -393,16 +393,16 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
             Navigator.of(context).pop();
             widget.onReGenerateMarkdown!();
           } else {
-            _showToast(context, '重新刷新解析');
+            _showToast(context, 'i18n_article_刷新解析'.tr);
           }
         },
     ),
     _ActionItem(
         icon: Icons.camera_alt_outlined,
-        label: '重新生成快照',
+        label: 'i18n_article_重新生成快照'.tr,
         onTap: () {
           if (!_isInWebTab()) {
-            _showSwitchToWebTabHint(context, '重新生成快照');
+            _showSwitchToWebTabHint(context, 'i18n_article_重新生成快照'.tr);
             return;
           }
           
@@ -410,26 +410,26 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
             Navigator.of(context).pop();
             widget.onReGenerateSnapshot!();
           } else {
-            _showToast(context, '重新生成快照');
+            _showToast(context, 'i18n_article_重新生成快照'.tr);
           }
         }),
 
 
-      _ActionItem(icon: Icons.g_translate, label: 'AI翻译', onTap: () => _showTranslateModal(context)),
+      _ActionItem(icon: Icons.g_translate, label: 'i18n_article_AI翻译'.tr, onTap: () => _showTranslateModal(context)),
 
-      _ActionItem(icon: Icons.label_outline, label: '标签', onTap: () => _showTagEditModal(context)),
-      _ActionItem(icon: Icons.drive_file_move_outline, label: '移动', onTap: () => _showMoveToCategoryModal(context)),
+      _ActionItem(icon: Icons.local_offer_outlined, label: 'i18n_article_标签'.tr, onTap: () => _showTagEditModal(context)),
+      _ActionItem(icon: Icons.drive_file_move_outline, label: 'i18n_article_移动'.tr, onTap: () => _showMoveToCategoryModal(context)),
              _ActionItem(
          icon: isImportant ? Icons.star : Icons.star_border, 
-         label: isImportant ? '取消重要' : '标为重要', 
+         label: isImportant ? 'i18n_article_取消重要'.tr : 'i18n_article_标为重要'.tr, 
          onTap: () => _toggleImportantStatus(context)
        ),
        _ActionItem(
          icon: isArchived ? Icons.unarchive : Icons.archive_outlined, 
-         label: isArchived ? '取消归档' : '归档', 
+         label: isArchived ? 'i18n_article_取消归档'.tr : 'i18n_article_归档'.tr, 
          onTap: () => _toggleArchiveStatus(context)
        ),
-      _ActionItem(icon: Icons.delete_outline, label: '删除', onTap: () => _showDeleteConfirmDialog(context), isDestructive: true),
+      _ActionItem(icon: Icons.delete_outline, label: 'i18n_article_删除'.tr, onTap: () => _showDeleteConfirmDialog(context), isDestructive: true),
     ];
 
     return Material(

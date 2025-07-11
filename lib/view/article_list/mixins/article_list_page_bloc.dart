@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../../../db/article/article_db.dart';
@@ -79,7 +80,7 @@ mixin ArticleListPageBLoC<T extends StatefulWidget> on State<T> {
       case ArticleListType.category:
         if (config.categoryId == null) {
           print('❌ [ArticleList] 分类ID为空!');
-          throw Exception('分类ID不能为空');
+          throw Exception('i18n_article_list_category_id_cannot_be_null'.tr);
         }
         print('📱 [ArticleList] 获取分类文章，categoryId: ${config.categoryId}');
         result = await ArticleService.instance.getCategoryArticlesWithPaging(
@@ -94,7 +95,7 @@ mixin ArticleListPageBLoC<T extends StatefulWidget> on State<T> {
       case ArticleListType.tag:
         if (config.tagId == null) {
           print('❌ [ArticleList] 标签ID为空!');
-          throw Exception('标签ID不能为空');
+          throw Exception('i18n_article_list_tag_id_cannot_be_null'.tr);
         }
         print('📱 [ArticleList] 获取标签文章，tagId: ${config.tagId}');
         result = await ArticleService.instance.getTagArticlesWithPaging(

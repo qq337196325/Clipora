@@ -17,9 +17,9 @@ class ArticleTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: MediaQuery.of(context).padding.top + 6, // 上方空隙
-      left: 16, // 左侧空隙
-      right: 16, // 右侧空隙
+      top: MediaQuery.of(context).padding.top + 4, // 上方空隙
+      left: 30, // 左侧空隙
+      right: 30, // 右侧空隙
       child: AnimatedSlide(
         duration: const Duration(milliseconds: 300),
         curve: Curves.fastOutSlowIn,
@@ -29,19 +29,19 @@ class ArticleTopBar extends StatelessWidget {
           opacity: isVisible ? 1.0 : 0.0,
           child: Center(
             child: Container(
-              width: 220, // 固定宽度，不占满
+              // width: 220, // 固定宽度，不占满
               height: topBarHeight,
               child: _buildCustomTabBar(context),
             ),
           ),
         ),
       ),
-    );
+    ); 
   }
 
   Widget _buildCustomTabBar(BuildContext context) {
     return Container(
-      height: 32,
+      height: 28,
       decoration: BoxDecoration(
         // 使用稍微带灰调的背景色，增加层次感
         color: Theme.of(context).colorScheme.surface,
@@ -104,7 +104,7 @@ class ArticleTopBar extends StatelessWidget {
         overlayColor: MaterialStateProperty.all(Colors.transparent),
         dividerColor: Colors.transparent,
                   tabs: tabs.map((tabName) => Tab(
-                    height: 24,
+                    height: 20,
             child: Text(
               tabName,
               style: const TextStyle(

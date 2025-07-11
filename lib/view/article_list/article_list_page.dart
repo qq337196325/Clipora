@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../../../db/article/article_db.dart';
@@ -74,21 +75,21 @@ class _ArticleListPageState extends State<ArticleListPage>
   String _getSubtitle() {
     switch (config.type) {
       case ArticleListType.readLater:
-        return '待阅读的文章';
+        return 'i18n_article_list_subtitle_read_later'.tr;
       case ArticleListType.category:
-        return '分类文章';
+        return 'i18n_article_list_subtitle_category'.tr;
       case ArticleListType.tag:
-        return '标签文章';
+        return 'i18n_article_list_subtitle_tag'.tr;
       case ArticleListType.bookmark:
-        return '标为重要';
+        return 'i18n_article_list_subtitle_bookmark'.tr;
       case ArticleListType.archived:
-        return '已归档的文章';
+        return 'i18n_article_list_subtitle_archived'.tr;
       case ArticleListType.deleted:
-        return '已删除的文章';
+        return 'i18n_article_list_subtitle_deleted'.tr;
       case ArticleListType.search:
-        return '搜索结果';
+        return 'i18n_article_list_subtitle_search'.tr;
       case ArticleListType.all:
-        return '全部文章';
+        return 'i18n_article_list_subtitle_all'.tr;
     }
   }
 
@@ -192,7 +193,7 @@ class _ArticleListPageState extends State<ArticleListPage>
                         firstPageErrorIndicatorBuilder: (context) => Container(
                           padding: const EdgeInsets.all(32),
                           child: Text(
-                            '加载失败',
+                            'i18n_article_list_loading_failed'.tr,
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -230,7 +231,7 @@ class _ArticleListPageState extends State<ArticleListPage>
                               const SizedBox(height: 24),
                               // 标题
                               Text(
-                                '暂无文章',
+                                'i18n_article_list_no_articles'.tr,
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w600,
@@ -240,7 +241,7 @@ class _ArticleListPageState extends State<ArticleListPage>
                               const SizedBox(height: 8),
                               // 副标题
                               Text(
-                                '这里还没有任何文章，快去收藏一些精彩内容吧',
+                                'i18n_article_list_no_articles_prompt'.tr,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
@@ -289,13 +290,13 @@ class _ArticleListPageState extends State<ArticleListPage>
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-                  '清空回收站',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
+              'i18n_article_list_clear_recycle_bin'.tr,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
           ),
         ),
       );
@@ -307,19 +308,19 @@ class _ArticleListPageState extends State<ArticleListPage>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('清空回收站'),
-          content: const Text('确定要永久删除回收站中的所有文章吗？此操作无法撤销。'),
+          title: Text('i18n_article_list_clear_recycle_bin_confirm_title'.tr),
+          content: Text('i18n_article_list_clear_recycle_bin_confirm_content'.tr),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
+              child: Text('i18n_article_list_cancel'.tr),
             ),
             FilledButton(
               onPressed: () => _confirmClearRecycleBin(context),
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
-              child: const Text('确定删除'),
+              child: Text('i18n_article_list_confirm_delete'.tr),
             ),
           ],
         );
@@ -334,7 +335,7 @@ class _ArticleListPageState extends State<ArticleListPage>
     try {
       // 显示加载提示
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('正在清空回收站...')),
+        SnackBar(content: Text('i18n_article_list_clearing_recycle_bin'.tr)),
       );
       
       final success = await clearRecycleBin();
@@ -343,8 +344,8 @@ class _ArticleListPageState extends State<ArticleListPage>
         // 显示成功提示
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('回收站已清空'),
+            SnackBar(
+              content: Text('i18n_article_list_recycle_bin_cleared'.tr),
               backgroundColor: Colors.green,
             ),
           );
@@ -353,8 +354,8 @@ class _ArticleListPageState extends State<ArticleListPage>
         // 显示失败提示
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('回收站为空或清空失败'),
+            SnackBar(
+              content: Text('i18n_article_list_recycle_bin_clear_failed'.tr),
               backgroundColor: Colors.orange,
             ),
           );
@@ -365,7 +366,8 @@ class _ArticleListPageState extends State<ArticleListPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('清空失败: $e'),
+            content: Text('i18n_article_list_clear_failed_message'
+                .trParams({'error': e.toString()})),
             backgroundColor: Colors.red,
           ),
         );

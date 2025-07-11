@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'dart:io';
 import 'dart:async';
+import 'package:get/get.dart';
 
 import '../../basics/logger.dart';
 import '../../basics/web_view/settings.dart';
@@ -156,7 +157,7 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                   Icon(Icons.error_outline, color: Colors.red[600], size: 48),
                   const SizedBox(height: 8),
                   Text(
-                    '快照加载失败',
+                    'i18n_article_快照加载失败'.tr,
                     style: TextStyle(
                       color: Colors.red[600],
                       fontSize: 16,
@@ -175,7 +176,7 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () => _reloadMhtml(),
-                    child: const Text('重新加载'),
+                    child: Text('i18n_article_重新加载'.tr),
                   ),
                 ],
               ),
@@ -234,7 +235,10 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                   setState(() {
                     isLoading = false;
                     hasError = true;
-                    errorMessage = '加载错误: ${error.description}\n文件路径: ${widget.mhtmlPath}';
+                    errorMessage = 'i18n_article_加载错误文件路径'.trParams({
+                      'description': error.description ?? '',
+                      'path': widget.mhtmlPath
+                    });
                   });
                 },
                 onReceivedHttpError: (controller, request, errorResponse) {
@@ -243,7 +247,10 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                   setState(() {
                     isLoading = false;
                     hasError = true;
-                    errorMessage = 'HTTP错误: ${errorResponse.statusCode}\n${errorResponse.reasonPhrase}';
+                    errorMessage = 'i18n_article_HTTP错误'.trParams({
+                      'statusCode': errorResponse.statusCode.toString(),
+                      'reasonPhrase': errorResponse.reasonPhrase ?? ''
+                    });
                   });
                 },
                 onScrollChanged: (controller, x, y) {
@@ -419,7 +426,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
       if (!file.existsSync()) {
         setState(() {
           hasError = true;
-          errorMessage = '快照文件不存在\n路径: ${widget.mhtmlPath}';
+          errorMessage = 'i18n_article_快照文件不存在'.trParams({'path': widget.mhtmlPath});
           isLoading = false;
         });
         return;
@@ -432,7 +439,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
       if (fileSize == 0) {
         setState(() {
           hasError = true;
-          errorMessage = '快照文件为空\n路径: ${widget.mhtmlPath}';
+          errorMessage = 'i18n_article_快照文件为空'.trParams({'path': widget.mhtmlPath});
           isLoading = false;
         });
         return;
@@ -444,7 +451,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
       getLogger().e('❌ 初始化MHTML视图失败: $e');
       setState(() {
         hasError = true;
-        errorMessage = '初始化失败: $e';
+        errorMessage = '${'i18n_article_初始化失败'.tr}$e';
         isLoading = false;
       });
     }
@@ -479,7 +486,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
         getLogger().e('❌ 快照文件不存在: $filePath');
         setState(() {
           hasError = true;
-          errorMessage = '快照文件不存在\n路径: $filePath';
+          errorMessage = 'i18n_article_快照文件不存在'.trParams({'path': filePath});
         });
         return false;
       }
@@ -490,7 +497,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
         getLogger().e('❌ 快照文件为空: $filePath');
         setState(() {
           hasError = true;
-          errorMessage = '快照文件为空\n路径: $filePath';
+          errorMessage = 'i18n_article_快照文件为空'.trParams({'path': filePath});
         });
         return false;
       }
@@ -502,7 +509,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
       getLogger().e('❌ 验证快照文件失败: $e');
       setState(() {
         hasError = true;
-        errorMessage = '验证快照文件失败: $e';
+        errorMessage = '${'i18n_article_初始化失败'.tr}$e';
       });
       return false;
     }

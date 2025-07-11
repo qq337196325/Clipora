@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:get/get.dart';
 
 /// 显示一个美观的对话框，用于为选定的文本添加笔记。
 ///
@@ -164,7 +165,7 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '选中文字',
+                  'i18n_article_选中文字'.tr,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.primary,
@@ -220,7 +221,7 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '笔记内容',
+                'i18n_article_笔记内容'.tr,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.secondary,
@@ -294,7 +295,7 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
             color: Theme.of(context).colorScheme.onSurface,
           ),
           decoration: InputDecoration(
-            hintText: '记录你的想法、感悟或灵感...',
+            hintText: 'i18n_article_记录你的想法感悟或灵感'.tr,
             hintStyle: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
               height: 1.4,
@@ -352,7 +353,7 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    '内容超出${_maxCharacters}字符限制，请适当精简',
+                    'i18n_article_内容超出字符限制提示'.trParams({'maxCharacters': '$_maxCharacters'}),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.error,
                       fontWeight: FontWeight.w500,
@@ -383,7 +384,7 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
             ),
           ),
           child: Text(
-            '取消',
+            'i18n_article_取消'.tr,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
@@ -415,8 +416,8 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
               ),
               const SizedBox(width: 6),
               Text(
-                '添加笔记',
-                style: TextStyle(
+                'i18n_article_添加笔记'.tr,
+                style: const TextStyle(
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -466,43 +467,6 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              // title: Row(
-              //   children: [
-              //     Container(
-              //       padding: const EdgeInsets.all(8),
-              //       decoration: BoxDecoration(
-              //         color: Theme.of(context).colorScheme.primary,
-              //         borderRadius: BorderRadius.circular(8),
-              //       ),
-              //       child: Icon(
-              //         Icons.note_add_rounded,
-              //         color: Theme.of(context).colorScheme.onPrimary,
-              //         size: 20,
-              //       ),
-              //     ),
-              //     const SizedBox(width: 12),
-              //     Expanded(
-              //       child: Column(
-              //         crossAxisAlignment: CrossAxisAlignment.start,
-              //         children: [
-              //           Text(
-              //             '添加笔记',
-              //             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              //               fontWeight: FontWeight.w600,
-              //               color: Theme.of(context).colorScheme.onSurface,
-              //             ),
-              //           ),
-              //           Text(
-              //             '记录思考与感悟',
-              //             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              //               color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //     ),
-              //   ],
-              // ),
               content: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxHeight: dialogMaxHeight,

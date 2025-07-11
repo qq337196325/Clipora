@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:get/get.dart';
 
 import '../models/sort_option.dart';
 import 'sort_bottom_sheet.dart';
@@ -99,7 +100,7 @@ class ArticleListBottomBar extends StatelessWidget {
                       _buildActionButton(
                         context,
                         icon: Icons.keyboard_arrow_left_rounded,
-                        label: '返回',
+                        label: 'i18n_article_list_back'.tr,
                         isPrimary: true,
                         onPressed: onBack,
                       ),
@@ -127,13 +128,13 @@ class ArticleListBottomBar extends StatelessWidget {
     String sortText;
     switch (currentSort.type) {
       case SortType.createTime:
-        sortText = '创建时间';
+        sortText = 'i18n_article_list_create_time'.tr;
         break;
       case SortType.modifyTime:
-        sortText = '修改时间';
+        sortText = 'i18n_article_list_modify_time'.tr;
         break;
       case SortType.name:
-        sortText = '名称';
+        sortText = 'i18n_article_list_name'.tr;
         break;
     }
     return '$sortText${currentSort.isDescending ? '↓' : '↑'}';

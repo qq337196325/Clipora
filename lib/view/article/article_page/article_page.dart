@@ -31,8 +31,8 @@ class ArticlePage extends StatefulWidget {
 
 class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin,ArticlePageBLoC {
 
-  final double _topBarHeight = 52.0;
-  final double _bottomBarHeight = 56.0;
+  final double _topBarHeight = 34.0;
+  final double _bottomBarHeight = 38.0;
 
   @override
   Widget build(BuildContext context) {
@@ -113,10 +113,10 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
                       getLogger().w('   hasArticle: ${articleController.hasArticle}');
                     }
                     
-                    BotToast.showText(text: '快照更新成功');
+                    BotToast.showText(text: 'i18n_article_快照更新成功'.tr);
                   } catch (e) {
                     getLogger().e('❌ 重新生成快照失败: $e');
-                    BotToast.showText(text: '快照更新失败: $e');
+                    BotToast.showText(text: '${'i18n_article_快照更新失败'.tr}$e');
                   }
                 },
                 onReGenerateMarkdown: () async {
@@ -144,22 +144,22 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
                             await markdownState.reloadMarkdownContent();
                           }
 
-                          BotToast.showText(text: '图文更新成功');
+                          BotToast.showText(text: 'i18n_article_图文更新成功'.tr);
                         } else {
                           getLogger().w('⚠️ ArticleContentDb 中未找到新的 Markdown 内容');
-                          BotToast.showText(text: 'Markdown生成中，请稍后查看');
+                          BotToast.showText(text: 'i18n_article_Markdown生成中请稍后查看'.tr);
                         }
                       } catch (e) {
                         getLogger().e('❌ 从ArticleContentDb获取Markdown内容失败: $e');
-                        BotToast.showText(text: 'Markdown获取失败: $e');
+                        BotToast.showText(text: '${'i18n_article_Markdown获取失败'.tr}$e');
                       }
                     } else {
                       getLogger().w('⚠️ 未获取到文章数据');
-                      BotToast.showText(text: 'Markdown生成中，请稍后查看');
+                      BotToast.showText(text: 'i18n_article_Markdown生成中请稍后查看'.tr);
                     }
                   } catch (e) {
                     getLogger().e('❌ 重新生成Markdown失败: $e');
-                    BotToast.showText(text: 'Markdown更新失败: $e');
+                    BotToast.showText(text: '${'i18n_article_Markdown更新失败'.tr}$e');
                   }
                 },
                 currentTab: tabController,
@@ -206,7 +206,7 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
         children: [
           const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
-          Text('加载失败', style: Theme.of(context).textTheme.headlineSmall),
+          Text('i18n_article_加载失败'.tr, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           Text(
             articleController.errorMessage,
@@ -216,7 +216,7 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _loadArticleData,
-            child: const Text('重试'),
+            child: Text('i18n_article_重试'.tr),
           ),
         ],
       ),
@@ -289,14 +289,14 @@ mixin ArticlePageBLoC on State<ArticlePage> {
 
     // 根据isGenerateMarkdown决定是否显示图文tab
     if (article.isGenerateMarkdown) {
-      tabs.insert(0, '图文');
+      tabs.insert(0, 'i18n_article_图文'.tr);
     }
     if (article.url != "") {
-      tabs.add('网页');
+      tabs.add('i18n_article_网页'.tr);
     }
     // 根据isGenerateMhtml决定是否显示快照tab
     if (article.isGenerateMhtml) {
-      tabs.add('快照');
+      tabs.add('i18n_article_快照'.tr);
     }
     
     // 先初始化tabWidget，再更新TabController
@@ -311,8 +311,8 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     tabWidget = [];
     for (int i = 0; i < tabs.length; i++) {
       tabWidget.add(Container(
-        child: const Center(
-          child: CircularProgressIndicator(),
+        child: Center(
+          child: Text('i18n_article_内容加载中'.tr),
         ),
       ));
     }
@@ -407,8 +407,8 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     
     if (!articleController.hasArticle) {
       // 未加载文章时，只显示网页tab，但也需要缓存
-      if (!_cachedTabWidgets.containsKey('网页')) {
-        _cachedTabWidgets['网页'] = _KeepAliveWrapper(
+      if (!_cachedTabWidgets.containsKey('i18n_article_网页'.tr)) {
+        _cachedTabWidgets['i18n_article_网页'.tr] = _KeepAliveWrapper(
           shouldKeepAlive: () => !_isPageDisposing,
           child: Obx(() => ArticleWebWidget(
             key: _webWidgetKey,
@@ -425,7 +425,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         );
       }
       
-      tabWidget = [_cachedTabWidgets['网页']!];
+      tabWidget = [_cachedTabWidgets['i18n_article_网页'.tr]!];
       return;
     }
 
@@ -461,8 +461,8 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         Widget placeholderWidget = _KeepAliveWrapper(
           shouldKeepAlive: () => !_isPageDisposing,
           child: Container(
-            child: const Center(
-              child: Text('内容加载中...'),
+            child: Center(
+              child: Text('i18n_article_内容加载中'.tr),
             ),
           ),
         );
@@ -475,57 +475,56 @@ mixin ArticlePageBLoC on State<ArticlePage> {
 
   /// 创建缓存的tab widget
   Widget _createCachedTabWidget(String tabName, EdgeInsets padding, dynamic article) {
-    switch (tabName) {
-      case '图文':
-        return _KeepAliveWrapper(
-          shouldKeepAlive: () => !_isPageDisposing,
-          child: Obx(() => ArticleMarkdownWidget(
-            key: _markdownWidgetKey,
-            markdownContent: articleController.currentMarkdownContent,
-            article: articleController.currentArticle,
-            onScroll: _handleScroll,
-            onTap: _handlePageTap, // 添加点击回调
-            contentPadding: padding,
-          )),
-        );
-      case '网页':
-        return _KeepAliveWrapper(
-          shouldKeepAlive: () => !_isPageDisposing,
-          child: Obx(() => ArticleWebWidget(
-            key: _webWidgetKey,
-            onSnapshotCreated: _onSnapshotCreated,
-            url: articleController.articleUrl.isNotEmpty 
+    if (tabName == 'i18n_article_图文'.tr) {
+      return _KeepAliveWrapper(
+        shouldKeepAlive: () => !_isPageDisposing,
+        child: Obx(() => ArticleMarkdownWidget(
+          key: _markdownWidgetKey,
+          markdownContent: articleController.currentMarkdownContent,
+          article: articleController.currentArticle,
+          onScroll: _handleScroll,
+          onTap: _handlePageTap, // 添加点击回调
+          contentPadding: padding,
+        )),
+      );
+    } else if (tabName == 'i18n_article_网页'.tr) {
+      return _KeepAliveWrapper(
+        shouldKeepAlive: () => !_isPageDisposing,
+        child: Obx(() => ArticleWebWidget(
+          key: _webWidgetKey,
+          onSnapshotCreated: _onSnapshotCreated,
+          url: articleController.articleUrl.isNotEmpty 
               ? articleController.articleUrl 
               : null,
-            articleId: widget.id,
-            onScroll: _handleScroll,
-            onTap: _handlePageTap, // 添加点击回调
-            contentPadding: padding,
-            onMarkdownGenerated: _onMarkdownGenerated,
-          )),
-        );
-      case '快照':
-        return _KeepAliveWrapper(
-          key: _mhtmlWidgetKey2,
-          shouldKeepAlive: () => !_isPageDisposing,
-          child: ArticleMhtmlWidget(
-            key: _mhtmlWidgetKey,
-            mhtmlPath: article.mhtmlPath,
-            title: article.title,
-            onScroll: _handleScroll,
-            onTap: _handlePageTap, // 添加点击回调
-            contentPadding: padding,
+          articleId: widget.id,
+          onScroll: _handleScroll,
+          onTap: _handlePageTap, // 添加点击回调
+          contentPadding: padding,
+          onMarkdownGenerated: _onMarkdownGenerated,
+        )),
+      );
+    } else if (tabName == 'i18n_article_快照'.tr) {
+      return _KeepAliveWrapper(
+        key: _mhtmlWidgetKey2,
+        shouldKeepAlive: () => !_isPageDisposing,
+        child: ArticleMhtmlWidget(
+          key: _mhtmlWidgetKey,
+          mhtmlPath: article.mhtmlPath,
+          title: article.title,
+          onScroll: _handleScroll,
+          onTap: _handlePageTap, // 添加点击回调
+          contentPadding: padding,
+        ),
+      );
+    } else {
+      return _KeepAliveWrapper(
+        shouldKeepAlive: () => !_isPageDisposing,
+        child: Container(
+          child: Center(
+            child: Text('i1s8n_article_未知页面类型'.tr),
           ),
-        );
-      default:
-        return _KeepAliveWrapper(
-          shouldKeepAlive: () => !_isPageDisposing,
-          child: Container(
-            child: const Center(
-              child: Text('未知页面类型'),
-            ),
-          ),
-        );
+        ),
+      );
     }
   }
 
@@ -607,7 +606,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
       snapshotPath = path;
     });
 
-    BotToast.showText(text: '快照已保存，路径: ${path.split('/').last}');
+    BotToast.showText(text: '${'i18n_article_快照已保存路径'.tr}${path.split('/').last}');
     
     // 更新数据库中的mhtml相关字段
     _updateMhtmlStatus(path);
@@ -665,10 +664,10 @@ mixin ArticlePageBLoC on State<ArticlePage> {
         // 调用公共方法createSnapshot
         (webWidgetState as dynamic).createSnapshot();
       } else {
-        BotToast.showText(text: '网页未加载完成，请稍后再试');
+        BotToast.showText(text: 'i18n_article_网页未加载完成请稍后再试'.tr);
       }
     } else {
-      BotToast.showText(text: '请切换到网页标签页生成快照');
+      BotToast.showText(text: 'i18n_article_请切换到网页标签页生成快照'.tr);
     }
   }
 
@@ -773,19 +772,8 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     if (_isPageDisposing) return;
     
     _isPageDisposing = true;
-    getLogger().i('🔄 开始页面退出预处理，准备销毁WebView资源');
-    
     try {
-
       await articleController.manualSavePosition();
-      // await (_markdownWidgetKey.currentState)?.manualSavePosition();
-      // // 1. 立即隐藏所有UI组件，避免视觉闪烁
-      // if (mounted) {
-      //   setState(() {
-      //     // hideMain = true;
-      //     _isBottomBarVisible = false;
-      //   });
-      // }
       
       // 2. 提前销毁所有缓存的WebView组件
       await _disposeAllWebViews();
@@ -851,7 +839,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     try {
       // 遍历缓存的widget，找到ArticleMarkdownWidget并销毁其WebView
       for (final entry in _cachedTabWidgets.entries) {
-        if (entry.key == '图文') {
+        if (entry.key == 'i18n_article_图文'.tr) {
           getLogger().i('📄 找到图文WebView，准备销毁');
           // 这里可以添加特定的销毁逻辑
           // 由于ArticleMarkdownWidget有自己的dispose逻辑，我们主要是提前触发
@@ -868,7 +856,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     try {
       // 遍历缓存的widget，找到ArticleMhtmlWidget并销毁其WebView
       for (final entry in _cachedTabWidgets.entries) {
-        if (entry.key == '快照') {
+        if (entry.key == 'i18n_article_快照'.tr) {
           getLogger().i('📸 找到快照WebView，准备销毁');
           // 这里可以添加特定的销毁逻辑
           // 由于ArticleMhtmlWidget有自己的dispose逻辑，我们主要是提前触发
@@ -927,10 +915,6 @@ class _KeepAliveWrapperState extends State<_KeepAliveWrapper> with AutomaticKeep
       updateKeepAlive();
     }
   }
-
-
-
-
   
   @override
   void dispose() {

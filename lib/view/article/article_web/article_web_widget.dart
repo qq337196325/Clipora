@@ -107,7 +107,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                     
                     // 错误标题
                     Text(
-                      '网页加载失败',
+                      'i18n_article_网页加载失败'.tr,
                       style: TextStyle(
                         color: Colors.grey[800],
                         fontSize: 18,
@@ -145,9 +145,9 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                           Icons.refresh_rounded,
                           size: 18,
                         ),
-                        label: const Text(
-                          '重新加载',
-                          style: TextStyle(
+                        label: Text(
+                          'i18n_article_重新加载'.tr,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -235,7 +235,7 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
                   return; // 如果是预热跳转，则中止后续操作，等待目标页面加载
                 }
                 
-                _debouncedGenerateSnapshot();
+                // _debouncedGenerateSnapshot();
               },
               // 【加载进度变化回调】: 当页面加载进度更新时调用，可用于显示进度条。
               onProgressChanged: (controller, progress) {
@@ -391,12 +391,12 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   Future<void> createSnapshot() async {
     final filePath = await generateMhtmlUtils.generateSnapshot();
     if(filePath.isEmpty){
-      BotToast.showText(text: '保存快照失败');
+      BotToast.showText(text: 'i18n_article_保存快照失败'.tr);
       return;
     }
     final updateStatus = await generateMhtmlUtils.updateArticleSnapshot(filePath,articleController.articleId);
     if(!updateStatus){
-      BotToast.showText(text: '保存快照到数据库失败');
+      BotToast.showText(text: 'i18n_article_保存快照到数据库失败'.tr);
     }
   }
 
@@ -446,7 +446,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
             setState(() {
               hasError = true;
               isLoading = false;
-              errorMessage = '重新加载失败\n\n请稍后再试或重启应用。\n\n错误详情：$reloadError';
+              errorMessage = '${'i18n_article_重新加载失败提示'.tr}$reloadError';
             });
           }
         }
@@ -458,7 +458,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         setState(() {
           hasError = true;
           isLoading = false;
-          errorMessage = '重新加载时发生错误\n\n请重启应用后再试。\n\n错误详情：$e';
+          errorMessage = '${'i18n_article_重新加载时发生错误提示'.tr}$e';
         });
       }
     }
@@ -468,7 +468,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   Future<void> createMarkdown() async {
     final filePath = await generateMhtmlUtils.generateSnapshot();
     if(filePath.isEmpty){
-      BotToast.showText(text: '保存快照失败');
+      BotToast.showText(text: 'i18n_article_保存快照失败'.tr);
       return;
     }
 
@@ -661,7 +661,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
         setState(() {
           isLoading = false;
           hasError = true;
-          errorMessage = '网站访问被限制 (403)\n\n该网站检测到非常规访问模式。\n\n建议：\n• 稍后重试\n• 使用浏览器直接访问\n• 检查网络环境';
+          errorMessage = 'i18n_article_网站访问被限制提示'.tr;
         });
         return;
       }
@@ -698,7 +698,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
       setState(() {
         isLoading = false;
         hasError = true;
-        errorMessage = '重试失败\n\n请稍后手动重试或使用浏览器访问。';
+        errorMessage = 'i18n_article_重试失败提示'.tr;
       });
     }
   }

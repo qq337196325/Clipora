@@ -48,7 +48,7 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
     final url = articleController.articleUrl;
     
     if (url.isEmpty) {
-      BotToast.showText(text: '文章链接不存在');
+      BotToast.showText(text: 'i18n_article_文章链接不存在'.tr);
       return;
     }
 
@@ -57,13 +57,12 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
         getLogger().i('✅ 成功在浏览器中打开: $url');
-        // BotToast.showText(text: '已在浏览器中打开');
       } else {
-        BotToast.showText(text: '无法打开该链接');
+        BotToast.showText(text: 'i18n_article_无法打开该链接'.tr);
         getLogger().w('⚠️ 无法打开链接: $url');
       }
     } catch (e) {
-      BotToast.showText(text: '打开链接失败: $e');
+      BotToast.showText(text: '${'i18n_article_打开链接失败'.tr}$e');
       getLogger().e('❌ 打开链接失败: $e');
     }
   }
@@ -86,7 +85,7 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
           duration: const Duration(milliseconds: 300),
           opacity: widget.isVisible ? 1.0 : 0.0,
           child: Container(
-            height: 64,
+            height: 48,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(32),
               gradient: LinearGradient(
@@ -128,7 +127,7 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -136,7 +135,7 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
                   _buildActionButton(
                     context,
                     icon: Icons.keyboard_arrow_left_rounded,
-                    label: '返回',
+                    label: 'i18n_article_返回'.tr,
                     isPrimary: true,
                     onPressed: widget.onBack,
                   ),
@@ -148,7 +147,7 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
                       Obx(() => _buildFloatingButton(
                         context,
                         icon: Icons.explore_outlined,
-                        tooltip: '浏览器打开',
+                        tooltip: 'i18n_article_浏览器打开'.tr,
                         onPressed: _openInBrowser,
                         isEnabled: articleController.articleUrl.isNotEmpty,
                       )),
@@ -159,7 +158,7 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
                   _buildActionButton(
                     context,
                     icon: Icons.tune_rounded,
-                    label: '更多',
+                    label: 'i18n_article_更多'.tr,
                     isPrimary: false,
                     onPressed: () {
                       showModalBottomSheet(

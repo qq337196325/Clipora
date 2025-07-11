@@ -8,9 +8,7 @@ import '../view/order/ai_order_page.dart';
 import '../view/share/share_page.dart';
 import '/route/route_name.dart';
 import '../view/article/article_page/article_page.dart';
-import '/view/demo/article_web.dart';
 import '../view/home/index_page.dart';
-import '../view/demo/screenshot_gallery_page.dart';
 import '../view/transfer_route.dart';
 import '../view/article_list/article_list_page.dart';
 
@@ -31,8 +29,6 @@ List<RouteInfo> routeInfos = [
 
   RouteInfo(path: "/${RouteName.index}", name: RouteName.index, builder: (context, state) => IndexPage()),
 
-  RouteInfo(path: "/${RouteName.screenshotGallery}", name: RouteName.screenshotGallery, builder: (context, state) => ScreenshotGalleryPage()),
-
   RouteInfo(path: "/${RouteName.search}", name: RouteName.search, builder: (context, state) => SearchPage()),
 
   RouteInfo(path: "/${RouteName.login}", name: RouteName.login, builder: (context, state) => LoginPage()),
@@ -47,8 +43,6 @@ List<RouteInfo> routeInfos = [
     final id = int.tryParse(idStr) ?? 0;
     return ArticlePage(id: id);
   }),
-
-  RouteInfo(path: "/${RouteName.articlePage2}", name: RouteName.articlePage2, builder: (context, state) => ArticlePage2()), 
 
   // 文章列表页路由
   RouteInfo(path: "/${RouteName.articleList}", name: RouteName.articleList, builder: (context, state) {

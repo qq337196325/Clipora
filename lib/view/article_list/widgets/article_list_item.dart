@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -160,7 +161,9 @@ class _ArticleListItemState extends State<ArticleListItem>
                             children: [
                               Expanded(
                                 child: Text(
-                                  widget.article.title.isNotEmpty ? widget.article.title : '无标题',
+                                  widget.article.title.isNotEmpty
+                                      ? widget.article.title
+                                      : 'i18n_article_list_no_title'.tr,
                                   style: TextStyle(
                                     fontSize: isUnread ? 17 : 16,
                                     fontWeight: isUnread ? FontWeight.w700 : FontWeight.w600,
@@ -427,17 +430,20 @@ class _ArticleListItemState extends State<ArticleListItem>
   String _formatTime(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inDays > 7) {
       return DateFormat('MM-dd').format(dateTime);
     } else if (difference.inDays > 0) {
-      return '${difference.inDays}天前';
+      return 'i18n_article_list_days_ago'
+          .trParams({'days': difference.inDays.toString()});
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}小时前';
+      return 'i18n_article_list_hours_ago'
+          .trParams({'hours': difference.inHours.toString()});
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}分钟前';
+      return 'i18n_article_list_minutes_ago'
+          .trParams({'minutes': difference.inMinutes.toString()});
     } else {
-      return '刚刚';
+      return 'i18n_article_list_just_now'.tr;
     }
   }
 } 

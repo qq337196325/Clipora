@@ -254,13 +254,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   }
 
 
-  /// 防抖保存位置，避免过于频繁的保存操作
-  void _debounceSavePosition(VoidCallback callback) {
-    _savePositionTimer?.cancel();
-    _savePositionTimer = Timer(const Duration(seconds: 2), callback);
-  }
-
-
   /// 设置Markdown内容的顶部内边距
   /// [padding] - The padding value in pixels.
   Future<void> setMarkdownPaddingTop(double padding) async {
@@ -329,11 +322,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       final targetScrollX = articleController.currentArticleContent?.markdownScrollX ?? 0;
       final targetScrollY = articleController.currentArticleContent?.markdownScrollY ?? 0;
 
-      // 检查页面内容是否已加载
-      final contentHeight = await webViewController!.evaluateJavascript(source: '''
-        document.body.scrollHeight || document.documentElement.scrollHeight || 0;
-      ''');
-
       // 先尝试滚动到目标位置
       await webViewController!.scrollTo(
         x: targetScrollX,
@@ -390,22 +378,12 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
         handlerName: 'onPageClicked',
         callback: _handlePageClick,
       );
-      getLogger().d('🔥 已注册: onPageClicked');
-
-      // webViewController!.addJavaScriptHandler(
-      //   handlerName: 'onHighlightCreated',
-      //   callback: handleHighlightCreated,
-      // );
-      // getLogger().d('🔥 已注册: onHighlightCreated');
 
       // === 第一步：添加标注点击监听Handler ===
       webViewController!.addJavaScriptHandler(
         handlerName: 'onHighlightClicked',
         callback: handleHighlightClicked,
       );
-      getLogger().d('🔥 已注册: onHighlightClicked');
-
-      getLogger().i('✅ 所有增强文本选择回调处理器注册完成');
 
       // 验证JavaScript桥接
       _verifyJavaScriptBridge();
@@ -432,17 +410,12 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
     // _currentSelectionData = data;
     _currentSelectionData = data;
-    getLogger().d('🔥 准备显示选择菜单...');
     _showEnhancedSelectionMenu(data);
-
-    getLogger().d('📝 文字被选择: "${data['selectedText']}" at (${data['boundingRect']['x']}, ${data['boundingRect']['y']})');
   }
 
   /// 处理选择清除事件
   void handleEnhancedSelectionCleared(List<dynamic> args) {
-    getLogger().d('🧹 handleEnhancedSelectionCleared 被调用');
     getLogger().d('🔍 清除前选择数据状态: ${_currentSelectionData != null ? "有数据" : "空"}');
-    getLogger().d('📍 调用来源: JavaScript选择清除事件');
     hideEnhancedSelectionMenu();
   }
 
@@ -463,7 +436,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       'selectedText', 'boundingRect'
     ];
 
-    getLogger().w('🔍 数据验证详情:');
     for (final field in requiredFields) {
       final hasField = data.containsKey(field);
       final isNotNull = hasField ? data[field] != null : false;
@@ -490,19 +462,14 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     final boundingRect = selectionData['boundingRect'] as Map<String, dynamic>;
     final scrollInfo = selectionData['scrollInfo'] as Map<String, dynamic>?;
 
-    getLogger().d('📊 boundingRect: $boundingRect');
-    getLogger().d('📊 webViewOffset: $webViewOffset');
-
     hideEnhancedSelectionMenu();
 
-    getLogger().d('🎯 准备调用 _showMenuAtPosition');
     // 直接计算位置，使用JavaScript提供的视口相对位置
     _showMenuAtPosition(selectionData, webViewOffset, boundingRect, scrollInfo);
   }
 
   /// 隐藏增强选择菜单
   void hideEnhancedSelectionMenu() {
-    getLogger().d('🧹 隐藏增强选择菜单');
     getLogger().d('🔍 清空前选择数据状态: ${_currentSelectionData != null ? "有数据(${(_currentSelectionData!['selectedText'] as String? ?? '').length}字符)" : "空"}');
     
     _enhancedSelectionMenuOverlay?.remove();
@@ -510,8 +477,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     _backgroundCatcher?.remove();
     _backgroundCatcher = null;
     _currentSelectionData = null;
-    
-    getLogger().d('✅ 选择数据已清空');
   }
 
 
@@ -521,7 +486,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       Map<String, dynamic> boundingRect,
       Map<String, dynamic>? scrollInfo,
       ) {
-    getLogger().d('🎯 _showMenuAtPosition 开始执行');
 
     // 重新设置当前选择数据，因为在hideEnhancedSelectionMenu中被清空了
     _currentSelectionData = selectionData;
@@ -609,9 +573,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
   /// 处理增强菜单动作
   void _handleEnhancedMenuAction(EnhancedSelectionAction action) {
-    getLogger().d('🎯 处理菜单动作: $action');
-    getLogger().d('🔍 当前选择数据状态: ${_currentSelectionData != null ? "有数据" : "空"}');
-    
+
     if (_currentSelectionData == null) {
       getLogger().w('⚠️ 当前选择数据为空，无法处理动作');
       hideEnhancedSelectionMenu();
@@ -653,7 +615,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   Future<void> _handleCreateHighlight(Map<String, dynamic> selectionData) async {
     try {
       if (articleController.currentArticle == null) {
-        BotToast.showText(text: '无法创建高亮：文章信息缺失');
+        BotToast.showText(text: 'i18n_article_无法创建高亮文章信息缺失'.tr);
         return;
       }
 
@@ -680,16 +642,16 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       );
 
       if (success) {
-        BotToast.showText(text: '高亮已添加');
+        BotToast.showText(text: 'i18n_article_高亮已添加'.tr);
         // getLogger().i('✅ 高亮创建成功: ${annotation.highlightId}，内容ID: $articleContentId');
       } else {
-        BotToast.showText(text: '高亮添加失败');
+        BotToast.showText(text: 'i18n_article_高亮添加失败'.tr);
         // 回滚数据库操作
         await EnhancedAnnotationService.instance.deleteAnnotation(annotation);
       }
     } catch (e) {
       getLogger().e('❌ 创建高亮失败: $e');
-      BotToast.showText(text: '高亮添加失败');
+      BotToast.showText(text: 'i18n_article_高亮添加失败'.tr);
     }
   }
 
@@ -698,7 +660,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     getLogger().i('📝 为选中文本添加笔记');
     try {
       if (articleController.currentArticle == null) {
-        BotToast.showText(text: '无法创建笔记：文章信息缺失');
+        BotToast.showText(text: 'i18n_article_无法创建笔记文章信息缺失'.tr);
         return;
       }
 
@@ -739,16 +701,16 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       );
 
       if (success) {
-        BotToast.showText(text: '笔记已添加');
+        BotToast.showText(text: 'i18n_article_笔记已添加'.tr);
         getLogger().i('✅ 笔记创建成功: ${annotation.highlightId}，内容ID: ${articleController.currentArticle?.id}');
       } else {
-        BotToast.showText(text: '笔记添加失败');
+        BotToast.showText(text: 'i18n_article_笔记添加失败'.tr);
         // 回滚数据库操作
         await EnhancedAnnotationService.instance.deleteAnnotation(annotation);
       }
     } catch (e) {
       getLogger().e('❌ 创建笔记失败: $e');
-      BotToast.showText(text: '笔记添加失败');
+      BotToast.showText(text: 'i18n_article_笔记添加失败'.tr);
     }
   }
 
@@ -860,16 +822,11 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
   // === 增强标注恢复 ===
   Future<void> _restoreEnhancedAnnotations() async {
-
     try {
-      getLogger().d('🔄 开始恢复增强标注，文章ID: ${articleController.currentArticle!.id}');
-
       List<EnhancedAnnotationDb> annotations;
 
       // 优先使用基于articleContentId的新方法
       annotations = await EnhancedAnnotationService.instance.getAnnotationsForArticleContent(articleController.currentArticleContent!.id);
-
-      getLogger().i('📊 从数据库获取到 ${annotations.length} 个增强标注');
 
       if (annotations.isEmpty) {
         getLogger().d('ℹ️ 本语言版本无历史增强标注');
@@ -884,8 +841,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       // 批量恢复标注
       final stats = await basicScriptsLogic.batchRestoreAnnotations(rangeDataList);
 
-      getLogger().i('✅ 增强标注恢复完成: 成功 ${stats['successCount']}, 失败 ${stats['failCount']}');
-
       // 如果有失败的标注，尝试逐个恢复
       if (stats['failCount']! > 0) {
         // await _restoreFailedAnnotationsOneByOne(annotations);
@@ -899,10 +854,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
   // === 第一步：注入标注点击监听脚本 ===
   Future<void> _injectHighlightClickListener() async {
-
     try {
-      getLogger().d('🔄 开始注入标注点击监听脚本...');
-
       // 使用事件委托监听所有标注元素的点击
       await webViewController!.evaluateJavascript(source: '''
         (function() {
@@ -984,9 +936,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
           
         })();
       ''');
-
-      getLogger().i('✅ 标注点击监听脚本注入成功');
-
     } catch (e) {
       getLogger().e('❌ 注入标注点击监听脚本失败: $e');
     }
@@ -996,30 +945,12 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   // === 第一步：标注点击处理方法 ===
   void handleHighlightClicked(List<dynamic> args) {
     try {
-      getLogger().d('🎯 handleHighlightClicked 被调用，参数: $args');
-
       final data = args[0] as Map<String, dynamic>;
-      getLogger().d('🎯 标注点击数据结构: ${data.keys.toList()}');
-      getLogger().d('🎯 标注点击详情: $data');
-
-      // 提取基本信息
-      final highlightId = data['highlightId'] as String?;
-      final content = data['content'] as String?;
-      final highlightType = data['type'] as String?;
-      final position = data['position'] as Map<String, dynamic>?;
-      final boundingRect = data['boundingRect'] as Map<String, dynamic>?;
 
       // 验证数据完整性
       if (_validateHighlightClickData(data)) {
-        getLogger().i('✅ 标注点击数据验证成功');
-        getLogger().i('📍 标注ID: $highlightId');
-        getLogger().i('📝 标注内容: ${content?.substring(0, (content?.length ?? 0) > 50 ? 50 : content?.length ?? 0)}${(content?.length ?? 0) > 50 ? '...' : ''}');
-        getLogger().i('🏷️ 标注类型: $highlightType');
-        getLogger().i('📐 位置信息: $position');
-        getLogger().i('📦 边界框: $boundingRect');
 
         // === 第二步：显示标注操作面板 ===
-        // 通过dynamic调用，因为HighlightMenuLogic在State级别混入
         showHighlightActionMenu(data);
 
       } else {
@@ -1041,7 +972,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
   void _logHighlightClickValidationDetails(Map<String, dynamic> data) {
     final requiredFields = ['highlightId', 'content', 'type', 'position', 'boundingRect'];
-    getLogger().w('🔍 标注点击数据验证详情:');
     for (final field in requiredFields) {
       final hasField = data.containsKey(field);
       final isNotNull = hasField ? data[field] != null : false;
@@ -1051,8 +981,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
   // === 标注菜单显示逻辑 ===
   void showHighlightActionMenu(Map<String, dynamic> highlightData) {
-    getLogger().d('🎯 准备显示标注操作菜单');
-
     if (!mounted) {
       getLogger().w('⚠️ 组件未挂载，跳过显示标注菜单');
       return;
@@ -1071,10 +999,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       getLogger().w('⚠️ 标注边界框信息缺失');
       return;
     }
-
-    getLogger().d('📊 标注boundingRect: $boundingRect');
-    getLogger().d('📊 webViewOffset: $webViewOffset');
-
     // 先隐藏已有菜单
     hideHighlightActionMenu();
 
@@ -1110,7 +1034,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       Offset webViewOffset,
       Map<String, dynamic> boundingRect,
       ) {
-    getLogger().d('🎯 _showMenuAtPosition 开始执行');
 
     // 提取边界框坐标（相对于WebView内容的坐标）
     final rectX = (boundingRect['x'] ?? 0).toDouble();
@@ -1118,13 +1041,9 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     final rectWidth = (boundingRect['width'] ?? 0).toDouble();
     final rectHeight = (boundingRect['height'] ?? 0).toDouble();
 
-    getLogger().d('📊 WebView内坐标: x=$rectX, y=$rectY, w=$rectWidth, h=$rectHeight');
-    getLogger().d('📊 WebView偏移: dx=${webViewOffset.dx.toInt()}, dy=${webViewOffset.dy.toInt()}');
-
     // 考虑内容padding
     final padding = contentPadding.resolve(Directionality.of(context));
     final systemPadding = MediaQuery.of(context).padding;
-    getLogger().d('📊 内容padding: left=${padding.left}, top=${padding.top}, right=${padding.right}, bottom=${padding.bottom}');
 
     var absoluteY = webViewOffset.dy + rectY;
     // 针对iOS全面屏下坐标系差异的修正
@@ -1145,14 +1064,9 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     const menuWidth = 180.0;
     const menuMargin = 12.0; // 增加间距，确保不遮挡
 
-    getLogger().d('📊 屏幕尺寸: ${screenSize.width.toInt()}x${screenSize.height.toInt()}');
-    getLogger().d('📊 系统padding: top=${systemPadding.top}, bottom=${systemPadding.bottom}');
-
     // 计算可用空间（保守估计）
     final availableTop = highlightRectOnScreen.top - systemPadding.top - 20;
     final availableBottom = screenSize.height - highlightRectOnScreen.bottom - systemPadding.bottom - 20;
-
-    getLogger().d('📊 可用空间: 上方=${availableTop.toInt()}px, 下方=${availableBottom.toInt()}px');
 
     double menuY;
     bool isMenuAbove = true; // 标记菜单是否在标注上方
@@ -1168,41 +1082,29 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       }
 
       isMenuAbove = true;
-      getLogger().d('🎯 菜单位置选择: 上方 (有充足空间)');
-      print('菜单位置选择: 上方 (有充足空间)');
     } else if (availableTop >= menuHeight) {
       // 上方有基本空间，紧贴显示
       menuY = highlightRectOnScreen.top - menuHeight - 4;
       isMenuAbove = true;
-      getLogger().d('🎯 菜单位置选择: 上方 (基本空间)');
-      print('菜单位置选择: 上方 (基本空间)');
     } else if (availableBottom >= menuHeight + menuMargin) {
       // 上方空间不足，下方有充足空间
       menuY = highlightRectOnScreen.bottom + menuMargin;
       isMenuAbove = false;
-      getLogger().d('🎯 菜单位置选择: 下方 (上方空间不足)');
-      print('菜单位置选择: 下方 (上方空间不足)');
     } else if (availableBottom >= menuHeight) {
       // 下方有基本空间
       menuY = highlightRectOnScreen.bottom + 4;
       isMenuAbove = false;
-      getLogger().d('🎯 菜单位置选择: 下方 (基本空间)');
-      print('菜单位置选择: 下方 (基本空间)');
     } else {
       // 两边空间都不足，选择相对较好的位置
       if (availableTop >= availableBottom) {
         // 尽量在上方，即使会部分遮挡
         menuY = math.max(systemPadding.top + 8, highlightRectOnScreen.top - menuHeight);
         isMenuAbove = true;
-        getLogger().d('🎯 菜单位置选择: 强制上方 (空间不足但优于下方)');
-        print('菜单位置选择: 强制上方 (空间不足但优于下方)');
       } else {
         // 下方显示
         menuY = math.min(screenSize.height - systemPadding.bottom - menuHeight - 8,
             highlightRectOnScreen.bottom + 4);
         isMenuAbove = false;
-        getLogger().d('🎯 菜单位置选择: 强制下方 (空间不足)');
-        print('菜单位置选择: 强制下方 (空间不足)');
       }
     }
 
@@ -1210,17 +1112,11 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     double menuX = highlightRectOnScreen.center.dx - (menuWidth / 2);
     menuX = menuX.clamp(8.0, screenSize.width - menuWidth - 8);
 
-    getLogger().d('📍 标注区域(屏幕): ${highlightRectOnScreen.toString()}');
-    getLogger().d('📍 菜单位置: x=${menuX.toInt()}, y=${menuY.toInt()} (${isMenuAbove ? '上方' : '下方'})');
-
     // 最终验证：检查菜单是否与标注重叠
     final menuRect = Rect.fromLTWH(menuX, menuY, menuWidth, menuHeight);
     final hasOverlap = menuRect.overlaps(highlightRectOnScreen);
 
     if (hasOverlap) {
-      getLogger().w('⚠️ 警告：菜单与标注有重叠！');
-      getLogger().w('⚠️ 菜单矩形: ${menuRect.toString()}');
-      getLogger().w('⚠️ 标注矩形: ${highlightRectOnScreen.toString()}');
 
       // 如果有重叠且在上方，尝试进一步上移
       if (isMenuAbove && menuY > systemPadding.top + 8) {
@@ -1230,7 +1126,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     } else {
       getLogger().d('✅ 菜单位置验证通过，不会遮挡标注');
     }
-    print('menuX11111111111111: $menuX, menuY: $menuY');
 
     // 创建背景点击捕获器
     _highlightMenuBackgroundCatcher = OverlayEntry(
@@ -1262,7 +1157,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       _highlightMenuOverlay!
     ]);
 
-    getLogger().i('✅ 标注操作菜单已显示');
   }
 
   // === 标注菜单操作处理 ===
@@ -1275,8 +1169,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     final highlightData = _currentHighlightData!;
     final highlightId = highlightData['highlightId'] as String?;
     final content = highlightData['content'] as String?;
-
-    getLogger().d('🎯 处理标注操作: $action, ID: $highlightId');
 
     // 先隐藏菜单
     hideHighlightActionMenu();
@@ -1293,19 +1185,15 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
   // === 标注操作实现 ===
   Future<void> _handleCopyHighlight(String content) async {
-    getLogger().d('📋 开始复制标注内容...');
-
     try {
       // 处理内容：去除多余的空白字符，保持基本格式
       final cleanContent = _cleanCopyContent(content);
 
       if (cleanContent.isEmpty) {
         getLogger().w('⚠️ 复制内容为空');
-        BotToast.showText(text: '无法复制：内容为空');
+        BotToast.showText(text: 'i18n_article_无法复制内容为空'.tr);
         return;
       }
-
-      getLogger().d('📋 准备复制内容: ${cleanContent.length > 50 ? '${cleanContent.substring(0, 50)}...' : cleanContent}');
 
       // 复制到剪贴板
       await Clipboard.setData(ClipboardData(text: cleanContent));
@@ -1317,13 +1205,10 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       final previewText = cleanContent.length > 30
           ? '${cleanContent.substring(0, 30)}...'
           : cleanContent;
-      BotToast.showText(text: '已复制："$previewText"');
-
-      getLogger().i('✅ 标注内容复制成功');
-
+      BotToast.showText(text: '${'i18n_article_已复制'.tr}"$previewText"');
     } catch (e) {
       getLogger().e('❌ 复制标注内容失败: $e');
-      BotToast.showText(text: '复制失败，请重试');
+      BotToast.showText(text: 'i18n_article_复制失败请重试'.tr);
     }
   }
 
@@ -1344,8 +1229,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   }
 
   Future<void> _handleDeleteHighlight(String highlightId, String content) async {
-    getLogger().d('🗑️ 开始删除标注流程: $highlightId');
-
     try {
       // 第一步：显示确认对话框
       final shouldDelete = await showDeleteHighlightDialog(
@@ -1359,47 +1242,29 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
         return;
       }
 
-      getLogger().i('✅ 用户确认删除，开始执行删除操作...');
-
       // 第二步：显示加载状态
-      BotToast.showText(text: '正在删除标注...');
+      BotToast.showText(text: 'i18n_article_正在删除标注'.tr);
 
       // 第三步：从DOM中删除标注元素
-      getLogger().d('🔄 从DOM中删除标注元素...');
       final domDeleteSuccess = await basicScriptsLogic.removeHighlight(highlightId);
 
       if (!domDeleteSuccess) {
         getLogger().e('❌ DOM删除失败');
-        BotToast.showText(text: '删除失败：无法从页面中移除标注');
+        BotToast.showText(text: 'i18n_article_删除失败无法从页面中移除标注'.tr);
         return;
       }
-
-      getLogger().i('✅ DOM删除成功');
 
       // 第四步：从数据库中删除记录
       getLogger().d('🔄 从数据库中删除标注记录...');
       await EnhancedAnnotationService.instance.deleteAnnotationByHighlightId(highlightId);
 
-      getLogger().i('✅ 数据库删除成功');
-
       // 第五步：用户反馈
-      BotToast.showText(text: '标注已删除');
+      BotToast.showText(text: 'i18n_article_标注已删除'.tr);
       getLogger().i('🎉 标注删除完成: $highlightId');
 
     } catch (e) {
-      getLogger().e('❌ 删除标注异常: $e');
-
-      // 错误处理：尝试回滚操作
-      getLogger().w('🔄 尝试回滚删除操作...');
-
-      try {
-        // 如果数据库删除失败，DOM可能已经删除，需要考虑数据一致性
-        // 这里可以考虑重新加载页面或重新恢复标注
-        BotToast.showText(text: '删除失败，请刷新页面重试');
-      } catch (rollbackError) {
-        getLogger().e('❌ 回滚操作也失败: $rollbackError');
-        BotToast.showText(text: '删除异常，建议刷新页面');
-      }
+      getLogger().e('❌ 回滚操作也失败: $e');
+      BotToast.showText(text: 'i18n_article_删除异常建议刷新页面'.tr);
     }
   }
 

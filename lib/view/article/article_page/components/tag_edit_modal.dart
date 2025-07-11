@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../db/tag/tag_service.dart';
 import '/db/tag/tag_db.dart';
 
@@ -96,12 +97,12 @@ class _TagEditModalState extends State<TagEditModal> {
 
     if (widgets.isEmpty) {
       return [
-        const Padding(
-          padding: EdgeInsets.all(32.0),
+        Padding(
+          padding: const EdgeInsets.all(32.0),
           child: Center(
             child: Text(
-              '暂无标签',
-              style: TextStyle(
+              'i18n_article_暂无标签'.tr,
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
               ),
@@ -170,7 +171,7 @@ class _TagEditModalState extends State<TagEditModal> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            '编辑标签',
+            'i18n_article_编辑标签'.tr,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -181,7 +182,7 @@ class _TagEditModalState extends State<TagEditModal> {
               TextButton(
                 onPressed: _saveTags,
                 child: Text(
-                  '完成',
+                  'i18n_article_完成'.tr,
                   style: TextStyle(
                     color: theme.colorScheme.primary,
                     fontSize: 16,
@@ -219,7 +220,7 @@ class _TagEditModalState extends State<TagEditModal> {
           autofocus: true,
           style: const TextStyle(fontSize: 16),
           decoration: InputDecoration(
-            hintText: '搜索或创建标签',
+            hintText: 'i18n_article_搜索或创建标签'.tr,
             hintStyle: TextStyle(
               color: theme.hintColor.withOpacity(0.7),
               fontSize: 16,
@@ -349,7 +350,7 @@ class _TagEditModalState extends State<TagEditModal> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '创建',
+                      'i18n_article_创建'.tr,
                       style: TextStyle(
                         color: primaryColor,
                         fontSize: 14,

@@ -1,11 +1,14 @@
 // lib/basics/translations/zh_cn/zh_cn.dart
 
+import 'article_list_i18n.dart';
+import 'article_i18n.dart';
 import 'guide_i18n.dart';
 import 'home_group_i18n.dart';
 import 'home_index_i18n.dart';
 import 'home_my_i18n.dart';
 import 'home_search_i18n.dart';
 import 'login_i18n.dart';
+import 'order_i18n.dart';
 
 // 汇总所有中文翻译
 const Map<String, String> zhCN = {
@@ -16,5 +19,7 @@ const Map<String, String> zhCN = {
   ...homeIndexI18n,
   ...homeMyI18n,
   ...homeSearchI18n,
-
+  ...articleI18n,
+  ...articleListI18n,
+  ...orderI18n,
 };

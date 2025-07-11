@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 /// 显示删除标注确认对话框
 /// 
@@ -67,14 +68,14 @@ class _DeleteHighlightDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '删除标注',
+                  'i18n_article_删除标注'.tr,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Text(
-                  '此操作无法撤销',
+                  'i18n_article_此操作无法撤销'.tr,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                     fontWeight: FontWeight.w500,
@@ -90,7 +91,7 @@ class _DeleteHighlightDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '确定要删除以下标注吗？',
+            'i18n_article_确定要删除以下标注吗'.tr,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -118,7 +119,7 @@ class _DeleteHighlightDialog extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      '标注内容',
+                      'i18n_article_标注内容'.tr,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -165,7 +166,7 @@ class _DeleteHighlightDialog extends StatelessWidget {
                 ),
               ),
               child: Text(
-                '取消',
+                'i18n_article_取消'.tr,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
@@ -196,8 +197,8 @@ class _DeleteHighlightDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '删除',
-                    style: TextStyle(
+                    'i18n_article_删除'.tr,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                     ),
                   ),

@@ -99,14 +99,14 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'AI翻译不足',
+                  'i18n_article_AI翻译不足'.tr,
                   style: theme.textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             content: Text(
-              '系统赠送新用户3次免费AI翻译。您的 AI 翻译额度已用完，充值后可继续使用高质量翻译服务。',
+              'i18n_article_AI翻译额度已用完提示'.tr,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -115,7 +115,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text('以后再说'),
+                child: Text('i18n_article_以后再说'.tr),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
@@ -133,7 +133,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
                   Navigator.of(context).pop(); // Close the translate modal as well
                   context.push('/${RouteName.aiOrderPage}');
                 },
-                child: const Text('前往充值'),
+                child: Text('i18n_article_前往充值'.tr),
               ),
             ],
           );
@@ -209,12 +209,12 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     return Column(
       children: [
         Text(
-          'AI 翻译',
+          'i18n_article_AI翻译'.tr,
           style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Text(
-          '选择要翻译的目标语言',
+          'i18n_article_选择要翻译的目标语言'.tr,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -275,7 +275,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     // 原文的特殊处理
     if (languageCode == 'original') {
       return Text(
-        '已可用',
+        'i18n_article_已可用'.tr,
         style: theme.textTheme.bodySmall
             ?.copyWith(color: theme.colorScheme.primary),
       );
@@ -285,7 +285,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     switch (status) {
       case 'translated':
         return Text(
-          '翻译完成',
+          'i18n_article_翻译完成'.tr,
           style: theme.textTheme.bodySmall
               ?.copyWith(color: theme.colorScheme.primary),
         );
@@ -302,7 +302,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
             ),
             const SizedBox(width: 6),
             Text(
-              '预计20秒至2分钟，正在翻译...',
+              'i18n_article_正在翻译中'.tr,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
@@ -310,14 +310,14 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
         );
       case 'failed':
         return Text(
-          '翻译失败',
+          'i18n_article_翻译失败'.tr,
           style: theme.textTheme.bodySmall
               ?.copyWith(color: theme.colorScheme.error),
         );
       case 'untranslated':
       default:
         return Text(
-          '待翻译',
+          'i18n_article_待翻译'.tr,
           style: theme.textTheme.bodySmall
               ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         );
@@ -337,7 +337,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
                 foregroundColor: theme.colorScheme.onPrimaryContainer,
               )
             : null,
-        child: const Text('查看'),
+        child: Text('i18n_article_查看'.tr),
       );
     }
     
@@ -346,7 +346,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
       case 'untranslated':
         return ElevatedButton(
           onPressed: () => _translate(index),
-          child: const Text('翻译'),
+          child: Text('i18n_article_翻译'.tr),
         );
       case 'translating':
         return ElevatedButton(
@@ -355,14 +355,14 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
             disabledBackgroundColor:
                 theme.colorScheme.onSurface.withOpacity(0.12),
           ),
-          child: const Text('翻译'),
+          child: Text('i18n_article_翻译'.tr),
         );
       case 'translated':
         return Row(
           children: [
             TextButton(
               onPressed: () => _retranslate(index),
-              child: const Text('重新翻译'),
+              child: Text('i18n_article_重新翻译'.tr),
             ),
             const SizedBox(width: 8),
             ElevatedButton(
@@ -373,7 +373,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
                       foregroundColor: theme.colorScheme.onPrimaryContainer,
                     )
                   : null,
-              child: const Text('查看'),
+              child: Text('i18n_article_查看'.tr),
             ),
           ],
         );
@@ -384,7 +384,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
             backgroundColor: theme.colorScheme.errorContainer,
             foregroundColor: theme.colorScheme.onErrorContainer,
           ),
-          child: const Text('重试'),
+          child: Text('i18n_article_重试'.tr),
         );
       default:
         return const SizedBox.shrink();
@@ -397,22 +397,22 @@ mixin TranslateModalBLoC on State<TranslateModal> {
   final ArticleController articleController = Get.find<ArticleController>();
 
   final List<_Language> _allLanguages = [
-    _Language(name: '原文', code: 'original'),
-    _Language(name: '英语', code: 'en-US'),
-    _Language(name: '日语', code: 'ja-JP'),
-    _Language(name: '韩语', code: 'ko-KR'),
-    _Language(name: '法语', code: 'fr-FR'),
-    _Language(name: '德语', code: 'de-DE'),
-    _Language(name: '西班牙语', code: 'es-ES'),
-    _Language(name: '俄语', code: 'ru-RU'),
-    _Language(name: '阿拉伯语', code: 'ar-AR'),
-    _Language(name: '葡萄牙语', code: 'pt-PT'),
-    _Language(name: '意大利语', code: 'it-IT'),
-    _Language(name: '荷兰语', code: 'nl-NL'),
-    _Language(name: '泰语', code: 'th-TH'),
-    _Language(name: '越南语', code: 'vi-VN'),
-    _Language(name: '简体中文', code: 'zh-CN'),
-    _Language(name: '繁体中文', code: 'zh-TW'),
+    _Language(name: 'i18n_article_原文'.tr, code: 'original'),
+    _Language(name: 'i18n_article_英语'.tr, code: 'en-US'),
+    _Language(name: 'i18n_article_日语'.tr, code: 'ja-JP'),
+    _Language(name: 'i18n_article_韩语'.tr, code: 'ko-KR'),
+    _Language(name: 'i18n_article_法语'.tr, code: 'fr-FR'),
+    _Language(name: 'i18n_article_德语'.tr, code: 'de-DE'),
+    _Language(name: 'i18n_article_西班牙语'.tr, code: 'es-ES'),
+    _Language(name: 'i18n_article_俄语'.tr, code: 'ru-RU'),
+    _Language(name: 'i18n_article_阿拉伯语'.tr, code: 'ar-AR'),
+    _Language(name: 'i18n_article_葡萄牙语'.tr, code: 'pt-PT'),
+    _Language(name: 'i18n_article_意大利语'.tr, code: 'it-IT'),
+    _Language(name: 'i18n_article_荷兰语'.tr, code: 'nl-NL'),
+    _Language(name: 'i18n_article_泰语'.tr, code: 'th-TH'),
+    _Language(name: 'i18n_article_越南语'.tr, code: 'vi-VN'),
+    _Language(name: 'i18n_article_简体中文'.tr, code: 'zh-CN'),
+    _Language(name: 'i18n_article_繁体中文'.tr, code: 'zh-TW'),
   ];
 
   /// 获取当前应该显示的语言列表

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// 标注操作菜单动作类型
 enum HighlightAction {
@@ -41,7 +42,7 @@ class HighlightActionMenu extends StatelessWidget {
           _buildActionButton(
             context,
             icon: Icons.content_copy,
-            label: '复制',
+            label: 'i18n_article_复制'.tr,
             action: HighlightAction.copy,
             color: Theme.of(context).colorScheme.primary,
           ),
@@ -49,7 +50,7 @@ class HighlightActionMenu extends StatelessWidget {
           _buildActionButton(
             context,
             icon: Icons.delete_outline,
-            label: '删除',
+            label: 'i18n_article_删除'.tr,
             action: HighlightAction.delete,
             color: Theme.of(context).colorScheme.error,
           ),
