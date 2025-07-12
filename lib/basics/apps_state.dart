@@ -1,3 +1,4 @@
+import 'package:clipora/basics/translations/language_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -33,6 +34,7 @@ class _MyHomePageState extends State<AppsState> {
 
     Get.lazyPut(() => CategoryService());
     Get.lazyPut(() => EnhancedAnnotationService());
+    Get.lazyPut(() => LanguageController());
 
     Get.lazyPut(() => ArticleController());
     // Get.lazyPut(() => ArticleMarkdownController());

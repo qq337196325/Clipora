@@ -1,0 +1,40 @@
+const Map<String, String> languageSelectorI18n = {
+  // 语言选择器
+  'i18n_language_selector_title': '言語を選択',
+  'i18n_language_selector_subtitle': 'Select Language',
+  'i18n_language_selector_tip': '言語設定は即座に有効になり、デバイスに保存されます',
+  
+  // 语言名称
+  'i18n_language_name_zh_cn': '中文简体',
+  'i18n_language_name_en_us': 'English',
+  'i18n_language_name_zh_tw': '中文繁體',
+  'i18n_language_name_ja_jp': '日本語',
+  'i18n_language_name_ko_kr': '한국어',
+  'i18n_language_name_fr_fr': 'Français',
+  'i18n_language_name_de_de': 'Deutsch',
+  'i18n_language_name_es_es': 'Español',
+  'i18n_language_name_ru_ru': 'Русский',
+  'i18n_language_name_ar_ar': 'العربية',
+  'i18n_language_name_pt_pt': 'Português',
+  'i18n_language_name_it_it': 'Italiano',
+  'i18n_language_name_nl_nl': 'Nederlands',
+  'i18n_language_name_th_th': 'ไทย',
+  'i18n_language_name_vi_vn': 'Tiếng Việt',
+  
+  // 语言描述
+  'i18n_language_desc_zh_cn': '簡体中国語',
+  'i18n_language_desc_en_us': '英語',
+  'i18n_language_desc_zh_tw': '繁体中国語',
+  'i18n_language_desc_ja_jp': '日本語',
+  'i18n_language_desc_ko_kr': '韓国語',
+  'i18n_language_desc_fr_fr': 'フランス語',
+  'i18n_language_desc_de_de': 'ドイツ語',
+  'i18n_language_desc_es_es': 'スペイン語',
+  'i18n_language_desc_ru_ru': 'ロシア語',
+  'i18n_language_desc_ar_ar': 'アラビア語',
+  'i18n_language_desc_pt_pt': 'ポルトガル語',
+  'i18n_language_desc_it_it': 'イタリア語',
+  'i18n_language_desc_nl_nl': 'オランダ語',
+  'i18n_language_desc_th_th': 'タイ語',
+  'i18n_language_desc_vi_vn': 'ベトナム語',
+}; 

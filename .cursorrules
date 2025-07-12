@@ -143,10 +143,9 @@ lib/
 ## 国际化
 
 ### 文本处理
-- 界面文本使用中文
-- 硬编码文本需要提取到常量
-- 考虑后续国际化需求
-- 时间格式使用intl包处理
+- lib/basics/translations 目录下存放各国语言
+- 所有语言汇总到 lib/basics/translations/app_translations.dart 文件里面
+- lib/basics/translations/select_language_widget.dart 文件是用户选择语言的组件
 
 ## 测试规范
 

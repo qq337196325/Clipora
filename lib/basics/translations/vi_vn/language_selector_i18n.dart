@@ -1,0 +1,40 @@
+const Map<String, String> languageSelectorI18n = {
+  // 语言选择器
+  'i18n_language_selector_title': 'Chọn ngôn ngữ',
+  'i18n_language_selector_subtitle': 'Select Language',
+  'i18n_language_selector_tip': 'Cài đặt ngôn ngữ sẽ có hiệu lực ngay lập tức và được lưu trên thiết bị của bạn',
+  
+  // 语言名称 - 显示本地名称
+  'i18n_language_name_zh_cn': '中文简体',
+  'i18n_language_name_en_us': 'English',
+  'i18n_language_name_zh_tw': '中文繁體',
+  'i18n_language_name_ja_jp': '日本語',
+  'i18n_language_name_ko_kr': '한국어',
+  'i18n_language_name_fr_fr': 'Français',
+  'i18n_language_name_de_de': 'Deutsch',
+  'i18n_language_name_es_es': 'Español',
+  'i18n_language_name_ru_ru': 'Русский',
+  'i18n_language_name_ar_ar': 'العربية',
+  'i18n_language_name_pt_pt': 'Português',
+  'i18n_language_name_it_it': 'Italiano',
+  'i18n_language_name_nl_nl': 'Nederlands',
+  'i18n_language_name_th_th': 'ไทย',
+  'i18n_language_name_vi_vn': 'Tiếng Việt',
+  
+  // 语言描述 - 显示越南语描述
+  'i18n_language_desc_zh_cn': 'Tiếng Trung Giản thể',
+  'i18n_language_desc_en_us': 'Tiếng Anh',
+  'i18n_language_desc_zh_tw': 'Tiếng Trung Phồn thể',
+  'i18n_language_desc_ja_jp': 'Tiếng Nhật',
+  'i18n_language_desc_ko_kr': 'Tiếng Hàn',
+  'i18n_language_desc_fr_fr': 'Tiếng Pháp',
+  'i18n_language_desc_de_de': 'Tiếng Đức',
+  'i18n_language_desc_es_es': 'Tiếng Tây Ban Nha',
+  'i18n_language_desc_ru_ru': 'Tiếng Nga',
+  'i18n_language_desc_ar_ar': 'Tiếng Ả Rập',
+  'i18n_language_desc_pt_pt': 'Tiếng Bồ Đào Nha',
+  'i18n_language_desc_it_it': 'Tiếng Ý',
+  'i18n_language_desc_nl_nl': 'Tiếng Hà Lan',
+  'i18n_language_desc_th_th': 'Tiếng Thái',
+  'i18n_language_desc_vi_vn': 'Tiếng Việt',
+}; 

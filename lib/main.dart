@@ -8,7 +8,7 @@ import '/route/route.dart';
 import '/services/share_service.dart';
 import '/db/database_service.dart';
 import '/basics/translations/app_translations.dart';
-import '/controller/language_controller.dart';
+import 'basics/translations/language_controller.dart';
 
 import 'basics/app_theme.dart';
 import 'basics/apps_state.dart';

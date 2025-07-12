@@ -75,3 +75,29 @@ qq5202056
 ! 命令：与你的 Shell 无缝交互 这让你无需退出 Gemini CLI 就能执行系统命令。
 !：执行单条 Shell 命令，并返回到 Gemini CLI。例如：!ls -la 或 !git status。
 ! (单独输入)：切换到「Shell 模式」。在此模式下，你输入的任何内容都会被直接当作 Shell 命令执行，终端提示符也会变色以作区分。再次输入 ! 可以退出 Shell 模式，回到与 AI 的对话中。
+
+```dart
+final List<_Language> _allLanguages = [
+_Language(name: 'i18n_article_原文'.tr, code: 'original'),
+_Language(name: 'i18n_article_英语'.tr, code: 'en-US'),
+_Language(name: 'i18n_article_日语'.tr, code: 'ja-JP'),
+_Language(name: 'i18n_article_韩语'.tr, code: 'ko-KR'),
+_Language(name: 'i18n_article_法语'.tr, code: 'fr-FR'),
+_Language(name: 'i18n_article_德语'.tr, code: 'de-DE'),
+_Language(name: 'i18n_article_西班牙语'.tr, code: 'es-ES'),
+_Language(name: 'i18n_article_俄语'.tr, code: 'ru-RU'),
+_Language(name: 'i18n_article_阿拉伯语'.tr, code: 'ar-AR'),
+_Language(name: 'i18n_article_葡萄牙语'.tr, code: 'pt-PT'),
+_Language(name: 'i18n_article_意大利语'.tr, code: 'it-IT'),
+_Language(name: 'i18n_article_荷兰语'.tr, code: 'nl-NL'),
+_Language(name: 'i18n_article_泰语'.tr, code: 'th-TH'),
+_Language(name: 'i18n_article_越南语'.tr, code: 'vi-VN'),
+_Language(name: 'i18n_article_简体中文'.tr, code: 'zh-CN'),
+_Language(name: 'i18n_article_繁体中文'.tr, code: 'zh-TW'),
+];
+
+
+```
+
+
+

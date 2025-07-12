@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controller/language_controller.dart';
+import 'language_controller.dart';
 
 class SelectLanguageWidget extends StatelessWidget {
   const SelectLanguageWidget({super.key});
@@ -20,6 +20,9 @@ class SelectLanguageWidget extends StatelessWidget {
     final languageController = Get.find<LanguageController>();
     
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -61,14 +64,26 @@ class SelectLanguageWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  Get.locale?.languageCode == 'zh' 
-                    ? '选择语言 / Select Language'
-                    : 'Select Language / 选择语言',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1D1D1F),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'i18n_language_selector_title'.tr,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1D1D1F),
+                        ),
+                      ),
+                      Text(
+                        'i18n_language_selector_subtitle'.tr,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF8E8E93),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -76,129 +91,152 @@ class SelectLanguageWidget extends StatelessWidget {
           ),
           
           // 语言列表
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Obx(() => Column(
-              children: languageController.supportedLanguages.map((language) {
-                final isSelected = languageController.isCurrentLanguage(
-                  language.languageCode,
-                  language.countryCode,
-                );
-                
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isSelected 
-                        ? const Color(0xFF667eea)
-                        : const Color(0xFFE5E5E7),
-                      width: isSelected ? 2 : 1,
-                    ),
-                    color: isSelected 
-                      ? const Color(0xFF667eea).withOpacity(0.1)
-                      : Colors.white,
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        if (!isSelected) {
-                          languageController.changeLanguage(
-                            language.languageCode,
-                            language.countryCode,
-                          );
-                        }
-                        Navigator.pop(context);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            // 国旗表情
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8F9FA),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: const Color(0xFFE9ECEF),
-                                  width: 1,
-                                ),
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: languageController.supportedLanguages.length,
+                itemBuilder: (context, index) {
+                  final language = languageController.supportedLanguages[index];
+                  
+                  return Obx(() {
+                    final isSelected = languageController.isCurrentLanguage(
+                      language.languageCode,
+                      language.countryCode,
+                    );
+                    
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected 
+                            ? const Color(0xFF667eea)
+                            : const Color(0xFFE5E5E7),
+                          width: isSelected ? 2 : 1,
+                        ),
+                        color: isSelected 
+                          ? const Color(0xFF667eea).withOpacity(0.1)
+                          : Colors.white,
+                        boxShadow: isSelected 
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF667eea).withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                              child: Center(
-                                child: Text(
-                                  language.flag,
-                                  style: const TextStyle(fontSize: 24),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            
-                            // 语言信息
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    language.languageName,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                            ]
+                          : null,
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            if (!isSelected) {
+                              languageController.changeLanguage(
+                                language.languageCode,
+                                language.countryCode,
+                              );
+                            }
+                            Navigator.pop(context);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                // 国旗表情
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: isSelected 
+                                      ? const Color(0xFF667eea).withOpacity(0.1)
+                                      : const Color(0xFFF8F9FA),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
                                       color: isSelected 
-                                        ? const Color(0xFF667eea)
-                                        : const Color(0xFF1D1D1F),
+                                        ? const Color(0xFF667eea).withOpacity(0.3)
+                                        : const Color(0xFFE9ECEF),
+                                      width: 1,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _getLanguageDescription(language.languageCode),
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: Color(0xFF8E8E93),
+                                  child: Center(
+                                    child: Text(
+                                      language.flag,
+                                      style: const TextStyle(fontSize: 24),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(width: 16),
+                                
+                                // 语言信息
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _getLanguageDisplayName(language),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: isSelected 
+                                            ? const Color(0xFF667eea)
+                                            : const Color(0xFF1D1D1F),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _getLanguageDescription(language),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: isSelected 
+                                            ? const Color(0xFF667eea).withOpacity(0.7)
+                                            : const Color(0xFF8E8E93),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                
+                                // 选中标识
+                                if (isSelected)
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF667eea),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: const Color(0xFFE5E5E7),
+                                        width: 2,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
                             ),
-                            
-                            // 选中标识
-                            if (isSelected)
-                              Container(
-                                width: 24,
-                                height: 24,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF667eea),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                              )
-                            else
-                              Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: const Color(0xFFE5E5E7),
-                                    width: 2,
-                                  ),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            )),
+                    );
+                  });
+                },
+              ),
+            ),
           ),
           
           // 底部说明
@@ -224,9 +262,7 @@ class SelectLanguageWidget extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      Get.locale?.languageCode == 'zh' 
-                        ? '语言设置将立即生效并保存到您的设备'
-                        : 'Language settings will take effect immediately and be saved to your device',
+                      'i18n_language_selector_tip'.tr,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF8E8E93),
@@ -242,15 +278,15 @@ class SelectLanguageWidget extends StatelessWidget {
     );
   }
 
-  String _getLanguageDescription(String languageCode) {
-    final isZh = Get.locale?.languageCode == 'zh';
-    switch (languageCode) {
-      case 'zh':
-        return isZh ? '简体中文 - 默认语言' : 'Simplified Chinese - Default';
-      case 'en':
-        return isZh ? '英语 - 国际化' : 'English - International';
-      default:
-        return '';
-    }
+  /// 获取语言显示名称
+  String _getLanguageDisplayName(LanguageModel language) {
+    final key = 'i18n_language_name_${language.languageCode}_${language.countryCode.toLowerCase()}';
+    return key.tr;
+  }
+
+  /// 获取语言描述
+  String _getLanguageDescription(LanguageModel language) {
+    final key = 'i18n_language_desc_${language.languageCode}_${language.countryCode.toLowerCase()}';
+    return key.tr;
   }
 }

@@ -14,7 +14,7 @@ import '../../basics/config.dart';
 import '../../basics/ui.dart';
 import '../../components/ui_border_radius_widget.dart';
 import '../../basics/translations/select_language_widget.dart';
-import '../../controller/language_controller.dart';
+import '../../basics/translations/language_controller.dart';
 import 'phone_login_page.dart';
 import '../../api/user_api.dart';
 import '../../route/route_name.dart';

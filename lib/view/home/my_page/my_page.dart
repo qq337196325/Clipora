@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 import '../../../api/user_api.dart';
 import '../../../basics/config.dart';
 import '../../../basics/translations/select_language_widget.dart';
-import '../../../controller/language_controller.dart';
+import '../../../basics/translations/language_controller.dart';
 import '../../../route/route_name.dart';
 import '../../../basics/logger.dart';
 import 'about_page.dart';
