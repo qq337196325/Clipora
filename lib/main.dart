@@ -24,6 +24,11 @@ void main() async {
   // 初始化GetStorage，确保后续服务可用
   await GetStorage.init();
 
+  // 注册数据库服务（必须第一个初始化并等待完成）
+  final dbService = Get.put(DatabaseService(), permanent: true);
+  // 确保数据库初始化完成，这对于后续操作至关重要
+  await dbService.initDb();
+
   // 注册分享服务
   Get.put(ShareService(), permanent: true);
 
@@ -39,10 +44,7 @@ void main() async {
   // 注册语言控制器
   Get.put(LanguageController(), permanent: true);
 
-  // 注册数据库服务（必须第一个初始化并等待完成）
-  final dbService = Get.put(DatabaseService(), permanent: true);
-  // 确保数据库初始化完成，这对于后续操作至关重要
-  await dbService.initDb();
+
 
   runApp(AppsState(child: MyApp()));
 }

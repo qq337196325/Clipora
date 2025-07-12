@@ -54,6 +54,9 @@ class UserApi {
   static Future<Map> updateSyncDataApi(Map<String, dynamic> param) async {
     return await Request().post("$apiVersion/api/user/update_sync_data", data:param);
   }
+  static Future<Map> createFlutterLoggerApi(Map<String, dynamic> param) async {
+    return await Request().post("$apiVersion/api/user/create_flutter_logger", data:param);
+  }
 
 
 }

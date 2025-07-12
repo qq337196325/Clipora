@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart' hide Response;
 
 import '../basics/logger.dart';
 import '/basics/config.dart';
+import '../basics/translations/language_controller.dart';
 
 // 参考来源： https://blog.csdn.net/UserNamezhangxi/article/details/112576483
 // 官方文档： https://github.com/flutterchina/dio/blob/master/README-ZH.md
@@ -64,6 +66,18 @@ class Request {
 
   Request._init();
 
+  /// 获取当前语言代码
+  String _getCurrentLanguage() {
+    try {
+      final languageController = Get.find<LanguageController>();
+      final locale = languageController.currentLocale.value;
+      return '${locale.languageCode}_${locale.countryCode}';
+    } catch (e) {
+      // 如果获取失败，返回默认语言
+      return 'zh_CN';
+    }
+  }
+
   /// get 请求
   Future<dynamic> get(
     String path, {
@@ -78,10 +92,12 @@ class Request {
     if (headers != null) {
       headers.addAll({
         "token": token,
+        "X-Language": _getCurrentLanguage(),
       });
     } else {
       headers = {
         "token": token,
+        "X-Language": _getCurrentLanguage(),
       };
     }
 
@@ -116,9 +132,15 @@ class Request {
     }
 
     if (headers != null) {
-      headers.addAll({"token": hToken});
+      headers.addAll({
+        "token": hToken,
+        "X-Language": _getCurrentLanguage(),
+      });
     } else {
-      headers = {"token": hToken};
+      headers = {
+        "token": hToken,
+        "X-Language": _getCurrentLanguage(),
+      };
     }
 
     Response response = await dio.post(

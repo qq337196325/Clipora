@@ -3,8 +3,10 @@ import 'package:fluwx/fluwx.dart';
 import 'package:go_router/go_router.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart';
 
 import '../basics/logger.dart';
+import '../db/flutter_logger/flutter_logger_service.dart';
 import '../route/route_name.dart';
 
 
@@ -51,6 +53,8 @@ class _TransferRouteState extends State<TransferRoute> {
 
     // SnapshotService
 
+    Get.put(FlutterLoggerService(), permanent: true);
+
     if (token == null || token.isEmpty) {
       getLogger().i('📱 未找到本地token，跳转到登录页面');
       if (mounted) {
@@ -62,7 +66,6 @@ class _TransferRouteState extends State<TransferRoute> {
 
     if (mounted) {
       // Get.put(CategoryService(), permanent: true);
-
 
       context.go('/${RouteName.index}');
     }

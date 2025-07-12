@@ -1,86 +1,85 @@
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../db/flutter_logger/flutter_logger_service.dart';
 import '/basics/config.dart';
 
-printLogger(String level, Map<String, dynamic> message) async {
-  final log = getLogger();
-  switch(level){
-    case "i":
-      log.i(message);
-      break;
-    case "d":
-      log.d(message);
-      break;
-    case "w":
-      log.w(message);
-      break;
-    case "e":
-      log.e(message);
-      break;
-    case "v":
-      log.v(message);
-      break;
-  }
+// 日志监听回调函数类型
+typedef LogCallback = void Function(String level, String message, DateTime timestamp);
 
-  if(level == "i"){
-    return;
-  }
+// 需要上传的日志级别
+const Set<String> UPLOAD_LEVELS = {
+  'e', // error - 错误日志，必须上传
+  'w', // warning - 警告日志，建议上传
+};
 
-  final prefs = await SharedPreferences.getInstance();
-  String? _userName = prefs.getString('userName');
-  String? _token = prefs.getString('token');
-
-  // Map<String, dynamic> param = {
-  //   "level": level,
-  //   "user_name": _userName == null ? "": _userName,
-  //   "token" : _token == null ? "": _token,
-  //   "log": message,
-  //   "version": version,
-  // };
-  // await BaseApi.addClientLog(param);
+bool shouldUploadLog(String level) {
+  return UPLOAD_LEVELS.contains(level);
 }
 
 Logger getLogger() {
   final logData = Logger(
       printer: PrettyPrinter(
         methodCount: 1,
-        errorMethodCount: 8,
+        // errorMethodCount: 8,
         lineLength: 120,
         colors: true,
         printEmojis: true,
-        printTime: false,
       ),
       level: isDevelop ? Level.info : Level.warning,
-      // output: ServerLogOutput()
-  );
+      output: MultiOutput([
+        ConsoleOutput(), // 保持原有的控制台输出
+        ServerLogOutput() // 添加我们的监听功能
+      ])
+    );
 
   return logData;
 }
 
 class ServerLogOutput extends LogOutput {
+  // 静态变量存储日志监听器
   ServerLogOutput();
+
+  final FlutterLoggerService _flutterLoggerService = FlutterLoggerService();
 
   @override
   void output(OutputEvent event) async {
-    final String log = event.lines.join("\n");
-    print(log);
-    if (event.level == Level.info){
-      return ;
+    final String logMessage = event.lines.join("\n");
+    final String level = _getLevelString(event.level);
+    final DateTime timestamp = DateTime.now();
+
+    // print(event.origin.message);
+    // print(111111111111111111);
+    // print(event.origin.stackTrace.toString());
+    // print(event.origin.error.toString());
+    // print(22222222);
+    // print(logMessage);
+
+    if(level == "warning" || level == "error"){
+      _flutterLoggerService.saveLog(
+        level: level,
+        message: event.origin.message.toString(),
+        errorMessage: event.origin.error.toString(),
+        linesMessage: logMessage,
+      );
     }
 
-    // final prefs = await SharedPreferences.getInstance();
-    // String? _userName = prefs.getString('userName');
-    // String? _token = prefs.getString('token');
-    //
-    // Map<String, dynamic> param = {
-    //   "level": event.level.toString(),
-    //   "user_name": _userName == null ? "": _userName,
-    //   "token" : _token == null ? "": _token,
-    //   "log": log,
-    //   "version": version,
-    // };
-    // await BaseApi.addClientLog(param);
+  }
+
+
+  // 获取日志级别字符串
+  String _getLevelString(Level level) {
+    switch (level) {
+      case Level.debug:
+        return 'debug';
+      case Level.info:
+        return 'info';
+      case Level.warning:
+        return 'warning';
+      case Level.error:
+        return 'error';
+      default:
+        return 'unknown';
+    }
   }
 
 }

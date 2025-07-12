@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'annotation/enhanced_annotation_db.dart';
 import 'article/article_db.dart';
 import 'article_content/article_content_db.dart';
+import 'flutter_logger/flutter_logger_db.dart';
 import 'tag/tag_db.dart';
 import 'category/category_db.dart';
 import 'sync_operation/sync_operation.dart';
@@ -36,10 +37,10 @@ class DatabaseService extends GetxService {
     try {
       getLogger().i('🗄️ 开始初始化数据库...');
       
-      final dir = await getApplicationDocumentsDirectory();
+      final dir = await getApplicationDocumentsDirectory(); 
       
       _isar = await Isar.open(
-        [ArticleDbSchema, ArticleContentDbSchema, EnhancedAnnotationDbSchema, TagDbSchema, CategoryDbSchema, SyncOperationSchema],
+        [ArticleDbSchema, ArticleContentDbSchema, EnhancedAnnotationDbSchema, TagDbSchema,FlutterLoggerSchema, CategoryDbSchema, SyncOperationSchema],
         directory: dir.path,
         name: 'inkwell_db',
       );
@@ -68,6 +69,7 @@ class DatabaseService extends GetxService {
   /// 获取同步操作集合
   IsarCollection<SyncOperation> get syncOperations => _isar.syncOperations;
 
+  IsarCollection<FlutterLogger> get flutterLoggers => _isar.flutterLoggers;
 
   @override
   void onClose() {
