@@ -15,7 +15,7 @@ const urlPrivacy = "https://clipora.guanshangyun.com/privacy"; // 用户协议
 
 
 
-
+const isHuawei = false; /// 是否是华为平台
 
 const bool isDevelop = false;
 const String apiVersion = "/v120";

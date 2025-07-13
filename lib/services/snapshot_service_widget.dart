@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
 
 import '../basics/logger.dart';
-import '../basics/utils/user_utils.dart';
 import '../basics/web_view/settings.dart';
 import '../basics/web_view/utils.dart';
 import '../basics/web_view/warmup_urls.dart';
@@ -247,16 +245,16 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
   Future<void> processUnsnapshottedArticles() async {
     getLogger().d('🔍 检查快照任务状态: _isProcessing=$_isProcessing, _isLoadingSnapshot=$_isLoadingSnapshot, mounted=$mounted, _serviceStarted=$_serviceStarted');
 
-    PermissionStatus status = await Permission.storage.status;
-    if (status != PermissionStatus.granted) {
-      getLogger().w('🔄 检测到没有存储权限....');
-      if(_isShowPermissionModel == true){
-        return;
-      }
-      _isShowPermissionModel = true;
-      await handleAndroidPermission();
-      return;
-    }
+    // PermissionStatus status = await Permission.storage.status;
+    // if (status != PermissionStatus.granted) {
+    //   getLogger().w('🔄 检测到没有存储权限....');
+    //   if(_isShowPermissionModel == true){
+    //     return;
+    //   }
+    //   _isShowPermissionModel = true;
+    //   await handleAndroidPermission();
+    //   return;
+    // }
 
 
     if (_isProcessing || _isLoadingSnapshot || !mounted || !_serviceStarted) {

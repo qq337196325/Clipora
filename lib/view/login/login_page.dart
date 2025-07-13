@@ -413,7 +413,9 @@ mixin LoginPageBLoC on State<LoginPage> {
     final privacy = prefs.getBool('privacy');
     if(privacy == null || privacy == false){
       // TODO: 发布华为版注释下面两行
-      // openSmartDialog();
+      if(!isHuawei){
+        openSmartDialog();
+      }
     }
   }
 

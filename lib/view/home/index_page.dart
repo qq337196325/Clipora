@@ -6,6 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:get/get.dart';
 
+import '../../basics/config.dart';
 import '../../basics/logger.dart';
 import '../../basics/ui.dart';
 import '../../basics/utils/user_utils.dart';
@@ -348,9 +349,13 @@ mixin IndexPageBLoC on State<IndexPage> {
   }
 
   _init() async {
-    getLogger().e('❌ 同步过程发生异常0000000000000000000');
+    // getLogger().e('❌ 同步过程发生异常0000000000000000000');
     await _checkAppVersion(); // 在这里调用版本检查
-    await handleAndroidPermission();
+
+    if(isHuawei){
+      await handleAndroidPermission();
+    }
+
     checkCompleteSync();
   }
 
