@@ -86,9 +86,9 @@ class HighlightText extends StatelessWidget {
   }
 
   TextStyle _defaultHighlightStyle() {
-    return TextStyle(
+    return const TextStyle(
       // backgroundColor: const Color(0xFFFFEB3B), // 黄色背景
-      color: const Color(0xFF1565C0), // 深蓝色文字
+      color: Color(0xFF1565C0), // 深蓝色文字
       fontWeight: FontWeight.w600,
     );
   }
@@ -103,20 +103,21 @@ class HighlightTextBuilder {
     required String text,
     required String searchQuery,
     TextStyle? baseStyle,
+    required BuildContext context,
   }) {
     return HighlightText(
       text: text,
       searchQuery: searchQuery,
-      style: baseStyle ?? const TextStyle(
+      style: baseStyle ?? TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w500,
-        color: Colors.black87,
+        color: Theme.of(context).textTheme.titleLarge?.color,
       ),
       highlightStyle: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w700,
         // backgroundColor: const Color(0xFFFFEB3B).withOpacity(0.7),
-        color: const Color(0xFF1565C0),
+        color: Theme.of(context).primaryColor,
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
@@ -128,19 +129,20 @@ class HighlightTextBuilder {
     required String text,
     required String searchQuery,
     TextStyle? baseStyle,
+    required BuildContext context,
   }) {
     return HighlightText(
       text: text,
       searchQuery: searchQuery,
       style: baseStyle ?? TextStyle(
         fontSize: 14,
-        color: Colors.grey.shade600,
+        color: Theme.of(context).textTheme.bodyMedium?.color,
       ),
       highlightStyle: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         // backgroundColor: const Color(0xFFFFEB3B).withOpacity(0.5),
-        color: const Color(0xFF1565C0),
+        color: Theme.of(context).primaryColor,
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,

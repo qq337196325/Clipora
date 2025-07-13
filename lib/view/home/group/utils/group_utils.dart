@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bot_toast/bot_toast.dart';
-import 'group_constants.dart';
+
 
 /// 分组页面工具类
 class GroupUtils {
@@ -21,7 +21,7 @@ class GroupUtils {
     BotToast.showText(
       text: '❌ $message',
       borderRadius: BorderRadius.circular(10),
-      contentColor: GroupConstants.errorColor,
+      contentColor: Colors.red,
       textStyle: const TextStyle(
         color: Colors.white,
         fontSize: 16,
@@ -30,7 +30,8 @@ class GroupUtils {
   }
 
   /// 构建分隔线
-  static Widget buildDivider(int level) {
+  static Widget buildDivider(int level, BuildContext context) {
+    final theme = Theme.of(context);
     final double indentation = 14 + (level * 20.0) + 36;
     return Container(
       margin: EdgeInsets.only(left: indentation, right: 14),
@@ -38,9 +39,9 @@ class GroupUtils {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            GroupConstants.dividerColor.withOpacity(0.3),
-            GroupConstants.dividerColor,
-            GroupConstants.dividerColor.withOpacity(0.3),
+            theme.dividerColor.withOpacity(0.3),
+            theme.dividerColor,
+            theme.dividerColor.withOpacity(0.3),
           ],
         ),
       ),

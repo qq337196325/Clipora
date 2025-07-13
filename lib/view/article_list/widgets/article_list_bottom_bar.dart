@@ -21,9 +21,6 @@ class ArticleListBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     
     return Positioned(
@@ -44,48 +41,35 @@ class ArticleListBottomBar extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: isDark
-                    ? [
-                        colorScheme.surface.withOpacity(0.95),
-                        colorScheme.surfaceVariant.withOpacity(0.9),
-                      ]
-                    : [
-                        Colors.white.withOpacity(0.95),
-                        Colors.grey.shade50.withOpacity(0.9),
-                      ],
+                colors: [
+                  Theme.of(context).cardColor.withOpacity(0.95),
+                  Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                ],
               ),
               border: Border.all(
-                color: isDark 
-                    ? Colors.white.withOpacity(0.1) 
-                    : Colors.black.withOpacity(0.08),
+                color: Theme.of(context).dividerColor.withOpacity(0.5),
                 width: 0.5,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark 
-                      ? Colors.black.withOpacity(0.4)
-                      : Colors.black.withOpacity(0.15),
-                  blurRadius: 28,
-                  offset: const Offset(0, 12),
-                  spreadRadius: 0,
-                ),
-                BoxShadow(
-                  color: isDark 
-                      ? Colors.black.withOpacity(0.2)
-                      : Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                  spreadRadius: 0,
-                ),
-                BoxShadow(
-                  color: isDark 
-                      ? Colors.black.withOpacity(0.1)
-                      : Colors.black.withOpacity(0.04),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                  spreadRadius: 0,
-                ),
-              ],
+                              boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).shadowColor.withOpacity(0.15),
+                    blurRadius: 28,
+                    offset: const Offset(0, 12),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: Theme.of(context).shadowColor.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: Theme.of(context).shadowColor.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                    spreadRadius: 0,
+                  ),
+                ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(34),
@@ -188,7 +172,7 @@ class ArticleListBottomBar extends StatelessWidget {
           decoration: BoxDecoration(
             color: isPrimary 
                 ? colorScheme.primaryContainer.withOpacity(0.8)
-                : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03)),
+                : Theme.of(context).colorScheme.surface.withOpacity(0.5),
             borderRadius: BorderRadius.circular(24),
             border: isPrimary 
                 ? Border.all(color: colorScheme.primary.withOpacity(0.2), width: 1)

@@ -22,17 +22,17 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             // 搜索头部
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Theme.of(context).shadowColor.withOpacity(0.05),
                     offset: const Offset(0, 2),
                     blurRadius: 8,
                     spreadRadius: 0,
@@ -54,13 +54,13 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: Theme.of(context).colorScheme.surface.withOpacity(0.6),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           Icons.arrow_back_ios_new_rounded,
                           size: 18,
-                          color: Colors.grey.shade700,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
                       ),
                     ),
@@ -73,12 +73,12 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                     child: Container(
                       height: 38,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSearchFocused 
-                              ? const Color(0xFF00BCF6) 
-                              : Colors.grey.shade200,
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).dividerColor,
                           width: isSearchFocused ? 1.5 : 0.5,
                         ),
                       ),
@@ -89,14 +89,14 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                         decoration: InputDecoration(
                           hintText: 'i18n_search_搜索内容'.tr,
                           hintStyle: TextStyle(
-                            color: Colors.grey.shade500,
+                            color: Theme.of(context).textTheme.bodySmall?.color,
                             fontSize: 16,
                           ),
                           prefixIcon: Icon(
                             Icons.search_rounded,
                             color: isSearchFocused 
-                                ? const Color(0xFF00BCF6) 
-                                : Colors.grey.shade500,
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context).textTheme.bodySmall?.color,
                             size: 20,
                           ),
                           suffixIcon: searchText.isNotEmpty
@@ -107,7 +107,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                                     onTap: _clearSearch,
                                     child: Icon(
                                       Icons.close_rounded,
-                                      color: Colors.grey.shade500,
+                                      color: Theme.of(context).textTheme.bodySmall?.color,
                                       size: 18,
                                     ),
                                   ),
@@ -139,24 +139,24 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                         ),
                         decoration: BoxDecoration(
                           gradient: searchText.isNotEmpty
-                              ? const LinearGradient(
+                              ? LinearGradient(
                                   colors: [
-                                    Color(0xFF00BCF6),
-                                    Color(0xFF0099CC),
+                                    Theme.of(context).primaryColor,
+                                    Theme.of(context).primaryColor.withOpacity(0.8),
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 )
                               : null,
-                          color: searchText.isEmpty ? Colors.grey.shade200 : null,
+                          color: searchText.isEmpty ? Theme.of(context).colorScheme.surface : null,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           'i18n_search_搜索'.tr,
                           style: TextStyle(
                             color: searchText.isNotEmpty 
-                                ? Colors.white 
-                                : Colors.grey.shade500,
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).textTheme.bodySmall?.color,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -180,9 +180,9 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
 
   Widget _buildSearchContent() {
     if (isLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00BCF6)),
+          valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
         ),
       );
     }
@@ -222,8 +222,8 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            Colors.blue.shade50,
-                            Colors.cyan.shade50,
+                            Theme.of(context).primaryColor.withOpacity(0.1),
+                            Theme.of(context).primaryColor.withOpacity(0.05),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -231,7 +231,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                         borderRadius: BorderRadius.circular(60),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Theme.of(context).primaryColor.withOpacity(0.1),
                             blurRadius: 20,
                             spreadRadius: 0,
                             offset: const Offset(0, 10),
@@ -241,7 +241,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                       child: Icon(
                         hasSearched ? Icons.search_off_rounded : Icons.search_rounded,
                         size: 48,
-                        color: const Color(0xFF00BCF6),
+                        color: Theme.of(context).primaryColor,
                       ),
                     ),
                   ),
@@ -265,7 +265,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade700,
+                        color: Theme.of(context).textTheme.headlineMedium?.color,
                         height: 1.2,
                       ),
                       textAlign: TextAlign.center,
@@ -292,7 +292,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                           : 'i18n_search_输入关键词搜索文章标题'.tr,
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.grey.shade500,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                         height: 1.4,
                       ),
                       textAlign: TextAlign.center,
@@ -431,7 +431,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                 Icon(
                   Icons.speed,
                   size: 12,
-                  color: Colors.grey.shade500,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -441,7 +441,7 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                   }),
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade500,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
                 ),
                 const Spacer(),
@@ -449,14 +449,14 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       'i18n_search_极快'.tr,
                       style: TextStyle(
                         fontSize: 10,
-                        color: Colors.green.shade700,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -465,14 +465,14 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
+                      color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       'i18n_search_快速'.tr,
                       style: TextStyle(
                         fontSize: 10,
-                        color: Colors.orange.shade700,
+                        color: Theme.of(context).colorScheme.secondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -481,14 +481,14 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade50,
+                      color: Theme.of(context).colorScheme.error.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       'i18n_search_较慢'.tr,
                       style: TextStyle(
                         fontSize: 10,
-                        color: Colors.red.shade700,
+                        color: Theme.of(context).colorScheme.error,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -507,11 +507,11 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Theme.of(context).shadowColor.withOpacity(0.04),
                       offset: const Offset(0, 2),
                       blurRadius: 8,
                       spreadRadius: 0,
@@ -527,10 +527,12 @@ class _SearchPageState extends State<SearchPage> with SearchPageBLoC {
                     title: HighlightTextBuilder.buildTitle(
                       text: result.title,
                       searchQuery: searchText,
+                      context: context,
                     ),
                     subtitle: HighlightTextBuilder.buildContent(
                       text: _getDisplayContent(result),
                       searchQuery: searchText,
+                      context: context,
                     ),
                     onTap: () => _onResultTap(result),
                   ),

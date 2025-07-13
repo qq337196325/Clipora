@@ -18,12 +18,12 @@ class RatingDialog extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFFFAFBFC),
-              Color(0xFFF5F7FA),
+              Theme.of(context).colorScheme.background,
+              Theme.of(context).colorScheme.surface,
             ],
           ),
         ),
@@ -35,21 +35,24 @@ class RatingDialog extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFD93D), Color(0xFFFF8A5B)],
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    Theme.of(context).primaryColor.withOpacity(0.8),
+                  ],
                 ),
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFFD93D).withOpacity(0.3),
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
                     offset: const Offset(0, 8),
                     blurRadius: 20,
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.star_rate,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onPrimary,
                 size: 30,
               ),
             ),
@@ -57,10 +60,10 @@ class RatingDialog extends StatelessWidget {
             
             Text(
               'i18n_my_评价一下我们的应用'.tr,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1D1D1F),
+                color: Theme.of(context).textTheme.titleLarge?.color,
               ),
             ),
             const SizedBox(height: 8),
@@ -68,9 +71,9 @@ class RatingDialog extends StatelessWidget {
             Text(
               'i18n_my_您的评价是我们前进的动力描述'.tr,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF8E8E93),
+                color: Theme.of(context).textTheme.bodySmall?.color,
                 height: 1.4,
               ),
             ),
@@ -89,7 +92,7 @@ class RatingDialog extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     child: Icon(
                       Icons.star_rate,
-                      color: const Color(0xFFFFD93D),
+                      color: Theme.of(context).primaryColor,
                       size: 32,
                     ),
                   ),
@@ -100,9 +103,9 @@ class RatingDialog extends StatelessWidget {
             
             Text(
               'i18n_my_点击星星直接跳转到应用商店评价'.tr,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Color(0xFF8E8E93),
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
             ),
             const SizedBox(height: 24),
@@ -117,14 +120,14 @@ class RatingDialog extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
-                        side: const BorderSide(color: Color(0xFFE5E5E7)),
+                        side: BorderSide(color: Theme.of(context).dividerColor),
                       ),
                     ),
                     child: Text(
                       'i18n_my_稍后再说'.tr,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF8E8E93),
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -135,8 +138,8 @@ class RatingDialog extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () => _handleRateNow(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF667eea),
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -161,7 +164,7 @@ class RatingDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF2F2F7),
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -169,7 +172,7 @@ class RatingDialog extends StatelessWidget {
                   Icon(
                     Platform.isIOS ? Icons.phone_iphone : Icons.android,
                     size: 16,
-                    color: const Color(0xFF667eea),
+                    color: Theme.of(context).primaryColor,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -177,9 +180,9 @@ class RatingDialog extends StatelessWidget {
                       Platform.isIOS 
                         ? 'i18n_my_将跳转到AppStore进行评价'.tr
                         : 'i18n_my_将根据您的设备自动选择应用商店'.tr,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF8E8E93),
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                       ),
                     ),
                   ),

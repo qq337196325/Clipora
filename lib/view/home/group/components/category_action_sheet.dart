@@ -20,10 +20,12 @@ class CategoryActionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(GroupConstants.cardRadius),
           topRight: Radius.circular(GroupConstants.cardRadius),
         ),
@@ -31,19 +33,20 @@ class CategoryActionSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildHandle(),
+          _buildHandle(context),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                _buildCategoryHeader(),
+                _buildCategoryHeader(context),
                 const SizedBox(height: 24),
                 if (category.level < 1)
                   _buildActionButton(
                     icon: Icons.add_circle_outline,
                     title: 'i18n_group_添加子分类'.tr,
                     subtitle: 'i18n_group_在此分类下创建子分类'.tr,
-                    color: GroupConstants.primaryGradientStart,
+                    color: theme.colorScheme.primary,
+        context:context,
                     onTap: () {
                       Navigator.pop(context);
                       onAddSubCategory?.call();
@@ -53,7 +56,8 @@ class CategoryActionSheet extends StatelessWidget {
                   icon: Icons.edit_outlined,
                   title: 'i18n_group_重命名'.tr,
                   subtitle: 'i18n_group_修改分类名称和图标'.tr,
-                  color: GroupConstants.successColor,
+                  color: theme.colorScheme.tertiary,
+                  context:context,
                   onTap: () {
                     Navigator.pop(context);
                     onEdit?.call();
@@ -63,8 +67,9 @@ class CategoryActionSheet extends StatelessWidget {
                   icon: Icons.delete_outline,
                   title: 'i18n_group_删除'.tr,
                   subtitle: 'i18n_group_删除此分类'.tr,
-                  color: GroupConstants.errorColor,
+                  color: theme.colorScheme.error,
                   isDestructive: true,
+                  context:context,
                   onTap: () {
                     Navigator.pop(context);
                     onDelete?.call();
@@ -79,19 +84,24 @@ class CategoryActionSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildHandle() {
+  Widget _buildHandle(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.only(top: 12),
       width: 40,
       height: 4,
       decoration: BoxDecoration(
-        color: GroupConstants.dividerColor,
+        color: theme.dividerColor,
         borderRadius: BorderRadius.circular(2),
       ),
     );
   }
 
-  Widget _buildCategoryHeader() {
+  Widget _buildCategoryHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Row(
       children: [
         Container(
@@ -100,8 +110,8 @@ class CategoryActionSheet extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                GroupConstants.primaryGradientStart.withOpacity(0.1),
-                GroupConstants.primaryGradientEnd.withOpacity(0.1),
+                colorScheme.primary.withOpacity(0.1),
+                colorScheme.secondary.withOpacity(0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(12),
@@ -120,19 +130,12 @@ class CategoryActionSheet extends StatelessWidget {
             children: [
               Text(
                 category.name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: GroupConstants.itemText,
-                ),
+                style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: 4),
                               Text(
                   category.level == 0 ? 'i18n_group_主分类'.tr : 'i18n_group_子分类'.tr,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: GroupConstants.hintText,
-                  ),
+                  style: theme.textTheme.bodySmall,
                 ),
             ],
           ),
@@ -148,7 +151,10 @@ class CategoryActionSheet extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
     bool isDestructive = false,
+    required BuildContext context,
   }) {
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Material(
@@ -163,7 +169,7 @@ class CategoryActionSheet extends StatelessWidget {
               border: Border.all(
                 color: isDestructive 
                     ? color.withOpacity(0.2) 
-                    : const Color(0xfff0f0f0),
+                    : theme.dividerColor,
                 width: 1,
               ),
               color: isDestructive 
@@ -192,26 +198,22 @@ class CategoryActionSheet extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
-                          fontSize: 16,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: isDestructive ? color : GroupConstants.itemText,
+                          color: isDestructive ? color : theme.textTheme.titleMedium?.color,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: GroupConstants.hintText,
-                        ),
+                        style: theme.textTheme.bodySmall,
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: GroupConstants.lightHint,
+                  color: theme.disabledColor,
                   size: 20,
                 ),
               ],

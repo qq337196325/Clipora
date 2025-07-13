@@ -18,29 +18,23 @@ class SortBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final mediaQuery = MediaQuery.of(context);
     
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isDark 
-            ? colorScheme.surface
-            : Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark 
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -8),
-            spreadRadius: 0,
-          ),
-        ],
+                    boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).shadowColor.withOpacity(0.08),
+                blurRadius: 20,
+                offset: const Offset(0, -8),
+                spreadRadius: 0,
+              ),
+            ],
       ),
       child: SafeArea(
         top: false,
@@ -121,7 +115,6 @@ class SortBottomSheet extends StatelessWidget {
     required bool isDescending,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Material(
       color: Colors.transparent,
@@ -154,7 +147,7 @@ class SortBottomSheet extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isSelected 
                       ? colorScheme.primary
-                      : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06)),
+                      : Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: isSelected ? [
                     BoxShadow(
@@ -168,7 +161,7 @@ class SortBottomSheet extends StatelessWidget {
                   _getSortIcon(sortType),
                   size: 20,
                   color: isSelected 
-                      ? Colors.white
+                      ? Theme.of(context).colorScheme.onPrimary
                       : colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),

@@ -25,7 +25,7 @@ class _AIOrderPageState extends State<AIOrderPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F5EC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -74,12 +74,12 @@ class _AIOrderPageState extends State<AIOrderPage>
   Widget _buildTopBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-      decoration: const BoxDecoration(
-        color: Color(0xFFFEFDF8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
-            offset: Offset(0, 2),
+            color: Theme.of(context).shadowColor.withOpacity(0.04),
+            offset: const Offset(0, 2),
             blurRadius: 8,
           ),
         ],
@@ -95,17 +95,17 @@ class _AIOrderPageState extends State<AIOrderPage>
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100.withOpacity(0.6),
+                  color: Theme.of(context).colorScheme.surface.withOpacity(0.6),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.grey.shade200,
+                    color: Theme.of(context).dividerColor,
                     width: 0.5,
                   ),
                 ),
                 child: Icon(
                   Icons.arrow_back_ios_new,
                   size: 18,
-                  color: Colors.grey.shade700,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
             ),
@@ -116,10 +116,10 @@ class _AIOrderPageState extends State<AIOrderPage>
           // 标题
           Text(
             'i18n_order_ai_translation_request_package'.tr,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF3C3C3C),
+              color: Theme.of(context).textTheme.headlineMedium?.color,
               letterSpacing: 0.5,
             ),
           ),
@@ -136,15 +136,18 @@ class _AIOrderPageState extends State<AIOrderPage>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withOpacity(0.8),
+          ],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF667eea).withOpacity(0.3),
+            color: Theme.of(context).primaryColor.withOpacity(0.3),
             offset: const Offset(0, 8),
             blurRadius: 24,
             spreadRadius: 0,
@@ -159,12 +162,12 @@ class _AIOrderPageState extends State<AIOrderPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.auto_awesome,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   size: 28,
                 ),
               ),
@@ -175,18 +178,18 @@ class _AIOrderPageState extends State<AIOrderPage>
                   children: [
                     Text(
                       'i18n_order_ai_translation_assistant'.tr,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'i18n_order_smarter_reading_efficient_learning'.tr,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.white70,
+                        color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -199,9 +202,9 @@ class _AIOrderPageState extends State<AIOrderPage>
 
           Text(
             'i18n_order_translate_articles_with_ai'.tr,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onPrimary,
               height: 1.5,
             ),
           ),
@@ -215,18 +218,18 @@ class _AIOrderPageState extends State<AIOrderPage>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEFDF8),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Theme.of(context).shadowColor.withOpacity(0.08),
             offset: const Offset(0, 4),
             blurRadius: 20,
             spreadRadius: 0,
           ),
         ],
         border: Border.all(
-          color: const Color(0xFF667eea).withOpacity(0.1),
+          color: Theme.of(context).primaryColor.withOpacity(0.1),
           width: 1,
         ),
       ),
@@ -239,22 +242,22 @@ class _AIOrderPageState extends State<AIOrderPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF667eea).withOpacity(0.1),
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'i18n_order_limited_time_offer'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF667eea),
+                    color: Theme.of(context).primaryColor,
                   ),
                 ),
               ),
               const Spacer(),
-              const Icon(
+              Icon(
                 Icons.stars,
-                color: Color(0xFFFFD93D),
+                color: Theme.of(context).colorScheme.secondary,
                 size: 20,
               ),
             ],
@@ -266,34 +269,34 @@ class _AIOrderPageState extends State<AIOrderPage>
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text(
+              Text(
                 '¥',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF3C3C3C),
+                  color: Theme.of(context).textTheme.titleLarge?.color,
                 ),
               ),
-              const Text(
+              Text(
                 '12',
                 style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF3C3C3C),
+                  color: Theme.of(context).textTheme.headlineLarge?.color,
                 ),
               ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B6B).withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.error.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   'i18n_order_original_price'.trParams({'price': '20'}),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFFFF6B6B),
+                    color: Theme.of(context).colorScheme.error,
                     decoration: TextDecoration.lineThrough,
                   ),
                 ),
@@ -361,18 +364,18 @@ class _AIOrderPageState extends State<AIOrderPage>
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF3C3C3C),
+                  color: Theme.of(context).textTheme.titleLarge?.color,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF8C8C8C),
+                  color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
               ),
             ],
@@ -416,10 +419,10 @@ class _AIOrderPageState extends State<AIOrderPage>
       children: [
         Text(
           'i18n_order_core_features'.tr,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF3C3C3C),
+            color: Theme.of(context).textTheme.headlineMedium?.color,
           ),
         ),
         const SizedBox(height: 16),
@@ -446,11 +449,11 @@ class _AIOrderPageState extends State<AIOrderPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEFDF8),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Theme.of(context).shadowColor.withOpacity(0.04),
             offset: const Offset(0, 2),
             blurRadius: 8,
             spreadRadius: 0,
@@ -478,11 +481,11 @@ class _AIOrderPageState extends State<AIOrderPage>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF3C3C3C),
-                  ),
+                                  style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).textTheme.titleLarge?.color,
+                ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -516,12 +519,12 @@ class _AIOrderPageState extends State<AIOrderPage>
 
     return Container(
       padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
-      decoration: const BoxDecoration(
-        color: Color(0xFFFEFDF8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A000000),
-            offset: Offset(0, -2),
+            color: Theme.of(context).shadowColor.withOpacity(0.04),
+            offset: const Offset(0, -2),
             blurRadius: 12,
             spreadRadius: 0,
           ),
@@ -539,8 +542,8 @@ class _AIOrderPageState extends State<AIOrderPage>
             child: ElevatedButton(
               onPressed: isLoading ? null : handlePurchase,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isAndroid ? const Color(0xFF07C160) : const Color(0xFF667eea),
-                foregroundColor: Colors.white,
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 elevation: 0,
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
@@ -550,17 +553,18 @@ class _AIOrderPageState extends State<AIOrderPage>
               ).copyWith(
                 backgroundColor: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.disabled)) {
-                    return (isAndroid ? const Color(0xFF07C160) : const Color(0xFF667eea)).withOpacity(0.5);
+                    return Theme.of(context).primaryColor.withOpacity(0.5);
                   }
-                  return isAndroid ? const Color(0xFF07C160) : const Color(0xFF667eea);
+                  return Theme.of(context).primaryColor;
                 }),
               ),
               child: Container(
                 decoration: BoxDecoration(
                   gradient: isLoading ? null : LinearGradient(
-                    colors: isAndroid
-                        ? [const Color(0xFF07C160), const Color(0xFF00A850)]
-                        : [const Color(0xFF667eea), const Color(0xFF764ba2)],
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor.withOpacity(0.8),
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -595,10 +599,6 @@ class _AIOrderPageState extends State<AIOrderPage>
               ),
             ),
           ),
-
-
-
-
         ],
       ),
     );
@@ -623,18 +623,18 @@ class _AIOrderPageState extends State<AIOrderPage>
                 height: 18,
                 margin: const EdgeInsets.only(top: 1),
                 decoration: BoxDecoration(
-                  color: isAgreedToTerms ? const Color(0xFF667eea) : Colors.transparent,
+                  color: isAgreedToTerms ? Theme.of(context).primaryColor : Colors.transparent,
                   border: Border.all(
-                    color: isAgreedToTerms ? const Color(0xFF667eea) : const Color(0xFFD1D5DB),
+                    color: isAgreedToTerms ? Theme.of(context).primaryColor : Theme.of(context).dividerColor,
                     width: 1.5,
                   ),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: isAgreedToTerms
-                    ? const Icon(
+                    ? Icon(
                         Icons.check,
                         size: 12,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       )
                     : null,
               ),
@@ -646,26 +646,25 @@ class _AIOrderPageState extends State<AIOrderPage>
                   isAgreedToTerms = !isAgreedToTerms;
                 });
               },
-              child: Text('i18n_order_please_read_and_agree'.tr),
+              child: Text('i18n_order_please_read_and_agree'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
             ),
             Expanded(
               child: RichText(
                 text: TextSpan(
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF8C8C8C),
+                    color: Theme.of(context).textTheme.bodySmall?.color,
                     height: 1.4,
                   ),
                   children: [
-
                     WidgetSpan(
                       child: GestureDetector(
                         onTap: () => _handleUserAgreement(),
                         child: Text(
                           'i18n_order_purchase_agreement'.tr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF667eea),
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
                       ),
@@ -676,7 +675,6 @@ class _AIOrderPageState extends State<AIOrderPage>
             ),
           ],
         ),
-
       ],
     );
   }

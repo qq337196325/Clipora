@@ -848,13 +848,13 @@ mixin LoginPageBLoC on State<LoginPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('i18n_login_隐私政策'.tr, style: TextStyle(fontWeight: FontWeight.w600)),
+              Text('i18n_login_隐私政策'.tr, style: TextStyle(fontWeight: FontWeight.w600, color: UiColour.neutral_3, fontSize: 16)),
               SizedBox(height: 20),
               RichText(
                 text: TextSpan(
                   style: DefaultTextStyle.of(context).style,
                   children: <TextSpan>[
-                    TextSpan(text: 'i18n_login_隐私政策内容'.tr),
+                    TextSpan(text: 'i18n_login_隐私政策内容'.tr, style: TextStyle(color: UiColour.neutral_3)),
                     TextSpan(text: 'i18n_login_隐私政策链接'.tr, style: TextStyle(color: UiColour.primary),recognizer: TapGestureRecognizer()
                       ..onTap = () {
                         final Uri _url = Uri.parse(urlAgreement);
@@ -874,7 +874,7 @@ mixin LoginPageBLoC on State<LoginPage> {
                   ),
                   child: Container(
                     decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(40))),
-                    padding: const EdgeInsets.all(8.0),
+                    // padding: const EdgeInsets.all(8.0),
                     child: Text('i18n_login_同意'.tr, style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
                   ),
                   onPressed: () async {
@@ -897,7 +897,7 @@ mixin LoginPageBLoC on State<LoginPage> {
                   ),
                   child: Container(
                     decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(40))),
-                    padding: const EdgeInsets.all(8.0),
+                    // padding: const EdgeInsets.all(8.0),
                     child: Text('i18n_login_不同意并退出APP'.tr, style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
                   ),
                   onPressed: () async {

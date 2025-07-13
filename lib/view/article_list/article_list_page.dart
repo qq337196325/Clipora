@@ -101,15 +101,15 @@ class _ArticleListPageState extends State<ArticleListPage>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.white,
-              Colors.grey.shade50,
+              Theme.of(context).colorScheme.background,
+              Theme.of(context).colorScheme.surface,
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Theme.of(context).shadowColor.withOpacity(0.05),
               offset: const Offset(0, 2),
               blurRadius: 8,
               spreadRadius: 0,
@@ -136,7 +136,7 @@ class _ArticleListPageState extends State<ArticleListPage>
                           child: Icon(
                             _getListTypeIcon(),
                             size: 24,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -149,7 +149,7 @@ class _ArticleListPageState extends State<ArticleListPage>
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w700,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color: Theme.of(context).textTheme.headlineMedium?.color,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -157,7 +157,7 @@ class _ArticleListPageState extends State<ArticleListPage>
                                 _getSubtitle(),
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                  color: Theme.of(context).textTheme.bodySmall?.color,
                                 ),
                               ),
                             ],
@@ -197,7 +197,7 @@ class _ArticleListPageState extends State<ArticleListPage>
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.onSurface,
+                              color: Theme.of(context).textTheme.titleLarge?.color,
                             ),
                           ),
                         ),

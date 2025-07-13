@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../db/category/category_db.dart';
-import '../utils/group_constants.dart';
+
 
 /// 删除分类确认对话框
 class DeleteCategoryDialog extends StatelessWidget {
@@ -18,6 +18,9 @@ class DeleteCategoryDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -26,16 +29,14 @@ class DeleteCategoryDialog extends StatelessWidget {
         children: [
           Icon(
             Icons.warning_rounded,
-            color: GroupConstants.errorColor,
+            color: colorScheme.error,
             size: 24,
           ),
           const SizedBox(width: 8),
           Text(
             'i18n_group_删除分类'.tr,
-            style: const TextStyle(
-              fontSize: 18,
+            style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w600,
-              color: GroupConstants.itemText,
             ),
           ),
         ],
@@ -46,18 +47,16 @@ class DeleteCategoryDialog extends StatelessWidget {
         children: [
           RichText(
             text: TextSpan(
-              style: const TextStyle(
-                fontSize: 16,
-                color: GroupConstants.itemText,
+              style: theme.textTheme.bodyLarge?.copyWith(
                 height: 1.5,
               ),
               children: [
                 TextSpan(text: 'i18n_group_确定要删除分类'.tr),
                 TextSpan(
                   text: '「${category.name}」',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: GroupConstants.primaryGradientStart,
+                    color: colorScheme.primary,
                   ),
                 ),
                 TextSpan(text: 'i18n_group_吗'.tr),
@@ -69,27 +68,26 @@ class DeleteCategoryDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF7E6),
+                color: colorScheme.secondary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: const Color(0xFFFFD591),
+                  color: colorScheme.secondary.withOpacity(0.2),
                   width: 1,
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.info_outline,
-                    color: Color(0xFFFA8C16),
+                    color: colorScheme.secondary,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'i18n_group_删除后目录下的文章将移到未分类'.trParams({'count': articleCount.toString()}),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFFD48806),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.secondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -104,12 +102,12 @@ class DeleteCategoryDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
-            foregroundColor: GroupConstants.hintText,
+            foregroundColor: theme.textTheme.bodySmall?.color,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           ),
           child: Text(
             'i18n_group_取消'.tr,
-            style: const TextStyle(fontSize: 16),
+            style: theme.textTheme.titleMedium,
           ),
         ),
         const SizedBox(width: 8),
@@ -119,8 +117,8 @@ class DeleteCategoryDialog extends StatelessWidget {
             onConfirm();
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: GroupConstants.errorColor,
-            foregroundColor: Colors.white,
+            backgroundColor: colorScheme.error,
+            foregroundColor: colorScheme.onError,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -129,8 +127,8 @@ class DeleteCategoryDialog extends StatelessWidget {
           ),
           child: Text(
             'i18n_group_删除'.tr,
-            style: const TextStyle(
-              fontSize: 16,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onError,
               fontWeight: FontWeight.w600,
             ),
           ),

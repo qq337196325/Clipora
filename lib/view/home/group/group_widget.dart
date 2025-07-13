@@ -30,10 +30,19 @@ class _GroupPageState extends State<GroupPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: GroupConstants.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.scaffoldBackgroundColor,
+              theme.cardColor,
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
         ),
         child: SafeArea(
           bottom: false,
@@ -43,8 +52,8 @@ class _GroupPageState extends State<GroupPage>
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: _handleRefresh,
-                  color: const Color(0xFF007AFF),
-                  backgroundColor: Colors.white,
+                  color: theme.primaryColor,
+                  backgroundColor: theme.cardColor,
                   child: CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(
                       parent: BouncingScrollPhysics(),
@@ -80,6 +89,9 @@ class _GroupPageState extends State<GroupPage>
   }
 
   Widget _buildQuickEntries() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: GroupConstants.appBarPadding,
       child: Column(
@@ -91,8 +103,8 @@ class _GroupPageState extends State<GroupPage>
                   icon: Icons.library_books_rounded,
                   title: 'i18n_group_全部'.tr,
                   subtitle: 'i18n_group_所有内容'.tr,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+                  gradient: LinearGradient(
+                    colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -108,8 +120,8 @@ class _GroupPageState extends State<GroupPage>
                   icon: Icons.star_rounded,
                   title: 'i18n_group_重要'.tr,
                   subtitle: 'i18n_group_标记重要'.tr,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF8A65), Color(0xFFFF7043)],
+                  gradient: LinearGradient(
+                    colors: [colorScheme.secondary, colorScheme.secondary.withOpacity(0.8)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -136,9 +148,11 @@ class _GroupPageState extends State<GroupPage>
     required LinearGradient gradient,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(GroupConstants.cardRadius),
         boxShadow: [
           BoxShadow(
@@ -177,27 +191,22 @@ class _GroupPageState extends State<GroupPage>
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          fontSize: 15,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: GroupConstants.primaryText,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: GroupConstants.secondaryText,
-                        ),
+                        style: theme.textTheme.bodySmall,
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: GroupConstants.secondaryText,
+                  color: theme.disabledColor,
                 ),
               ],
             ),
@@ -210,8 +219,10 @@ class _GroupPageState extends State<GroupPage>
 
 
   Widget _buildCustomAppBar() {
+    final theme = Theme.of(context);
+
     return Container(
-      padding:  EdgeInsets.fromLTRB(20, 2, 16, 12),
+      padding:  const EdgeInsets.fromLTRB(20, 2, 16, 12),
       child: Column(
         children: [
           Row(
@@ -222,19 +233,14 @@ class _GroupPageState extends State<GroupPage>
                   children: [
                     Text(
                       'i18n_group_分组管理'.tr,
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: GroupConstants.primaryText,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'i18n_group_管理你的内容分类'.tr,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: GroupConstants.secondaryText,
-                      ),
+                      style: theme.textTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -276,6 +282,8 @@ class _GroupPageState extends State<GroupPage>
     required String label,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -284,10 +292,10 @@ class _GroupPageState extends State<GroupPage>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
+            color: theme.cardColor.withOpacity(0.8),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: GroupConstants.secondaryText.withOpacity(0.2),
+              color: theme.disabledColor.withOpacity(0.2),
               width: 0.5,
             ),
           ),
@@ -297,14 +305,12 @@ class _GroupPageState extends State<GroupPage>
               Icon(
                 icon,
                 size: 14,
-                color: GroupConstants.secondaryText,
+                color: theme.textTheme.bodySmall?.color,
               ),
               const SizedBox(width: 4),
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: GroupConstants.secondaryText,
+                style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -316,9 +322,16 @@ class _GroupPageState extends State<GroupPage>
   }
 
   Widget _buildAddButton() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        gradient: GroupConstants.primaryGradient,
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(GroupConstants.buttonRadius),
         boxShadow: [GroupConstants.buttonShadow],
       ),
@@ -343,10 +356,12 @@ class _GroupPageState extends State<GroupPage>
   }
 
   Widget _buildCategoriesCard() {
+    final theme = Theme.of(context);
+
     return Container(
-      margin: EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(GroupConstants.cardRadius),
         boxShadow: [GroupConstants.cardShadow],
       ),
@@ -764,7 +779,7 @@ mixin GroupPageBLoC on State<GroupPage> {
       if (i < visibleCategories.length - 1) {
         final nextCategory = visibleCategories[i+1];
         if (nextCategory.level <= category.level) {
-          widgets.add(GroupUtils.buildDivider(category.level));
+          widgets.add(GroupUtils.buildDivider(category.level,context));
         }
       }
     }

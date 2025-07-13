@@ -28,20 +28,20 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
   Widget build(BuildContext context) {
     super.build(context); // 调用AutomaticKeepAliveClientMixin的build方法
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFFF8FBFF),
-            Color(0xFFFFFFFF),
+            Theme.of(context).scaffoldBackgroundColor,
+            Theme.of(context).cardColor,
           ],
         ),
       ),
       child: RefreshIndicator(
         onRefresh: _loadArticles,
-        color: const Color(0xFF007AFF),
-        backgroundColor: Colors.white,
+        color: Theme.of(context).primaryColor,
+        backgroundColor: Theme.of(context).cardColor,
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           children: [
@@ -59,6 +59,9 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
 
   /// 构建最近阅读文章区域
   Widget _buildRecentlyReadSection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.only(top: 8, bottom: 20),
       child: Column(
@@ -69,23 +72,19 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF34C759).withOpacity(0.1),
+                  color: colorScheme.tertiary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.history_rounded,
                   size: 20,
-                  color: Color(0xFF34C759),
+                  color: colorScheme.tertiary,
                 ),
               ),
               const SizedBox(width: 12),
               Text(
                 'i18n_home_最近阅读'.tr,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1D1D1F),
-                ),
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -93,7 +92,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.cardColor,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -107,21 +106,19 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
             child: recentlyReadArticles.isEmpty
                 ?  Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 32.0),
+                padding: const EdgeInsets.symmetric(vertical: 32.0),
                 child: Column(
                   children: [
                     Icon(
                       Icons.history_rounded,
                       size: 32,
-                      color: Color(0xFFD1D1D6),
+                      color: theme.disabledColor,
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
                       'i18n_home_暂无最近阅读记录'.tr,
-                      style: TextStyle(
-                        color: Color(0xFF8E8E93),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.textTheme.bodySmall?.color,
                       ),
                     ),
                   ],
@@ -141,7 +138,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                         gradient: LinearGradient(
                           colors: [
                             Colors.transparent,
-                            const Color(0xFFE5E5EA).withOpacity(0.5),
+                            theme.dividerColor.withOpacity(0.5),
                             Colors.transparent,
                           ],
                         ),
@@ -157,7 +154,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                         }
                       },
                       borderRadius: BorderRadius.circular(8),
-                      splashColor: const Color(0xFF34C759).withOpacity(0.1),
+                      splashColor: colorScheme.tertiary.withOpacity(0.1),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
                         child: Row(
@@ -165,8 +162,8 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                             Container(
                               width: 4,
                               height: 4,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF34C759),
+                              decoration: BoxDecoration(
+                                color: colorScheme.tertiary,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -176,18 +173,16 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                                 article.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFF1D1D1F),
+                                style: theme.textTheme.bodyLarge?.copyWith(
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(
+                            Icon(
                               Icons.arrow_forward_ios_rounded,
                               size: 14,
-                              color: Color(0xFFD1D1D6),
+                              color: theme.disabledColor,
                             ),
                           ],
                         ),
@@ -209,6 +204,9 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
       return const SizedBox.shrink();
     }
 
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.only(top: 8, bottom: 20),
       child: Column(
@@ -219,23 +217,19 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF9500).withOpacity(0.1),
+                  color: colorScheme.secondary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.local_offer_rounded,
                   size: 20,
-                  color: Color(0xFFFF9500),
+                  color: colorScheme.secondary,
                 ),
               ),
               const SizedBox(width: 12),
               Text(
                 'i18n_home_我的标签'.tr,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1D1D1F),
-                ),
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -252,19 +246,19 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                     context.push('/${RouteName.articleList}?type=tag&title=${Uri.encodeComponent('i18n_home_标签'.tr + tagWithCount.tag.name)}&tagId=${tagWithCount.tag.id}&tagName=${Uri.encodeComponent(tagWithCount.tag.name)}');
                   },
                   borderRadius: BorderRadius.circular(20),
-                  splashColor: const Color(0xFFFF9500).withOpacity(0.2),
+                  splashColor: colorScheme.secondary.withOpacity(0.2),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          const Color(0xFFFF9500).withOpacity(0.1),
-                          const Color(0xFFFF9500).withOpacity(0.05),
+                          colorScheme.secondary.withOpacity(0.1),
+                          colorScheme.secondary.withOpacity(0.05),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFFFF9500).withOpacity(0.2),
+                        color: colorScheme.secondary.withOpacity(0.2),
                         width: 1,
                       ),
                     ),
@@ -274,14 +268,12 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                         Icon(
                           Icons.tag_rounded,
                           size: 14,
-                          color: const Color(0xFFFF9500),
+                          color: colorScheme.secondary,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           tagWithCount.tag.name,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF1D1D1F),
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -289,14 +281,13 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFF9500),
+                            color: colorScheme.secondary,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
                             '${tagWithCount.count}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.white,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSecondary,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -315,6 +306,9 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
 
   /// 构建未读文章区域
   Widget _buildUnreadSection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.only(top: 16, bottom: 20),
       child: Column(
@@ -332,23 +326,19 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF007AFF).withOpacity(0.1),
+                      color: colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.bookmark_rounded,
                       size: 20,
-                      color: Color(0xFF007AFF),
+                      color: colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Text(
                     'i18n_home_稍后阅读'.tr,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1D1D1F),
-                    ),
+                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const Spacer(),
                   if (unreadArticlesCount > 0)
@@ -358,15 +348,14 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                         key: ValueKey(unreadArticlesCount),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF007AFF).withOpacity(0.1),
+                          color: colorScheme.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           'i18n_home_共count篇'.trParams({'count': unreadArticlesCount.toString()}),
-                          style: const TextStyle(
-                            fontSize: 13,
+                          style: theme.textTheme.bodySmall?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF007AFF),
+                            color: colorScheme.primary,
                           ),
                         ),
                       ),
@@ -379,7 +368,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.cardColor,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -393,21 +382,19 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
             child: unreadArticles.isEmpty
                 ? Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Column(
                   children: [
                     Icon(
                       Icons.bookmark_outline_rounded,
                       size: 32,
-                      color: Color(0xFFD1D1D6),
+                      color: theme.disabledColor,
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
                       'i18n_home_暂无需要稍后阅读的文章'.tr,
-                      style: TextStyle(
-                        color: Color(0xFF8E8E93),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.textTheme.bodySmall?.color,
                       ),
                     ),
                   ],
@@ -427,7 +414,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                         gradient: LinearGradient(
                           colors: [
                             Colors.transparent,
-                            const Color(0xFFE5E5EA).withOpacity(0.5),
+                            theme.dividerColor.withOpacity(0.5),
                             Colors.transparent,
                           ],
                         ),
@@ -438,7 +425,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                       context.push('/${RouteName.articlePage}?id=${article.id}');
                     },
                     borderRadius: BorderRadius.circular(8),
-                    splashColor: const Color(0xFF007AFF).withOpacity(0.1),
+                    splashColor: colorScheme.primary.withOpacity(0.1),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
                       child: Row(
@@ -447,9 +434,9 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                             width: 4,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: article.markdownStatus == 3 
-                                  ? const Color(0xFFFF9500)  // 正在生成时使用橙色
-                                  : const Color(0xFF007AFF), // 正常状态使用蓝色
+                              color: article.markdownStatus == 3
+                                  ? colorScheme.secondary // 正在生成时使用橙色
+                                  : colorScheme.primary, // 正常状态使用蓝色
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -459,11 +446,10 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                               article.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: article.markdownStatus == 3 
-                                    ? const Color(0xFF8E8E93)  // 正在生成时使用灰色
-                                    : const Color(0xFF1D1D1F), // 正常状态使用黑色
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: article.markdownStatus == 3
+                                    ? theme.disabledColor // 正在生成时使用灰色
+                                    : theme.textTheme.bodyLarge?.color, // 正常状态使用黑色
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -472,13 +458,13 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                           // 根据文章状态显示不同的图标
                           article.markdownStatus == 3
                               ? LoadingAnimationWidget.staggeredDotsWave(
-                                  color: const Color(0xFFFF9500),
+                                  color: colorScheme.secondary,
                                   size: 16,
                                 )
-                              : const Icon(
+                              : Icon(
                                   Icons.arrow_forward_ios_rounded,
                                   size: 14,
-                                  color: Color(0xFFD1D1D6),
+                                  color: theme.disabledColor,
                                 ),
                         ],
                       ),

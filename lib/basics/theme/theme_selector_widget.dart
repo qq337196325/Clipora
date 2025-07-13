@@ -23,9 +23,9 @@ class _ThemeSelectorModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
@@ -45,51 +45,56 @@ class _ThemeSelectorModal extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-      child: Column(
-        children: [
-          // 拖拽条
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE5E5E7),
-              borderRadius: BorderRadius.circular(2),
+    return Builder(
+      builder: (context) => Container(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+        child: Column(
+          children: [
+            // 拖拽条
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).dividerColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          
-          // 标题
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+            const SizedBox(height: 16),
+            
+            // 标题
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).primaryColor,
+                        Theme.of(context).primaryColor.withOpacity(0.8),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  child: Icon(
+                    Icons.palette,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    size: 18,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.palette,
-                  color: Colors.white,
-                  size: 18,
+                const SizedBox(width: 10),
+                Text(
+                  'i18n_theme_选择主题'.tr,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).textTheme.headlineMedium?.color,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'i18n_theme_选择主题'.tr,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1D1D1F),
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -130,7 +135,7 @@ class _ThemeListView extends StatelessWidget {
       SnackBar(
         content: Text('i18n_theme_主题切换成功'.tr),
         duration: const Duration(seconds: 1),
-        backgroundColor: const Color(0xFF667eea),
+        backgroundColor: Theme.of(context).primaryColor,
       ),
     );
   }
@@ -152,14 +157,14 @@ class _ThemeItemWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF667eea).withOpacity(0.1) : Colors.white,
+        color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
         border: isSelected 
-          ? Border.all(color: const Color(0xFF667eea), width: 2)
-          : Border.all(color: const Color(0xFFF2F2F7), width: 1),
+          ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+          : Border.all(color: Theme.of(context).dividerColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Theme.of(context).shadowColor.withOpacity(0.04),
             offset: const Offset(0, 2),
             blurRadius: 8,
             spreadRadius: 0,
@@ -201,15 +206,15 @@ class _ThemeItemWidget extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? const Color(0xFF667eea) : const Color(0xFF1D1D1F),
+                          color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).textTheme.titleLarge?.color,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         theme.description.tr,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: Color(0xFF8E8E93),
+                          color: Theme.of(context).textTheme.bodySmall?.color,
                           height: 1.2,
                         ),
                       ),
@@ -223,13 +228,13 @@ class _ThemeItemWidget extends StatelessWidget {
                   Container(
                     width: 24,
                     height: 24,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF667eea),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.check,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       size: 16,
                     ),
                   ),

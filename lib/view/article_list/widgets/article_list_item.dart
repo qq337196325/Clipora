@@ -64,7 +64,7 @@ class _ArticleListItemState extends State<ArticleListItem>
             // color: isUnread
             //     ? colorScheme.surface
             //     : colorScheme.surface.withOpacity(0.7),
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isUnread 
@@ -74,7 +74,7 @@ class _ArticleListItemState extends State<ArticleListItem>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isUnread ? 0.06 : 0.03),
+                color: Theme.of(context).shadowColor.withOpacity(isUnread ? 0.06 : 0.03),
                 blurRadius: isUnread ? 16 : 8,
                 offset: const Offset(0, 4),
                 spreadRadius: 0,
@@ -186,23 +186,23 @@ class _ArticleListItemState extends State<ArticleListItem>
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
-                                        Colors.orange.shade400,
-                                        Colors.orange.shade600,
+                                        Theme.of(context).colorScheme.error,
+                                        Theme.of(context).colorScheme.error.withOpacity(0.8),
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(6),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.orange.withOpacity(0.3),
+                                        color: Theme.of(context).colorScheme.error.withOpacity(0.3),
                                         blurRadius: 4,
                                         offset: const Offset(0, 1),
                                       ),
                                     ],
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.star_rounded,
                                     size: 12,
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.onError,
                                   ),
                                 ),
                               ],
@@ -215,23 +215,23 @@ class _ArticleListItemState extends State<ArticleListItem>
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
-                                        Colors.grey.shade400,
-                                        Colors.grey.shade600,
+                                        Theme.of(context).colorScheme.secondary,
+                                        Theme.of(context).colorScheme.secondary.withOpacity(0.8),
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(6),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.grey.withOpacity(0.3),
+                                        color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
                                         blurRadius: 4,
                                         offset: const Offset(0, 1),
                                       ),
                                     ],
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.archive_rounded,
                                     size: 12,
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.onSecondary,
                                   ),
                                 ),
                               ],

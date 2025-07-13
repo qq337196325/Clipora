@@ -62,8 +62,8 @@ ${'i18n_my_设备名称'.tr}: ${iosInfo.name}
     return Scaffold(
       appBar: AppBar(
         title: Text('i18n_my_应用商店测试页面标题'.tr),
-        backgroundColor: const Color(0xFF667eea),
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         elevation: 0,
       ),
       body: Column(
@@ -73,11 +73,11 @@ ${'i18n_my_设备名称'.tr}: ${iosInfo.name}
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Theme.of(context).shadowColor.withOpacity(0.1),
                   offset: const Offset(0, 2),
                   blurRadius: 8,
                 ),
@@ -90,14 +90,15 @@ ${'i18n_my_设备名称'.tr}: ${iosInfo.name}
                   children: [
                     Icon(
                       Platform.isIOS ? Icons.phone_iphone : Icons.android,
-                      color: const Color(0xFF667eea),
+                      color: Theme.of(context).primaryColor,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'i18n_my_设备信息'.tr,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: Theme.of(context).textTheme.titleMedium?.color,
                       ),
                     ),
                   ],
@@ -105,9 +106,9 @@ ${'i18n_my_设备名称'.tr}: ${iosInfo.name}
                 const SizedBox(height: 12),
                 Text(
                   deviceInfo,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF666666),
+                    color: Theme.of(context).textTheme.bodySmall?.color,
                     height: 1.4,
                   ),
                 ),
@@ -151,26 +152,27 @@ ${'i18n_my_设备名称'.tr}: ${iosInfo.name}
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FA),
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE9ECEF)),
+                border: Border.all(color: Theme.of(context).dividerColor),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.bug_report,
-                        color: Color(0xFF667eea),
+                        color: Theme.of(context).primaryColor,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'i18n_my_测试日志'.tr,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
+                          color: Theme.of(context).textTheme.titleSmall?.color,
                         ),
                       ),
                     ],
@@ -181,8 +183,8 @@ ${'i18n_my_设备名称'.tr}: ${iosInfo.name}
                         ? Center(
                             child: Text(
                               'i18n_my_点击上方按钮开始测试'.tr,
-                              style: const TextStyle(
-                                color: Color(0xFF999999),
+                              style: TextStyle(
+                                color: Theme.of(context).textTheme.bodySmall?.color,
                                 fontSize: 14,
                               ),
                             ),
@@ -194,10 +196,10 @@ ${'i18n_my_设备名称'.tr}: ${iosInfo.name}
                                 padding: const EdgeInsets.only(bottom: 4),
                                 child: Text(
                                   testResults[index],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     fontFamily: 'monospace',
-                                    color: Color(0xFF333333),
+                                    color: Theme.of(context).textTheme.bodyMedium?.color,
                                   ),
                                 ),
                               );

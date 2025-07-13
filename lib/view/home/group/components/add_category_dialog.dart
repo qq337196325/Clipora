@@ -55,12 +55,14 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
         constraints: const BoxConstraints(maxWidth: 400),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -96,13 +98,16 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   }
 
   Widget _buildHeader() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xff667eea), Color(0xff764ba2)],
+          colors: [colorScheme.primary, colorScheme.secondary],
         ),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
@@ -154,13 +159,16 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   }
 
   Widget _buildEditInfo() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xfff0f7ff),
+        color: colorScheme.primary.withOpacity(0.05),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xff667eea).withOpacity(0.2)),
+        border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
       ),
       child: Row(
         children: [
@@ -170,8 +178,8 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xff667eea).withOpacity(0.1),
-                  const Color(0xff764ba2).withOpacity(0.1),
+                  colorScheme.primary.withOpacity(0.1),
+                  colorScheme.secondary.withOpacity(0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(8),
@@ -190,19 +198,16 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
               children: [
                 Text(
                   'i18n_group_编辑分类'.tr,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xff667eea),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.primary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   widget.editCategory!.name,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w500,
-                    color: Color(0xff2a2a2a),
                   ),
                 ),
               ],
@@ -211,14 +216,13 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xff667eea).withOpacity(0.1),
+              color: colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               widget.editCategory!.level == 0 ? 'i18n_group_主分类'.tr : 'i18n_group_子分类'.tr,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xff667eea),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -229,13 +233,16 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   }
 
   Widget _buildParentInfo() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xfff8f9fa),
+        color: theme.dividerColor.withOpacity(0.05),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xffe0e0e0)),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Row(
         children: [
@@ -245,8 +252,8 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xff667eea).withOpacity(0.1),
-                  const Color(0xff764ba2).withOpacity(0.1),
+                  colorScheme.primary.withOpacity(0.1),
+                  colorScheme.secondary.withOpacity(0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(8),
@@ -265,18 +272,15 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
               children: [
                 Text(
                   'i18n_group_父分类'.tr,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xff999999),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.textTheme.bodySmall?.color,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   widget.parentCategory!.name,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w500,
-                    color: Color(0xff2a2a2a),
                   ),
                 ),
               ],
@@ -288,6 +292,8 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   }
 
   Widget _buildNameInput() {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -304,7 +310,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: const Color(0xffe0e0e0),
+              color: theme.dividerColor,
               width: 1,
             ),
           ),
@@ -313,14 +319,11 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
             autofocus: !_isEditMode, // 编辑模式时不自动聚焦
             decoration: InputDecoration(
               hintText: _isEditMode ? 'i18n_group_修改分类名称'.tr : 'i18n_group_请输入分类名称'.tr,
-              hintStyle: const TextStyle(color: Color(0xff999999)),
+              hintStyle: TextStyle(color: theme.hintColor),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
-            style: const TextStyle(
-              fontSize: 16,
-              color: Color(0xff2a2a2a),
-            ),
+            style: theme.textTheme.titleMedium,
             onChanged: (value) => setState(() {}),
           ),
         ),
@@ -329,6 +332,9 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   }
 
   Widget _buildIconSelection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -336,10 +342,8 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
           children: [
             Text(
               'i18n_group_选择图标'.tr,
-              style: const TextStyle(
-                fontSize: 16,
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Color(0xff2a2a2a),
               ),
             ),
             const Spacer(),
@@ -348,13 +352,13 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xff667eea).withOpacity(0.1),
-                    const Color(0xff764ba2).withOpacity(0.1),
+                    colorScheme.primary.withOpacity(0.1),
+                    colorScheme.secondary.withOpacity(0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: const Color(0xff667eea).withOpacity(0.2),
+                  color: colorScheme.primary.withOpacity(0.2),
                 ),
               ),
               child: Row(
@@ -367,9 +371,8 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                   const SizedBox(width: 4),
                   Text(
                     'i18n_group_已选择'.tr,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xff667eea),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -383,10 +386,10 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
           height: 110,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xfff8f9fa),
+            color: theme.dividerColor.withOpacity(0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: const Color(0xffe0e0e0),
+              color: theme.dividerColor,
               width: 1,
             ),
           ),
@@ -407,12 +410,12 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: isSelected 
-                        ? const Color(0xff667eea).withOpacity(0.1)
-                        : Colors.white,
+                        ? colorScheme.primary.withOpacity(0.1)
+                        : theme.cardColor,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isSelected 
-                          ? const Color(0xff667eea)
+                          ? colorScheme.primary
                           : Colors.transparent,
                       width: 2,
                     ),

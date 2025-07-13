@@ -63,7 +63,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Theme.of(context).shadowColor.withOpacity(0.05),
                         offset: const Offset(0, 2),
                         blurRadius: 8,
                         spreadRadius: 0,
@@ -90,7 +90,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                               color: Theme.of(context).colorScheme.surface.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Theme.of(context).dividerColor,
+                                color: Theme.of(context).dividerColor.withOpacity(0.5),
                                 width: 0.5,
                               ),
                             ),
@@ -111,7 +111,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                           decoration: BoxDecoration(
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
+                                color: Theme.of(context).shadowColor.withOpacity(0.04),
                                 offset: const Offset(0, 1),
                                 blurRadius: 3,
                                 spreadRadius: 0,
@@ -123,23 +123,23 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             barDecoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.grey.shade100,
-                                  Colors.grey.shade50,
+                                  Theme.of(context).colorScheme.surface,
+                                  Theme.of(context).colorScheme.surface.withOpacity(0.8),
                                 ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: Colors.grey.shade200,
+                                color: Theme.of(context).dividerColor,
                                 width: 0.5,
                               ),
                             ),
                             indicatorDecoration: BoxDecoration(
-                              gradient: const LinearGradient(
+                              gradient: LinearGradient(
                                 colors: [
-                                  Color(0xFF00BCF6),
-                                  Color(0xFF0099CC),
+                                  Theme.of(context).primaryColor,
+                                  Theme.of(context).primaryColor.withOpacity(0.8),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -147,15 +147,15 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                               borderRadius: BorderRadius.circular(6),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF00BCF6).withOpacity(0.3),
+                                  color: Theme.of(context).primaryColor.withOpacity(0.3),
                                   offset: const Offset(0, 2),
                                   blurRadius: 4,
                                   spreadRadius: 0,
                                 ),
                               ],
                             ),
-                            tabTextColor: Colors.grey.shade700,
-                            selectedTabTextColor: Colors.white,
+                            tabTextColor: Theme.of(context).textTheme.bodyMedium?.color,
+                            selectedTabTextColor: Theme.of(context).colorScheme.onPrimary,
                             squeezeIntensity: 2,
                             height: 32,
                             tabPadding: const EdgeInsets.symmetric(horizontal: 12),
@@ -181,21 +181,21 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             duration: const Duration(milliseconds: 150),
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.85),
+                              color: Theme.of(context).cardColor.withOpacity(0.85),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.grey.shade200.withOpacity(0.6),
+                                color: Theme.of(context).dividerColor.withOpacity(0.6),
                                 width: 0.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: Theme.of(context).shadowColor.withOpacity(0.08),
                                   offset: const Offset(0, 2),
                                   blurRadius: 8,
                                   spreadRadius: 0,
                                 ),
                                 BoxShadow(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
                                   offset: const Offset(0, -1),
                                   blurRadius: 2,
                                   spreadRadius: 0,
@@ -205,7 +205,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             child: Icon(
                               Icons.search_rounded,
                               size: 22,
-                              color: Colors.grey.shade700,
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                         ),
@@ -225,21 +225,21 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             duration: const Duration(milliseconds: 150),
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.85),
+                              color: Theme.of(context).cardColor.withOpacity(0.85),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.grey.shade200.withOpacity(0.6),
+                                color: Theme.of(context).dividerColor.withOpacity(0.6),
                                 width: 0.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: Theme.of(context).shadowColor.withOpacity(0.08),
                                   offset: const Offset(0, 2),
                                   blurRadius: 8,
                                   spreadRadius: 0,
                                 ),
                                 BoxShadow(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
                                   offset: const Offset(0, -1),
                                   blurRadius: 2,
                                   spreadRadius: 0,
@@ -249,7 +249,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             child: Icon(
                               Icons.add,
                               size: 22,
-                              color: Colors.grey.shade700,
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                         ),
@@ -317,9 +317,6 @@ mixin IndexPageBLoC on State<IndexPage> {
   double _totalDy = 0.0; // 垂直滑动总距离
   static const double _horizontalThreshold = 80.0; // 水平滑动阈值
   static const double _verticalTolerance = 80.0; // 垂直滑动容忍度
-
-  // 上次活跃时间，用于判断是否需要刷新
-  DateTime? _lastActiveTime;
   
   // 同步进度相关
   double _syncProgress = 0.0;

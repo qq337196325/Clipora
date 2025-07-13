@@ -27,16 +27,16 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFFFAFBFC),
-            Color(0xFFF5F7FA),
+            Theme.of(context).colorScheme.background,
+            Theme.of(context).colorScheme.surface,
           ],
         ),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       height: MediaQuery.of(context).size.height * 0.85,
       child: Column(
@@ -80,7 +80,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                         'i18n_my_注销账号'.tr,
                         style: TextStyle(
                           fontSize: 15,
-                          color: UiColour.neutral_6,
+                          color: Theme.of(context).textTheme.bodySmall?.color,
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -102,13 +102,13 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
-            offset: Offset(0, 1),
+            color: Theme.of(context).shadowColor.withOpacity(0.04),
+            offset: const Offset(0, 1),
             blurRadius: 4,
           ),
         ],
@@ -120,7 +120,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: const Color(0xFFE5E5E7),
+              color: Theme.of(context).dividerColor,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -132,24 +132,27 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor.withOpacity(0.8),
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.settings,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   size: 18,
                 ),
               ),
               const SizedBox(width: 10),
               Text(
                 'i18n_my_设置'.tr,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1D1D1F),
+                  color: Theme.of(context).textTheme.titleLarge?.color,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -167,22 +170,22 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         Container(
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
-            color: const Color(0xFFF0F2F5),
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Icon(
             icon,
             size: 14,
-            color: const Color(0xFF667eea),
+            color: Theme.of(context).primaryColor,
           ),
         ),
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF3C3C3C),
+            color: Theme.of(context).textTheme.titleMedium?.color,
             letterSpacing: 0.3,
           ),
         ),
@@ -193,11 +196,11 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
   Widget _buildPrivacySection() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Theme.of(context).shadowColor.withOpacity(0.04),
             offset: const Offset(0, 3),
             blurRadius: 10,
             spreadRadius: 0,
@@ -210,8 +213,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
             icon: Icons.policy_outlined,
             title: 'i18n_my_用户协议'.tr,
             subtitle: 'i18n_my_了解我们的用户协议'.tr,
-            iconColor: const Color(0xFFFF6B6B),
-            iconBgColor: const Color(0xFFFF6B6B).withOpacity(0.1),
+            iconColor: Theme.of(context).colorScheme.error,
+            iconBgColor: Theme.of(context).colorScheme.error.withOpacity(0.1),
             onTap: () => _handleThirdPartyInfo(),
             isFirst: true,
             isExternalLink: true,
@@ -221,8 +224,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
             icon: Icons.verified_user_outlined,
             title: 'i18n_my_隐私协议'.tr,
             subtitle: 'i18n_my_保护您的隐私权益'.tr,
-            iconColor: const Color(0xFF4ECDC4),
-            iconBgColor: const Color(0xFF4ECDC4).withOpacity(0.1),
+            iconColor: Theme.of(context).colorScheme.secondary,
+            iconBgColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
             onTap: () => _handlePrivacyPolicy(),
             isLast: true,
             isExternalLink: true,
@@ -232,8 +235,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
             icon: Icons.info_outline,
             title: 'i18n_my_关于我们'.tr,
             subtitle: 'i18n_my_了解更多应用信息'.tr,
-            iconColor: const Color(0xFF9B59B6),
-            iconBgColor: const Color(0xFF9B59B6).withOpacity(0.1),
+            iconColor: Theme.of(context).primaryColor,
+            iconBgColor: Theme.of(context).primaryColor.withOpacity(0.1),
             onTap: () => _handleAboutUs(),
             isExternalLink: false,
           ),
@@ -260,11 +263,11 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Theme.of(context).shadowColor.withOpacity(0.04),
                 offset: const Offset(0, 3),
                 blurRadius: 10,
                 spreadRadius: 0,
@@ -314,8 +317,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         icon: Icons.language_outlined,
         title: 'i18n_my_语言设置'.tr,
         subtitle: 'i18n_my_当前语言'.trParams({'language': currentLanguage.languageName}),
-        iconColor: const Color(0xFF34C759),
-        iconBgColor: const Color(0xFF34C759).withOpacity(0.1),
+        iconColor: Theme.of(context).colorScheme.secondary,
+        iconBgColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
         onTap: () => SelectLanguageWidget.show(context),
         isFirst: true,
         isLast: false,
@@ -334,8 +337,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         icon: Icons.palette_outlined,
         title: 'i18n_theme_主题设置'.tr,
         subtitle: 'i18n_theme_当前主题'.trParams({'theme': currentTheme.name.tr}),
-        iconColor: const Color(0xFF667eea),
-        iconBgColor: const Color(0xFF667eea).withOpacity(0.1),
+        iconColor: Theme.of(context).primaryColor,
+        iconBgColor: Theme.of(context).primaryColor.withOpacity(0.1),
         onTap: () => ThemeSelectorWidget.show(context),
         isFirst: false,
         isLast: true,
@@ -356,11 +359,11 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF667eea).withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
               offset: const Offset(0, 4),
               blurRadius: 12,
               spreadRadius: 0,
@@ -385,7 +388,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
             height: 18,
             child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF667eea))),
         const SizedBox(width: 12),
-        Text('i18n_my_正在获取AI翻译余量'.tr, style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 14)),
+        Text('i18n_my_正在获取AI翻译余量'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 14)),
       ],
     );
   }
@@ -394,11 +397,11 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.error_outline, color: Color(0xFFFF6B6B), size: 20),
+        Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error, size: 20),
         const SizedBox(width: 8),
         Text('i18n_my_加载失败请点击重试'.tr,
-            style: const TextStyle(
-                color: Color(0xFFFF6B6B),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
                 fontSize: 14,
                 fontWeight: FontWeight.w600)),
       ],
@@ -423,17 +426,17 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                 children: [
                   Text(
                     'i18n_my_AI翻译请求'.tr,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1D1D1F)),
+                        color: Theme.of(context).textTheme.titleLarge?.color),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'i18n_my_让阅读更智能翻译更流畅'.tr,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF8E8E93),
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
                   ),
                 ],
@@ -445,8 +448,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                 context.push('/${RouteName.aiOrderPage}');
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF667eea),
-                foregroundColor: Colors.white,
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -464,9 +467,9 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
           borderRadius: BorderRadius.circular(5),
           child: LinearProgressIndicator(
             value: progress,
-            backgroundColor: const Color(0xFFF0F2F5),
+            backgroundColor: Theme.of(context).colorScheme.surface,
             valueColor:
-                const AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
+                AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
             minHeight: 10,
           ),
         ),
@@ -476,17 +479,17 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
           children: [
             Text(
               'i18n_my_已用'.trParams({'used': '${_totalTranslateQuantity! - _remainingTranslateQuantity!}'}),
-              style: const TextStyle(fontSize: 12, color: Color(0xFF8E8E93)),
+              style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color),
             ),
             Text(
               'i18n_my_剩余'.trParams({
                 'remaining': '$_remainingTranslateQuantity',
                 'total': '$_totalTranslateQuantity'
               }),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF3C3C3C),
+                color: Theme.of(context).textTheme.titleSmall?.color,
               ),
             ),
           ],
@@ -510,7 +513,6 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          // Navigator.pop(context);
           onTap();
         },
         borderRadius: BorderRadius.vertical(
@@ -518,59 +520,59 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
           bottom: isLast ? const Radius.circular(14) : Radius.zero,
         ),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             children: [
               Container(
-                width: 38,
-                height: 38,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: iconBgColor,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   icon,
-                  size: 20,
+                  size: 16,
                   color: iconColor,
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: TextStyle(
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1D1D1F),
+                        color: Theme.of(context).textTheme.titleMedium?.color,
                         letterSpacing: 0.2,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 1),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF8E8E93),
-                        height: 1.2,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        height: 1.1,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.all(3),
+                padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF2F2F7),
-                  borderRadius: BorderRadius.circular(5),
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Icon(
                   isExternalLink ? Icons.open_in_new : Icons.chevron_right,
-                  size: 14,
-                  color: const Color(0xFF8E8E93),
+                  size: 12,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
               ),
             ],
@@ -583,9 +585,9 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
 
   Widget _buildDivider() {
     return Container(
-      margin: const EdgeInsets.only(left: 68),
+      margin: const EdgeInsets.only(left: 56),
       height: 1,
-      color: const Color(0xFFF2F2F7),
+      color: Theme.of(context).dividerColor,
     );
   }
 
@@ -596,7 +598,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF3B30).withOpacity(0.15),
+            color: Theme.of(context).colorScheme.error.withOpacity(0.15),
             offset: const Offset(0, 3),
             blurRadius: 10,
             spreadRadius: 0,
@@ -607,16 +609,17 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // 先关闭弹窗
-            Navigator.of(context).pop();
             _handleLogout();
           },
           borderRadius: BorderRadius.circular(14),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFF3B30), Color(0xFFFF6B6B)],
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.error,
+                  Theme.of(context).colorScheme.error.withOpacity(0.8),
+                ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
@@ -625,18 +628,18 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.logout,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onError,
                   size: 18,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   'i18n_my_退出登录'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onError,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -653,7 +656,6 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
 
 // BLoC Mixin for business logic
 mixin MyPageBLoC on State<MyPage> {
-  String cacheSize = '0.0MB';
   int? _remainingTranslateQuantity;
   int? _totalTranslateQuantity;
   bool _isLoadingQuantity = true;
@@ -661,15 +663,7 @@ mixin MyPageBLoC on State<MyPage> {
   @override
   void initState() {
     super.initState();
-    _loadCacheSize();
     _loadTranslateQuantity();
-  }
-
-  void _loadCacheSize() async {
-    // TODO: 实际计算缓存大小
-    setState(() {
-      cacheSize = '0.0MB';
-    });
   }
 
   void _loadTranslateQuantity() async {
@@ -700,19 +694,6 @@ mixin MyPageBLoC on State<MyPage> {
     }
   }
 
-  void _handleAiTranslation() {
-    if (_isLoadingQuantity) return; 
-
-    if (_remainingTranslateQuantity == null) {
-      setState(() {
-        _isLoadingQuantity = true;
-      });
-      _loadTranslateQuantity();
-    } else {
-      context.push('/${RouteName.aiOrderPage}');
-    }
-  }
-
   void _handleThirdPartyInfo() { // 用户协议
     getLogger().i('第三方信息共享清单');
     final Uri _url = Uri.parse(urlPrivacy);
@@ -725,53 +706,6 @@ mixin MyPageBLoC on State<MyPage> {
     goLaunchUrl(_url);
   }
 
-  void _handleClearCache() async {
-    getLogger().i('清除缓存');
-    
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('清除缓存'),
-        content: const Text('确定要清除所有缓存数据吗？这将删除已下载的文章及笔记数据。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              '确定',
-              style: TextStyle(color: Color(0xFFFF3B30)),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (result == true) {
-      // TODO: 执行清除缓存操作
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('缓存已清除')),
-      );
-      _loadCacheSize();
-    }
-  }
-
-  void _handleHelp() {
-    getLogger().i('使用帮助');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('跳转到使用帮助页面')),
-    );
-  }
-
-  void _handleCommunity() {
-    getLogger().i('用户社区');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('跳转到用户社区页面')),
-    );
-  }
-
   void _handleRating() async {
     getLogger().i('评价一下');
     
@@ -779,12 +713,6 @@ mixin MyPageBLoC on State<MyPage> {
     await RatingDialog.show(context);
   }
 
-  void _handleAbout() {
-    getLogger().i('关于新枝');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('跳转到关于页面')),
-    );
-  }
 
   void _handleAboutUs() {
     getLogger().i('关于我们');
@@ -807,7 +735,7 @@ mixin MyPageBLoC on State<MyPage> {
   }
 
   void _handleLogout() async {
-    getLogger().i('退出登录');
+
     
     final result = await showDialog<bool>(
       context: context,
@@ -831,12 +759,18 @@ mixin MyPageBLoC on State<MyPage> {
     );
 
     if (result == true) {
+      getLogger().i('退出登录11111');
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      
+      getLogger().i('退出登录22222');
       // 先关闭弹窗，然后跳转到登录页
       // Navigator.of(context).pop(); // 关闭设置弹窗
-      context.go('/${RouteName.login}');
+      if (mounted) {
+        getLogger().i('退出登录33333');
+        // 先关闭弹窗
+        Navigator.of(context).pop();
+        context.go('/${RouteName.login}');
+      }
     }
   }
 
@@ -872,7 +806,7 @@ mixin MyPageBLoC on State<MyPage> {
       if (mounted) {
         // 先关闭弹窗
         Navigator.of(context).pop();
-        context.go('/login');
+        context.go('/${RouteName.login}');
       }
     }
   }

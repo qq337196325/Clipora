@@ -21,23 +21,23 @@ class _AboutPageState extends State<AboutPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFBFC),
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         title: Text(
           'i18n_my_关于我们页面标题'.tr,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF1D1D1F),
+            color: Theme.of(context).textTheme.titleLarge?.color,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios,
-            color: Color(0xFF1D1D1F),
+            color: Theme.of(context).appBarTheme.iconTheme?.color,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -78,11 +78,11 @@ class _AboutPageState extends State<AboutPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Theme.of(context).shadowColor.withOpacity(0.05),
             offset: const Offset(0, 3),
             blurRadius: 10,
             spreadRadius: 0,
@@ -97,23 +97,26 @@ class _AboutPageState extends State<AboutPage> {
             height: 80,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+                          gradient: LinearGradient(
+              colors: [
+                Theme.of(context).primaryColor,
+                Theme.of(context).primaryColor.withOpacity(0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF667eea).withOpacity(0.3),
+                  color: Theme.of(context).primaryColor.withOpacity(0.3),
                   offset: const Offset(0, 8),
                   blurRadius: 20,
                   spreadRadius: 0,
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.auto_awesome,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onPrimary,
               size: 40,
             ),
           ),
@@ -121,12 +124,12 @@ class _AboutPageState extends State<AboutPage> {
           const SizedBox(height: 16),
           
           // App Name
-          const Text(
+          Text(
             'Clipora',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1D1D1F),
+              color: Theme.of(context).textTheme.titleLarge?.color,
               letterSpacing: 0.5,
             ),
           ),
@@ -136,9 +139,9 @@ class _AboutPageState extends State<AboutPage> {
           // App Tagline
           Text(
             'i18n_my_智能剪藏与笔记管理'.tr,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: Color(0xFF8E8E93),
+              color: Theme.of(context).textTheme.bodySmall?.color,
               letterSpacing: 0.3,
             ),
           ),
@@ -152,11 +155,11 @@ class _AboutPageState extends State<AboutPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Theme.of(context).shadowColor.withOpacity(0.05),
             offset: const Offset(0, 3),
             blurRadius: 10,
             spreadRadius: 0,
@@ -171,22 +174,22 @@ class _AboutPageState extends State<AboutPage> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4ECDC4).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: Color(0xFF4ECDC4),
-                ),
+                                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.info_outline,
+                size: 16,
+                color: Theme.of(context).primaryColor,
+              ),
               ),
               const SizedBox(width: 8),
               Text(
                 'i18n_my_版本信息'.tr,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1D1D1F),
+                  color: Theme.of(context).textTheme.titleMedium?.color,
                 ),
               ),
             ],
@@ -212,17 +215,17 @@ class _AboutPageState extends State<AboutPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: Color(0xFF8E8E93),
+            color: Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF1D1D1F),
+            color: Theme.of(context).textTheme.titleMedium?.color,
           ),
         ),
       ],
@@ -234,11 +237,11 @@ class _AboutPageState extends State<AboutPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Theme.of(context).shadowColor.withOpacity(0.05),
             offset: const Offset(0, 3),
             blurRadius: 10,
             spreadRadius: 0,
@@ -253,22 +256,22 @@ class _AboutPageState extends State<AboutPage> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF45B7D1).withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.description_outlined,
                   size: 16,
-                  color: Color(0xFF45B7D1),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 'i18n_my_应用介绍'.tr,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1D1D1F),
+                  color: Theme.of(context).textTheme.titleMedium?.color,
                 ),
               ),
             ],
@@ -278,10 +281,10 @@ class _AboutPageState extends State<AboutPage> {
           
           Text(
             'i18n_my_应用介绍内容'.tr,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               height: 1.6,
-              color: Color(0xFF3C3C3C),
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
           
@@ -289,10 +292,10 @@ class _AboutPageState extends State<AboutPage> {
           
           Text(
             'i18n_my_主要功能'.tr,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1D1D1F),
+              color: Theme.of(context).textTheme.titleMedium?.color,
             ),
           ),
           
@@ -316,16 +319,16 @@ class _AboutPageState extends State<AboutPage> {
             width: 6,
             height: 6,
             decoration: BoxDecoration(
-              color: const Color(0xFF45B7D1),
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(3),
             ),
           ),
           const SizedBox(width: 10),
           Text(
             feature,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: Color(0xFF3C3C3C),
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
         ],
@@ -338,11 +341,11 @@ class _AboutPageState extends State<AboutPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Theme.of(context).shadowColor.withOpacity(0.05),
             offset: const Offset(0, 3),
             blurRadius: 10,
             spreadRadius: 0,
@@ -357,22 +360,22 @@ class _AboutPageState extends State<AboutPage> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6C5CE7).withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.contact_mail_outlined,
                   size: 16,
-                  color: Color(0xFF6C5CE7),
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 'i18n_my_联系我们'.tr,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1D1D1F),
+                  color: Theme.of(context).textTheme.titleMedium?.color,
                 ),
               ),
             ],
@@ -400,9 +403,9 @@ class _AboutPageState extends State<AboutPage> {
           
           Text(
             'i18n_my_感谢您使用Clipora'.tr,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: Color(0xFF8E8E93),
+              color: Theme.of(context).textTheme.bodySmall?.color,
               height: 1.4,
             ),
           ),
@@ -429,7 +432,7 @@ class _AboutPageState extends State<AboutPage> {
               Icon(
                 icon,
                 size: 18,
-                color: const Color(0xFF8E8E93),
+                color: Theme.of(context).iconTheme.color,
               ),
               const SizedBox(width: 12),
               Column(
@@ -437,27 +440,27 @@ class _AboutPageState extends State<AboutPage> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF8E8E93),
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     content,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF1D1D1F),
+                      color: Theme.of(context).textTheme.titleMedium?.color,
                     ),
                   ),
                 ],
               ),
               const Spacer(),
-              const Icon(
+              Icon(
                 Icons.copy,
                 size: 16,
-                color: Color(0xFF8E8E93),
+                color: Theme.of(context).iconTheme.color,
               ),
             ],
           ),
@@ -472,7 +475,7 @@ class _AboutPageState extends State<AboutPage> {
       SnackBar(
         content: Text(label),
         duration: const Duration(seconds: 2),
-        backgroundColor: const Color(0xFF4ECDC4),
+        backgroundColor: Theme.of(context).colorScheme.tertiary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),

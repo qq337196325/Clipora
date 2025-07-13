@@ -8,9 +8,12 @@ class GroupLoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(GroupConstants.cardRadius),
         boxShadow: [GroupConstants.cardShadow],
       ),
@@ -18,18 +21,17 @@ class GroupLoadingWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(
+            CircularProgressIndicator(
               strokeWidth: 3,
               valueColor: AlwaysStoppedAnimation<Color>(
-                GroupConstants.primaryGradientStart,
+                colorScheme.primary,
               ),
             ),
             const SizedBox(height: 16),
             Text(
               'i18n_group_加载中'.tr,
-              style: const TextStyle(
-                color: GroupConstants.secondaryText,
-                fontSize: 16,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.textTheme.bodySmall?.color,
               ),
             ),
           ],
