@@ -10,7 +10,7 @@ import '/db/database_service.dart';
 import '/basics/translations/app_translations.dart';
 import 'basics/translations/language_controller.dart';
 
-import 'basics/app_theme.dart';
+import 'basics/theme/app_theme.dart';
 import 'basics/apps_state.dart';
 import 'db/article/service/article_service.dart';
 import 'db/article_content/article_content_service.dart';
@@ -43,6 +43,9 @@ void main() async {
 
   // 注册语言控制器
   Get.put(LanguageController(), permanent: true);
+  
+  // 注册主题控制器
+  Get.put(ThemeController(), permanent: true);
 
 
 
@@ -54,17 +57,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 获取主题控制器和语言控制器
+    final themeController = Get.find<ThemeController>();
+    final languageController = Get.find<LanguageController>();
+    
     // 从 LanguageController 获取支持的语言列表
-    final supportedLocales = Get.find<LanguageController>()
+    final supportedLocales = languageController
         .supportedLanguages
         .map((lang) => lang.locale)
         .toList();
 
-    return GetMaterialApp.router(
+    return Obx(() => GetMaterialApp.router(
       title: "Clipora",
       debugShowCheckedModeBanner: false,
-      // 应用我们自定义的护眼主题
-      theme: readingTheme,
+      // 使用主题控制器动态获取主题
+      theme: themeController.currentThemeData,
       // 多语言配置
       translations: AppTranslations(),
       fallbackLocale: const Locale('zh', 'CN'),
@@ -90,7 +97,7 @@ class MyApp extends StatelessWidget {
         return child;
       },
       // builder: BotToastInit(),
-    );
+    ));
   }
 }
 

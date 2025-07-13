@@ -18,6 +18,8 @@ const Map<String, String> homeMyI18n = {
   // 设置项目
   'i18n_my_语言设置': 'Language Settings',
   'i18n_my_当前语言': 'Current: @language',
+  'i18n_my_主题设置': 'Theme Settings',
+  'i18n_my_当前主题': 'Current: @theme',
   'i18n_my_用户协议': 'User Agreement',
   'i18n_my_了解我们的用户协议': 'Learn about our user agreement',
   'i18n_my_隐私协议': 'Privacy Policy',

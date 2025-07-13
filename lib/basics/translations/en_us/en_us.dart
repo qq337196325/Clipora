@@ -10,6 +10,7 @@ import 'home_my_i18n.dart';
 import 'home_search_i18n.dart';
 import 'order_i18n.dart';
 import 'language_selector_i18n.dart';
+import 'theme_i18n.dart';
 
 // 汇总所有英文翻译
 const Map<String, String> enUS = {
@@ -24,4 +25,5 @@ const Map<String, String> enUS = {
   ...homeSearchI18n,
   ...orderI18n,
   ...languageSelectorI18n,
+  ...themeI18n,
 };

@@ -8,6 +8,7 @@ import '../../../api/user_api.dart';
 import '../../../basics/config.dart';
 import '../../../basics/translations/select_language_widget.dart';
 import '../../../basics/translations/language_controller.dart';
+import '../../../basics/theme/app_theme.dart';
 import '../../../route/route_name.dart';
 import '../../../basics/logger.dart';
 import 'about_page.dart';
@@ -273,6 +274,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
           child: Column(
             children: [
               _buildLanguageSetting(),
+              _buildDivider(),
+              _buildThemeSetting(),
               // _buildModernSettingItem(
               //   icon: Icons.help_center_outlined,
               //   title: '使用帮助',
@@ -315,6 +318,26 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         iconBgColor: const Color(0xFF34C759).withOpacity(0.1),
         onTap: () => SelectLanguageWidget.show(context),
         isFirst: true,
+        isLast: false,
+      );
+    });
+  }
+
+  Widget _buildThemeSetting() {
+    final themeController = Get.find<ThemeController>();
+    return Obx(() {
+      final currentTheme = themeController.supportedThemes.firstWhere(
+        (theme) => theme.type == themeController.currentTheme.value,
+        orElse: () => themeController.supportedThemes.first,
+      );
+      return _buildModernSettingItem(
+        icon: Icons.palette_outlined,
+        title: 'i18n_theme_主题设置'.tr,
+        subtitle: 'i18n_theme_当前主题'.trParams({'theme': currentTheme.name.tr}),
+        iconColor: const Color(0xFF667eea),
+        iconBgColor: const Color(0xFF667eea).withOpacity(0.1),
+        onTap: () => ThemeSelectorWidget.show(context),
+        isFirst: false,
         isLast: true,
       );
     });

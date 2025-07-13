@@ -45,6 +45,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
           //   backgroundColor: Colors.blue,
           //   elevation: 0,
           // ),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: SafeArea(
             bottom :false,
             child: Column(
@@ -54,8 +55,8 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.white,
-                        Colors.grey.shade50,
+                        Theme.of(context).cardColor,
+                        Theme.of(context).scaffoldBackgroundColor,
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -86,17 +87,17 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             duration: const Duration(milliseconds: 150),
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade100.withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.surface.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.grey.shade200,
+                                color: Theme.of(context).dividerColor,
                                 width: 0.5,
                               ),
                             ),
                             child: Icon(
                               Icons.person_outline_rounded,
                               size: 22,
-                              color: Colors.grey.shade700,
+                              color: Theme.of(context).iconTheme.color,
                             ),
                           ),
                         ),
