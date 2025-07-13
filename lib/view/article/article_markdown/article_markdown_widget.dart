@@ -45,12 +45,7 @@ class ArticleMarkdownWidget extends StatefulWidget {
   State<ArticleMarkdownWidget> createState() => ArticleMarkdownWidgetState();
 }
 
-// with SelectionMenuLogic<ArticleMarkdownWidget>, HighlightMenuLogic<ArticleMarkdownWidget>, EnhancedMarkdownLogic<ArticleMarkdownWidget>
-
 class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with ArticleMarkdownWidgetBLoC {
-
-  
-
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +186,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
   double _lastScrollY = 0.0;
   Timer? _savePositionTimer;
-  DateTime? _lastSaveTime;
 
   // === OverlayEntry管理 ===
   OverlayEntry? _enhancedSelectionMenuOverlay;
@@ -284,6 +278,13 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
       if (success) {
         getLogger().i('✅ Markdown内容渲染成功');
+        
+        // 应用当前字体大小
+        await _applyCurrentFontSize();
+        
+        // 应用当前主题
+        await _applyCurrentTheme();
+        
         // 检查渲染后的页面高度
         final contentHeight = await webViewController!.evaluateJavascript(source: '''
           document.body.scrollHeight || document.documentElement.scrollHeight || 0;
@@ -295,6 +296,145 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     } catch (e) {
       getLogger().e('❌ 渲染Markdown内容异常: $e');
     }
+  }
+
+  /// 应用当前字体大小
+  Future<void> _applyCurrentFontSize() async {
+    if (webViewController != null) {
+      try {
+        final currentFontSize = articleController.fontSize;
+        await webViewController!.evaluateJavascript(source: '''
+          (function() {
+            try {
+              // 设置CSS变量
+              document.documentElement.style.setProperty('--font-size', '${currentFontSize}px');
+              
+              // 更新所有文本元素的字体大小
+              const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, code');
+              textElements.forEach(element => {
+                element.style.fontSize = '${currentFontSize}px';
+              });
+              
+              // 更新行高以保持可读性
+              const lineHeight = Math.max(1.4, ${currentFontSize} / 16);
+              textElements.forEach(element => {
+                element.style.lineHeight = lineHeight.toString();
+              });
+              
+              console.log('✅ 初始字体大小应用成功: ${currentFontSize}px');
+              return true;
+            } catch (error) {
+              console.error('❌ 应用字体大小失败:', error);
+              return false;
+            }
+          })();
+        ''');
+        getLogger().i('✅ 初始字体大小应用成功: ${currentFontSize}px');
+      } catch (e) {
+        getLogger().e('❌ 应用初始字体大小失败: $e');
+      }
+    }
+  }
+
+  /// 应用当前主题
+  Future<void> _applyCurrentTheme() async {
+    if (webViewController != null) {
+      try {
+        final config = articleController.currentThemeConfig;
+        await webViewController!.evaluateJavascript(source: '''
+          (function() {
+            try {
+              // 更新CSS变量
+              document.documentElement.style.setProperty('--background-color', '${_colorToHex(config.backgroundColor)}');
+              document.documentElement.style.setProperty('--text-color', '${_colorToHex(config.textColor)}');
+              document.documentElement.style.setProperty('--card-color', '${_colorToHex(config.cardColor)}');
+              document.documentElement.style.setProperty('--divider-color', '${_colorToHex(config.dividerColor)}');
+              
+              // 更新body背景色
+              document.body.style.backgroundColor = '${_colorToHex(config.backgroundColor)}';
+              document.body.style.color = '${_colorToHex(config.textColor)}';
+              
+              // 更新所有文本元素的颜色
+              const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, code, span, div');
+              textElements.forEach(element => {
+                element.style.color = '${_colorToHex(config.textColor)}';
+              });
+              
+              // 更新代码块背景色
+              const codeElements = document.querySelectorAll('pre, code');
+              codeElements.forEach(element => {
+                element.style.backgroundColor = '${_colorToHex(config.cardColor)}';
+              });
+              
+              // 更新分割线颜色
+              const hrElements = document.querySelectorAll('hr');
+              hrElements.forEach(element => {
+                element.style.borderColor = '${_colorToHex(config.dividerColor)}';
+              });
+              
+              console.log('✅ 主题应用成功: ${config.name}');
+              return true;
+            } catch (error) {
+              console.error('❌ 应用主题失败:', error);
+              return false;
+            }
+          })();
+        ''');
+        getLogger().i('✅ 主题应用成功: ${config.name}');
+        
+        // 应用样式设置
+        await _applyStyleSettings();
+      } catch (e) {
+        getLogger().e('❌ 应用主题失败: $e');
+      }
+    }
+  }
+
+  /// 应用样式设置
+  Future<void> _applyStyleSettings() async {
+    if (webViewController != null) {
+      try {
+        await webViewController!.evaluateJavascript(source: '''
+          (function() {
+            try {
+              // 应用字体大小
+              const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, code, span, div');
+              textElements.forEach(element => {
+                element.style.fontSize = '${articleController.fontSize}px';
+                element.style.lineHeight = '${articleController.lineHeight}';
+                element.style.letterSpacing = '${articleController.letterSpacing}px';
+              });
+              
+              // 应用段落间距
+              const paragraphElements = document.querySelectorAll('p');
+              paragraphElements.forEach(element => {
+                element.style.marginBottom = '${articleController.paragraphSpacing}px';
+              });
+              
+              // 应用容器边距
+              const container = document.querySelector('.markdown-content') || document.body;
+              if (container) {
+                container.style.padding = '${articleController.marginSize}px';
+              }
+              
+              console.log('✅ 样式设置应用成功');
+              return true;
+            } catch (error) {
+              console.error('❌ 应用样式设置失败:', error);
+              return false;
+            }
+          })();
+        ''');
+        getLogger().i('✅ 样式设置应用成功');
+      } catch (e) {
+        getLogger().e('❌ 应用样式设置失败: $e');
+      }
+    }
+  }
+
+  /// 将Color转换为十六进制字符串
+  String _colorToHex(Color color) {
+    return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
   }
 
   /// 重新加载Markdown内容

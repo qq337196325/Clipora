@@ -6,7 +6,6 @@ import '../../../db/article_content/article_content_service.dart';
 import 'article_base_controller.dart';
 
 
-
 /// 文章控制器
 class ArticleMarkdownController extends ArticleBaseController {
 

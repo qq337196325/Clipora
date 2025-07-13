@@ -165,4 +165,17 @@ const Map<String, String> articleI18n = {
   'i18n_article_快照文件不存在': '快照文件不存在\n路径: @path',
   'i18n_article_快照文件为空': '快照文件为空\n路径: @path',
   'i18n_article_初始化失败': '初始化失败: ',
+
+
+  /// v1.3.0
+  'i18n_article_阅读主题': '阅读主题',
+  
+  // read_theme_widget
+  'i18n_article_阅读设置': '阅读设置',
+  'i18n_article_字体大小': '字体大小',
+  'i18n_article_减小': '减小',
+  'i18n_article_增大': '增大',
+  'i18n_article_预览效果': '预览效果',
+  'i18n_article_重置为默认大小': '重置为默认大小',
+  'i18n_article_字体大小已重置': '字体大小已重置',
 };

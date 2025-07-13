@@ -164,8 +164,10 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
                       showModalBottomSheet(
                         context: context,
                         backgroundColor: Colors.transparent,
+                        // elevation: 0, // 设置阴影为0，移除阴影效果
                         isScrollControlled: true,
                         useRootNavigator: true,
+                        // barrierColor: Colors.transparent, // 移除遮罩效果
                         builder: (BuildContext context) {
                           return MoreActionsModal(
                             articleId: widget.articleId,

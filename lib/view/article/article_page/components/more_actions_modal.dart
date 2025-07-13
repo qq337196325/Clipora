@@ -1,4 +1,5 @@
 import 'package:bot_toast/bot_toast.dart';
+import 'package:clipora/view/article/article_page/components/read_theme_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -142,6 +143,23 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
       context: context,
       expand: true,
       builder: (context) => MoveToCategoryModal(articleId: widget.articleId),
+    );
+  }
+
+  _showReadThemeWidgetModal(BuildContext context){
+
+    Navigator.of(context).pop();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0, // 设置阴影为0，移除阴影效果
+      barrierColor: Colors.transparent, // 移除遮罩效果
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => ReadThemeWidget(articleId: widget.articleId),
     );
   }
 
@@ -419,11 +437,14 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
 
       _ActionItem(icon: Icons.local_offer_outlined, label: 'i18n_article_标签'.tr, onTap: () => _showTagEditModal(context)),
       _ActionItem(icon: Icons.drive_file_move_outline, label: 'i18n_article_移动'.tr, onTap: () => _showMoveToCategoryModal(context)),
-             _ActionItem(
+      _ActionItem(
          icon: isImportant ? Icons.star : Icons.star_border, 
          label: isImportant ? 'i18n_article_取消重要'.tr : 'i18n_article_标为重要'.tr, 
          onTap: () => _toggleImportantStatus(context)
        ),
+
+      _ActionItem(icon: Icons.style, label: 'i18n_article_阅读主题'.tr, onTap: () => _showReadThemeWidgetModal(context)),
+
        _ActionItem(
          icon: isArchived ? Icons.unarchive : Icons.archive_outlined, 
          label: isArchived ? 'i18n_article_取消归档'.tr : 'i18n_article_归档'.tr, 
@@ -433,8 +454,6 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
     ];
 
     return Material(
-      // color: theme.cardColor,
-      color: Colors.white,
       borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(20),
         topRight: Radius.circular(20),
@@ -444,9 +463,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
         children: <Widget>[
           Container(
             decoration: BoxDecoration(
-              color: isDarkMode
-                  ? const Color(0xFF2C2C2E)
-                  : const Color(0xFFFFFFFF),
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
@@ -544,4 +561,4 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
       ),
     );
   }
-} 
+}

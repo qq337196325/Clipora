@@ -66,17 +66,25 @@ class SimpleHtmlTemplate {
             100% { opacity: 1; }
         }
         
-
-        /* 基础重置和主题适配 */
+        /* 基础重置和主题适配 background-color: #ccc !important; */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
-            background-color: transparent !important;
+            
             margin: 0;
             padding: 20px;
             padding-top: 40px;
             padding-bottom: 60px;
             word-wrap: break-word;
+            overflow-x: hidden; /* 防止水平滚动 */
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* CSS变量支持字体大小调整 */
+        :root {
+            --font-size: 16px;
+            --line-height: 1.6;
         }
         
         /* Markdown内容容器 */
@@ -85,12 +93,14 @@ class SimpleHtmlTemplate {
             box-sizing: border-box;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            overflow-x: hidden; /* 防止内容溢出 */
+            max-width: 100%; /* 确保不超出容器 */
         }
         
         /* 基础Markdown样式 */
         .markdown-body {
-            font-size: 16px;
-            line-height: 1.6;
+            font-size: var(--font-size);
+            line-height: var(--line-height);
         }
         
         .markdown-body h1,
@@ -115,6 +125,8 @@ class SimpleHtmlTemplate {
         .markdown-body p {
             margin-top: 0;
             margin-bottom: 16px;
+            font-size: var(--font-size);
+            line-height: var(--line-height);
         }
         
         .markdown-body blockquote {
@@ -122,6 +134,8 @@ class SimpleHtmlTemplate {
             color: #656d76;
             border-left: 0.25em solid #d1d9e0;
             margin: 16px 0;
+            font-size: var(--font-size);
+            line-height: var(--line-height);
         }
         
         .markdown-body ul,
@@ -133,6 +147,8 @@ class SimpleHtmlTemplate {
         
         .markdown-body li {
             margin: 0.25em 0;
+            font-size: var(--font-size);
+            line-height: var(--line-height);
         }
         
         .markdown-body code {
@@ -156,12 +172,13 @@ class SimpleHtmlTemplate {
         
         .markdown-body pre code {
             display: inline;
-            max-width: auto;
+            max-width: 100%;
             padding: 0;
             margin: 0;
             overflow: visible;
             line-height: inherit;
-            word-wrap: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
             background-color: transparent;
             border: 0;
         }
@@ -175,6 +192,7 @@ class SimpleHtmlTemplate {
             cursor: pointer;
             border-radius: 8px;
             box-sizing: border-box;
+            overflow: hidden; /* 防止图片溢出 */
         }
         
         /* 表格样式 */
@@ -182,16 +200,20 @@ class SimpleHtmlTemplate {
             border-spacing: 0;
             border-collapse: collapse;
             display: block;
-            width: max-content;
+            width: 100%;
             max-width: 100%;
-            overflow: auto;
+            overflow-x: auto;
             margin: 16px 0;
+            box-sizing: border-box;
         }
         
         .markdown-body table th,
         .markdown-body table td {
             padding: 6px 13px;
             border: 1px solid #d1d9e0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 200px; /* 限制单元格最大宽度 */
         }
         
         .markdown-body table th {
@@ -216,6 +238,26 @@ class SimpleHtmlTemplate {
             margin: 24px 0;
             background-color: #d1d9e0;
             border: 0;
+        }
+        
+        /* 防止所有元素溢出 */
+        .markdown-body * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* 确保代码块不会溢出 */
+        .markdown-body pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        /* 确保内联代码不会溢出 */
+        .markdown-body code:not(pre code) {
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         
     </style>
@@ -277,94 +319,43 @@ class SimpleHtmlTemplate {
             });
         }
         
-        // 简单的Markdown渲染函数
-        function renderMarkdown(markdownText) {
-            if (!markdownText || typeof marked === 'undefined') {
+
+        
+
+        
+        // 字体大小调整函数
+        function updateFontSize(fontSize) {
+            try {
+                // 更新CSS变量
+                document.documentElement.style.setProperty('--font-size', fontSize + 'px');
+                
+                // 计算合适的行高
+                const lineHeight = Math.max(1.4, fontSize / 16);
+                document.documentElement.style.setProperty('--line-height', lineHeight.toString());
+                
+                // 更新所有文本元素的字体大小
+                const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, code');
+                textElements.forEach(element => {
+                    element.style.fontSize = fontSize + 'px';
+                    element.style.lineHeight = lineHeight.toString();
+                });
+                
+                console.log('✅ 字体大小更新成功:', fontSize + 'px');
+                return true;
+            } catch (error) {
+                console.error('❌ 更新字体大小失败:', error);
                 return false;
             }
-            
-            try {
-                const htmlContent = marked.parse(markdownText);
-                const contentElement = document.getElementById('content');
-                if (contentElement) {
-                    contentElement.innerHTML = htmlContent;
-                    
-                    // 添加图片点击处理
-                    const images = contentElement.querySelectorAll('img');
-                    images.forEach(img => {
-                        img.addEventListener('click', function() {
-                            if (window.flutter_inappwebview) {
-                                window.flutter_inappwebview.callHandler('onImageClick', {
-                                    src: this.src,
-                                    alt: this.alt || ''
-                                });
-                            }
-                        });
-                    });
-                    
-                    console.log('✅ Markdown渲染完成');
-                    return true;
-                }
-            } catch (error) {
-                console.error('❌ Markdown渲染失败:', error);
-            }
-            return false;
         }
-        
-        // 暴露渲染函数给Flutter调用
-        window.renderMarkdown = renderMarkdown;
-        
-        // 用于动态设置 .markdown-body 的 padding-top
-        function setMarkdownPaddingTop(padding) {
-            const contentElement = document.querySelector('.markdown-body');
-            if (contentElement) {
-                contentElement.style.paddingTop = padding + 'px';
-                console.log(`✅ Set .markdown-body padding-top to \${padding}px`);
-            } else {
-                console.warn('⚠️ Could not find .markdown-body element to set padding.');
-            } 
-        }
-        window.setMarkdownPaddingTop = setMarkdownPaddingTop;
+        window.updateFontSize = updateFontSize;
         
         console.log('✅ HTML模板初始化完成');
     </script>
     
     <script>
         // 平滑加载控制函数
-        window.SmoothLoading = {
-            // 显示加载遮罩
-            show: function(message) {
-                const overlay = document.getElementById('smooth-loading-overlay');
-                const text = overlay.querySelector('.loading-text');
-                if (message) {
-                    text.textContent = message;
-                }
-                overlay.classList.remove('hidden');
-                console.log('🎭 显示加载遮罩:', message || '正在加载...');
-            },
-            
-            // 隐藏加载遮罩
-            hide: function() {
-                const overlay = document.getElementById('smooth-loading-overlay');
-                overlay.classList.add('hidden');
-                console.log('🎭 隐藏加载遮罩');
-            },
-            
-            // 更新加载文本
-            updateText: function(message) {
-                const text = document.querySelector('.loading-text');
-                if (text) {
-                    text.textContent = message;
-                    console.log('🎭 更新加载文本:', message);
-                }
-            }
-        };
-        
-        // 页面初始化时显示加载遮罩
-        // document.addEventListener('DOMContentLoaded', function() {
-        //     console.log('📄 DOM内容已加载，显示加载遮罩');
-        //     window.SmoothLoading.show('正在加载内容...');
-        // });
+
+      
     </script>
 </body>
 </html>''';

@@ -7,11 +7,11 @@ import '../../../db/article_content/article_content_db.dart';
 import '../../../api/user_api.dart';
 import '../../../basics/logger.dart';
 import '../../../db/database_service.dart';
-import 'article_markdown_controller.dart';
+import 'article_read_theme_controller.dart';
 
 
 /// 文章控制器
-class ArticleController extends ArticleMarkdownController {
+class ArticleController extends ArticleReadThemeController {
 
 
   /// ------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ class ArticleController extends ArticleMarkdownController {
   final Map<String, String> _translationUpIds = {};
   // 添加请求进行中的标记，防止重复请求
   final Map<String, bool> _translationRequesting = {};
+
 
 
   /// 根据ID加载文章数据
