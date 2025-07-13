@@ -37,7 +37,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      height: MediaQuery.of(context).size.height * 0.75,
+      height: MediaQuery.of(context).size.height * 0.85,
       child: Column(
         children: [
           // 优化的顶部区域
@@ -62,10 +62,6 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                   _buildSectionHeader('i18n_my_信息'.tr, Icons.security), 
                   const SizedBox(height: 12),
                   _buildPrivacySection(),
-                  
-
-
-
 
                   const SizedBox(height: 54),
                   
