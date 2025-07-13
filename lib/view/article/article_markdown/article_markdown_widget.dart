@@ -504,7 +504,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     var absoluteY = webViewOffset.dy + rectY;
     // 针对iOS全面屏下坐标系差异的修正
     // 在iOS上，如果WebView是全面屏显示的(紧贴屏幕顶部)，JS的getBoundingClientRect().y可能是相对于SafeArea的，而不是屏幕绝对坐标
-    if (Platform.isIOS && webViewOffset.dy < systemPadding.top) { //
+    if (Platform.isIOS) { //
       absoluteY += systemPadding.top;
     }
 
@@ -528,7 +528,13 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
     // 智能位置选择：优先上方，但选择空间较大的位置
     if (spaceAbove >= menuHeight) {
-      menuY = selectionRectOnScreen.top - menuHeight;
+
+      if (Platform.isIOS) { //
+        // absoluteY += systemPadding.top;
+        menuY = selectionRectOnScreen.top - menuHeight - systemPadding.top - 10;
+      }else{
+        menuY = selectionRectOnScreen.top - menuHeight ;
+      }
     } else if (spaceBelow >= menuHeight) {
       // 下方有足够空间
       menuY = selectionRectOnScreen.bottom - 20;
