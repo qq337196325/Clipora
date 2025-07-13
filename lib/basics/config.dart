@@ -17,7 +17,7 @@ const urlPrivacy = "https://clipora.guanshangyun.com/privacy"; // 用户协议
 
 
 
-const bool isDevelop = true;
+const bool isDevelop = false;
 const String apiVersion = "/v120";
 String version = "v1.2.0";
 int clientVersion = 120;
