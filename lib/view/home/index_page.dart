@@ -350,7 +350,7 @@ mixin IndexPageBLoC on State<IndexPage> {
   _init() async {
     getLogger().e('❌ 同步过程发生异常0000000000000000000');
     await _checkAppVersion(); // 在这里调用版本检查
-    await handleAndroidPermission(context);
+    await handleAndroidPermission();
     checkCompleteSync();
   }
 

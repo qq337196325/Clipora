@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
 
 import '../basics/logger.dart';
+import '../basics/utils/user_utils.dart';
 import '../basics/web_view/settings.dart';
 import '../basics/web_view/utils.dart';
 import '../basics/web_view/warmup_urls.dart';
@@ -16,24 +17,6 @@ import '../view/article/article_web/browser_simulation/utils/js_injector.dart';
 import '../view/article/article_web/utils/auto_generate_utils.dart';
 import '../view/article/article_web/utils/web_utils.dart';
 
-enum SnapshotType {
-  mhtml,
-  html,
-}
-
-class SnapshotResult {
-  final String? filePath;
-  final SnapshotType type;
-  final bool success;
-  final String? error;
-
-  SnapshotResult({
-    this.filePath,
-    required this.type,
-    required this.success,
-    this.error,
-  });
-}
 
 class SnapshotServiceWidget extends StatefulWidget {
 
@@ -44,7 +27,6 @@ class SnapshotServiceWidget extends StatefulWidget {
 
   @override
   State<SnapshotServiceWidget> createState() => SnapshotServiceWidgetState();
-
 }
 
 class SnapshotServiceWidgetState extends State<SnapshotServiceWidget> with SnapshotServiceBLoC {
@@ -147,13 +129,14 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
   bool hasError = false;
   String errorMessage = '';
   Timer? _generateSnapshotTimer;
+  bool _isShowPermissionModel = false; // 是否显示申请权限模态框
 
   @override
   void initState() {
     super.initState();
     getLogger().i('SnapshotServiceWidget initState');
-    warmupUrls.apiUpdateWarmupUrls();
-    getLogger().w('执行 apiUpdateWarmupUrls 方法：测试完成后去除');
+    // warmupUrls.apiUpdateWarmupUrls();
+    // getLogger().w('执行 apiUpdateWarmupUrls 方法：测试完成后去除');
     
     // 使用 WidgetsBinding.instance.addPostFrameCallback 确保 Widget 完全构建后再初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -187,10 +170,6 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     
     // 启动快照生成定时任务
     _snapshotTimer = Timer.periodic(Duration(seconds: 2), (timer) {
-
-
-
-
       if (!mounted) {
         timer.cancel();
         return;
@@ -262,6 +241,8 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     }
   }
 
+
+
   /// 开始进行生成快照
   Future<void> processUnsnapshottedArticles() async {
     getLogger().d('🔍 检查快照任务状态: _isProcessing=$_isProcessing, _isLoadingSnapshot=$_isLoadingSnapshot, mounted=$mounted, _serviceStarted=$_serviceStarted');
@@ -269,6 +250,11 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     PermissionStatus status = await Permission.storage.status;
     if (status != PermissionStatus.granted) {
       getLogger().w('🔄 检测到没有存储权限....');
+      if(_isShowPermissionModel == true){
+        return;
+      }
+      _isShowPermissionModel = true;
+      await handleAndroidPermission();
       return;
     }
 

@@ -311,6 +311,11 @@ class ArticleController extends ArticleMarkdownController {
     return _translationStatus[languageCode] ?? 'untranslated';
   }
 
+  /// 检查是否有任何语言正在翻译中
+  bool get isAnyLanguageTranslating {
+    return _translationStatus.values.any((status) => status == 'translating');
+  }
+
   /// 检查语言是否已翻译
   Future<bool> isLanguageTranslated(String languageCode) async {
     final article = currentArticleRx.value;

@@ -24,7 +24,7 @@ Future<void> initializePermissions() async {
 
 
 // 处理Android权限请求
-Future<void> handleAndroidPermission(BuildContext context) async {
+Future<void> handleAndroidPermission() async {
   PermissionStatus status = await Permission.storage.status;
   if (status != PermissionStatus.granted) {
     await SmartDialog.show(

@@ -53,18 +53,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     // 批量初始化 ArticleController 中的翻译状态
     await articleController.initializeAllLanguageStatus(languageCodes);
     
-    // 更新本地状态（实际上现在本地状态不再使用，但保持一致性）
-    if (mounted) {
-      setState(() {
-        for (int i = 0; i < _allLanguages.length; i++) {
-          // 跳过原文，因为原文不需要翻译状态
-          if (_allLanguages[i].code == 'original') continue;
-          
-          final status = articleController.getTranslationStatus(_allLanguages[i].code);
-          _allLanguages[i].status = status;
-        }
-      });
-    }
+    getLogger().d('🔄 TranslateModal 状态初始化完成');
   }
 
   void _translate(int index) async {
@@ -327,6 +316,10 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
   Widget _buildActionButton(BuildContext context, _Language lang, int index, String displayStatus, bool isCurrent) {
     final theme = Theme.of(context);
     
+    // 检查是否有任何语言正在翻译中（用于并发控制）
+    final isAnyTranslating = articleController.isAnyLanguageTranslating;
+    final isCurrentTranslating = displayStatus == 'translating';
+    
     // 原文的特殊处理 - 只显示查看按钮
     if (lang.code == 'original') {
       return ElevatedButton(
@@ -345,7 +338,13 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     switch (displayStatus) {
       case 'untranslated':
         return ElevatedButton(
-          onPressed: () => _translate(index),
+          // 如果有其他语言正在翻译中，则禁用当前翻译按钮
+          onPressed: isAnyTranslating ? null : () => _translate(index),
+          style: isAnyTranslating 
+              ? ElevatedButton.styleFrom(
+                  disabledBackgroundColor: theme.colorScheme.onSurface.withOpacity(0.12),
+                )
+              : null,
           child: Text('i18n_article_翻译'.tr),
         );
       case 'translating':
@@ -361,7 +360,13 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
         return Row(
           children: [
             TextButton(
-              onPressed: () => _retranslate(index),
+              // 如果有其他语言正在翻译中，则禁用重新翻译按钮
+              onPressed: isAnyTranslating ? null : () => _retranslate(index),
+              style: isAnyTranslating 
+                  ? TextButton.styleFrom(
+                      disabledForegroundColor: theme.colorScheme.onSurface.withOpacity(0.38),
+                    )
+                  : null,
               child: Text('i18n_article_重新翻译'.tr),
             ),
             const SizedBox(width: 8),
@@ -379,11 +384,16 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
         );
       case 'failed':
         return ElevatedButton(
-          onPressed: () => _translate(index),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: theme.colorScheme.errorContainer,
-            foregroundColor: theme.colorScheme.onErrorContainer,
-          ),
+          // 如果有其他语言正在翻译中，则禁用重试按钮
+          onPressed: isAnyTranslating ? null : () => _translate(index),
+          style: isAnyTranslating 
+              ? ElevatedButton.styleFrom(
+                  disabledBackgroundColor: theme.colorScheme.onSurface.withOpacity(0.12),
+                )
+              : ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.errorContainer,
+                  foregroundColor: theme.colorScheme.onErrorContainer,
+                ),
           child: Text('i18n_article_重试'.tr),
         );
       default:
