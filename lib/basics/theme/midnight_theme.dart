@@ -50,6 +50,7 @@ class MidnightTheme {
     colorScheme: const ColorScheme.dark(
       primary: midnightPrimary,
       primaryContainer: midnightPrimaryLight,
+      primaryFixed: midnightPrimaryDark,
       secondary: midnightBlue,
       secondaryContainer: midnightBlueLight,
       surface: midnightSurface,

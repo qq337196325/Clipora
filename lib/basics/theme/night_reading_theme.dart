@@ -51,6 +51,7 @@ class NightReadingTheme {
     colorScheme: const ColorScheme.dark(
       primary: greenPrimary,
       primaryContainer: greenPrimaryLight,
+      primaryFixed: greenPrimaryDark,
       secondary: bluePrimaryLight,
       secondaryContainer: bluePrimary,
       surface: nightReadingSurface,

@@ -140,8 +140,8 @@ class _AIOrderPageState extends State<AIOrderPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).primaryColor,
-            Theme.of(context).primaryColor.withOpacity(0.8),
+            Theme.of(context).colorScheme.primaryFixed,
+            Theme.of(context).colorScheme.primaryFixed.withOpacity(0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(20),

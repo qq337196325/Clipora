@@ -49,6 +49,8 @@ class LightTheme {
     colorScheme: const ColorScheme.light(
       primary: bluePrimary,
       primaryContainer: bluePrimaryLight,
+      // bluePrimaryDark:bluePrimaryDark,
+      primaryFixed: bluePrimaryDark,
       secondary: info,
       secondaryContainer: infoLight,
       surface: lightSurface,

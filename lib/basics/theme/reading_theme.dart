@@ -51,6 +51,7 @@ class ReadingTheme {
     colorScheme:  ColorScheme.light(
       primary: brownPrimary,
       primaryContainer: brownPrimaryLight,
+      primaryFixed: brownPrimaryDark,
       secondary: greenPrimary,
       secondaryContainer: greenPrimaryLight,
       surface: readingSurface,

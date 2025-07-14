@@ -55,6 +55,7 @@ class DarkTheme {
     colorScheme: const ColorScheme.dark(
       primary: bluePrimaryLight,
       primaryContainer: bluePrimary,
+      primaryFixed: bluePrimaryDark,
       secondary: infoLight,
       secondaryContainer: info,
       surface: darkSurface,

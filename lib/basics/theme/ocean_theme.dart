@@ -50,6 +50,7 @@ class OceanTheme {
     colorScheme: const ColorScheme.light(
       primary: oceanPrimary,
       primaryContainer: oceanPrimaryLight,
+      primaryFixed: oceanPrimaryDark,
       secondary: oceanGreen,
       secondaryContainer: oceanGreenLight,
       surface: oceanSurface,

@@ -50,6 +50,7 @@ class ForestTheme {
     colorScheme: const ColorScheme.light(
       primary: forestPrimary,
       primaryContainer: forestPrimaryLight,
+      primaryFixed: forestPrimaryDark,
       secondary: forestBrown,
       secondaryContainer: forestBrownLight,
       surface: forestSurface,
