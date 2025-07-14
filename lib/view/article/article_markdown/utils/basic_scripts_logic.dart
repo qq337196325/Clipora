@@ -315,6 +315,55 @@ class BasicScriptsLogic {
     }
   }
 
+  /// 更新高亮颜色
+  Future<bool> updateHighlightColor(String highlightId, String newColorClass) async {
+    try {
+      if (!await isRangeEngineAvailable()) {
+        getLogger().w('⚠️ Range引擎不可用，无法更新高亮颜色');
+        return false;
+      }
+
+      final jsCode = '''
+        (function() {
+          try {
+            // 确保引擎已初始化
+            if (!window.rangeAnnotationEngine) {
+              console.error('Range引擎未初始化');
+              return false;
+            }
+            
+            // 检查方法是否存在
+            if (typeof window.rangeAnnotationEngine.updateHighlightColor !== 'function') {
+              console.error('updateHighlightColor方法不存在');
+              return false;
+            }
+            
+            const result = window.rangeAnnotationEngine.updateHighlightColor('$highlightId', '$newColorClass');
+            console.log('更新高亮颜色结果:', result);
+            return result;
+          } catch (error) {
+            console.error('更新高亮颜色异常:', error);
+            return false;
+          }
+        })();
+      ''';
+
+      final result = await controller.evaluateJavascript(source: jsCode);
+      final success = result == true;
+
+      if (success) {
+        getLogger().i('✅ 高亮颜色更新成功: $highlightId -> $newColorClass');
+      } else {
+        getLogger().e('❌ 高亮颜色更新失败: $highlightId -> $newColorClass');
+      }
+
+      return success;
+    } catch (e) {
+      getLogger().e('❌ 更新高亮颜色异常: $e');
+      return false;
+    }
+  }
+
   /// 传统资源设置方法
   Future<void> setupTraditionalResources() async {
     getLogger().i('🔧 使用传统方式加载资源...');

@@ -20,6 +20,7 @@ import 'components/article_markdown_add_note_dialog.dart';
 import 'components/delete_highlight_dialog.dart';
 import 'components/enhanced_selection_menu.dart';
 import 'components/highlight_action_menu.dart';
+import 'components/note_detail_bottom_sheet.dart';
 import 'utils/simple_html_template.dart';
 
 
@@ -599,6 +600,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   // === 选择菜单显示逻辑 ===
   void _showEnhancedSelectionMenu(Map<String, dynamic> selectionData) {
     getLogger().d('🔥 _showEnhancedSelectionMenu 被调用');
+    print('🔥 _showEnhancedSelectionMenu 被调用');
 
     if (!mounted) {
       getLogger().w('⚠️ 组件未挂载，跳过显示菜单');
@@ -614,7 +616,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     final webViewOffset = renderBox.localToGlobal(Offset.zero);
     final boundingRect = selectionData['boundingRect'] as Map<String, dynamic>;
     final scrollInfo = selectionData['scrollInfo'] as Map<String, dynamic>?;
-
+    print('🔥 scrollInfo $scrollInfo');
     hideEnhancedSelectionMenu();
 
     // 直接计算位置，使用JavaScript提供的视口相对位置
@@ -670,8 +672,8 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     );
 
     final screenSize = MediaQuery.of(context).size;
-    const menuHeight = 60.0;
-    const menuWidth = 250.0;
+    const menuHeight = 70.0;
+    const menuWidth = 230.0;
 
     // 计算可用空间
     final spaceAbove = selectionRectOnScreen.top - systemPadding.top - 20;
@@ -682,8 +684,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     // 智能位置选择：优先上方，但选择空间较大的位置
     if (spaceAbove >= menuHeight) {
 
-      if (Platform.isIOS) { //
-        // absoluteY += systemPadding.top;
+      if (Platform.isIOS) {
         menuY = selectionRectOnScreen.top - menuHeight - systemPadding.top - 10;
       }else{
         menuY = selectionRectOnScreen.top - menuHeight ;
@@ -702,8 +703,13 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       }
     }
 
-    // 水平居中，但确保不超出屏幕边界
-    double menuX = (menuWidth / 2);
+    // 计算左右位置，但确保不超出屏幕边界
+    double menuX = 0;
+    if(screenSize.width - boundingRect['x'] > menuWidth){
+      menuX = boundingRect['x'].toDouble();
+    }else{
+      menuX = screenSize.width - menuWidth;
+    }
 
     _backgroundCatcher = OverlayEntry(
       builder: (context) => SizedBox.expand(
@@ -1108,10 +1114,9 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
       // 验证数据完整性
       if (_validateHighlightClickData(data)) {
-
-        // === 第二步：显示标注操作面板 ===
-        showHighlightActionMenu(data);
-
+        // 检查是否是笔记标注
+        final highlightId = data['highlightId'] as String;
+        _checkAnnotationTypeAndShowContent(highlightId, data);
       } else {
         getLogger().w('⚠️ 标注点击数据验证失败');
         _logHighlightClickValidationDetails(data);
@@ -1121,6 +1126,52 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       getLogger().e('❌ 处理标注点击异常: $e');
     }
   }
+
+  // === 检查标注类型并显示相应内容 ===
+  void _checkAnnotationTypeAndShowContent(String highlightId, Map<String, dynamic> data) async {
+    try {
+      // 从数据库获取标注信息
+      final annotation = await EnhancedAnnotationService.instance.getAnnotationByHighlightId(highlightId);
+      
+      if (annotation != null && annotation.annotationType == AnnotationType.note && annotation.noteContent.isNotEmpty) {
+        // 这是一个笔记标注，显示底部弹窗
+        _showNoteDetailBottomSheet(annotation, data);
+      } else {
+        // 这是普通高亮或没有笔记内容，显示标注操作菜单
+        showHighlightActionMenu(data);
+      }
+      
+    } catch (e) {
+      getLogger().e('❌ 检查标注类型失败: $e');
+      // 发生错误时回退到显示操作菜单
+      showHighlightActionMenu(data);
+    }
+  }
+
+  // === 显示笔记详情底部弹窗 ===
+  void _showNoteDetailBottomSheet(EnhancedAnnotationDb annotation, Map<String, dynamic> data) async {
+    try {
+      await showNoteDetailBottomSheet(
+        context: context,
+        annotation: annotation,
+        onColorSelected: (color) {
+          // 处理颜色选择
+          _handleColorSelectedFromBottomSheet(annotation.highlightId, color);
+        },
+        onDelete: () {
+          // 处理删除
+          _handleDeleteFromBottomSheet(annotation.highlightId, annotation.selectedText);
+        },
+        onCopy: () {
+          // 处理复制 - 在底部弹窗中已经处理了，这里只需要记录日志
+          getLogger().i('✅ 从底部弹窗复制笔记成功');
+        },
+      );
+    } catch (e) {
+      getLogger().e('❌ 显示笔记详情底部弹窗失败: $e');
+    }
+  }
+
 
   // === 第一步：验证标注点击数据 ===
   bool _validateHighlightClickData(Map<String, dynamic> data) {
@@ -1188,11 +1239,25 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     _currentHighlightData = null;
   }
 
-  void _showMenuAtPosition2(
-      Map<String, dynamic> highlightData,
-      Offset webViewOffset,
-      Map<String, dynamic> boundingRect,
-      ) {
+  void _showMenuAtPosition2(Map<String, dynamic> highlightData, Offset webViewOffset, Map<String, dynamic> boundingRect) async {
+    print("111111111111222222333: $boundingRect");
+    print("11111111111122222233344: $webViewOffset");
+    print("1111111111112222223334455: $highlightData");
+
+    // 获取当前标注的颜色和笔记信息
+    final highlightId = highlightData['highlightId'] as String;
+    AnnotationColor currentColor = AnnotationColor.yellow; // 默认颜色
+    bool hasNote = false;
+    
+    try {
+      final annotation = await EnhancedAnnotationService.instance.getAnnotationByHighlightId(highlightId);
+      if (annotation != null) {
+        currentColor = annotation.colorType;
+        hasNote = annotation.annotationType == AnnotationType.note && annotation.noteContent.isNotEmpty;
+      }
+    } catch (e) {
+      getLogger().e('❌ 获取标注信息失败: $e');
+    }
 
     // 提取边界框坐标（相对于WebView内容的坐标）
     final rectX = (boundingRect['x'] ?? 0).toDouble();
@@ -1219,8 +1284,8 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     );
 
     final screenSize = MediaQuery.of(context).size;
-    const menuHeight = 60.0;
-    const menuWidth = 180.0;
+    const menuHeight = 130.0; // 增加高度以容纳颜色选择器
+    const menuWidth = 230.0;
     const menuMargin = 12.0; // 增加间距，确保不遮挡
 
     // 计算可用空间（保守估计）
@@ -1231,13 +1296,13 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     bool isMenuAbove = true; // 标记菜单是否在标注上方
 
     // 强制优先上方显示（用户的要求）
-    if (availableTop >= menuHeight + menuMargin) {
+    if (availableTop >= menuHeight ) {
       // 上方有充足空间，在标注上方显示，增加更多间距
-      // menuY = highlightRectOnScreen.top - menuHeight - menuMargin - 42;
+      menuY = highlightRectOnScreen.top - menuHeight - menuMargin - 42;
       if (Platform.isIOS) {
         menuY = highlightRectOnScreen.top - menuHeight - 180;
       }else{
-        menuY = highlightRectOnScreen.top - menuHeight - 50;
+        menuY = highlightRectOnScreen.top - menuHeight - 24;
       }
 
       isMenuAbove = true;
@@ -1268,15 +1333,18 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     }
 
     // 水平居中在标注中心，但确保不超出屏幕边界
-    double menuX = highlightRectOnScreen.center.dx - (menuWidth / 2);
-    menuX = menuX.clamp(8.0, screenSize.width - menuWidth - 8);
+    double menuX = 0;
+    if(screenSize.width - boundingRect['x'] > menuWidth){
+      menuX = boundingRect['x'].toDouble();
+    }else{
+      menuX = screenSize.width - menuWidth;
+    }
 
     // 最终验证：检查菜单是否与标注重叠
     final menuRect = Rect.fromLTWH(menuX, menuY, menuWidth, menuHeight);
     final hasOverlap = menuRect.overlaps(highlightRectOnScreen);
 
     if (hasOverlap) {
-
       // 如果有重叠且在上方，尝试进一步上移
       if (isMenuAbove && menuY > systemPadding.top + 8) {
         menuY = math.max(systemPadding.top + 8, menuY - 10);
@@ -1305,6 +1373,9 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
           onTap: () {}, // 阻止事件穿透
           child: HighlightActionMenu(
             onAction: _handleHighlightAction,
+            onColorSelected: _handleColorSelected,
+            currentColor: currentColor,
+            hasNote: hasNote,
           ),
         ),
       ),
@@ -1336,9 +1407,209 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       case HighlightAction.copy:
         _handleCopyHighlight(content ?? '');
         break;
-      case HighlightAction.delete:
+      case HighlightAction.cancel:
         _handleDeleteHighlight(highlightId ?? '', content ?? '');
         break;
+      case HighlightAction.changeColor:
+        // 已通过颜色选择器处理
+        break;
+      case HighlightAction.viewNote:
+        _handleViewNote(highlightId ?? '');
+        break;
+      case HighlightAction.addNote:
+        _handleAddNoteToHighlight(highlightId ?? '', content ?? '');
+        break;
+    }
+  }
+
+  // === 为已有高亮添加笔记 ===
+  void _handleAddNoteToHighlight(String highlightId, String content) async {
+    if (highlightId.isEmpty) {
+      getLogger().w('⚠️ 标注ID为空，无法添加笔记');
+      return;
+    }
+
+    try {
+      // 获取现有标注信息
+      final annotation = await EnhancedAnnotationService.instance.getAnnotationByHighlightId(highlightId);
+      if (annotation == null) {
+        getLogger().w('⚠️ 未找到标注记录: $highlightId');
+        BotToast.showText(text: 'i18n_article_标注记录不存在'.tr);
+        return;
+      }
+
+      // 显示笔记输入对话框
+      final noteText = await showArticleAddNoteDialog(
+        context: context,
+        selectedText: content,
+      );
+
+      if (noteText == null || noteText.isEmpty) {
+        return; // 用户取消或输入为空
+      }
+
+      // 更新标注为笔记类型
+      annotation.annotationType = AnnotationType.note;
+      annotation.noteContent = noteText;
+      annotation.colorType = AnnotationColor.green; // 笔记使用绿色
+      annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
+
+      // 保存到数据库
+      await EnhancedAnnotationService.instance.updateAnnotation(annotation);
+
+      // 在WebView中更新高亮样式
+      final success = await basicScriptsLogic.updateHighlightColor(
+        highlightId,
+        annotation.colorType.cssClass,
+      );
+
+      if (success) {
+        BotToast.showText(text: 'i18n_article_笔记已添加'.tr);
+        getLogger().i('✅ 为高亮添加笔记成功: $highlightId');
+      } else {
+        BotToast.showText(text: 'i18n_article_笔记添加失败'.tr);
+        // 回滚数据库操作
+        annotation.annotationType = AnnotationType.highlight;
+        annotation.noteContent = '';
+        await EnhancedAnnotationService.instance.updateAnnotation(annotation);
+      }
+    } catch (e) {
+      getLogger().e('❌ 为高亮添加笔记失败: $e');
+      BotToast.showText(text: 'i18n_article_笔记添加失败'.tr);
+    }
+  }
+
+  // === 查看笔记处理 ===
+  void _handleViewNote(String highlightId) async {
+    if (highlightId.isEmpty) {
+      getLogger().w('⚠️ 标注ID为空，无法查看笔记');
+      return;
+    }
+
+    if (_currentHighlightData == null) {
+      getLogger().w('⚠️ 当前标注数据为空，无法查看笔记');
+      return;
+    }
+
+    try {
+      // 获取标注信息
+      final annotation = await EnhancedAnnotationService.instance.getAnnotationByHighlightId(highlightId);
+      if (annotation == null) {
+        getLogger().w('⚠️ 未找到标注记录: $highlightId');
+        BotToast.showText(text: 'i18n_article_标注记录不存在'.tr);
+        return;
+      }
+
+      if (annotation.noteContent.isEmpty) {
+        getLogger().w('⚠️ 该标注没有笔记内容');
+        BotToast.showText(text: 'i18n_article_该标注没有笔记内容'.tr);
+        return;
+      }
+
+      // 使用底部弹窗显示笔记详情
+      _showNoteDetailBottomSheet(annotation, _currentHighlightData!);
+      
+      getLogger().i('✅ 从操作菜单查看笔记成功');
+    } catch (e) {
+      getLogger().e('❌ 查看笔记失败: $e');
+      BotToast.showText(text: 'i18n_article_查看笔记失败'.tr);
+    }
+  }
+
+  // === 从底部弹窗处理颜色选择 ===
+  void _handleColorSelectedFromBottomSheet(String highlightId, AnnotationColor selectedColor) async {
+    try {
+      // 在WebView中更新高亮颜色
+      final success = await basicScriptsLogic.updateHighlightColor(
+        highlightId,
+        selectedColor.cssClass,
+      );
+
+      if (success) {
+        getLogger().i('✅ 从底部弹窗更新标注颜色成功: $highlightId -> ${selectedColor.label}');
+      } else {
+        BotToast.showText(text: 'i18n_article_颜色更新失败'.tr);
+      }
+    } catch (e) {
+      getLogger().e('❌ 从底部弹窗更新标注颜色失败: $e');
+      BotToast.showText(text: 'i18n_article_颜色更新失败'.tr);
+    }
+  }
+
+  // === 从底部弹窗处理删除 ===
+  void _handleDeleteFromBottomSheet(String highlightId, String content) async {
+    try {
+      // 第一步：显示加载状态
+      BotToast.showText(text: 'i18n_article_正在删除标注'.tr);
+
+      // 第二步：从DOM中删除标注元素
+      final domDeleteSuccess = await basicScriptsLogic.removeHighlight(highlightId);
+
+      if (!domDeleteSuccess) {
+        getLogger().e('❌ DOM删除失败');
+        BotToast.showText(text: 'i18n_article_删除失败无法从页面中移除标注'.tr);
+        return;
+      }
+
+      // 第三步：从数据库中删除记录
+      getLogger().d('🔄 从数据库中删除标注记录...');
+      await EnhancedAnnotationService.instance.deleteAnnotationByHighlightId(highlightId);
+
+      // 第四步：用户反馈
+      BotToast.showText(text: 'i18n_article_标注已删除'.tr);
+      getLogger().i('🎉 从底部弹窗删除标注完成: $highlightId');
+
+    } catch (e) {
+      getLogger().e('❌ 从底部弹窗删除标注失败: $e');
+      BotToast.showText(text: 'i18n_article_删除异常建议刷新页面'.tr);
+    }
+  }
+
+  // === 颜色选择处理 ===
+  void _handleColorSelected(AnnotationColor selectedColor) async {
+    if (_currentHighlightData == null) {
+      getLogger().w('⚠️ 当前标注数据为空，无法修改颜色');
+      return;
+    }
+
+    final highlightData = _currentHighlightData!;
+    final highlightId = highlightData['highlightId'] as String;
+
+    try {
+      // 隐藏菜单
+      hideHighlightActionMenu();
+
+      // 更新数据库中的颜色
+      final annotation = await EnhancedAnnotationService.instance.getAnnotationByHighlightId(highlightId);
+      if (annotation == null) {
+        getLogger().w('⚠️ 未找到标注记录: $highlightId');
+        BotToast.showText(text: 'i18n_article_标注记录不存在'.tr);
+        return;
+      }
+
+      // 更新颜色
+      annotation.colorType = selectedColor;
+      annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
+      await EnhancedAnnotationService.instance.updateAnnotation(annotation);
+
+      // 在WebView中更新高亮颜色
+      final success = await basicScriptsLogic.updateHighlightColor(
+        highlightId,
+        selectedColor.cssClass,
+      );
+
+      if (success) {
+        BotToast.showText(text: 'i18n_article_颜色已更新'.tr);
+        getLogger().i('✅ 标注颜色更新成功: $highlightId -> ${selectedColor.label}');
+      } else {
+        BotToast.showText(text: 'i18n_article_颜色更新失败'.tr);
+        // 回滚数据库更改
+        annotation.colorType = AnnotationColor.yellow; // 回滚到默认颜色
+        await EnhancedAnnotationService.instance.updateAnnotation(annotation);
+      }
+    } catch (e) {
+      getLogger().e('❌ 更新标注颜色失败: $e');
+      BotToast.showText(text: 'i18n_article_颜色更新失败'.tr);
     }
   }
 

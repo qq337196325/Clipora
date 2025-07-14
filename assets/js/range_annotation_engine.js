@@ -153,6 +153,14 @@ class RangeAnnotationEngine {
         background: rgba(255, 0, 150, 0.3);
       }
       
+      .range-highlight.highlight-red {
+        background: rgba(255, 0, 0, 0.3);
+      }
+      
+      .range-highlight.highlight-purple {
+        background: rgba(150, 0, 255, 0.3);
+      }
+      
       .range-highlight.with-note {
         border-bottom: 2px dotted #ff9800;
       }
@@ -765,6 +773,46 @@ class RangeAnnotationEngine {
       return true;
     } catch (error) {
       console.error('❌ 删除标注失败:', error);
+      return false;
+    }
+  }
+  
+  // 更新高亮颜色
+  updateHighlightColor(highlightId, newColorClass) {
+    try {
+      console.log('🔄 更新高亮颜色:', highlightId, '->', newColorClass);
+      
+      const elements = document.querySelectorAll(`[data-highlight-id="${highlightId}"]`);
+      if (elements.length === 0) {
+        console.warn('⚠️ 未找到要更新的高亮元素:', highlightId);
+        return false;
+      }
+      
+      elements.forEach(element => {
+        // 移除所有高亮相关的CSS类
+        const classList = element.classList;
+        const classesToRemove = [];
+        
+        // 收集需要移除的高亮颜色类
+        classList.forEach(className => {
+          if (className.startsWith('highlight-')) {
+            classesToRemove.push(className);
+          }
+        });
+        
+        // 移除旧的颜色类
+        classesToRemove.forEach(className => {
+          classList.remove(className);
+        });
+        
+        // 添加新的颜色类
+        classList.add(newColorClass);
+      });
+      
+      console.log('✅ 高亮颜色更新成功:', highlightId, '->', newColorClass);
+      return true;
+    } catch (error) {
+      console.error('❌ 更新高亮颜色失败:', error);
       return false;
     }
   }

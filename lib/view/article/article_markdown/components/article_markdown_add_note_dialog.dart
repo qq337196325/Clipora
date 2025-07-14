@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
+
 
 /// 显示一个美观的对话框，用于为选定的文本添加笔记。
 ///
@@ -13,10 +13,13 @@ Future<String?> showArticleAddNoteDialog({
   required BuildContext context,
   required String selectedText,
 }) {
-  return SmartDialog.show<String>(
-    alignment: Alignment.center,
-    // isDismissible: false,
-    builder: (_) => _ArticleAddNoteDialog(selectedText: selectedText),
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    isDismissible: true,
+    enableDrag: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => _ArticleAddNoteDialog(selectedText: selectedText),
   );
 }
 
@@ -35,14 +38,11 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
     with TickerProviderStateMixin {
   late final TextEditingController _noteController;
   late final FocusNode _focusNode;
-  late final AnimationController _fadeController;
-  late final AnimationController _scaleController;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<double> _scaleAnimation;
+  late final AnimationController _slideController;
+  late final Animation<Offset> _slideAnimation;
   
   static const int _maxCharacters = 500;
   bool _isInputValid = false;
-  bool _isInputFocused = false;
   int _currentCharacters = 0;
   
   @override
@@ -51,45 +51,23 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
     _noteController = TextEditingController();
     _focusNode = FocusNode();
     _noteController.addListener(_validateInput);
-    _focusNode.addListener(_onFocusChange);
     
-    _initAnimations();
-    _startEntryAnimation();
-  }
-  
-  void _initAnimations() {
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 250),
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 350),
       vsync: this,
     );
     
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
     ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOut,
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
     ));
     
-    _scaleAnimation = Tween<double>(
-      begin: 0.9,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeOutBack,
-    ));
-  }
-  
-  void _startEntryAnimation() {
-    _fadeController.forward();
-    _scaleController.forward();
+    _slideController.forward();
     
-    // 延迟自动聚焦到输入框
-    Future.delayed(const Duration(milliseconds: 400), () {
+    Future.delayed(const Duration(milliseconds: 600), () {
       if (mounted) {
         _focusNode.requestFocus();
       }
@@ -100,8 +78,7 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
   void dispose() {
     _noteController.dispose();
     _focusNode.dispose();
-    _fadeController.dispose();
-    _scaleController.dispose();
+    _slideController.dispose();
     super.dispose();
   }
   
@@ -116,381 +93,369 @@ class _ArticleAddNoteDialogState extends State<_ArticleAddNoteDialog>
     });
   }
   
-  void _onFocusChange() {
-    setState(() {
-      _isInputFocused = _focusNode.hasFocus;
-    });
-    
-    if (_isInputFocused) {
-      HapticFeedback.lightImpact();
-    }
-  }
-  
   void _handleSubmit() {
     if (_isInputValid) {
       HapticFeedback.mediumImpact();
-      SmartDialog.dismiss(result: _noteController.text.trim());
+      Navigator.of(context).pop(_noteController.text.trim());
     }
   }
   
-  Widget _buildSelectedTextCard() {
+  void _handleCancel() {
+    HapticFeedback.lightImpact();
+    Navigator.of(context).pop(null);
+  }
+  
+
+  Widget _buildSelectedTextSection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Container(
-      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.surfaceContainerHigh.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-          width: 1,
+          color: colorScheme.outline.withOpacity(0.15),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.format_quote_rounded,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.format_quote_rounded,
+                size: 16,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'i18n_article_选中文字'.tr,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.primary,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'i18n_article_选中文字'.tr,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withOpacity(0.08),
+                  offset: const Offset(0, 1),
+                  blurRadius: 3,
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(8),
+            child: Text(
+              widget.selectedText,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                height: 1.5,
+                color: colorScheme.onSurface,
               ),
-              child: Text(
-                widget.selectedText,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  height: 1.4,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
-  
+
   Widget _buildNoteInputSection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isOverLimit = _currentCharacters > _maxCharacters;
     final progress = (_currentCharacters / _maxCharacters).clamp(0.0, 1.0);
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.edit_note_rounded,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.edit_rounded,
                 size: 16,
-                color: Theme.of(context).colorScheme.onSecondary,
+                color: colorScheme.onSurface,
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
+              const SizedBox(width: 6),
+              Text(
                 'i18n_article_笔记内容'.tr,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.secondary,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isOverLimit 
+                      ? colorScheme.errorContainer
+                      : colorScheme.surfaceContainerHigh.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$_currentCharacters/$_maxCharacters',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: isOverLimit
+                        ? colorScheme.onErrorContainer
+                        : colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _noteController,
+            focusNode: _focusNode,
+            maxLines: 4,
+            minLines: 4,
+            textInputAction: TextInputAction.newline,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              height: 1.5,
+            ),
+            decoration: InputDecoration(
+              hintText: '在这里记录你的想法、感悟或灵感...',
+              hintStyle: TextStyle(
+                color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: colorScheme.primary,
+                  width: 2,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: colorScheme.error,
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: colorScheme.surfaceContainerLowest,
+              contentPadding: const EdgeInsets.all(16),
+              counterText: '',
+            ),
+          ),
+          if (progress > 0) ...[
+            const SizedBox(height: 8),
+            Container(
+              height: 4,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(2),
+                color: colorScheme.surfaceContainerHigh.withOpacity(0.4),
+              ),
+              child: AnimatedFractionallySizedBox(
+                duration: const Duration(milliseconds: 200),
+                widthFactor: progress,
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    color: isOverLimit 
+                        ? colorScheme.error
+                        : colorScheme.primary,
+                  ),
                 ),
               ),
             ),
+          ],
+          if (isOverLimit) ...[
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isOverLimit 
-                    ? Theme.of(context).colorScheme.errorContainer
-                    : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                color: colorScheme.errorContainer.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (isOverLimit) ...[
-                    Icon(
-                      Icons.warning_rounded,
-                      size: 12,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(width: 4),
-                  ],
-                  Text(
-                    '$_currentCharacters/$_maxCharacters',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: isOverLimit
-                          ? Theme.of(context).colorScheme.error
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 11,
+                  Icon(
+                    Icons.warning_rounded,
+                    size: 16,
+                    color: colorScheme.onErrorContainer,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '内容超出 $_maxCharacters 字符限制',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onErrorContainer,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 6),
-        Container(
-          height: 2,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(1),
-            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-          ),
-          child: AnimatedFractionallySizedBox(
-            duration: const Duration(milliseconds: 200),
-            widthFactor: progress,
-            alignment: Alignment.centerLeft,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(1),
-                color: isOverLimit 
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.primary,
-              ),
-            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomActions() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outline.withOpacity(0.1),
           ),
         ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _noteController,
-          focusNode: _focusNode,
-          maxLines: 3,
-          minLines: 2,
-          textInputAction: TextInputAction.newline,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            height: 1.4,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-          decoration: InputDecoration(
-            hintText: 'i18n_article_记录你的想法感悟或灵感'.tr,
-            hintStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
-              height: 1.4,
-              fontSize: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.primary,
-                width: 2,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.error,
-                width: 2,
-              ),
-            ),
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.surface,
-            contentPadding: const EdgeInsets.all(12),
-            counterText: '',
-          ),
-        ),
-        if (isOverLimit) ...[
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.error.withOpacity(0.3),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.error_outline_rounded,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.error,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: _handleCancel,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'i18n_article_内容超出字符限制提示'.trParams({'maxCharacters': '$_maxCharacters'}),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                      fontWeight: FontWeight.w500,
+                side: BorderSide(
+                  color: colorScheme.outline.withOpacity(0.3),
+                ),
+              ),
+              child: Text(
+                'i18n_article_取消'.tr,
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: FilledButton(
+              onPressed: _isInputValid ? _handleSubmit : null,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: _isInputValid 
+                    ? colorScheme.primary
+                    : colorScheme.surfaceContainerHigh,
+                foregroundColor: _isInputValid
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant.withOpacity(0.38),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.bookmark_add_rounded,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'i18n_article_添加笔记'.tr,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
-      ],
-    );
-  }
-  
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        TextButton(
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            SmartDialog.dismiss(result: null);
-          },
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: Text(
-            'i18n_article_取消'.tr,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        ElevatedButton(
-          onPressed: _isInputValid ? _handleSubmit : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _isInputValid 
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.surfaceVariant,
-            foregroundColor: _isInputValid 
-                ? Theme.of(context).colorScheme.onPrimary
-                : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.38),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            elevation: _isInputValid ? 2 : 0,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.bookmark_add_rounded,
-                size: 16,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'i18n_article_添加笔记'.tr,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
   
   @override
   Widget build(BuildContext context) {
-    // 获取键盘高度和屏幕尺寸
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
     
-    // 计算可视区域高度，更保守的空间预留
-    final visibleHeight = screenHeight - keyboardHeight;
-    final topSafeArea = MediaQuery.of(context).padding.top;
-    final bottomSafeArea = MediaQuery.of(context).padding.bottom;
-    
-    // 对话框高度计算：预留更多安全空间
-    final reservedSpace = topSafeArea + bottomSafeArea + 160; // 预留160px的安全空间
-    final dialogMaxHeight = (visibleHeight - reservedSpace).clamp(250.0, 380.0);
-    
-    // 键盘弹出时的偏移策略：更保守的移动距离
-    final keyboardOffset = keyboardHeight > 0 
-        ? -(keyboardHeight * 0.25).clamp(-100.0, 0.0) // 最多向上移动100px
-        : 0.0;
-    
-    return AnimatedContainer(
+    return AnimatedPadding(
+      padding: EdgeInsets.only(bottom: keyboardHeight),
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
-      transform: Matrix4.translationValues(0, keyboardOffset, 0),
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: screenWidth * 0.85),
-            child: AlertDialog(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              surfaceTintColor: Colors.transparent,
-              elevation: 8,
-              shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Material(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          elevation: 8,
+          shadowColor: colorScheme.shadow.withOpacity(0.15),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: screenHeight * 0.85,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
               ),
-              content: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: dialogMaxHeight,
-                ),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      _buildSelectedTextCard(),
-                      const SizedBox(height: 16),
-                      _buildNoteInputSection(),
-                    ],
+              color: colorScheme.surface,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 拖拽指示器
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.outline.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-              ),
-              actions: [
-                _buildActionButtons(),
+
+                Flexible(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        _buildSelectedTextSection(),
+                        const SizedBox(height: 20),
+                        _buildNoteInputSection(),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+                _buildBottomActions(),
               ],
-              actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-              titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             ),
           ),
         ),

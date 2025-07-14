@@ -131,5 +131,40 @@ class EnhancedAnnotationService {
     }
   }
 
+  /// 通过高亮ID获取标注
+  Future<EnhancedAnnotationDb?> getAnnotationByHighlightId(String highlightId) async {
+    try {
+      final annotation = await _isar.enhancedAnnotationDbs
+          .filter()
+          .highlightIdEqualTo(highlightId)
+          .findFirst();
+      
+      if (annotation != null) {
+        getLogger().d('✅ 通过高亮ID获取标注成功: $highlightId');
+      } else {
+        getLogger().w('⚠️ 未找到标注: $highlightId');
+      }
+      
+      return annotation;
+    } catch (e) {
+      getLogger().e('❌ 通过高亮ID获取标注失败: $e');
+      return null;
+    }
+  }
+
+  /// 更新标注
+  Future<void> updateAnnotation(EnhancedAnnotationDb annotation) async {
+    try {
+      await _isar.writeTxn(() async {
+        annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
+        await _isar.enhancedAnnotationDbs.put(annotation);
+      });
+      
+      getLogger().i('✅ 标注更新成功: ${annotation.highlightId}');
+    } catch (e) {
+      getLogger().e('❌ 更新标注失败: $e');
+      rethrow;
+    }
+  }
 
 } 

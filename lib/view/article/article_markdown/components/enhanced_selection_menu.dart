@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'dart:ui';
 
 /// 增强选择菜单动作类型
 enum EnhancedSelectionAction {
@@ -10,7 +12,7 @@ enum EnhancedSelectionAction {
 
 /// 增强版选择菜单组件
 /// 
-/// 支持基于Range API的精确文本标注功能
+/// 支持基于Range API的精确文本标注功能，采用iOS风格设计
 class EnhancedSelectionMenu extends StatelessWidget {
   final Function(EnhancedSelectionAction) onAction;
 
@@ -21,47 +23,54 @@ class EnhancedSelectionMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withOpacity(0.2)
+                  : Colors.black.withOpacity(0.1),
+              width: 0.8,
+            ),
           ),
-        ],
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+            child: Row( 
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildActionButton(
+                  context,
+                  icon: Icons.content_copy,
+                  label: 'i18n_article_复制'.tr,
+                  action: EnhancedSelectionAction.copy,
+                ),
+                _buildDivider(context),
+                _buildActionButton(
+                  context,
+                  icon: Icons.format_paint, 
+                  label: 'i18n_article_高亮'.tr,
+                  action: EnhancedSelectionAction.highlight,
+                  color: const Color(0xFFFF9F0A), // iOS Amber
+                ),
+                _buildDivider(context),
+                _buildActionButton(
+                  context,
+                  icon: Icons.edit_note,
+                  label: 'i18n_article_笔记'.tr,
+                  action: EnhancedSelectionAction.note,
+                  color: const Color(0xFF30D158), // iOS Green
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildActionButton(
-            context,
-            icon: Icons.copy,
-            label: 'i18n_article_复制'.tr,
-            action: EnhancedSelectionAction.copy,
-          ),
-          _buildDivider(context),
-          _buildActionButton(
-            context,
-            icon: Icons.highlight,
-            label: 'i18n_article_高亮'.tr,
-            action: EnhancedSelectionAction.highlight,
-            color: Colors.yellow[700],
-          ),
-          _buildDivider(context),
-          _buildActionButton(
-            context,
-            icon: Icons.note_add,
-            label: 'i18n_article_笔记'.tr,
-            action: EnhancedSelectionAction.note,
-            color: Colors.green[600],
-          ),
-        ],
       ),
     );
   }
@@ -73,29 +82,40 @@ class EnhancedSelectionMenu extends StatelessWidget {
     required EnhancedSelectionAction action,
     Color? color,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultColor = isDark ? Colors.white : Colors.black87;
+    
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => onAction(action),
-        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onAction(action);
+        },
+        borderRadius: BorderRadius.circular(16),
+        splashColor: (color ?? defaultColor).withOpacity(0.15),
+        highlightColor: (color ?? defaultColor).withOpacity(0.1),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          constraints: const BoxConstraints(minWidth: 70),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 icon,
                 size: 20,
-                color: color ?? Theme.of(context).colorScheme.onSurface,
+                color: color ?? defaultColor,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: color ?? Theme.of(context).colorScheme.onSurface,
-                  fontSize: 11,
+                style: TextStyle(
+                  color: color ?? defaultColor,
+                  fontSize: 13,
                   fontWeight: FontWeight.w500,
+                  letterSpacing: -0.1,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -105,10 +125,16 @@ class EnhancedSelectionMenu extends StatelessWidget {
   }
 
   Widget _buildDivider(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       width: 1,
-      height: 32,
-      color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+      height: 45,
+      decoration: BoxDecoration(
+        color: isDark 
+            ? Colors.white.withOpacity(0.1)
+            : Colors.black.withOpacity(0.08),
+      ),
     );
   }
-} 
+}

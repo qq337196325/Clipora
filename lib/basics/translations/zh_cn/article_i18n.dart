@@ -130,10 +130,20 @@ const Map<String, String> articleI18n = {
   'i18n_article_删除失败无法从页面中移除标注': '删除失败：无法从页面中移除标注',
   'i18n_article_标注已删除': '标注已删除',
   'i18n_article_删除异常建议刷新页面': '删除异常，建议刷新页面',
+  'i18n_article_标注记录不存在': '标注记录不存在',
+  'i18n_article_颜色已更新': '颜色已更新',
+  'i18n_article_颜色更新失败': '颜色更新失败',
 
   // article_markdown/components
   'i18n_article_选中文字': '选中文字',
   'i18n_article_笔记内容': '笔记内容',
+  'i18n_article_原文引用': '原文引用',
+  'i18n_article_查看笔记': '查看笔记',
+  'i18n_article_该标注没有笔记内容': '该标注没有笔记内容',
+  'i18n_article_查看笔记失败': '查看笔记失败',
+  'i18n_article_笔记': '笔记',
+  'i18n_article_笔记详情': '笔记详情',
+  'i18n_article_标注颜色': '标注颜色',
   'i18n_article_记录你的想法感悟或灵感': '记录你的想法、感悟或灵感...',
   'i18n_article_内容超出字符限制提示': '内容超出@maxCharacters字符限制，请适当精简',
   'i18n_article_添加笔记': '添加笔记',
@@ -143,7 +153,7 @@ const Map<String, String> articleI18n = {
   'i18n_article_标注内容': '标注内容',
   'i18n_article_复制': '复制',
   'i18n_article_高亮': '高亮',
-  'i18n_article_笔记': '笔记',
+  // 'i18n_article_笔记': '笔记',
 
   // article_controller
   'i18n_article_文章信息获取失败': '文章信息获取失败',
