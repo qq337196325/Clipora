@@ -37,6 +37,14 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
       SegmentTab(label: 'i18n_home_首页'.tr, color: const Color(0xFF00BCF6)),
       SegmentTab(label: 'i18n_home_分组'.tr, color: const Color(0xFF00BCF6)),
     ];
+
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        systemNavigationBarColor: Theme.of(context).scaffoldBackgroundColor, // 或你想要的颜色
+        // systemNavigationBarIconBrightness: Brightness.light, // 或 light，看你的主题
+      ),
+    );
+
     return Stack(
       children: [
         Scaffold(
@@ -45,6 +53,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
           //   backgroundColor: Colors.blue,
           //   elevation: 0,
           // ),
+          extendBody: true,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: SafeArea(
             bottom :false,
@@ -325,6 +334,10 @@ mixin IndexPageBLoC on State<IndexPage> {
   @override
   void initState() {
     super.initState();
+
+
+
+
     // _init();
     tabController = TabController(
       length: 2, 

@@ -9,6 +9,8 @@ enum AppThemeType {
   light,        // 纯白主题
   dark,         // 深色主题
   nightReading, // 护眼夜间主题
+  ocean,        // 海洋主题
+  forest,       // 森林主题
 }
 
 // 主题模型
@@ -59,6 +61,19 @@ class ThemeController extends GetxController {
       name: 'i18n_theme_护眼夜间',
       description: 'i18n_theme_深色护眼阅读模式',
       icon: Icons.nightlight_round,
+    ),
+
+    const ThemeModel(
+      type: AppThemeType.ocean,
+      name: 'i18n_theme_海洋主题',
+      description: 'i18n_theme_清新宁静的蓝色系配色',
+      icon: Icons.water,
+    ),
+    const ThemeModel(
+      type: AppThemeType.forest,
+      name: 'i18n_theme_森林主题',
+      description: 'i18n_theme_自然宁静的绿色系配色',
+      icon: Icons.forest,
     ),
   ];
 

@@ -1,117 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'app_colors.dart';
 
 /// 护眼夜间主题 - 深色护眼阅读模式，减少蓝光伤害
 class NightReadingTheme {
+  // ==================== 颜色定义 ====================
+  
+  // 主色调 - 绿色系，更护眼
+  static const Color greenPrimary = Color(0xFF81C784);
+  static const Color greenPrimaryLight = Color(0xFFA5D6A7);
+  static const Color greenPrimaryDark = Color(0xFF66BB6A);
+  
+  // 蓝色系
+  static const Color bluePrimary = Color(0xFF42A5F5);
+  static const Color bluePrimaryLight = Color(0xFF64B5F6);
+  
+  // 错误色
+  static const Color error = Color(0xFFF44336);
+  static const Color errorLight = Color(0xFFE57373);
+  
+  // 背景色系 - 深蓝灰色，更舒适
+  static const Color nightReadingBackground = Color(0xFF263238);
+  static const Color nightReadingSurface = Color(0xFF2E3C43);
+  static const Color nightReadingCard = Color(0xFF37474F);
+  static const Color nightReadingDivider = Color(0xFF455A64);
+  
+  // 文本色系 - 护眼配色
+  static const Color nightReadingTextPrimary = Color(0xFFE5E5E7);
+  static const Color nightReadingTextSecondary = Color(0xFFB0BEC5);
+  static const Color nightReadingTextHint = Color(0xFF78909C);
+  static const Color nightReadingTextDisabled = Color(0xFF546E7A);
+  
+  // 交互状态色系
+  static const Color nightReadingHover = Color(0xFF2E3C43);
+  static const Color nightReadingPressed = Color(0xFF1E2C33);
+  static const Color nightReadingSelected = Color(0xFF1E3A2A);
+
   static ThemeData get theme => ThemeData(
     brightness: Brightness.dark,
     
     // 主色调 - 使用绿色系，更护眼
-    primaryColor: AppColors.greenPrimary,
+    primaryColor: greenPrimary,
     
     // 应用整体背景色 - 深蓝灰色，更舒适
-    scaffoldBackgroundColor: AppColors.nightReadingBackground,
+    scaffoldBackgroundColor: nightReadingBackground,
     
     // 卡片和对话框等元素的背景色
-    cardColor: AppColors.nightReadingCard,
+    cardColor: nightReadingCard,
     
     // 表面颜色
     colorScheme: const ColorScheme.dark(
-      primary: AppColors.greenPrimary,
-      primaryContainer: AppColors.greenPrimaryLight,
-      secondary: AppColors.bluePrimaryLight,
-      secondaryContainer: AppColors.bluePrimary,
-      surface: AppColors.nightReadingSurface,
-      background: AppColors.nightReadingBackground,
-      error: AppColors.errorLight,
+      primary: greenPrimary,
+      primaryContainer: greenPrimaryLight,
+      secondary: bluePrimaryLight,
+      secondaryContainer: bluePrimary,
+      surface: nightReadingSurface,
+      background: nightReadingBackground,
+      error: errorLight,
       onPrimary: Colors.white,
       onSecondary: Colors.black,
-      onSurface: AppColors.nightReadingTextPrimary,
-      onBackground: AppColors.nightReadingTextPrimary,
+      onSurface: nightReadingTextPrimary,
+      onBackground: nightReadingTextPrimary,
       onError: Colors.white,
-      outline: AppColors.nightReadingDivider,
-      outlineVariant: AppColors.nightReadingDivider,
+      outline: nightReadingDivider,
+      outlineVariant: nightReadingDivider,
     ),
 
     // 文本主题 - 护眼配色
     textTheme: const TextTheme(
       displayLarge: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 32,
         fontWeight: FontWeight.w300,
         letterSpacing: -0.5,
       ),
       displayMedium: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 28,
         fontWeight: FontWeight.w400,
       ),
       displaySmall: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 24,
         fontWeight: FontWeight.w400,
       ),
       headlineLarge: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 22,
         fontWeight: FontWeight.w500,
       ),
       headlineMedium: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w500,
       ),
       headlineSmall: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 18,
         fontWeight: FontWeight.w500,
       ),
       titleLarge: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
       titleMedium: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
       titleSmall: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
       bodyLarge: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
         height: 1.6, // 增加行高，更护眼
       ),
       bodyMedium: TextStyle(
-        color: AppColors.nightReadingTextSecondary,
+        color: nightReadingTextSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 1.5,
       ),
       bodySmall: TextStyle(
-        color: AppColors.nightReadingTextSecondary,
+        color: nightReadingTextSecondary,
         fontSize: 12,
         fontWeight: FontWeight.w400,
         height: 1.4,
       ),
       labelLarge: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
       labelMedium: TextStyle(
-        color: AppColors.nightReadingTextSecondary,
+        color: nightReadingTextSecondary,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
       labelSmall: TextStyle(
-        color: AppColors.nightReadingTextHint,
+        color: nightReadingTextHint,
         fontSize: 10,
         fontWeight: FontWeight.w500,
       ),
@@ -119,15 +150,15 @@ class NightReadingTheme {
 
     // 应用栏主题 - 深色护眼
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.nightReadingSurface,
+      backgroundColor: nightReadingSurface,
       elevation: 0, // 扁平化设计
-      shadowColor: AppColors.nightReadingDivider,
+      shadowColor: nightReadingDivider,
       iconTheme: IconThemeData(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         size: 24,
       ),
       titleTextStyle: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.15,
@@ -138,15 +169,15 @@ class NightReadingTheme {
 
     // 图标主题
     iconTheme: const IconThemeData(
-      color: AppColors.nightReadingTextSecondary,
+      color: nightReadingTextSecondary,
       size: 24,
     ),
 
     // 卡片主题 - 护眼设计
     cardTheme: CardTheme(
-      color: AppColors.nightReadingCard,
+      color: nightReadingCard,
       elevation: 1, // 轻微阴影
-      shadowColor: AppColors.nightReadingDivider,
+      shadowColor: nightReadingDivider,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -156,10 +187,10 @@ class NightReadingTheme {
     // 按钮主题 - 绿色护眼
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.greenPrimary,
+        backgroundColor: greenPrimary,
         foregroundColor: Colors.white,
         elevation: 2,
-        shadowColor: AppColors.nightReadingDivider,
+        shadowColor: nightReadingDivider,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -174,7 +205,7 @@ class NightReadingTheme {
     // 文本按钮主题
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.greenPrimary,
+        foregroundColor: greenPrimary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -186,50 +217,27 @@ class NightReadingTheme {
       ),
     ),
 
-    // // 输入框主题 - 护眼设计
-    // inputDecorationTheme: InputDecorationTheme(
-    //   filled: true,
-    //   fillColor: AppColors.nightReadingSurface,
-    //   border: OutlineInputBorder(
-    //     borderRadius: BorderRadius.circular(8),
-    //     borderSide: const BorderSide(color: AppColors.nightReadingDivider),
-    //   ),
-    //   enabledBorder: OutlineInputBorder(
-    //     borderRadius: BorderRadius.circular(8),
-    //     borderSide: const BorderSide(color: AppColors.nightReadingDivider),
-    //   ),
-    //   focusedBorder: OutlineInputBorder(
-    //     borderRadius: BorderRadius.circular(8),
-    //     borderSide: const BorderSide(color: AppColors.greenPrimary, width: 2),
-    //   ),
-    //   errorBorder: OutlineInputBorder(
-    //     borderRadius: BorderRadius.circular(8),
-    //     borderSide: const BorderSide(color: AppColors.errorLight),
-    //   ),
-    //   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    //   labelStyle: const TextStyle(color: AppColors.nightReadingTextSecondary),
-    //   hintStyle: const TextStyle(color: AppColors.nightReadingTextHint),
-    // ),
+
 
     // 分割线主题
     dividerTheme: const DividerThemeData(
-      color: AppColors.nightReadingDivider,
+      color: nightReadingDivider,
       thickness: 1,
       space: 1,
     ),
 
     // 底部导航栏主题
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.nightReadingSurface,
-      selectedItemColor: AppColors.greenPrimary,
-      unselectedItemColor: AppColors.nightReadingTextSecondary,
+      backgroundColor: nightReadingSurface,
+      selectedItemColor: greenPrimary,
+      unselectedItemColor: nightReadingTextSecondary,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
     ),
 
     // 浮动操作按钮主题
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: AppColors.greenPrimary,
+      backgroundColor: greenPrimary,
       foregroundColor: Colors.white,
       elevation: 6,
       shape: CircleBorder(),
@@ -237,23 +245,23 @@ class NightReadingTheme {
 
     // 进度指示器主题
     progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: AppColors.greenPrimary,
-      linearTrackColor: AppColors.nightReadingDivider,
+      color: greenPrimary,
+      linearTrackColor: nightReadingDivider,
     ),
 
     // 开关主题
     switchTheme: SwitchThemeData(
       thumbColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return AppColors.greenPrimary;
+          return greenPrimary;
         }
-        return AppColors.nightReadingTextDisabled;
+        return nightReadingTextDisabled;
       }),
       trackColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return AppColors.greenPrimaryLight;
+          return greenPrimaryLight;
         }
-        return AppColors.nightReadingDivider;
+        return nightReadingDivider;
       }),
     ),
 
@@ -261,55 +269,55 @@ class NightReadingTheme {
     checkboxTheme: CheckboxThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return AppColors.greenPrimary;
+          return greenPrimary;
         }
         return Colors.transparent;
       }),
       checkColor: MaterialStateProperty.all(Colors.white),
-      side: const BorderSide(color: AppColors.nightReadingDivider),
+      side: const BorderSide(color: nightReadingDivider),
     ),
 
     // 单选按钮主题
     radioTheme: RadioThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return AppColors.greenPrimary;
+          return greenPrimary;
         }
-        return AppColors.nightReadingTextDisabled;
+        return nightReadingTextDisabled;
       }),
     ),
 
     // 滑块主题
     sliderTheme: const SliderThemeData(
-      activeTrackColor: AppColors.greenPrimary,
-      inactiveTrackColor: AppColors.nightReadingDivider,
-      thumbColor: AppColors.greenPrimary,
-      overlayColor: AppColors.greenPrimaryLight,
+      activeTrackColor: greenPrimary,
+      inactiveTrackColor: nightReadingDivider,
+      thumbColor: greenPrimary,
+      overlayColor: greenPrimaryLight,
     ),
 
     // 标签页主题
     tabBarTheme: const TabBarTheme(
-      labelColor: AppColors.greenPrimary,
-      unselectedLabelColor: AppColors.nightReadingTextSecondary,
-      indicatorColor: AppColors.greenPrimary,
-      dividerColor: AppColors.nightReadingDivider,
+      labelColor: greenPrimary,
+      unselectedLabelColor: nightReadingTextSecondary,
+      indicatorColor: greenPrimary,
+      dividerColor: nightReadingDivider,
     ),
 
     // 对话框主题
     dialogTheme: DialogTheme(
-      backgroundColor: AppColors.nightReadingCard,
+      backgroundColor: nightReadingCard,
       elevation: 8,
-      shadowColor: AppColors.nightReadingDivider,
+      shadowColor: nightReadingDivider,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       titleTextStyle: const TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
       ),
       contentTextStyle: const TextStyle(
-        color: AppColors.nightReadingTextSecondary,
+        color: nightReadingTextSecondary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
@@ -317,7 +325,7 @@ class NightReadingTheme {
 
     // 底部表单主题
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: AppColors.nightReadingCard,
+      backgroundColor: nightReadingCard,
       elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -326,14 +334,14 @@ class NightReadingTheme {
 
     // 弹出菜单主题
     popupMenuTheme: PopupMenuThemeData(
-      color: AppColors.nightReadingCard,
+      color: nightReadingCard,
       elevation: 8,
-      shadowColor: AppColors.nightReadingDivider,
+      shadowColor: nightReadingDivider,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
       textStyle: const TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
@@ -342,11 +350,11 @@ class NightReadingTheme {
     // 工具提示主题
     tooltipTheme: TooltipThemeData(
       decoration: BoxDecoration(
-        color: AppColors.lightTextPrimary,
+        color: nightReadingTextPrimary,
         borderRadius: BorderRadius.circular(4),
       ),
       textStyle: const TextStyle(
-        color: AppColors.lightBackground,
+        color: nightReadingBackground,
         fontSize: 12,
         fontWeight: FontWeight.w400,
       ),
@@ -355,12 +363,12 @@ class NightReadingTheme {
     // 数据表格主题
     dataTableTheme: const DataTableThemeData(
       headingTextStyle: TextStyle(
-        color: AppColors.nightReadingTextPrimary,
+        color: nightReadingTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w600,
       ),
       dataTextStyle: TextStyle(
-        color: AppColors.nightReadingTextSecondary,
+        color: nightReadingTextSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
@@ -370,19 +378,19 @@ class NightReadingTheme {
 
     // 列表瓦片主题
     listTileTheme: const ListTileThemeData(
-      textColor: AppColors.nightReadingTextPrimary,
-      iconColor: AppColors.nightReadingTextSecondary,
+      textColor: nightReadingTextPrimary,
+      iconColor: nightReadingTextSecondary,
       tileColor: Colors.transparent,
-      selectedTileColor: AppColors.nightReadingSelected,
+      selectedTileColor: nightReadingSelected,
     ),
 
     // 芯片主题
     chipTheme: const ChipThemeData(
-      backgroundColor: AppColors.nightReadingSurface,
-      selectedColor: AppColors.greenPrimary,
-      disabledColor: AppColors.nightReadingTextDisabled,
-      labelStyle: TextStyle(color: AppColors.nightReadingTextPrimary),
-      secondaryLabelStyle: TextStyle(color: AppColors.nightReadingTextSecondary),
+      backgroundColor: nightReadingSurface,
+      selectedColor: greenPrimary,
+      disabledColor: nightReadingTextDisabled,
+      labelStyle: TextStyle(color: nightReadingTextPrimary),
+      secondaryLabelStyle: TextStyle(color: nightReadingTextSecondary),
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     ),
 
@@ -390,29 +398,29 @@ class NightReadingTheme {
     expansionTileTheme: const ExpansionTileThemeData(
       backgroundColor: Colors.transparent,
       collapsedBackgroundColor: Colors.transparent,
-      textColor: AppColors.nightReadingTextPrimary,
-      iconColor: AppColors.nightReadingTextSecondary,
-      collapsedTextColor: AppColors.nightReadingTextSecondary,
-      collapsedIconColor: AppColors.nightReadingTextSecondary,
+      textColor: nightReadingTextPrimary,
+      iconColor: nightReadingTextSecondary,
+      collapsedTextColor: nightReadingTextSecondary,
+      collapsedIconColor: nightReadingTextSecondary,
     ),
 
     // 选择器主题
     timePickerTheme: const TimePickerThemeData(
-      backgroundColor: AppColors.nightReadingCard,
-      hourMinuteTextColor: AppColors.nightReadingTextPrimary,
-      hourMinuteColor: AppColors.nightReadingSurface,
-      dayPeriodTextColor: AppColors.nightReadingTextPrimary,
-      dayPeriodColor: AppColors.nightReadingSurface,
-      dialHandColor: AppColors.greenPrimary,
-      dialBackgroundColor: AppColors.nightReadingSurface,
-      dialTextColor: AppColors.nightReadingTextPrimary,
-      entryModeIconColor: AppColors.greenPrimary,
+      backgroundColor: nightReadingCard,
+      hourMinuteTextColor: nightReadingTextPrimary,
+      hourMinuteColor: nightReadingSurface,
+      dayPeriodTextColor: nightReadingTextPrimary,
+      dayPeriodColor: nightReadingSurface,
+      dialHandColor: greenPrimary,
+      dialBackgroundColor: nightReadingSurface,
+      dialTextColor: nightReadingTextPrimary,
+      entryModeIconColor: greenPrimary,
     ),
 
     // 日期选择器主题
     datePickerTheme: const DatePickerThemeData(
-      backgroundColor: AppColors.nightReadingCard,
-      headerBackgroundColor: AppColors.greenPrimary,
+      backgroundColor: nightReadingCard,
+      headerBackgroundColor: greenPrimary,
       headerForegroundColor: Colors.white,
     ),
   );

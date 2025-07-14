@@ -1,197 +1,199 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// 深色主题 - 现代深色设计，减少眼睛疲劳
-class DarkTheme {
+/// 森林主题 - 自然宁静的绿色系配色，适合阅读
+class ForestTheme {
   // ==================== 颜色定义 ====================
   
-  // 主色调 - 蓝色系
-  static const Color bluePrimary = Color(0xFF42A5F5);
-  static const Color bluePrimaryLight = Color(0xFF64B5F6);
-  static const Color bluePrimaryDark = Color(0xFF1976D2);
+  // 主色调 - 森林绿色系
+  static const Color forestPrimary = Color(0xFF2E7D32);
+  static const Color forestPrimaryLight = Color(0xFF4CAF50);
+  static const Color forestPrimaryDark = Color(0xFF1B5E20);
   
-  // 信息色
-  static const Color info = Color(0xFF2196F3);
-  static const Color infoLight = Color(0xFF64B5F6);
+  // 森林棕色系
+  static const Color forestBrown = Color(0xFF8D6E63);
+  static const Color forestBrownLight = Color(0xFFA1887F);
   
   // 错误色
-  static const Color error = Color(0xFFF44336);
-  static const Color errorLight = Color(0xFFE57373);
+  static const Color error = Color(0xFFD32F2F);
   
-  // 背景色系
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkSurface = Color(0xFF1E1E1E);
-  static const Color darkCard = Color(0xFF212121);
-  static const Color darkDivider = Color(0xFF424242);
+  // 背景色系 - 森林配色
+  static const Color forestBackground = Color(0xFFF1F8E9);
+  static const Color forestSurface = Color(0xFFE8F5E8);
+  static const Color forestCard = Color(0xFFF9FBE7);
+  static const Color forestDivider = Color(0xFFC8E6C9);
   
-  // 文本色系
-  static const Color darkTextPrimary = Color(0xFFE0E0E0);
-  static const Color darkTextSecondary = Color(0xFFBDBDBD);
-  static const Color darkTextHint = Color(0xFF757575);
-  static const Color darkTextDisabled = Color(0xFF424242);
+  // 文本色系 - 森林配色
+  static const Color forestTextPrimary = Color(0xFF1B5E20);
+  static const Color forestTextSecondary = Color(0xFF388E3C);
+  static const Color forestTextHint = Color(0xFF66BB6A);
+  static const Color forestTextDisabled = Color(0xFFA5D6A7);
   
   // 交互状态色系
-  static const Color darkHover = Color(0xFF2A2A2A);
-  static const Color darkPressed = Color(0xFF1A1A1A);
-  static const Color darkSelected = Color(0xFF1E3A5F);
-  
-  // 阴影色系
-  static const Color darkShadow = Color(0x1AFFFFFF);
-  static const Color darkShadowStrong = Color(0x33FFFFFF);
+  static const Color forestHover = Color(0xFFE8F5E8);
+  static const Color forestPressed = Color(0xFFC8E6C9);
+  static const Color forestSelected = Color(0xFFDCEDC8);
 
   static ThemeData get theme => ThemeData(
-    brightness: Brightness.dark,
+    brightness: Brightness.light,
     
-    // 主色调 - 使用蓝色系
-    primaryColor: bluePrimaryLight,
+    // 主色调 - 使用森林绿色系
+    primaryColor: forestPrimary,
     
-    // 应用整体背景色 - 使用更柔和的深色
-    scaffoldBackgroundColor: darkBackground,
+    // 应用整体背景色 - 森林配色
+    scaffoldBackgroundColor: forestBackground,
     
     // 卡片和对话框等元素的背景色
-    cardColor: darkCard,
+    cardColor: forestCard,
     
     // 表面颜色
-    colorScheme: const ColorScheme.dark(
-      primary: bluePrimaryLight,
-      primaryContainer: bluePrimary,
-      secondary: infoLight,
-      secondaryContainer: info,
-      surface: darkSurface,
-      background: darkBackground,
-      error: errorLight,
+    colorScheme: const ColorScheme.light(
+      primary: forestPrimary,
+      primaryContainer: forestPrimaryLight,
+      secondary: forestBrown,
+      secondaryContainer: forestBrownLight,
+      surface: forestSurface,
+      background: forestBackground,
+      error: error,
       onPrimary: Colors.white,
-      onSecondary: Colors.black,
-      onSurface: darkTextPrimary,
-      onBackground: darkTextPrimary,
-      onError: Colors.black,
-      outline: darkDivider,
-      outlineVariant: darkDivider,
+      onSecondary: Colors.white,
+      onSurface: forestTextPrimary,
+      onBackground: forestTextPrimary,
+      onError: Colors.white,
+      outline: forestDivider,
+      outlineVariant: forestDivider,
     ),
 
-    // 文本主题 - 增强对比度
+    // 文本主题 - 森林配色
     textTheme: const TextTheme(
       displayLarge: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 32,
         fontWeight: FontWeight.w300,
         letterSpacing: -0.5,
       ),
       displayMedium: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 28,
         fontWeight: FontWeight.w400,
       ),
       displaySmall: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 24,
         fontWeight: FontWeight.w400,
       ),
       headlineLarge: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 22,
         fontWeight: FontWeight.w500,
       ),
       headlineMedium: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w500,
       ),
       headlineSmall: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 18,
         fontWeight: FontWeight.w500,
       ),
       titleLarge: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
       titleMedium: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
       titleSmall: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
       bodyLarge: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
+        height: 1.6, // 增加行高，更护眼
       ),
       bodyMedium: TextStyle(
-        color: darkTextSecondary,
+        color: forestTextSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
+        height: 1.5,
       ),
       bodySmall: TextStyle(
-        color: darkTextSecondary,
+        color: forestTextSecondary,
         fontSize: 12,
         fontWeight: FontWeight.w400,
+        height: 1.4,
       ),
       labelLarge: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
       labelMedium: TextStyle(
-        color: darkTextSecondary,
+        color: forestTextSecondary,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
       labelSmall: TextStyle(
-        color: darkTextHint,
+        color: forestTextHint,
         fontSize: 10,
         fontWeight: FontWeight.w500,
       ),
     ),
 
-    // 应用栏主题 - 增加层次感
+    // 应用栏主题 - 森林风格
     appBarTheme: const AppBarTheme(
-      backgroundColor: darkSurface,
-      elevation: 0, // 扁平化设计
-      shadowColor: darkShadow,
+      backgroundColor: forestBackground,
+      elevation: 0,
+      shadowColor: forestDivider,
       iconTheme: IconThemeData(
-        color: darkTextPrimary,
+        color: forestPrimary,
         size: 24,
       ),
       titleTextStyle: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.15,
       ),
-      systemOverlayStyle: SystemUiOverlayStyle.light,
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
       centerTitle: false,
     ),
 
     // 图标主题
     iconTheme: const IconThemeData(
-      color: darkTextSecondary,
+      color: forestPrimary,
       size: 24,
     ),
 
-    // 卡片主题 - 增加微妙的阴影
+    // 卡片主题 - 森林质感
     cardTheme: CardTheme(
-      color: darkCard,
-      elevation: 2,
-      shadowColor: darkShadow,
+      color: forestCard,
+      elevation: 1,
+      shadowColor: forestDivider,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(
+          color: forestDivider,
+          width: 0.5,
+        ),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     ),
 
-    // 按钮主题 - 增强交互反馈
+    // 按钮主题 - 森林配色
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: bluePrimaryLight,
+        backgroundColor: forestPrimary,
         foregroundColor: Colors.white,
-        elevation: 3,
-        shadowColor: darkShadowStrong,
+        elevation: 2,
+        shadowColor: forestDivider,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -206,7 +208,7 @@ class DarkTheme {
     // 文本按钮主题
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: bluePrimaryLight,
+        foregroundColor: forestPrimary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -220,47 +222,47 @@ class DarkTheme {
 
     // 分割线主题
     dividerTheme: const DividerThemeData(
-      color: darkDivider,
-      thickness: 1,
+      color: forestDivider,
+      thickness: 0.5,
       space: 1,
     ),
 
     // 底部导航栏主题
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: darkSurface,
-      selectedItemColor: bluePrimaryLight,
-      unselectedItemColor: darkTextSecondary,
+      backgroundColor: forestBackground,
+      selectedItemColor: forestPrimary,
+      unselectedItemColor: forestTextSecondary,
       type: BottomNavigationBarType.fixed,
-      elevation: 8,
+      elevation: 0,
     ),
 
     // 浮动操作按钮主题
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: bluePrimaryLight,
+      backgroundColor: forestPrimary,
       foregroundColor: Colors.white,
-      elevation: 6,
+      elevation: 3,
       shape: CircleBorder(),
     ),
 
     // 进度指示器主题
     progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: bluePrimaryLight,
-      linearTrackColor: darkDivider,
+      color: forestPrimary,
+      linearTrackColor: forestDivider,
     ),
 
     // 开关主题
     switchTheme: SwitchThemeData(
       thumbColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return bluePrimaryLight;
+          return forestPrimary;
         }
-        return darkTextDisabled;
+        return forestTextDisabled;
       }),
       trackColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return bluePrimary;
+          return forestPrimaryLight;
         }
-        return darkDivider;
+        return forestDivider;
       }),
     ),
 
@@ -268,55 +270,55 @@ class DarkTheme {
     checkboxTheme: CheckboxThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return bluePrimaryLight;
+          return forestPrimary;
         }
         return Colors.transparent;
       }),
       checkColor: MaterialStateProperty.all(Colors.white),
-      side: const BorderSide(color: darkDivider),
+      side: const BorderSide(color: forestDivider),
     ),
 
     // 单选按钮主题
     radioTheme: RadioThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return bluePrimaryLight;
+          return forestPrimary;
         }
-        return darkTextDisabled;
+        return forestTextDisabled;
       }),
     ),
 
     // 滑块主题
     sliderTheme: const SliderThemeData(
-      activeTrackColor: bluePrimaryLight,
-      inactiveTrackColor: darkDivider,
-      thumbColor: bluePrimaryLight,
-      overlayColor: bluePrimary,
+      activeTrackColor: forestPrimary,
+      inactiveTrackColor: forestDivider,
+      thumbColor: forestPrimary,
+      overlayColor: forestPrimaryLight,
     ),
 
     // 标签页主题
     tabBarTheme: const TabBarTheme(
-      labelColor: bluePrimaryLight,
-      unselectedLabelColor: darkTextSecondary,
-      indicatorColor: bluePrimaryLight,
-      dividerColor: darkDivider,
+      labelColor: forestPrimary,
+      unselectedLabelColor: forestTextSecondary,
+      indicatorColor: forestPrimary,
+      dividerColor: forestDivider,
     ),
 
     // 对话框主题
     dialogTheme: DialogTheme(
-      backgroundColor: darkCard,
-      elevation: 8,
-      shadowColor: darkShadowStrong,
+      backgroundColor: forestCard,
+      elevation: 3,
+      shadowColor: forestDivider,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       titleTextStyle: const TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
       ),
       contentTextStyle: const TextStyle(
-        color: darkTextSecondary,
+        color: forestTextSecondary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
@@ -324,8 +326,8 @@ class DarkTheme {
 
     // 底部表单主题
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: darkCard,
-      elevation: 8,
+      backgroundColor: forestCard,
+      elevation: 3,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -333,14 +335,14 @@ class DarkTheme {
 
     // 弹出菜单主题
     popupMenuTheme: PopupMenuThemeData(
-      color: darkCard,
-      elevation: 8,
-      shadowColor: darkShadowStrong,
+      color: forestCard,
+      elevation: 3,
+      shadowColor: forestDivider,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
       textStyle: const TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
@@ -349,11 +351,11 @@ class DarkTheme {
     // 工具提示主题
     tooltipTheme: TooltipThemeData(
       decoration: BoxDecoration(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         borderRadius: BorderRadius.circular(4),
       ),
       textStyle: const TextStyle(
-        color: darkBackground,
+        color: forestBackground,
         fontSize: 12,
         fontWeight: FontWeight.w400,
       ),
@@ -362,34 +364,34 @@ class DarkTheme {
     // 数据表格主题
     dataTableTheme: const DataTableThemeData(
       headingTextStyle: TextStyle(
-        color: darkTextPrimary,
+        color: forestTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w600,
       ),
       dataTextStyle: TextStyle(
-        color: darkTextSecondary,
+        color: forestTextSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
-      dividerThickness: 1,
+      dividerThickness: 0.5,
       columnSpacing: 16,
     ),
 
     // 列表瓦片主题
     listTileTheme: const ListTileThemeData(
-      textColor: darkTextPrimary,
-      iconColor: darkTextSecondary,
+      textColor: forestTextPrimary,
+      iconColor: forestPrimary,
       tileColor: Colors.transparent,
-      selectedTileColor: darkSelected,
+      selectedTileColor: forestSelected,
     ),
 
     // 芯片主题
     chipTheme: const ChipThemeData(
-      backgroundColor: darkSurface,
-      selectedColor: bluePrimaryLight,
-      disabledColor: darkTextDisabled,
-      labelStyle: TextStyle(color: darkTextPrimary),
-      secondaryLabelStyle: TextStyle(color: darkTextSecondary),
+      backgroundColor: forestSurface,
+      selectedColor: forestPrimary,
+      disabledColor: forestTextDisabled,
+      labelStyle: TextStyle(color: forestTextPrimary),
+      secondaryLabelStyle: TextStyle(color: forestTextSecondary),
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     ),
 
@@ -397,10 +399,30 @@ class DarkTheme {
     expansionTileTheme: const ExpansionTileThemeData(
       backgroundColor: Colors.transparent,
       collapsedBackgroundColor: Colors.transparent,
-      textColor: darkTextPrimary,
-      iconColor: darkTextSecondary,
-      collapsedTextColor: darkTextSecondary,
-      collapsedIconColor: darkTextSecondary,
+      textColor: forestTextPrimary,
+      iconColor: forestPrimary,
+      collapsedTextColor: forestTextSecondary,
+      collapsedIconColor: forestTextSecondary,
+    ),
+
+    // 选择器主题
+    timePickerTheme: const TimePickerThemeData(
+      backgroundColor: forestCard,
+      hourMinuteTextColor: forestTextPrimary,
+      hourMinuteColor: forestSurface,
+      dayPeriodTextColor: forestTextPrimary,
+      dayPeriodColor: forestSurface,
+      dialHandColor: forestPrimary,
+      dialBackgroundColor: forestSurface,
+      dialTextColor: forestTextPrimary,
+      entryModeIconColor: forestPrimary,
+    ),
+
+    // 日期选择器主题
+    datePickerTheme: const DatePickerThemeData(
+      backgroundColor: forestCard,
+      headerBackgroundColor: forestPrimary,
+      headerForegroundColor: Colors.white,
     ),
   );
-}
+} 

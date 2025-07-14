@@ -257,6 +257,10 @@ class _ThemeItemWidget extends StatelessWidget {
         return const Color(0xFF424242);
       case AppThemeType.nightReading:
         return const Color(0xFF4A90E2);
+      case AppThemeType.ocean:
+        return const Color(0xFF1976D2);
+      case AppThemeType.forest:
+        return const Color(0xFF2E7D32);
     }
   }
 }

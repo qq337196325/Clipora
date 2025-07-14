@@ -233,6 +233,61 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
         dividerColor: Color(0xFF455A64),
         icon: Icons.nightlight_round,
       ),
+      // 新增：墨绿主题
+      const ThemeConfig(
+        type: ReadingThemeType.inkGreenTheme,
+        name: '墨绿主题',
+        description: '深墨绿背景，米白色文字，护眼文艺',
+        backgroundColor: Color(0xFF223322),
+        textColor: Color(0xFFF5F5E0),
+        cardColor: Color(0xFF2E4D2E),
+        dividerColor: Color(0xFF3C5C3C),
+        icon: Icons.eco,
+      ),
+      // 新增：蓝光护眼主题
+      const ThemeConfig(
+        type: ReadingThemeType.blueLightTheme,
+        name: '蓝光护眼',
+        description: '淡蓝灰背景，过滤蓝光，夜间舒适',
+        backgroundColor: Color(0xFFE3F2FD),
+        textColor: Color(0xFF263238),
+        cardColor: Color(0xFFBBDEFB),
+        dividerColor: Color(0xFF90CAF9),
+        icon: Icons.remove_red_eye,
+      ),
+      // 新增：极简黑白主题
+      const ThemeConfig(
+        type: ReadingThemeType.pureBlackTheme,
+        name: '极简黑白',
+        description: '极简纯黑纯白，专注阅读',
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        cardColor: Color(0xFF222222),
+        dividerColor: Color(0xFF444444),
+        icon: Icons.crop_square,
+      ),
+      // 新增：仿纸张主题
+      const ThemeConfig(
+        type: ReadingThemeType.paperTheme,
+        name: '仿纸张',
+        description: '淡黄纸张，深棕文字，模拟真实书本',
+        backgroundColor: Color(0xFFFFFDE7),
+        textColor: Color(0xFF5D4037),
+        cardColor: Color(0xFFFFF8E1),
+        dividerColor: Color(0xFFE8E6D9),
+        icon: Icons.menu_book,
+      ),
+      // 新增：少女粉主题
+      const ThemeConfig(
+        type: ReadingThemeType.pinkTheme,
+        name: '少女粉',
+        description: '浅粉色背景，温馨可爱',
+        backgroundColor: Color(0xFFFFEBEE),
+        textColor: Color(0xFFAD1457),
+        cardColor: Color(0xFFF8BBD0),
+        dividerColor: Color(0xFFF48FB1),
+        icon: Icons.favorite,
+      ),
     ];
     
     return themeConfigs.firstWhere(
@@ -398,7 +453,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
     if (markdownController != null) {
       try {
         await markdownController!.evaluateJavascript(source: '''
-          (function() {
+          (function() { 
             try {
               // 更新所有文本元素的样式
               const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, code, span, div');
@@ -417,6 +472,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
               const container = document.querySelector('.markdown-content') || document.body;
               if (container) {
                 container.style.padding = '${_marginSize.value}px';
+                container.style.padding = '${MediaQuery.of(context).padding.top + 20.0 + _marginSize.value}px';
               }
               
               console.log('✅ 样式设置更新成功');

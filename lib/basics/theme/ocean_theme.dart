@@ -1,197 +1,199 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// 深色主题 - 现代深色设计，减少眼睛疲劳
-class DarkTheme {
+/// 海洋主题 - 清新宁静的蓝色系配色，适合阅读
+class OceanTheme {
   // ==================== 颜色定义 ====================
   
-  // 主色调 - 蓝色系
-  static const Color bluePrimary = Color(0xFF42A5F5);
-  static const Color bluePrimaryLight = Color(0xFF64B5F6);
-  static const Color bluePrimaryDark = Color(0xFF1976D2);
+  // 主色调 - 海洋蓝色系
+  static const Color oceanPrimary = Color(0xFF1976D2);
+  static const Color oceanPrimaryLight = Color(0xFF42A5F5);
+  static const Color oceanPrimaryDark = Color(0xFF0D47A1);
   
-  // 信息色
-  static const Color info = Color(0xFF2196F3);
-  static const Color infoLight = Color(0xFF64B5F6);
+  // 海洋绿色系
+  static const Color oceanGreen = Color(0xFF26A69A);
+  static const Color oceanGreenLight = Color(0xFF4DB6AC);
   
   // 错误色
-  static const Color error = Color(0xFFF44336);
-  static const Color errorLight = Color(0xFFE57373);
+  static const Color error = Color(0xFFEF5350);
   
-  // 背景色系
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkSurface = Color(0xFF1E1E1E);
-  static const Color darkCard = Color(0xFF212121);
-  static const Color darkDivider = Color(0xFF424242);
+  // 背景色系 - 海洋配色
+  static const Color oceanBackground = Color(0xFFF0F8FF);
+  static const Color oceanSurface = Color(0xFFE3F2FD);
+  static const Color oceanCard = Color(0xFFFAFCFF);
+  static const Color oceanDivider = Color(0xFFBBDEFB);
   
-  // 文本色系
-  static const Color darkTextPrimary = Color(0xFFE0E0E0);
-  static const Color darkTextSecondary = Color(0xFFBDBDBD);
-  static const Color darkTextHint = Color(0xFF757575);
-  static const Color darkTextDisabled = Color(0xFF424242);
+  // 文本色系 - 海洋配色
+  static const Color oceanTextPrimary = Color(0xFF1A237E);
+  static const Color oceanTextSecondary = Color(0xFF3949AB);
+  static const Color oceanTextHint = Color(0xFF7986CB);
+  static const Color oceanTextDisabled = Color(0xFFC5CAE9);
   
   // 交互状态色系
-  static const Color darkHover = Color(0xFF2A2A2A);
-  static const Color darkPressed = Color(0xFF1A1A1A);
-  static const Color darkSelected = Color(0xFF1E3A5F);
-  
-  // 阴影色系
-  static const Color darkShadow = Color(0x1AFFFFFF);
-  static const Color darkShadowStrong = Color(0x33FFFFFF);
+  static const Color oceanHover = Color(0xFFE8F4FD);
+  static const Color oceanPressed = Color(0xFFD0E7FD);
+  static const Color oceanSelected = Color(0xFFE1F5FE);
 
   static ThemeData get theme => ThemeData(
-    brightness: Brightness.dark,
+    brightness: Brightness.light,
     
-    // 主色调 - 使用蓝色系
-    primaryColor: bluePrimaryLight,
+    // 主色调 - 使用海洋蓝色系
+    primaryColor: oceanPrimary,
     
-    // 应用整体背景色 - 使用更柔和的深色
-    scaffoldBackgroundColor: darkBackground,
+    // 应用整体背景色 - 海洋配色
+    scaffoldBackgroundColor: oceanBackground,
     
     // 卡片和对话框等元素的背景色
-    cardColor: darkCard,
+    cardColor: oceanCard,
     
     // 表面颜色
-    colorScheme: const ColorScheme.dark(
-      primary: bluePrimaryLight,
-      primaryContainer: bluePrimary,
-      secondary: infoLight,
-      secondaryContainer: info,
-      surface: darkSurface,
-      background: darkBackground,
-      error: errorLight,
+    colorScheme: const ColorScheme.light(
+      primary: oceanPrimary,
+      primaryContainer: oceanPrimaryLight,
+      secondary: oceanGreen,
+      secondaryContainer: oceanGreenLight,
+      surface: oceanSurface,
+      background: oceanBackground,
+      error: error,
       onPrimary: Colors.white,
-      onSecondary: Colors.black,
-      onSurface: darkTextPrimary,
-      onBackground: darkTextPrimary,
-      onError: Colors.black,
-      outline: darkDivider,
-      outlineVariant: darkDivider,
+      onSecondary: Colors.white,
+      onSurface: oceanTextPrimary,
+      onBackground: oceanTextPrimary,
+      onError: Colors.white,
+      outline: oceanDivider,
+      outlineVariant: oceanDivider,
     ),
 
-    // 文本主题 - 增强对比度
+    // 文本主题 - 海洋配色
     textTheme: const TextTheme(
       displayLarge: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 32,
         fontWeight: FontWeight.w300,
         letterSpacing: -0.5,
       ),
       displayMedium: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 28,
         fontWeight: FontWeight.w400,
       ),
       displaySmall: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 24,
         fontWeight: FontWeight.w400,
       ),
       headlineLarge: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 22,
         fontWeight: FontWeight.w500,
       ),
       headlineMedium: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w500,
       ),
       headlineSmall: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 18,
         fontWeight: FontWeight.w500,
       ),
       titleLarge: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
       titleMedium: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
       titleSmall: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
       bodyLarge: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
+        height: 1.6, // 增加行高，更护眼
       ),
       bodyMedium: TextStyle(
-        color: darkTextSecondary,
+        color: oceanTextSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
+        height: 1.5,
       ),
       bodySmall: TextStyle(
-        color: darkTextSecondary,
+        color: oceanTextSecondary,
         fontSize: 12,
         fontWeight: FontWeight.w400,
+        height: 1.4,
       ),
       labelLarge: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
       labelMedium: TextStyle(
-        color: darkTextSecondary,
+        color: oceanTextSecondary,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
       labelSmall: TextStyle(
-        color: darkTextHint,
+        color: oceanTextHint,
         fontSize: 10,
         fontWeight: FontWeight.w500,
       ),
     ),
 
-    // 应用栏主题 - 增加层次感
+    // 应用栏主题 - 海洋风格
     appBarTheme: const AppBarTheme(
-      backgroundColor: darkSurface,
-      elevation: 0, // 扁平化设计
-      shadowColor: darkShadow,
+      backgroundColor: oceanBackground,
+      elevation: 0,
+      shadowColor: oceanDivider,
       iconTheme: IconThemeData(
-        color: darkTextPrimary,
+        color: oceanPrimary,
         size: 24,
       ),
       titleTextStyle: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.15,
       ),
-      systemOverlayStyle: SystemUiOverlayStyle.light,
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
       centerTitle: false,
     ),
 
     // 图标主题
     iconTheme: const IconThemeData(
-      color: darkTextSecondary,
+      color: oceanPrimary,
       size: 24,
     ),
 
-    // 卡片主题 - 增加微妙的阴影
+    // 卡片主题 - 海洋质感
     cardTheme: CardTheme(
-      color: darkCard,
-      elevation: 2,
-      shadowColor: darkShadow,
+      color: oceanCard,
+      elevation: 1,
+      shadowColor: oceanDivider,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(
+          color: oceanDivider,
+          width: 0.5,
+        ),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     ),
 
-    // 按钮主题 - 增强交互反馈
+    // 按钮主题 - 海洋配色
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: bluePrimaryLight,
+        backgroundColor: oceanPrimary,
         foregroundColor: Colors.white,
-        elevation: 3,
-        shadowColor: darkShadowStrong,
+        elevation: 2,
+        shadowColor: oceanDivider,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -206,7 +208,7 @@ class DarkTheme {
     // 文本按钮主题
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: bluePrimaryLight,
+        foregroundColor: oceanPrimary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -220,47 +222,47 @@ class DarkTheme {
 
     // 分割线主题
     dividerTheme: const DividerThemeData(
-      color: darkDivider,
-      thickness: 1,
+      color: oceanDivider,
+      thickness: 0.5,
       space: 1,
     ),
 
     // 底部导航栏主题
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: darkSurface,
-      selectedItemColor: bluePrimaryLight,
-      unselectedItemColor: darkTextSecondary,
+      backgroundColor: oceanBackground,
+      selectedItemColor: oceanPrimary,
+      unselectedItemColor: oceanTextSecondary,
       type: BottomNavigationBarType.fixed,
-      elevation: 8,
+      elevation: 0,
     ),
 
     // 浮动操作按钮主题
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: bluePrimaryLight,
+      backgroundColor: oceanPrimary,
       foregroundColor: Colors.white,
-      elevation: 6,
+      elevation: 3,
       shape: CircleBorder(),
     ),
 
     // 进度指示器主题
     progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: bluePrimaryLight,
-      linearTrackColor: darkDivider,
+      color: oceanPrimary,
+      linearTrackColor: oceanDivider,
     ),
 
     // 开关主题
     switchTheme: SwitchThemeData(
       thumbColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return bluePrimaryLight;
+          return oceanPrimary;
         }
-        return darkTextDisabled;
+        return oceanTextDisabled;
       }),
       trackColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return bluePrimary;
+          return oceanPrimaryLight;
         }
-        return darkDivider;
+        return oceanDivider;
       }),
     ),
 
@@ -268,55 +270,55 @@ class DarkTheme {
     checkboxTheme: CheckboxThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return bluePrimaryLight;
+          return oceanPrimary;
         }
         return Colors.transparent;
       }),
       checkColor: MaterialStateProperty.all(Colors.white),
-      side: const BorderSide(color: darkDivider),
+      side: const BorderSide(color: oceanDivider),
     ),
 
     // 单选按钮主题
     radioTheme: RadioThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return bluePrimaryLight;
+          return oceanPrimary;
         }
-        return darkTextDisabled;
+        return oceanTextDisabled;
       }),
     ),
 
     // 滑块主题
     sliderTheme: const SliderThemeData(
-      activeTrackColor: bluePrimaryLight,
-      inactiveTrackColor: darkDivider,
-      thumbColor: bluePrimaryLight,
-      overlayColor: bluePrimary,
+      activeTrackColor: oceanPrimary,
+      inactiveTrackColor: oceanDivider,
+      thumbColor: oceanPrimary,
+      overlayColor: oceanPrimaryLight,
     ),
 
     // 标签页主题
     tabBarTheme: const TabBarTheme(
-      labelColor: bluePrimaryLight,
-      unselectedLabelColor: darkTextSecondary,
-      indicatorColor: bluePrimaryLight,
-      dividerColor: darkDivider,
+      labelColor: oceanPrimary,
+      unselectedLabelColor: oceanTextSecondary,
+      indicatorColor: oceanPrimary,
+      dividerColor: oceanDivider,
     ),
 
     // 对话框主题
     dialogTheme: DialogTheme(
-      backgroundColor: darkCard,
-      elevation: 8,
-      shadowColor: darkShadowStrong,
+      backgroundColor: oceanCard,
+      elevation: 3,
+      shadowColor: oceanDivider,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       titleTextStyle: const TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
       ),
       contentTextStyle: const TextStyle(
-        color: darkTextSecondary,
+        color: oceanTextSecondary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
@@ -324,8 +326,8 @@ class DarkTheme {
 
     // 底部表单主题
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: darkCard,
-      elevation: 8,
+      backgroundColor: oceanCard,
+      elevation: 3,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -333,14 +335,14 @@ class DarkTheme {
 
     // 弹出菜单主题
     popupMenuTheme: PopupMenuThemeData(
-      color: darkCard,
-      elevation: 8,
-      shadowColor: darkShadowStrong,
+      color: oceanCard,
+      elevation: 3,
+      shadowColor: oceanDivider,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
       textStyle: const TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
@@ -349,11 +351,11 @@ class DarkTheme {
     // 工具提示主题
     tooltipTheme: TooltipThemeData(
       decoration: BoxDecoration(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         borderRadius: BorderRadius.circular(4),
       ),
       textStyle: const TextStyle(
-        color: darkBackground,
+        color: oceanBackground,
         fontSize: 12,
         fontWeight: FontWeight.w400,
       ),
@@ -362,34 +364,34 @@ class DarkTheme {
     // 数据表格主题
     dataTableTheme: const DataTableThemeData(
       headingTextStyle: TextStyle(
-        color: darkTextPrimary,
+        color: oceanTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w600,
       ),
       dataTextStyle: TextStyle(
-        color: darkTextSecondary,
+        color: oceanTextSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
-      dividerThickness: 1,
+      dividerThickness: 0.5,
       columnSpacing: 16,
     ),
 
     // 列表瓦片主题
     listTileTheme: const ListTileThemeData(
-      textColor: darkTextPrimary,
-      iconColor: darkTextSecondary,
+      textColor: oceanTextPrimary,
+      iconColor: oceanPrimary,
       tileColor: Colors.transparent,
-      selectedTileColor: darkSelected,
+      selectedTileColor: oceanSelected,
     ),
 
     // 芯片主题
     chipTheme: const ChipThemeData(
-      backgroundColor: darkSurface,
-      selectedColor: bluePrimaryLight,
-      disabledColor: darkTextDisabled,
-      labelStyle: TextStyle(color: darkTextPrimary),
-      secondaryLabelStyle: TextStyle(color: darkTextSecondary),
+      backgroundColor: oceanSurface,
+      selectedColor: oceanPrimary,
+      disabledColor: oceanTextDisabled,
+      labelStyle: TextStyle(color: oceanTextPrimary),
+      secondaryLabelStyle: TextStyle(color: oceanTextSecondary),
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     ),
 
@@ -397,10 +399,30 @@ class DarkTheme {
     expansionTileTheme: const ExpansionTileThemeData(
       backgroundColor: Colors.transparent,
       collapsedBackgroundColor: Colors.transparent,
-      textColor: darkTextPrimary,
-      iconColor: darkTextSecondary,
-      collapsedTextColor: darkTextSecondary,
-      collapsedIconColor: darkTextSecondary,
+      textColor: oceanTextPrimary,
+      iconColor: oceanPrimary,
+      collapsedTextColor: oceanTextSecondary,
+      collapsedIconColor: oceanTextSecondary,
+    ),
+
+    // 选择器主题
+    timePickerTheme: const TimePickerThemeData(
+      backgroundColor: oceanCard,
+      hourMinuteTextColor: oceanTextPrimary,
+      hourMinuteColor: oceanSurface,
+      dayPeriodTextColor: oceanTextPrimary,
+      dayPeriodColor: oceanSurface,
+      dialHandColor: oceanPrimary,
+      dialBackgroundColor: oceanSurface,
+      dialTextColor: oceanTextPrimary,
+      entryModeIconColor: oceanPrimary,
+    ),
+
+    // 日期选择器主题
+    datePickerTheme: const DatePickerThemeData(
+      backgroundColor: oceanCard,
+      headerBackgroundColor: oceanPrimary,
+      headerForegroundColor: Colors.white,
     ),
   );
-}
+} 

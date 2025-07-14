@@ -85,8 +85,21 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Artic
         // disableInputAccessoryView: true,
       ),
       onWebViewCreated: (InAppWebViewController controller){
+
+        articleController.context = context;
+
         webViewController = controller;
         articleController.markdownController = controller;
+        // 注入主题色，保证加载前背景色一致
+        final config = articleController.currentThemeConfig;
+        final bgColor = '#${config.backgroundColor.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+        final textColor = '#${config.textColor.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+        controller.evaluateJavascript(source: '''
+          document.documentElement.style.setProperty('--background-color', '$bgColor');
+          document.documentElement.style.setProperty('--text-color', '$textColor');
+          document.body.style.backgroundColor = '$bgColor';
+          document.body.style.color = '$textColor';
+        ''');
       },
       onLoadStart: (controller, url) {
         getLogger().d('🚀 WebView开始加载: $url');

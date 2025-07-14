@@ -1,114 +1,143 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'app_colors.dart';
 
 /// 纯白主题 - 简洁明亮的现代设计
 class LightTheme {
+  // ==================== 颜色定义 ====================
+  
+  // 主色调 - 蓝色系
+  static const Color bluePrimary = Color(0xFF42A5F5);
+  static const Color bluePrimaryLight = Color(0xFF64B5F6);
+  static const Color bluePrimaryDark = Color(0xFF1976D2);
+  
+  // 信息色
+  static const Color info = Color(0xFF2196F3);
+  static const Color infoLight = Color(0xFF64B5F6);
+  
+  // 错误色
+  static const Color error = Color(0xFFF44336);
+  
+  // 背景色系
+  static const Color lightBackground = Colors.white;
+  static const Color lightSurface = Color(0xFFF8F9FA);
+  static const Color lightCard = Colors.white;
+  static const Color lightDivider = Color(0xFFE0E0E0);
+  
+  // 文本色系
+  static const Color lightTextPrimary = Color(0xFF212121);
+  static const Color lightTextSecondary = Color(0xFF757575);
+  static const Color lightTextHint = Color(0xFFBDBDBD);
+  static const Color lightTextDisabled = Color(0xFFE0E0E0);
+  
+  // 阴影色系
+  static const Color lightShadow = Color(0x1A000000);
+  static const Color lightShadowStrong = Color(0x33000000);
+
   static ThemeData get theme => ThemeData(
     brightness: Brightness.light,
     
     // 主色调 - 使用蓝色系
-    primaryColor: AppColors.bluePrimary,
+    primaryColor: bluePrimary,
     
     // 应用整体背景色
-    scaffoldBackgroundColor: AppColors.lightBackground,
+    scaffoldBackgroundColor: lightBackground,
     
     // 卡片和对话框等元素的背景色
-    cardColor: AppColors.lightCard,
+    cardColor: lightCard,
     
     // 表面颜色
     colorScheme: const ColorScheme.light(
-      primary: AppColors.bluePrimary,
-      primaryContainer: AppColors.bluePrimaryLight,
-      secondary: AppColors.info,
-      secondaryContainer: AppColors.infoLight,
-      surface: AppColors.lightSurface,
-      background: AppColors.lightBackground,
-      error: AppColors.error,
+      primary: bluePrimary,
+      primaryContainer: bluePrimaryLight,
+      secondary: info,
+      secondaryContainer: infoLight,
+      surface: lightSurface,
+      background: lightBackground,
+      error: error,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
-      onSurface: AppColors.lightTextPrimary,
-      onBackground: AppColors.lightTextPrimary,
+      onSurface: lightTextPrimary,
+      onBackground: lightTextPrimary,
       onError: Colors.white,
-      outline: AppColors.lightDivider,
-      outlineVariant: AppColors.lightDivider,
+      outline: lightDivider,
+      outlineVariant: lightDivider,
     ),
 
     // 文本主题 - 增强对比度
     textTheme: const TextTheme(
       displayLarge: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 32,
         fontWeight: FontWeight.w300,
         letterSpacing: -0.5,
       ),
       displayMedium: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 28,
         fontWeight: FontWeight.w400,
       ),
       displaySmall: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 24,
         fontWeight: FontWeight.w400,
       ),
       headlineLarge: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 22,
         fontWeight: FontWeight.w500,
       ),
       headlineMedium: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w500,
       ),
       headlineSmall: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 18,
         fontWeight: FontWeight.w500,
       ),
       titleLarge: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
       titleMedium: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
       titleSmall: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
       bodyLarge: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
       bodyMedium: TextStyle(
-        color: AppColors.lightTextSecondary,
+        color: lightTextSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
       bodySmall: TextStyle(
-        color: AppColors.lightTextSecondary,
+        color: lightTextSecondary,
         fontSize: 12,
         fontWeight: FontWeight.w400,
       ),
       labelLarge: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
       labelMedium: TextStyle(
-        color: AppColors.lightTextSecondary,
+        color: lightTextSecondary,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
       labelSmall: TextStyle(
-        color: AppColors.lightTextHint,
+        color: lightTextHint,
         fontSize: 10,
         fontWeight: FontWeight.w500,
       ),
@@ -116,15 +145,15 @@ class LightTheme {
 
     // 应用栏主题 - 增加层次感
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: lightBackground,
       elevation: 0, // 扁平化设计
-      shadowColor: AppColors.lightShadow,
+      shadowColor: lightShadow,
       iconTheme: IconThemeData(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         size: 24,
       ),
       titleTextStyle: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.15,
@@ -135,15 +164,15 @@ class LightTheme {
 
     // 图标主题
     iconTheme: const IconThemeData(
-      color: AppColors.lightTextSecondary,
+      color: lightTextSecondary,
       size: 24,
     ),
 
     // 卡片主题 - 增加微妙的阴影
     cardTheme: CardTheme(
-      color: AppColors.lightCard,
+      color: lightCard,
       elevation: 1,
-      shadowColor: AppColors.lightShadow,
+      shadowColor: lightShadow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -153,10 +182,10 @@ class LightTheme {
     // 按钮主题 - 增强交互反馈
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.bluePrimary,
+        backgroundColor: bluePrimary,
         foregroundColor: Colors.white,
         elevation: 2,
-        shadowColor: AppColors.lightShadowStrong,
+        shadowColor: lightShadowStrong,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -171,7 +200,7 @@ class LightTheme {
     // 文本按钮主题
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.bluePrimary,
+        foregroundColor: bluePrimary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -183,50 +212,25 @@ class LightTheme {
       ),
     ),
 
-    // 输入框主题
-    // inputDecorationTheme: InputDecorationTheme(
-    //   filled: true,
-    //   fillColor: AppColors.lightSurface,
-    //   border: OutlineInputBorder(
-    //     borderRadius: BorderRadius.circular(8),
-    //     borderSide: const BorderSide(color: AppColors.lightDivider),
-    //   ),
-    //   enabledBorder: OutlineInputBorder(
-    //     borderRadius: BorderRadius.circular(8),
-    //     borderSide: const BorderSide(color: AppColors.lightDivider),
-    //   ),
-    //   focusedBorder: OutlineInputBorder(
-    //     borderRadius: BorderRadius.circular(8),
-    //     borderSide: const BorderSide(color: AppColors.bluePrimary, width: 2),
-    //   ),
-    //   errorBorder: OutlineInputBorder(
-    //     borderRadius: BorderRadius.circular(8),
-    //     borderSide: const BorderSide(color: AppColors.error),
-    //   ),
-    //   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    //   labelStyle: const TextStyle(color: AppColors.lightTextSecondary),
-    //   hintStyle: const TextStyle(color: AppColors.lightTextHint),
-    // ),
-
     // 分割线主题
     dividerTheme: const DividerThemeData(
-      color: AppColors.lightDivider,
+      color: lightDivider,
       thickness: 1,
       space: 1,
     ),
 
     // 底部导航栏主题
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.lightBackground,
-      selectedItemColor: AppColors.bluePrimary,
-      unselectedItemColor: AppColors.lightTextSecondary,
+      backgroundColor: lightBackground,
+      selectedItemColor: bluePrimary,
+      unselectedItemColor: lightTextSecondary,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
     ),
 
     // 浮动操作按钮主题
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: AppColors.bluePrimary,
+      backgroundColor: bluePrimary,
       foregroundColor: Colors.white,
       elevation: 6,
       shape: CircleBorder(),
@@ -234,23 +238,23 @@ class LightTheme {
 
     // 进度指示器主题
     progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: AppColors.bluePrimary,
-      linearTrackColor: AppColors.lightDivider,
+      color: bluePrimary,
+      linearTrackColor: lightDivider,
     ),
 
     // 开关主题
     switchTheme: SwitchThemeData(
       thumbColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return AppColors.bluePrimary;
+          return bluePrimary;
         }
-        return AppColors.lightTextDisabled;
+        return lightTextDisabled;
       }),
       trackColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return AppColors.bluePrimaryLight;
+          return bluePrimaryLight;
         }
-        return AppColors.lightDivider;
+        return lightDivider;
       }),
     ),
 
@@ -258,55 +262,55 @@ class LightTheme {
     checkboxTheme: CheckboxThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return AppColors.bluePrimary;
+          return bluePrimary;
         }
         return Colors.transparent;
       }),
       checkColor: MaterialStateProperty.all(Colors.white),
-      side: const BorderSide(color: AppColors.lightDivider),
+      side: const BorderSide(color: lightDivider),
     ),
 
     // 单选按钮主题
     radioTheme: RadioThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return AppColors.bluePrimary;
+          return bluePrimary;
         }
-        return AppColors.lightTextDisabled;
+        return lightTextDisabled;
       }),
     ),
 
     // 滑块主题
     sliderTheme: const SliderThemeData(
-      activeTrackColor: AppColors.bluePrimary,
-      inactiveTrackColor: AppColors.lightDivider,
-      thumbColor: AppColors.bluePrimary,
-      overlayColor: AppColors.bluePrimaryLight,
+      activeTrackColor: bluePrimary,
+      inactiveTrackColor: lightDivider,
+      thumbColor: bluePrimary,
+      overlayColor: bluePrimaryLight,
     ),
 
     // 标签页主题
     tabBarTheme: const TabBarTheme(
-      labelColor: AppColors.bluePrimary,
-      unselectedLabelColor: AppColors.lightTextSecondary,
-      indicatorColor: AppColors.bluePrimary,
-      dividerColor: AppColors.lightDivider,
+      labelColor: bluePrimary,
+      unselectedLabelColor: lightTextSecondary,
+      indicatorColor: bluePrimary,
+      dividerColor: lightDivider,
     ),
 
     // 对话框主题
     dialogTheme: DialogTheme(
-      backgroundColor: AppColors.lightCard,
+      backgroundColor: lightCard,
       elevation: 8,
-      shadowColor: AppColors.lightShadowStrong,
+      shadowColor: lightShadowStrong,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       titleTextStyle: const TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
       ),
       contentTextStyle: const TextStyle(
-        color: AppColors.lightTextSecondary,
+        color: lightTextSecondary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
@@ -314,7 +318,7 @@ class LightTheme {
 
     // 底部表单主题
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: AppColors.lightCard,
+      backgroundColor: lightCard,
       elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -323,14 +327,14 @@ class LightTheme {
 
     // 弹出菜单主题
     popupMenuTheme: PopupMenuThemeData(
-      color: AppColors.lightCard,
+      color: lightCard,
       elevation: 8,
-      shadowColor: AppColors.lightShadowStrong,
+      shadowColor: lightShadowStrong,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
       textStyle: const TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
@@ -339,11 +343,11 @@ class LightTheme {
     // 工具提示主题
     tooltipTheme: TooltipThemeData(
       decoration: BoxDecoration(
-        color: AppColors.darkTextPrimary,
+        color: lightTextPrimary,
         borderRadius: BorderRadius.circular(4),
       ),
       textStyle: const TextStyle(
-        color: AppColors.darkBackground,
+        color: lightBackground,
         fontSize: 12,
         fontWeight: FontWeight.w400,
       ),
@@ -352,12 +356,12 @@ class LightTheme {
     // 数据表格主题
     dataTableTheme: const DataTableThemeData(
       headingTextStyle: TextStyle(
-        color: AppColors.lightTextPrimary,
+        color: lightTextPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w600,
       ),
       dataTextStyle: TextStyle(
-        color: AppColors.lightTextSecondary,
+        color: lightTextSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),

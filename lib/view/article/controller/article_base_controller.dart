@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 
 import '../../../db/article/article_db.dart';
 import '../../../db/article/service/article_service.dart';
@@ -7,6 +8,9 @@ import '../../../db/article_content/article_content_db.dart';
 
 /// 文章控制器
 class ArticleBaseController extends GetxController {
+
+
+  late BuildContext context;
 
   int articleId = 0;
 

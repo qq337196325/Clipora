@@ -67,7 +67,16 @@ class SimpleHtmlTemplate {
         }
         
         /* 基础重置和主题适配 background-color: #ccc !important; */
+        :root {
+            
+            --text-color: #222;
+            --font-size: 16px;
+            --line-height: 1.6;
+        }
+        
         body {
+            background-color: var(--background-color);
+            color: var(--text-color, #222);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
             

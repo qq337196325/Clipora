@@ -97,7 +97,7 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
                         colorScheme.surfaceVariant.withOpacity(0.9),
                       ]
                     : [
-                        Colors.white.withOpacity(0.95),
+                  colorScheme.surface.withOpacity(0.95),
                         Colors.grey.shade50.withOpacity(0.9),
                       ],
               ),
@@ -202,7 +202,7 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Material(
-      color: Colors.transparent,
+      // color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(24),
@@ -213,7 +213,7 @@ class _ArticleBottomBarState extends State<ArticleBottomBar> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: isPrimary 
-                ? colorScheme.primaryContainer.withOpacity(0.8)
+                ? colorScheme.primaryContainer
                 : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03)),
             borderRadius: BorderRadius.circular(24),
             border: isPrimary 

@@ -48,6 +48,9 @@ class ArticlePageState extends State<ArticleWebWidget> with ArticlePageBLoC {
 
   @override
   Widget build(BuildContext context) {
+
+
+
     return Column(
       children: [
         // 进度条
@@ -384,6 +387,8 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
   @override
   void initState() {
     super.initState();
+
+
     _initializeBrowserSimulation();
   }
 
