@@ -54,6 +54,7 @@ Future<void> handleAndroidPermission() async {
                   ),
                   child: Text("i18n_permission_不同意".tr, style: TextStyle(color: Colors.black87)),
                   onPressed: () {
+                    globalBoxStorage.write('huaweiStoragePermission', false);
                     SmartDialog.dismiss(tag: "permission_dialog");
                   },
                 ),
@@ -64,6 +65,7 @@ Future<void> handleAndroidPermission() async {
                   ),
                   child: Text("i18n_permission_同意".tr, style: TextStyle(color: Colors.white)),
                   onPressed: () {
+                    globalBoxStorage.write('huaweiStoragePermission', true);
                     SmartDialog.dismiss(tag: "permission_dialog");
                     initializePermissions();
                   },

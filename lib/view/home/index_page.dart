@@ -364,7 +364,10 @@ mixin IndexPageBLoC on State<IndexPage> {
     await _checkAppVersion(); // 在这里调用版本检查
 
     if(isHuawei){
-      await handleAndroidPermission();
+      bool? huaweiStoragePermission = globalBoxStorage.read('huaweiStoragePermission');
+      if(huaweiStoragePermission == null){
+        await handleAndroidPermission();
+      }
     }
 
     checkCompleteSync();
