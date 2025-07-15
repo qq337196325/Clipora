@@ -50,9 +50,6 @@ class _NoteDetailBottomSheetState extends State<NoteDetailBottomSheet> {
           // 拖拽指示器
           _buildDragIndicator(),
           
-          // 标题栏
-          _buildTitleBar(),
-          
           // 原文引用
           _buildOriginalTextSection(),
           
@@ -81,37 +78,6 @@ class _NoteDetailBottomSheetState extends State<NoteDetailBottomSheet> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
         borderRadius: BorderRadius.circular(2),
-      ),
-    );
-  }
-
-  /// 构建标题栏
-  Widget _buildTitleBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Icon(
-            Icons.sticky_note_2,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'i18n_article_笔记详情'.tr,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: Icon(
-              Icons.close,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-            ),
-          ),
-        ],
       ),
     );
   }

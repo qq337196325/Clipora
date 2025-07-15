@@ -99,13 +99,13 @@ class ThemeController extends GetxController {
       } catch (e) {
         print('❌ 加载主题失败: $e');
         // 如果解析失败，使用默认主题
-        currentTheme.value = AppThemeType.reading;
-        Get.changeTheme(_getThemeData(AppThemeType.reading));
+        currentTheme.value = AppThemeType.light;
+        Get.changeTheme(_getThemeData(AppThemeType.light));
       }
     } else {
       print('📝 没有保存的主题，使用默认主题');
-      currentTheme.value = AppThemeType.reading;
-      Get.changeTheme(_getThemeData(AppThemeType.reading));
+      currentTheme.value = AppThemeType.light;
+      Get.changeTheme(_getThemeData(AppThemeType.light));
     }
   }
 

@@ -33,7 +33,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Theme.of(context).scaffoldBackgroundColor,
+            Theme.of(context).colorScheme.surface,
             Theme.of(context).cardColor,
           ],
         ),
@@ -518,6 +518,8 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
       
       // 启动定时器，每6秒刷新一次文章列表
       _startRefreshTimer();
+
+
     });
   }
 
@@ -535,6 +537,8 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
       _loadArticles();
     });
   }
+
+
 
   /// 获取文章列表
   Future<void> _loadArticles() async {

@@ -10,4 +10,12 @@ const Map<String, String> guideI18n = {
   'i18n_guide_专注的阅读体验支持标注笔记翻译让阅读更有价值': 'Une expérience de lecture concentrée\nSupporte les annotations, notes et traduction\nRendant la lecture plus précieuse',
   'i18n_guide_开始使用': 'Commencer',
   'i18n_guide_下一步': 'Suivant',
+  
+  // Textes liés au guide tutoriel
+  'i18n_guide_如何收藏': 'Comment collecter ?',
+  'i18n_guide_在其他应用中点击分享': 'Dans d\'autres applications, appuyez sur partager',
+  'i18n_guide_点击Clipora图标即可收藏': 'Appuyez sur l\'icône Clipora pour collecter',
+  'i18n_guide_点击图片继续': 'Appuyez sur l\'image pour continuer',
+  'i18n_guide_继续': 'Continuer',
+  'i18n_guide_我知道了': 'J\'ai compris',
 }; 

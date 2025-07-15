@@ -10,4 +10,12 @@ const Map<String, String> guideI18n = {
   'i18n_guide_专注的阅读体验支持标注笔记翻译让阅读更有价值': 'Een gerichte leeservaring\nOndersteunt annotaties, notities en vertaling\nMaakt lezen waardevoller',
   'i18n_guide_开始使用': 'Beginnen',
   'i18n_guide_下一步': 'Volgende',
+  
+  // Tutorial gids gerelateerde teksten
+  'i18n_guide_如何收藏': 'Hoe verzamelen?',
+  'i18n_guide_在其他应用中点击分享': 'In andere apps, tik op delen',
+  'i18n_guide_点击Clipora图标即可收藏': 'Tik op Clipora pictogram om te verzamelen',
+  'i18n_guide_点击图片继续': 'Tik op afbeelding om door te gaan',
+  'i18n_guide_继续': 'Doorgaan',
+  'i18n_guide_我知道了': 'Begrepen',
 }; 

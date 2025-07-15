@@ -14,6 +14,7 @@ import '../../services/get_sync_data/get_sync_data.dart';
 import '../../services/get_sync_data/increment_sync_data.dart';
 import '../../services/snapshot_service_widget.dart';
 import '../../services/update_data_sync/data_sync_service.dart';
+import 'components/tutorial_guide_widget.dart';
 import 'utils/upgrade_service.dart';
 import 'group/group_widget.dart';
 import 'index_widget.dart';
@@ -361,6 +362,10 @@ mixin IndexPageBLoC on State<IndexPage> {
 
   _init() async {
     // getLogger().e('❌ 同步过程发生异常0000000000000000000');
+
+    // 检查是否需要显示引导
+    await _checkAndShowTutorial();
+
     await _checkAppVersion(); // 在这里调用版本检查
 
     if(isHuawei){
@@ -377,6 +382,38 @@ mixin IndexPageBLoC on State<IndexPage> {
   void dispose() {
     tabController.dispose();
     super.dispose();
+  }
+
+
+  /// 检查并显示引导
+  Future<void> _checkAndShowTutorial() async {
+
+    bool? tutorialCompleted = globalBoxStorage.read('tutorial_completed');
+    // 延迟一点时间，确保页面完全加载
+    await Future.delayed(const Duration(milliseconds: 200), () async {
+      if (mounted) {
+        await _showTutorialGuide();
+      }
+    });
+    if (tutorialCompleted == null) {
+
+    }
+  }
+
+  /// 显示引导弹窗
+  Future<void> _showTutorialGuide() async {
+    await showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => TutorialGuideWidget(
+        onCompleted: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
   }
 
   // 更新滑动增量

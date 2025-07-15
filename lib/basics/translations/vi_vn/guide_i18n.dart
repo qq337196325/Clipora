@@ -10,4 +10,12 @@ const Map<String, String> guideI18n = {
   'i18n_guide_专注的阅读体验支持标注笔记翻译让阅读更有价值': 'Trải nghiệm đọc tập trung\nHỗ trợ chú thích, ghi chú và dịch thuật\nLàm cho việc đọc trở nên có giá trị hơn',
   'i18n_guide_开始使用': 'Bắt Đầu',
   'i18n_guide_下一步': 'Tiếp theo',
+  
+  // Văn bản liên quan đến hướng dẫn hướng dẫn
+  'i18n_guide_如何收藏': 'Làm thế nào để thu thập?',
+  'i18n_guide_在其他应用中点击分享': 'Trong các ứng dụng khác, chạm chia sẻ',
+  'i18n_guide_点击Clipora图标即可收藏': 'Chạm biểu tượng Clipora để thu thập',
+  'i18n_guide_点击图片继续': 'Chạm vào hình ảnh để tiếp tục',
+  'i18n_guide_继续': 'Tiếp tục',
+  'i18n_guide_我知道了': 'Tôi hiểu rồi',
 }; 

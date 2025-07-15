@@ -37,7 +37,7 @@ class _GroupPageState extends State<GroupPage>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              theme.scaffoldBackgroundColor,
+              theme.colorScheme.surface,
               theme.cardColor,
             ],
             begin: Alignment.topCenter,
