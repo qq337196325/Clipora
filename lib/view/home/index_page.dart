@@ -389,14 +389,14 @@ mixin IndexPageBLoC on State<IndexPage> {
   Future<void> _checkAndShowTutorial() async {
 
     bool? tutorialCompleted = globalBoxStorage.read('tutorial_completed');
-    // 延迟一点时间，确保页面完全加载
-    await Future.delayed(const Duration(milliseconds: 200), () async {
-      if (mounted) {
-        await _showTutorialGuide();
-      }
-    });
-    if (tutorialCompleted == null) {
 
+    if (tutorialCompleted == null) {
+      // 延迟一点时间，确保页面完全加载
+      await Future.delayed(const Duration(milliseconds: 200), () async {
+        if (mounted) {
+          await _showTutorialGuide();
+        }
+      });
     }
   }
 

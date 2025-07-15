@@ -159,7 +159,7 @@ class FlutterLoggerService extends GetxService {
         await _dbService.isar.flutterLoggers.put(log);
       });
     } catch (e) {
-      getLogger().e('❌ 保存日志到数据库失败: $e');
+      // getLogger().e('❌ 保存日志到数据库失败: $e');
     }
   }
 
