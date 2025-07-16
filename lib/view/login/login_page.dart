@@ -504,6 +504,7 @@ mixin LoginPageBLoC on State<LoginPage> {
             break;
           case AuthorizationErrorCode.unknown:
             errorMessage = 'i18n_login_Apple登录发生未知错误'.tr;
+            getLogger().e('Apple登录未知错误详情: ${e.toString()}');
             break;
           case AuthorizationErrorCode.notInteractive:
             errorMessage = 'i18n_login_Apple登录发生未知错误'.tr;
