@@ -40,6 +40,7 @@ dependencies:
       ref: master
   fluwx: ^5.5.5                                    # 微信集成库
   url_launcher: ^6.3.1                             # 打开外部链接
+  sign_in_with_apple: ^6.1.2                       # Apple登录
   device_info_plus: 11.3.0                        # 获取设备信息
   image: ^4.3.0                                    # 图片处理和拼接
   lottie: ^3.1.0                                   # 动画效果库

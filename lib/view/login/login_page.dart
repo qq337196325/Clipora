@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../basics/config.dart';
 import '../../basics/ui.dart';
@@ -16,6 +17,7 @@ import '../../components/ui_border_radius_widget.dart';
 import '../../basics/translations/select_language_widget.dart';
 import '../../basics/translations/language_controller.dart';
 import 'phone_login_page.dart';
+import 'apple_web_auth_widget.dart';
 import '../../api/user_api.dart';
 import '../../route/route_name.dart';
 import '../../basics/logger.dart';
@@ -124,15 +126,14 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
     return Column(
       children: [
         // Apple登录按钮
-        // _buildLoginButton(
-        //   icon: Icons.apple,
-        //   text: '使用 Apple 登录',
-        //   backgroundColor: const Color(0xFF000000),
-        //   textColor: Colors.white,
-        //   onPressed: onAppleLogin,
-        // ),
-        //
-        // const SizedBox(height: 16),
+        _buildLoginButton(
+          icon: Icons.apple,
+          text: 'i18n_login_使用Apple登录'.tr,
+          backgroundColor: const Color(0xFF000000),
+          textColor: Colors.white,
+          onPressed: onAppleLogin,
+        ),
+        const SizedBox(height: 16),
         
         // 微信登录按钮
         if (_showWeChatLogin) ...[
@@ -385,7 +386,7 @@ mixin LoginPageBLoC on State<LoginPage> {
   bool isAgreePrivacyAgreement = false;
   late SharedPreferences prefs;
   bool _showWeChatLogin = !Platform.isIOS;
-  
+
   @override
   void initState() {
     super.initState();
@@ -404,8 +405,8 @@ mixin LoginPageBLoC on State<LoginPage> {
           });
         }
       });
-    }
 
+    }
     // 监听微信授权响应
     _listenWeChatAuthResponse();
 
@@ -420,10 +421,194 @@ mixin LoginPageBLoC on State<LoginPage> {
   }
 
   // Apple登录
-  void onAppleLogin() {
-    // TODO: 实现Apple登录逻辑
-    print('Apple登录');
-    _showComingSoonDialog('Apple登录');
+  void onAppleLogin() async {
+    if (!isAgreePrivacyAgreement) {
+      openSmartDialog();
+      BotToast.showText(
+        textStyle: TextStyle(color: UiColour.neutral_11),
+        text: 'i18n_login_请阅读并勾选我们的隐私政策与用户协议'.tr,
+        contentColor: UiColour.neutral_5,
+        align: Alignment(0, 0),
+      );
+      return;
+    }
+
+    prefs.setBool("privacy", true);
+    getLogger().i('用户点击Apple登录按钮');
+    
+    try {
+      // 安卓平台使用自定义Web认证
+      if (Platform.isAndroid) {
+        getLogger().i('安卓平台：使用应用内Web认证方式进行Apple登录');
+        await _showAppleWebAuth();
+        return;
+      }
+      
+      // iOS平台使用原生认证
+      // 显示登录中的加载状态
+      _showLoadingDialog('i18n_login_正在登录中'.tr);
+      
+      // iOS平台检查Apple登录是否可用
+      if (!await SignInWithApple.isAvailable()) {
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+        _showErrorDialog('i18n_login_Apple登录不可用'.tr, 'i18n_login_当前设备不支持Apple登录'.tr);
+        return;
+      }
+
+      // 发起Apple登录请求 (iOS原生)
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+      
+      // 关闭加载对话框
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      getLogger().i('Apple登录成功获取凭证');
+      getLogger().i('Apple ID: ${credential.userIdentifier}');
+      getLogger().i('邮箱: ${credential.email}');
+      getLogger().i('姓名: ${credential.givenName} ${credential.familyName}');
+      
+      // 处理Apple登录
+      await _processAppleLogin(credential);
+      
+    } catch (e) {
+      getLogger().e('Apple登录失败: $e');
+      
+      // 关闭可能存在的加载对话框
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      
+      // 处理特定错误
+      String errorMessage = 'i18n_login_Apple登录失败'.tr;
+      if (e is SignInWithAppleAuthorizationException) {
+        switch (e.code) {
+          case AuthorizationErrorCode.canceled:
+            getLogger().i('用户取消Apple登录');
+            return; // 用户取消时不显示错误
+          case AuthorizationErrorCode.failed:
+            errorMessage = 'i18n_login_Apple授权失败'.tr;
+            break;
+          case AuthorizationErrorCode.invalidResponse:
+            errorMessage = 'i18n_login_Apple服务器响应无效'.tr;
+            break;
+          case AuthorizationErrorCode.notHandled:
+            errorMessage = 'i18n_login_Apple登录请求未被处理'.tr;
+            break;
+          case AuthorizationErrorCode.unknown:
+            errorMessage = 'i18n_login_Apple登录发生未知错误'.tr;
+            break;
+          case AuthorizationErrorCode.notInteractive:
+            errorMessage = 'i18n_login_Apple登录发生未知错误'.tr;
+            break;
+        }
+      }
+      
+      _showErrorDialog('i18n_login_Apple登录失败'.tr, errorMessage);
+    }
+  }
+
+  // 显示Apple Web认证窗口
+  Future<void> _showAppleWebAuth() async {
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AppleWebAuthWidget(
+            clientId: 'com.guanshangyun.clipora.service',
+            redirectUri: 'https://clipora-api.guanshangyun.com/auth/apple/callback',
+            onSuccess: (params) async {
+              getLogger().i('Web认证成功，参数: $params');
+              await _processAppleWebAuthResult(params);
+            },
+            onError: (error) {
+              getLogger().e('Web认证失败: $error');
+              _showErrorDialog('i18n_login_Apple登录失败'.tr, error);
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      getLogger().e('显示Apple Web认证窗口失败: $e');
+      _showErrorDialog('i18n_login_Apple登录失败'.tr, 'i18n_login_Web认证窗口加载失败'.tr);
+    }
+  }
+
+  // 处理Apple Web认证结果
+  Future<void> _processAppleWebAuthResult(Map<String, String> params) async {
+    try {
+      // 显示登录中的加载状态
+      _showLoadingDialog('i18n_login_正在登录中'.tr);
+      
+      // 准备请求参数
+      final loginParams = {
+        'code': params['code'],
+        'state': params['state'],
+        'id_token': params['id_token'],
+        'platform': 'android',
+        'auth_type': 'web',
+      };
+      
+      // 调用Apple登录API
+      final res = await UserApi.appleLoginApi(loginParams);
+      
+      // 关闭加载对话框
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      getLogger().i('Apple Web认证API响应: $res');
+      
+      // 检查响应结果
+      if (res["code"] != 0) {
+        getLogger().e('Apple Web认证失败: ${res["message"]}');
+        _showErrorDialog('i18n_login_Apple登录失败'.tr, res['message'] ?? 'i18n_login_登录失败请重试'.tr);
+        return;
+      }
+      
+      // 获取token
+      final String? token = res['data']?['token'];
+
+      globalBoxStorage.write('user_id', res['data']["id"]);
+      globalBoxStorage.write('user_name', res['data']["name"]);
+      globalBoxStorage.write('token', res['data']["token"]);
+
+      if (token == null || token.isEmpty) {
+        getLogger().e('Apple Web认证成功但未获取到token');
+        _showErrorDialog('i18n_login_登录失败'.tr, 'i18n_login_服务器未返回有效的登录凭证'.tr);
+        return;
+      }
+      
+      // 保存token到本地存储
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
+      
+      getLogger().i('✅ Apple Web认证登录成功，token已保存');
+      
+      // 登录成功，跳转到首页
+      if (mounted) {
+        // 清空导航栈并跳转到首页
+        context.go('/${RouteName.index}');
+      }
+      
+    } catch (e) {
+      getLogger().e('Apple Web认证处理过程中发生异常: $e');
+      
+      // 关闭可能存在的加载对话框
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      
+      // 显示错误信息
+      _showErrorDialog('i18n_login_Apple登录失败'.tr, 'i18n_login_网络连接异常'.tr);
+    }
   }
 
   // 微信登录
@@ -488,17 +673,9 @@ mixin LoginPageBLoC on State<LoginPage> {
 
   /// 监听微信授权响应
   void _listenWeChatAuthResponse() {
-    // _fluwx.addSubscriber((response) {
-    //   if (mounted) {
-    //     _handleWeChatAuthResponse(response);
-    //   }
-    // });
     _fluwx.addSubscriber((response) {
       if (response is WeChatAuthResponse) {
         _handleWeChatAuthResponse(response);
-        // setState(() {
-        //   _result = 'state :${response.state} \n code:${response.code}';
-        // });
       }
     });
   }
@@ -554,6 +731,81 @@ mixin LoginPageBLoC on State<LoginPage> {
       } else {
         _showErrorDialog('i18n_login_微信登录失败'.tr, errorMessage);
       }
+    }
+  }
+
+
+  /// 处理Apple登录
+  Future<void> _processAppleLogin(AuthorizationCredentialAppleID credential) async {
+    getLogger().i('开始处理Apple登录');
+    
+    try {
+      // 显示登录中的加载状态
+      _showLoadingDialog('i18n_login_正在登录中'.tr);
+      
+      // 准备请求参数
+      final params = {
+        'user_identifier': credential.userIdentifier,
+        'identity_token': credential.identityToken,
+        'authorization_code': credential.authorizationCode,
+        'email': credential.email,
+        'given_name': credential.givenName,
+        'family_name': credential.familyName,
+        'platform': Platform.isAndroid ? 'android' : 'ios',
+      };
+      
+      // 调用Apple登录API
+      final res = await UserApi.appleLoginApi(params);
+      
+      // 关闭加载对话框
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      getLogger().i('Apple登录API响应: $res');
+      
+      // 检查响应结果
+      if (res["code"] != 0) {
+        getLogger().e('i18n_login_Apple登录失败'.tr + ': ${res["message"]}');
+        _showErrorDialog('i18n_login_Apple登录失败'.tr, res['message'] ?? 'i18n_login_登录失败请重试'.tr);
+        return;
+      }
+      
+      // 获取token
+      final String? token = res['data']?['token'];
+
+      globalBoxStorage.write('user_id', res['data']["id"]);
+      globalBoxStorage.write('user_name', res['data']["name"]);
+      globalBoxStorage.write('token', res['data']["token"]);
+
+      if (token == null || token.isEmpty) {
+        getLogger().e('i18n_login_Apple登录成功但未获取到token'.tr);
+        _showErrorDialog('i18n_login_登录失败'.tr, 'i18n_login_服务器未返回有效的登录凭证'.tr);
+        return;
+      }
+      
+      // 保存token到本地存储
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
+      
+      getLogger().i('✅ Apple登录成功，token已保存');
+      
+      // 登录成功，跳转到首页
+      if (mounted) {
+        // 清空导航栈并跳转到首页
+        context.go('/${RouteName.index}');
+      }
+      
+    } catch (e) {
+      getLogger().e('Apple登录过程中发生异常: $e');
+      
+      // 关闭可能存在的加载对话框
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      
+      // 显示错误信息
+      _showErrorDialog('i18n_login_Apple登录失败'.tr, 'i18n_login_网络连接异常'.tr);
     }
   }
 
@@ -750,85 +1002,6 @@ mixin LoginPageBLoC on State<LoginPage> {
     );
   }
 
-
-  // 显示即将推出的对话框
-  void _showComingSoonDialog(String loginType) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: const Color(0xFFFEFDF8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF005A9C).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(32),
-                  ),
-                  child: const Icon(
-                    Icons.info_outline,
-                    color: Color(0xFF005A9C),
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '$loginType功能',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3C3C3C),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'i18n_login_该功能正在开发中敬请期待'.tr,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF5A5A5A),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF005A9C),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'i18n_login_知道了'.tr,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   @override
   void dispose() {

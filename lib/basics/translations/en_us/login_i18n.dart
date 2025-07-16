@@ -13,6 +13,7 @@ const Map<String, String> loginI18n = {
   'i18n_login_您的专属剪藏与阅读助手': 'Your exclusive clipping and reading assistant',
   'i18n_login_使用微信登录': 'Log in with WeChat',
   'i18n_login_使用手机号登录': 'Log in with Phone Number',
+  'i18n_login_使用Apple登录': 'Sign in with Apple',
   'i18n_login_请阅读并勾选我们的隐私政策与用户协议': 'Please read and agree to our Privacy Policy and User Agreement',
   'i18n_login_微信未安装': 'WeChat not installed',
   'i18n_login_请先安装微信客户端后再试': 'Please install WeChat client and try again',
@@ -56,4 +57,26 @@ const Map<String, String> loginI18n = {
   'i18n_login_验证码错误请重新输入': 'Incorrect verification code, please re-enter',
   'i18n_login_验证码已过期请重新发送': 'Verification code expired, please resend',
   'i18n_login_验证码发送频繁请稍后再试': 'Verification code sent too frequently, please try again later',
+  
+  // Apple登录相关
+  'i18n_login_Apple登录不可用': 'Apple Sign In not available',
+  'i18n_login_当前设备不支持Apple登录': 'Current device does not support Apple Sign In',
+  'i18n_login_Apple登录失败': 'Apple Sign In failed',
+  'i18n_login_Apple授权失败': 'Apple authorization failed',
+  'i18n_login_Apple服务器响应无效': 'Apple server response invalid',
+  'i18n_login_Apple登录请求未被处理': 'Apple Sign In request not handled',
+  'i18n_login_Apple登录发生未知错误': 'Apple Sign In unknown error occurred',
+  'i18n_login_Apple登录成功但未获取到token': 'Apple Sign In successful but no token obtained',
+  
+  // Android Web认证相关
+  'i18n_login_正在打开Web认证窗口': 'Opening web authentication window...',
+  'i18n_login_Web认证失败请检查网络连接': 'Web authentication failed, please check network connection',
+  'i18n_login_Web认证响应无效': 'Web authentication response invalid',
+  'i18n_login_Web认证发生未知错误': 'Web authentication unknown error occurred',
+  'i18n_login_Web认证超时请重试': 'Web authentication timeout, please retry',
+  'i18n_login_网络连接异常请检查网络': 'Network connection abnormal, please check network',
+  'i18n_login_Web认证窗口加载失败': 'Web authentication window loading failed',
+  'i18n_login_Web认证失败请重试': 'Web authentication failed, please retry',
+  'i18n_login_Apple登录认证': 'Apple Sign In Authentication',
+  'i18n_login_Apple认证失败': 'Apple Authentication Failed',
 };

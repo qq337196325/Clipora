@@ -13,6 +13,7 @@ const Map<String, String> loginI18n = {
   'i18n_login_您的专属剪藏与阅读助手': '您的专属剪藏与阅读助手',
   'i18n_login_使用微信登录': '使用微信登录',
   'i18n_login_使用手机号登录': '使用手机号登录',
+  'i18n_login_使用Apple登录': '使用 Apple 登录',
   'i18n_login_请阅读并勾选我们的隐私政策与用户协议': '请阅读并勾选我们的隐私政策与用户协议',
   'i18n_login_微信未安装': '微信未安装',
   'i18n_login_请先安装微信客户端后再试': '请先安装微信客户端后再试',
@@ -58,4 +59,26 @@ const Map<String, String> loginI18n = {
   'i18n_login_登录成功': '登录成功',
   'i18n_login_登录失败': '登录失败',
   'i18n_login_验证码发送频繁请稍后再试': '验证码发送频繁，请稍后再试',
+  
+  // Apple登录相关
+  'i18n_login_Apple登录不可用': 'Apple登录不可用',
+  'i18n_login_当前设备不支持Apple登录': '当前设备不支持Apple登录',
+  'i18n_login_Apple登录失败': 'Apple登录失败',
+  'i18n_login_Apple授权失败': 'Apple授权失败',
+  'i18n_login_Apple服务器响应无效': 'Apple服务器响应无效',
+  'i18n_login_Apple登录请求未被处理': 'Apple登录请求未被处理',
+  'i18n_login_Apple登录发生未知错误': 'Apple登录发生未知错误',
+  'i18n_login_Apple登录成功但未获取到token': 'Apple登录成功但未获取到token',
+  
+  // Android Web认证相关
+  'i18n_login_正在打开Web认证窗口': '正在打开Web认证窗口...',
+  'i18n_login_Web认证失败请检查网络连接': 'Web认证失败，请检查网络连接',
+  'i18n_login_Web认证响应无效': 'Web认证响应无效',
+  'i18n_login_Web认证发生未知错误': 'Web认证发生未知错误',
+  'i18n_login_Web认证超时请重试': 'Web认证超时，请重试',
+  'i18n_login_网络连接异常请检查网络': '网络连接异常，请检查网络',
+  'i18n_login_Web认证窗口加载失败': 'Web认证窗口加载失败',
+  'i18n_login_Web认证失败请重试': 'Web认证失败，请重试',
+  'i18n_login_Apple登录认证': 'Apple登录认证',
+  'i18n_login_Apple认证失败': 'Apple认证失败',
 };
