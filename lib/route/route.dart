@@ -5,6 +5,7 @@ import '../view/guide/guide_page.dart';
 import '../view/home/search/search_page.dart';
 import '../view/login/login_page.dart';
 import '../view/order/ai_order_page.dart';
+import '../view/order/member_order_page.dart';
 import '../view/share/share_page.dart';
 import '/route/route_name.dart';
 import '../view/article/article_page/article_page.dart';
@@ -36,6 +37,7 @@ List<RouteInfo> routeInfos = [
 
 
   RouteInfo(path: "/${RouteName.aiOrderPage}", name: RouteName.aiOrderPage, builder: (context, state) => AIOrderPage()),
+  RouteInfo(path: "/${RouteName.memberOrderPage}", name: RouteName.memberOrderPage, builder: (context, state) => MemberOrderPage()),
 
   // RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state) => ArticlePage()),
   RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state){

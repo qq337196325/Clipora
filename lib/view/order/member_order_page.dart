@@ -12,16 +12,16 @@ import '../../basics/config.dart';
 import '../../basics/logger.dart';
 import '../../basics/ui.dart';
 
-/// AI请求包购买页面
-class AIOrderPage extends StatefulWidget {
-  const AIOrderPage({super.key});
+/// 会员购买页面
+class MemberOrderPage extends StatefulWidget {
+  const MemberOrderPage({super.key});
 
   @override
-  State<AIOrderPage> createState() => _AIOrderPageState();
+  State<MemberOrderPage> createState() => _MemberOrderPageState();
 }
 
-class _AIOrderPageState extends State<AIOrderPage>
-    with TickerProviderStateMixin, AIOrderPageBLoC {
+class _MemberOrderPageState extends State<MemberOrderPage>
+    with TickerProviderStateMixin, MemberOrderPageBLoC {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,18 +42,18 @@ class _AIOrderPageState extends State<AIOrderPage>
                     children: [
                       const SizedBox(height: 20),
 
-                      // AI助手介绍卡片
-                      _buildAIIntroCard(),
+                      // 会员介绍卡片
+                      _buildMemberIntroCard(),
 
                       const SizedBox(height: 24),
 
-                      // 套餐详情卡片
-                      _buildPackageCard(),
+                      // 限时买断说明卡片
+                      _buildLimitedTimeCard(),
 
                       const SizedBox(height: 24),
 
-                      // 功能优势列表
-                      _buildFeaturesList(),
+                      // 会员特权列表
+                      _buildMemberFeaturesList(),
 
                       const SizedBox(height: 30),
                     ],
@@ -115,7 +115,7 @@ class _AIOrderPageState extends State<AIOrderPage>
 
           // 标题
           Text(
-            'i18n_order_ai_translation_request_package'.tr,
+            'i18n_member_premium_membership'.tr,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -125,14 +125,13 @@ class _AIOrderPageState extends State<AIOrderPage>
           ),
 
           const Spacer(),
-
         ],
       ),
     );
   }
 
-  /// AI助手介绍卡片
-  Widget _buildAIIntroCard() {
+  /// 会员介绍卡片
+  Widget _buildMemberIntroCard() {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -166,7 +165,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
-                  Icons.auto_awesome,
+                  Icons.diamond,
                   color: Theme.of(context).colorScheme.onPrimary,
                   size: 28,
                 ),
@@ -177,7 +176,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'i18n_order_ai_translation_assistant'.tr,
+                      'i18n_member_clipora_premium'.tr,
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -186,7 +185,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'i18n_order_smarter_reading_efficient_learning'.tr,
+                      'i18n_member_unlock_full_potential'.tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
@@ -201,7 +200,7 @@ class _AIOrderPageState extends State<AIOrderPage>
           const SizedBox(height: 20),
 
           Text(
-            'i18n_order_translate_articles_with_ai'.tr,
+            'i18n_member_enjoy_advanced_features'.tr,
             style: TextStyle(
               fontSize: 16,
               color: Theme.of(context).colorScheme.onPrimary,
@@ -213,8 +212,8 @@ class _AIOrderPageState extends State<AIOrderPage>
     );
   }
 
-  /// 套餐详情卡片
-  Widget _buildPackageCard() {
+  /// 限时买断说明卡片
+  Widget _buildLimitedTimeCard() {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -236,7 +235,7 @@ class _AIOrderPageState extends State<AIOrderPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 套餐标题
+          // 限时买断标题
           Row(
             children: [
               Container(
@@ -246,7 +245,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'i18n_order_limited_time_offer'.tr,
+                  'i18n_member_limited_time_buyout'.tr,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -256,7 +255,7 @@ class _AIOrderPageState extends State<AIOrderPage>
               ),
               const Spacer(),
               Icon(
-                Icons.stars,
+                Icons.access_time_filled,
                 color: Theme.of(context).colorScheme.secondary,
                 size: 20,
               ),
@@ -270,30 +269,18 @@ class _AIOrderPageState extends State<AIOrderPage>
 
           const SizedBox(height: 16),
 
-          // 套餐详情
-          _buildPackageDetailItem(
-            icon: Icons.flash_on,
-            title: 'i18n_order_requests'.trParams({'count': '320'}),
-            subtitle: 'i18n_order_enough_for_deep_reading'.tr,
-            iconColor: const Color(0xFFFF9500),
-          ),
-
-          const SizedBox(height: 12),
-
-          _buildPackageDetailItem(
-            icon: Icons.access_time,
-            title: 'i18n_order_validity'.trParams({'days': '30'}),
-            subtitle: 'i18n_order_effective_immediately'.tr,
-            iconColor: const Color(0xFF4ECDC4),
-          ),
-
-          const SizedBox(height: 12),
-
-          _buildPackageDetailItem(
-            icon: Icons.trending_up,
-            title: 'i18n_order_intelligent_and_powerful'.tr,
-            subtitle: 'i18n_order_translate_with_ai_models'.tr,
-            iconColor: const Color(0xFF9B59B6),
+          // 限时说明
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: _buildLimitedTimeDescription(),
           ),
         ],
       ),
@@ -309,7 +296,7 @@ class _AIOrderPageState extends State<AIOrderPage>
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              productAiRequest.price,
+              productMember.price,
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
@@ -317,19 +304,11 @@ class _AIOrderPageState extends State<AIOrderPage>
               ),
             ),
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'i18n_order_original_price'.trParams({'price': '20'}),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.error,
-                  decoration: TextDecoration.lineThrough,
-                ),
+            Text(
+              'i18n_member_one_time_purchase'.tr,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
             ),
           ],
@@ -356,19 +335,11 @@ class _AIOrderPageState extends State<AIOrderPage>
               ),
             ),
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'i18n_order_original_price'.trParams({'price': '20'}),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.error,
-                  decoration: TextDecoration.lineThrough,
-                ),
+            Text(
+              'i18n_member_one_time_purchase'.tr,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
             ),
           ],
@@ -388,7 +359,7 @@ class _AIOrderPageState extends State<AIOrderPage>
             ),
           ),
           Text(
-            '12',
+            '98',
             style: TextStyle(
               fontSize: 36,
               fontWeight: FontWeight.bold,
@@ -396,19 +367,11 @@ class _AIOrderPageState extends State<AIOrderPage>
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.error.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'i18n_order_original_price'.trParams({'price': '20'}),
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.error,
-                decoration: TextDecoration.lineThrough,
-              ),
+          Text(
+            'i18n_member_one_time_purchase'.tr,
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).textTheme.bodySmall?.color,
             ),
           ),
         ],
@@ -416,80 +379,115 @@ class _AIOrderPageState extends State<AIOrderPage>
     }
   }
 
-  /// 套餐详情项
-  Widget _buildPackageDetailItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color iconColor,
-  }) {
-    return Row(
+  /// 限时说明
+  Widget _buildLimitedTimeDescription() {
+    final features = [
+      {
+        'icon': Icons.schedule,
+        'text': 'i18n_member_future_subscription_plan'.tr,
+        'color': const Color(0xFF4ECDC4),
+      },
+      {
+        'icon': Icons.security,
+        'text': 'i18n_member_existing_data_guarantee'.tr,
+        'color': const Color(0xFF52c41a),
+      },
+      {
+        'icon': Icons.update,
+        'text': 'i18n_member_lifetime_updates'.tr,
+        'color': const Color(0xFF1890ff),
+      },
+      {
+        'icon': Icons.block,
+        'text': 'i18n_member_ad_free_guarantee'.tr,
+        'color': const Color(0xFFff4d4f),
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            icon,
-            color: iconColor,
-            size: 20,
-          ),
+        // 标题
+        Row(
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 16,
+              color: Theme.of(context).primaryColor,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'i18n_member_important_notice'.tr,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
+        const SizedBox(height: 12),
+        // 特性列表
+        ...features.map((feature) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).textTheme.titleLarge?.color,
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: (feature['color'] as Color).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(
+                  feature['icon'] as IconData,
+                  size: 14,
+                  color: feature['color'] as Color,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  feature['text'] as String,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                    height: 1.4,
+                  ),
                 ),
               ),
             ],
           ),
-        ),
+        )),
       ],
     );
   }
 
-  /// 功能优势列表
-  Widget _buildFeaturesList() {
+  /// 会员特权列表
+  Widget _buildMemberFeaturesList() {
     final features = [
-      // {
-      //   'icon': Icons.summarize,
-      //   'title': '智能总结',
-      //   'subtitle': '一键提取文章核心要点',
-      //   'color': const Color(0xFF667eea),
-      // },
-      // {
-      //   'icon': Icons.edit_note,
-      //   'title': '笔记生成',
-      //   'subtitle': '自动生成结构化读书笔记',
-      //   'color': const Color(0xFF4ECDC4),
-      // },
-      // {
-      //   'icon': Icons.quiz,
-      //   'title': '智能问答',
-      //   'subtitle': '针对阅读内容提问和解答',
-      //   'color': const Color(0xFF9B59B6),
-      // },
       {
-        'icon': Icons.translate,
-        'title': 'i18n_order_multilingual_support'.tr,
-        'subtitle': 'i18n_order_support_translation_and_understanding'.tr,
+        'icon': Icons.cloud_sync,
+        'title': 'i18n_member_unlimited_sync'.tr,
+        'subtitle': 'i18n_member_unlimited_sync_desc'.tr,
+        'color': const Color(0xFF4ECDC4),
+      },
+      {
+        'icon': Icons.storage,
+        'title': 'i18n_member_unlimited_storage'.tr,
+        'subtitle': 'i18n_member_unlimited_storage_desc'.tr,
+        'color': const Color(0xFF667eea),
+      },
+      {
+        'icon': Icons.auto_awesome,
+        'title': 'i18n_member_advanced_features'.tr,
+        'subtitle': 'i18n_member_advanced_features_desc'.tr,
+        'color': const Color(0xFF9B59B6),
+      },
+      {
+        'icon': Icons.support_agent,
+        'title': 'i18n_member_priority_support'.tr,
+        'subtitle': 'i18n_member_priority_support_desc'.tr,
         'color': const Color(0xFFFF9500),
       },
     ];
@@ -498,7 +496,7 @@ class _AIOrderPageState extends State<AIOrderPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'i18n_order_core_features'.tr,
+          'i18n_member_premium_features'.tr,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -561,11 +559,11 @@ class _AIOrderPageState extends State<AIOrderPage>
               children: [
                 Text(
                   title,
-                                  style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).textTheme.titleLarge?.color,
-                ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.titleLarge?.color,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -579,9 +577,9 @@ class _AIOrderPageState extends State<AIOrderPage>
             ),
           ),
           Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: Colors.grey.shade400,
+            Icons.check_circle,
+            size: 20,
+            color: color,
           ),
         ],
       ),
@@ -597,17 +595,17 @@ class _AIOrderPageState extends State<AIOrderPage>
     String priceString;
     if (Platform.isIOS) {
       if (products.isNotEmpty) {
-        priceString = productAiRequest.price;
+        priceString = productMember.price;
       } else {
         priceString = '...'; // 价格加载中
       }
     } else {
-      priceString = '¥12';
+      priceString = '¥98';
     }
     
     final String buttonText = isAndroid
-        ? 'i18n_order_wechat_pay'.trParams({'price': priceString})
-        : 'i18n_order_buy_now'.trParams({'price': priceString});
+        ? 'i18n_member_wechat_pay'.trParams({'price': priceString})
+        : 'i18n_member_buy_now'.trParams({'price': priceString});
     final IconData buttonIcon = isAndroid ? Icons.payment : Icons.shopping_cart;
 
     return Container(
@@ -739,7 +737,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                   isAgreedToTerms = !isAgreedToTerms;
                 });
               },
-              child: Text('i18n_order_please_read_and_agree'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              child: Text('i18n_member_please_read_and_agree'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
             ),
             Expanded(
               child: RichText(
@@ -754,7 +752,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                       child: GestureDetector(
                         onTap: () => _handleUserAgreement(),
                         child: Text(
-                          'i18n_order_purchase_agreement'.tr,
+                          'i18n_member_purchase_agreement'.tr,
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(context).primaryColor,
@@ -774,9 +772,9 @@ class _AIOrderPageState extends State<AIOrderPage>
 }
 
 /// 业务逻辑 Mixin
-mixin AIOrderPageBLoC on State<AIOrderPage> {
+mixin MemberOrderPageBLoC on State<MemberOrderPage> {
   bool isLoading = false;
-  bool isAgreedToTerms = false; // 默认同意，符合用户体验
+  bool isAgreedToTerms = false;
   Fluwx fluwx = Fluwx();
 
   // 支付结果监听订阅
@@ -786,7 +784,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
   final InAppPurchase inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> subscription;
   List<ProductDetails> products = <ProductDetails>[];
-  late ProductDetails productAiRequest;
+  late ProductDetails productMember;
 
   @override
   void initState() {
@@ -810,24 +808,20 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
         // handle error here.
       });
     }
-
   }
-
 
   _iosPayInit() async {
     /// 获取IOS支付价格
     if (Platform.isIOS) {
-      // final bool isAvailable = await inAppPurchase.isAvailable();
-      const Set<String> kIds = {'ai_request'};
+      const Set<String> kIds = {'buy_outmembers'};
       final ProductDetailsResponse response = await inAppPurchase.queryProductDetails(kIds);
 
       if (mounted) {
         setState(() {
-          // isAvailable = isAvailable;
           response.productDetails.forEach((value) {
             switch (value.id) {
-              case "ai_request":
-                productAiRequest = value;
+              case "buy_outmembers":
+                productMember = value;
                 break;
             }
           });
@@ -835,7 +829,6 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
         });
       }
     }
-
   }
 
   @override
@@ -854,7 +847,6 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
 
   /// 设置支付结果监听
   void _setupPaymentListener() {
-
     fluwx.addSubscriber((response){
       getLogger().i('💰 微信支付结果: ${response.errCode} - ${response.errStr}');
       if (mounted) {
@@ -879,20 +871,18 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
       case -1:
         // 支付错误 - 可能有具体的原因
         getLogger().e('❌ 微信支付：支付错误 - ${response.errStr}');
-        _showErrorDialog('i18n_order_payment_failed_retry'.tr);
+        _showErrorDialog('i18n_member_payment_failed_retry'.tr);
         break;
       case -2:
         // 用户取消支付
         getLogger().w('⚠️ 微信支付：用户取消支付');
-        // 用户主动取消，通常不需要显示错误提示
-        // 可以选择显示轻提示或者不处理
-        BotToast.showText(text: "i18n_order_payment_cancelled".tr);
+        BotToast.showText(text: "i18n_member_payment_cancelled".tr);
         break;
       default:
         // 其他错误
         getLogger().e(
             '❌ 微信支付：未知错误 - 错误码: ${response.errCode}, 错误信息: ${response.errStr}');
-        _showErrorDialog('i18n_order_payment_error_retry_later'.tr);
+        _showErrorDialog('i18n_member_payment_error_retry_later'.tr);
         break;
     }
   }
@@ -901,7 +891,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
   Future<void> handlePurchase() async {
     // 检查是否同意协议
     if (!isAgreedToTerms) {
-      _showErrorDialog('i18n_order_please_agree_to_terms'.tr);
+      _showErrorDialog('i18n_member_please_agree_to_terms'.tr);
       return;
     }
 
@@ -914,9 +904,8 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
 
     try {
       // 调用支付API获取支付参数
-
       if(Platform.isAndroid){
-        final res = await UserApi.createTranslatePayOrderApi({
+        final res = await UserApi.createMemberPayOrderApi({
           "pay_type": 1,
           "platform": "app",
         });
@@ -934,24 +923,19 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
           ),
         );
 
-        // 注意：这里的 payStatus 只是表示调起支付是否成功
-        // 真正的支付结果需要通过 responseFromPayment 流来监听
         if (!payStatus) {
           // 调起支付失败
           if (mounted) {
             setState(() {
               isLoading = false;
             });
-            _showErrorDialog('i18n_order_failed_to_initiate_payment'.tr);
+            _showErrorDialog('i18n_member_failed_to_initiate_payment'.tr);
           }
         }
-        // 如果调起成功，等待支付结果通过 responseFromPayment 流返回
       } else if (Platform.isIOS) {
         // iOS App Store 支付
         await buyProduct();
-        // loading状态将在支付流程回调中处理
       }
-
 
     } catch (e) {
       getLogger().e('❌ 支付API调用异常: $e');
@@ -959,17 +943,14 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
         setState(() {
           isLoading = false;
         });
-        // 错误处理
-        _showErrorDialog('i18n_order_failed_to_create_order'.tr);
+        _showErrorDialog('i18n_member_failed_to_create_order'.tr);
       }
     }
   }
 
-
   /// 发起Ios支付
   Future<void> buyProduct() async {
-    ProductDetails prod = productAiRequest;
-
+    ProductDetails prod = productMember;
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: prod);
     inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
@@ -977,46 +958,39 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
   /// IOS支付监听
   Future<void> listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
     for (final PurchaseDetails purchaseDetails in purchaseDetailsList) {
-      // 检查Widget是否还存在
       if (!mounted) return;
 
       switch (purchaseDetails.status) {
         case PurchaseStatus.pending:
-          // 等待支付中
           getLogger().d('⏳ iOS支付：等待支付中');
-          // 可以在这里显示等待UI
           break;
 
         case PurchaseStatus.error:
-          // 支付错误处理
           getLogger().e('❌ iOS支付错误：${purchaseDetails.error?.message}');
 
-          // 重置loading状态
           if (mounted) {
             setState(() {
               isLoading = false;
             });
           }
 
-          // 显示错误提示
-          String errorMessage = 'i18n_order_payment_failed'.tr;
+          String errorMessage = 'i18n_member_payment_failed'.tr;
           if (purchaseDetails.error != null) {
             switch (purchaseDetails.error!.code) {
               case 'purchase_canceled':
-                errorMessage = 'i18n_order_payment_cancelled'.tr;
-                // 用户取消支付，使用轻提示
+                errorMessage = 'i18n_member_payment_cancelled'.tr;
                 BotToast.showText(text: errorMessage);
                 break;
               case 'item_unavailable':
-                errorMessage = 'i18n_order_item_unavailable'.tr;
+                errorMessage = 'i18n_member_item_unavailable'.tr;
                 _showErrorDialog(errorMessage);
                 break;
               case 'network_error':
-                errorMessage = 'i18n_order_network_error'.tr;
+                errorMessage = 'i18n_member_network_error'.tr;
                 _showErrorDialog(errorMessage);
                 break;
               default:
-                errorMessage = 'i18n_order_payment_exception'
+                errorMessage = 'i18n_member_payment_exception'
                     .trParams({'message': purchaseDetails.error!.message});
                 _showErrorDialog(errorMessage);
                 break;
@@ -1028,20 +1002,18 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
 
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
-          // 支付成功，进行后台验证
           getLogger().i('✅ iOS支付：支付成功，开始后台验证');
           await _handlePaymentVerification(purchaseDetails);
           break;
 
         case PurchaseStatus.canceled:
-          // 支付取消
           getLogger().w('⚠️ iOS支付：支付已取消');
           if (mounted) {
             setState(() {
               isLoading = false;
             });
           }
-          BotToast.showText(text: "i18n_order_payment_cancelled".tr);
+          BotToast.showText(text: "i18n_member_payment_cancelled".tr);
           break;
 
         default:
@@ -1049,7 +1021,6 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
           break;
       }
 
-      // 完成支付流程
       if (purchaseDetails.pendingCompletePurchase) {
         getLogger().i('✅ iOS支付：完成支付流程');
         try {
@@ -1064,7 +1035,6 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
   /// 处理支付验证
   Future<void> _handlePaymentVerification(PurchaseDetails purchaseDetails) async {
     try {
-      // 构建验证参数
       Map<String, dynamic> param = {
         "platform": "ios",
         "pay_type": 3,
@@ -1073,41 +1043,30 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
         "source": purchaseDetails.verificationData.source,
       };
 
-      // 调用后台验证API
-      final res = await UserApi.iosPayTranslateOrderApi(param);
+      final res = await UserApi.iosPayMemberOrderApi(param);
 
-      // 检查Widget是否还存在
       if (!mounted) return;
 
-      // 重置loading状态
       setState(() {
         isLoading = false;
       });
 
       if (res["code"] == 0) {
-        // 验证成功
         getLogger().i('✅ iOS支付：后台验证成功');
         _showSuccessDialog();
       } else {
-        // 验证失败
-        print("iOS支付：后台验证失败 - ${res["message"] ?? "未知错误"}");
         String errorMessage =
-            res["message"] ?? 'i18n_order_verification_failed_contact_support'.tr;
+            res["message"] ?? 'i18n_member_verification_failed_contact_support'.tr;
         _showErrorDialog(errorMessage);
       }
     } catch (e) {
-      print("iOS支付：验证异常 - $e");
-
-      // 检查Widget是否还存在
       if (!mounted) return;
 
-      // 重置loading状态
       setState(() {
         isLoading = false;
       });
 
-      // 显示错误提示
-      _showErrorDialog("i18n_order_verification_exception_contact_support".tr);
+      _showErrorDialog("i18n_member_verification_exception_contact_support".tr);
     }
   }
 
@@ -1116,7 +1075,6 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
     final Uri _url = Uri.parse("https://clipora.guanshangyun.com/payment_agreement");
     goLaunchUrl(_url);
   }
-
 
   /// 显示成功对话框
   void _showSuccessDialog() {
@@ -1144,14 +1102,14 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
                     borderRadius: BorderRadius.circular(32),
                   ),
                   child: const Icon(
-                    Icons.check,
+                    Icons.diamond,
                     color: Colors.white,
                     size: 32,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'i18n_order_purchase_successful'.tr,
+                  'i18n_member_upgrade_successful'.tr,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -1160,7 +1118,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'i18n_order_ai_assistant_activated'.tr,
+                  'i18n_member_premium_activated'.tr,
                   style: const TextStyle(
                     fontSize: 14,
                     color: Color(0xFF8C8C8C),
@@ -1184,7 +1142,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
                       elevation: 0,
                     ),
                     child: Text(
-                      'i18n_order_confirm'.tr,
+                      'i18n_member_confirm'.tr,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -1230,7 +1188,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'i18n_order_purchase_failed'.tr,
+                  'i18n_member_upgrade_failed'.tr,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -1260,7 +1218,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
                       elevation: 0,
                     ),
                     child: Text(
-                      'i18n_order_confirm'.tr,
+                      'i18n_member_confirm'.tr,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

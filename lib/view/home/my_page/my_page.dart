@@ -259,6 +259,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
   Widget _buildFunctionSection() {
     return Column(
       children: [
+        _buildMembershipCard(),
+        const SizedBox(height: 12),
         _buildAiTranslationCard(),
         const SizedBox(height: 12),
         Container(
@@ -809,5 +811,128 @@ mixin MyPageBLoC on State<MyPage> {
         context.go('/${RouteName.login}');
       }
     }
+  }
+
+  /// 会员卡片
+  Widget _buildMembershipCard() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).primaryColor.withOpacity(0.1),
+            Theme.of(context).primaryColor.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Theme.of(context).primaryColor.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.diamond,
+                  color: Theme.of(context).primaryColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'i18n_member_premium_membership'.tr,
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).textTheme.titleLarge?.color),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'i18n_member_unlock_full_potential'.tr,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () {
+                  context.push('/${RouteName.memberOrderPage}');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                ),
+                child: Text('i18n_member_upgrade'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              )
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.access_time_filled,
+                  size: 16,
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'i18n_member_limited_time_buyout'.tr,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+                Text(
+                  'i18n_member_one_time_purchase'.tr,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 } 

@@ -16,7 +16,7 @@ const Map<String, String> orderI18n = {
   'i18n_order_multilingual_support': 'Supporto multilingue',
   'i18n_order_support_translation_and_understanding': 'Supporto per traduzione e comprensione multilingue',
   'i18n_order_wechat_pay': 'WeChat Pay ¥@price',
-  'i18n_order_buy_now': 'Acquista ora ¥@price',
+  'i18n_order_buy_now': 'Acquista ora @price',
   'i18n_order_please_read_and_agree': 'Si prega di leggere e accettare prima dell\'acquisto',
   'i18n_order_purchase_agreement': '《Accordo di acquisto》',
   'i18n_order_payment_failed_retry': 'Pagamento fallito, riprova',

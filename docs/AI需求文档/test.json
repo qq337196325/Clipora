@@ -1,0 +1,18 @@
+{
+  "Providers": [
+    {
+      "name": "openrouter",
+      "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
+      "api_key": "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",
+      "models": [
+        "google/gemini-2.5-pro-preview",
+        "anthropic/claude-sonnet-4",
+        "anthropic/claude-3.5-sonnet",
+        "anthropic/claude-3.7-sonnet:thinking"
+      ],
+      "transformer": {
+        "use": ["openrouter"]
+      }
+    }
+  ]
+}
