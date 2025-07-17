@@ -78,4 +78,16 @@ const Map<String, String> orderI18n = {
   'i18n_member_upgrade_failed': '升级失败',
   'i18n_member_upgrade': '升级',
   'i18n_member_important_notice': '重要说明',
+  
+  // 会员状态显示
+  'i18n_member_lifetime_member': '终身会员',
+  'i18n_member_subscription_member': '订阅会员',
+  'i18n_member_status_active': '会员已激活',
+  'i18n_member_expires_on': '到期时间：@date',
+  'i18n_member_manage_subscription': '管理订阅',
+  'i18n_member_renew_subscription': '续费',
+  'i18n_member_thank_you_support': '感谢您的支持',
+  'i18n_member_enjoying_premium': '正在享受高级会员特权',
+  'i18n_member_member_since': '会员期自：@date',
+  'i18n_member_permanent_access': '永久访问权限',
 };

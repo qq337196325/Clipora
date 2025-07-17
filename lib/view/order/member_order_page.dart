@@ -905,10 +905,15 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
     try {
       // 调用支付API获取支付参数
       if(Platform.isAndroid){
-        final res = await UserApi.createMemberPayOrderApi({
+        final res = await UserApi.createTranslatePayOrderApi({
           "pay_type": 1,
           "platform": "app",
+          "order_type": 1,
         });
+        if(res["code"] != 0){
+          _showErrorDialog('i18n_member_failed_to_initiate_payment'.tr);
+          return;
+        }
 
         // 发起微信支付
         final payStatus = await fluwx.pay(
@@ -1036,6 +1041,7 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
   Future<void> _handlePaymentVerification(PurchaseDetails purchaseDetails) async {
     try {
       Map<String, dynamic> param = {
+        "order_type": 1,
         "platform": "ios",
         "pay_type": 3,
         "local_verification_data": purchaseDetails.verificationData.localVerificationData,
@@ -1043,7 +1049,7 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
         "source": purchaseDetails.verificationData.source,
       };
 
-      final res = await UserApi.iosPayMemberOrderApi(param);
+      final res = await UserApi.iosPayTranslateOrderApi(param);
 
       if (!mounted) return;
 

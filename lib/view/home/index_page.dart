@@ -375,7 +375,11 @@ mixin IndexPageBLoC on State<IndexPage> {
       }
     }
 
-    checkCompleteSync();
+    // 登录过的用户显示同步数据
+    bool? isNotLogin = globalBoxStorage.read('is_not_login');
+    if(isNotLogin == null || isNotLogin == false){
+      checkCompleteSync();
+    }
   }
 
   @override

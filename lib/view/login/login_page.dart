@@ -581,6 +581,10 @@ mixin LoginPageBLoC on State<LoginPage> {
       globalBoxStorage.write('user_name', res['data']["name"]);
       globalBoxStorage.write('token', res['data']["token"]);
 
+      globalBoxStorage.write('is_not_login', res['data']["is_not_login"]);
+      globalBoxStorage.write('member_type', res['data']["member_type"]);
+      globalBoxStorage.write('member_expire_time', res['data']["member_expire_time"]);
+
       if (token == null || token.isEmpty) {
         getLogger().e('Apple Web认证成功但未获取到token');
         _showErrorDialog('i18n_login_登录失败'.tr, 'i18n_login_服务器未返回有效的登录凭证'.tr);
@@ -779,6 +783,10 @@ mixin LoginPageBLoC on State<LoginPage> {
       globalBoxStorage.write('user_name', res['data']["name"]);
       globalBoxStorage.write('token', res['data']["token"]);
 
+      globalBoxStorage.write('is_not_login', res['data']["is_not_login"]);
+      globalBoxStorage.write('member_type', res['data']["member_type"]);
+      globalBoxStorage.write('member_expire_time', res['data']["member_expire_time"]);
+
       if (token == null || token.isEmpty) {
         getLogger().e('i18n_login_Apple登录成功但未获取到token'.tr);
         _showErrorDialog('i18n_login_登录失败'.tr, 'i18n_login_服务器未返回有效的登录凭证'.tr);
@@ -847,6 +855,10 @@ mixin LoginPageBLoC on State<LoginPage> {
       globalBoxStorage.write('user_id', res['data']["id"]);
       globalBoxStorage.write('user_name', res['data']["name"]);
       globalBoxStorage.write('token', res['data']["token"]);
+
+      globalBoxStorage.write('is_not_login', res['data']["is_not_login"]);
+      globalBoxStorage.write('member_type', res['data']["member_type"]);
+      globalBoxStorage.write('member_expire_time', res['data']["member_expire_time"]);
 
       if (token == null || token.isEmpty) {
         getLogger().e('i18n_login_微信登录成功但未获取到token'.tr);

@@ -352,6 +352,10 @@ mixin PhoneVerifyPageBLoC on State<PhoneVerifyPage> {
       box.write('user_name', res['data']["name"]);
       box.write('token', res['data']["token"]);
 
+      box.write('is_not_login', res['data']["is_not_login"]);
+      box.write('member_type', res['data']["member_type"]);
+      box.write('member_expire_time', res['data']["member_expire_time"]);
+
       // 验证成功，清空导航栈并跳转到首页 
       if (mounted) {
         context.go('/${RouteName.index}');
