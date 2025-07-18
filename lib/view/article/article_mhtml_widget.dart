@@ -186,7 +186,7 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
             Expanded(
               child: InAppWebView(
                 initialUrlRequest: URLRequest(url: WebUri(mhtmlFileUrl)),
-                initialSettings: WebViewSettings.getWebViewSettings(),
+                // initialSettings: WebViewSettings.getWebViewSettings(),
                 onWebViewCreated: (controller) {
                   webViewController = controller;
                   getLogger().i('MHTML WebView创建成功');
@@ -206,23 +206,23 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
 
 
                   // 注入移动端弹窗处理脚本 - 恢复滚动功能
-                  await WebViewUtils.injectMobilePopupHandler(controller);
+                  // await WebViewUtils.injectMobilePopupHandler(controller);
 
-                  // 注入页面点击监听器
-                  await _injectPageClickListener();
-
-                  // 页面加载完成后进行优化设置
-                  finalizeWebPageOptimization(url,webViewController);
-                  
-                  // 注入内边距
-                  final padding = widget.contentPadding.resolve(Directionality.of(context));
-                  controller.evaluateJavascript(source: '''
-                    document.body.style.paddingTop = '${padding.top}px';
-                    document.body.style.paddingBottom = '${padding.bottom}px';
-                    document.body.style.paddingLeft = '${padding.left}px';
-                    document.body.style.paddingRight = '${padding.right}px';
-                    document.documentElement.style.scrollPaddingTop = '${padding.top}px';
-                  ''');
+                  // // 注入页面点击监听器
+                  // await _injectPageClickListener();
+                  //
+                  // // 页面加载完成后进行优化设置
+                  // finalizeWebPageOptimization(url,webViewController);
+                  //
+                  // // 注入内边距
+                  // final padding = widget.contentPadding.resolve(Directionality.of(context));
+                  // controller.evaluateJavascript(source: '''
+                  //   document.body.style.paddingTop = '${padding.top}px';
+                  //   document.body.style.paddingBottom = '${padding.bottom}px';
+                  //   document.body.style.paddingLeft = '${padding.left}px';
+                  //   document.body.style.paddingRight = '${padding.right}px';
+                  //   document.documentElement.style.scrollPaddingTop = '${padding.top}px';
+                  // ''');
                 },
                 onProgressChanged: (controller, progress) {
                   setState(() {

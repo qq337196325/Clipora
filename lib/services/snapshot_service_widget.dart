@@ -533,6 +533,8 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
       final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath, _currentArticle!.id);
 
       if (uploadStatus) {
+        _currentArticle!.mhtmlPath = filePath;
+        _currentArticle!.isGenerateMhtml = true;
         await generateMhtmlUtils.fetchMarkdownFromServer(
           article: _currentArticle!,
           onMarkdownGenerated: () {

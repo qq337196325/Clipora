@@ -101,7 +101,7 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
       await Future.delayed(const Duration(seconds: 3));
 
       // 重试机制：最多重试3次，每次间隔5秒
-      for (int retry = 0; retry < 5; retry++) {
+      for (int retry = 0; retry < 6; retry++) {
         try {
           getLogger().i('🌐 第${retry + 1}次尝试从服务端获取Markdown内容，serviceId: ${article.serviceId}');
 
@@ -156,6 +156,8 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
               newArticle.updatedAt = DateTime.now();
               newArticle.title = title;
               newArticle.userId = userId;
+              newArticle.mhtmlPath = article.mhtmlPath;
+              newArticle.isGenerateMhtml = article.isGenerateMhtml;
               await ArticleService.instance.saveArticle(newArticle);
 
               // 通知父组件刷新 tabs

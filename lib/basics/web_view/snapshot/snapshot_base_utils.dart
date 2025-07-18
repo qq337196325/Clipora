@@ -79,12 +79,12 @@ class SnapshotBaseUtils {
       getLogger().i('🔄 开始上传快照到服务器: $snapshotPath');
 
       // 1. 从文件路径中提取文章ID
-      final fileName = snapshotPath.split('/').last;
-      final parts = fileName.split('_');
-      if (parts.length < 2 || parts[0] != 'snapshot') {
-        getLogger().e('上传失败：无效的快照文件名格式: $fileName');
-        return false;
-      }
+      // final fileName = snapshotPath.split('/').last;
+      // final parts = fileName.split('_');
+      // if (parts.length < 2 || parts[0] != 'snapshot') {
+      //   getLogger().e('上传失败：无效的快照文件名格式: $fileName');
+      //   return false;
+      // }
 
       // 2. 根据ID从数据库获取文章信息
       final article = await ArticleService.instance.getArticleById(articleId);
