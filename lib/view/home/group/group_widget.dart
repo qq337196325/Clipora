@@ -452,9 +452,12 @@ mixin GroupPageBLoC on State<GroupPage> {
 
   /// 显示添加顶级分类对话框
   void _showAddCategoryDialog() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => AddCategoryDialog(
         onConfirm: (name, icon) async {
           await _createCategory(name, icon);
@@ -465,9 +468,15 @@ mixin GroupPageBLoC on State<GroupPage> {
 
   /// 显示添加子分类对话框
   void _showAddSubCategoryDialog(CategoryDb parentCategory) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0, // 设置阴影为0，移除阴影效果
+      barrierColor: Colors.transparent, // 移除遮罩效果
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => AddCategoryDialog(
         parentCategory: parentCategory,
         onConfirm: (name, icon) async {
@@ -479,9 +488,15 @@ mixin GroupPageBLoC on State<GroupPage> {
 
   /// 显示编辑分类对话框
   void _showEditCategoryDialog(CategoryDb category) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0, // 设置阴影为0，移除阴影效果
+      barrierColor: Colors.transparent, // 移除遮罩效果
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => AddCategoryDialog(
         editCategory: category,
         onConfirm: (name, icon) async {

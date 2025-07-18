@@ -14,73 +14,34 @@ class AddContentDialog extends StatefulWidget {
   State<AddContentDialog> createState() => _AddContentDialogState();
 }
 
-class _AddContentDialogState extends State<AddContentDialog> with TickerProviderStateMixin {
+class _AddContentDialogState extends State<AddContentDialog> {
   late final TextEditingController _contentController;
   late final FocusNode _focusNode;
-  late final AnimationController _fadeController;
-  late final AnimationController _scaleController;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<double> _scaleAnimation;
-  
+
   bool _isLoading = false;
   bool _hasUrl = false;
   String _detectedUrl = '';
-  
+
   @override
   void initState() {
     super.initState();
     _contentController = TextEditingController();
     _focusNode = FocusNode();
     _contentController.addListener(_onTextChanged);
-    
-    _initAnimations();
-    _startEntryAnimation();
-  }
-  
-  void _initAnimations() {
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 250),
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOut,
-    ));
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.9,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeOutBack,
-    ));
-  }
-  
-  void _startEntryAnimation() {
-    _fadeController.forward();
-    _scaleController.forward();
-    
+
     // 延迟自动聚焦到输入框
-    Future.delayed(const Duration(milliseconds: 400), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
         _focusNode.requestFocus();
       }
     });
   }
-  
+
   void _onTextChanged() {
     final text = _contentController.text;
     final hasUrl = _containsUrl(text);
     final detectedUrl = hasUrl ? _extractUrl(text) : '';
-    
+
     if (hasUrl != _hasUrl || detectedUrl != _detectedUrl) {
       setState(() {
         _hasUrl = hasUrl;
@@ -88,7 +49,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       });
     }
   }
-  
+
   /// 判断文本是否包含URL
   bool _containsUrl(String text) {
     // 检查是否包含完整的URL（带协议）
@@ -99,7 +60,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
     if (fullUrlRegex.hasMatch(text)) {
       return true;
     }
-    
+
     // 检查是否包含域名格式（不带协议）
     final domainRegex = RegExp(
       r'(?:^|\s)(?:www\.)?[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.(?:[a-zA-Z]{2,}|[a-zA-Z]{2,}\.[a-zA-Z]{2,})(?:\.[a-zA-Z]{2,})?(?:/[^\s]*)?(?=\s|$)',
@@ -107,7 +68,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
     );
     return domainRegex.hasMatch(text);
   }
-  
+
   /// 从文本中提取URL
   String _extractUrl(String text) {
     // 优先查找完整的URL（带协议）
@@ -119,7 +80,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
     if (fullUrlMatch != null) {
       return fullUrlMatch.group(1)!;
     }
-    
+
     // 查找域名格式（不带协议）
     final domainRegex = RegExp(
       r'(?:^|\s)((?:www\.)?[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.(?:[a-zA-Z]{2,}|[a-zA-Z]{2,}\.[a-zA-Z]{2,})(?:\.[a-zA-Z]{2,})?(?:/[^\s]*)?)(?=\s|$)',
@@ -131,32 +92,30 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       // 为没有协议的域名自动添加 https:// 前缀
       return domain.startsWith('http') ? domain : 'https://$domain';
     }
-    
+
     return '';
   }
-  
+
   @override
   void dispose() {
     _contentController.removeListener(_onTextChanged);
     _contentController.dispose();
     _focusNode.dispose();
-    _fadeController.dispose();
-    _scaleController.dispose();
     super.dispose();
   }
-  
+
   bool get _canSubmit => _contentController.text.trim().isNotEmpty && _hasUrl && !_isLoading;
-  
+
   Future<void> _handleSubmit() async {
     if (!_canSubmit) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       final content = _contentController.text.trim();
-      
+
       String title = '';
-      
+
       // 解析链接内容
       final urlStartIndex = content.indexOf(_detectedUrl);
       if (urlStartIndex > 0) {
@@ -167,10 +126,10 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
         title = 'i18n_addContent_手动添加的链接'.tr;
       }
       final url = _detectedUrl;
-      
+
       // 生成摘要
       final excerpt = _generateExcerpt(content);
-      
+
       // 检查是否已存在相同URL的文章
       final existingArticle = await ArticleService.instance.findArticleByUrl(url);
       if (existingArticle != null) {
@@ -181,7 +140,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
         setState(() => _isLoading = false);
         return;
       }
-      
+
       // 直接使用ArticleService创建文章
       await ArticleService.instance.createArticleFromShare( 
         title: title,
@@ -190,22 +149,22 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
         excerpt: excerpt,
         tags: [],
       );
-      
+
       getLogger().i('✅ 手动添加内容成功: $title');
-      
+
       // 显示成功提示
       _showSuccessMessage();
-      
+
       // 延迟关闭对话框
       await Future.delayed(const Duration(milliseconds: 1500));
       if (mounted) {
         Navigator.of(context).pop(true); // 返回true表示成功添加
       }
-      
+
     } catch (e) {
       getLogger().e('❌ 手动添加内容失败: $e');
       setState(() => _isLoading = false);
-      
+
       if (mounted) {
         _showErrorMessage('i18n_addContent_添加失败请重试'.tr);
       }
@@ -215,15 +174,15 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
   /// 生成摘要
   String _generateExcerpt(String content) {
     if (content.isEmpty) return '';
-    
+
     // 取前200个字符作为摘要
     if (content.length <= 200) {
       return content.trim();
     }
-    
+
     return content.substring(0, 200).trim() + '...';
   }
-  
+
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -254,7 +213,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       ),
     );
   }
-  
+
   void _showErrorMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -287,70 +246,58 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    // 获取键盘高度和屏幕尺寸
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    final screenHeight = MediaQuery.of(context).size.height;
-    
-    // 计算可视区域高度
-    final visibleHeight = screenHeight - keyboardHeight;
-    final topSafeArea = MediaQuery.of(context).padding.top;
-    final bottomSafeArea = MediaQuery.of(context).padding.bottom;
-    
-    // 对话框高度计算
-    final reservedSpace = topSafeArea + bottomSafeArea + 150;
-    final dialogMaxHeight = (visibleHeight - reservedSpace).clamp(300.0, 420.0);
-    
-    // 键盘弹出时的偏移
-    final keyboardOffset = keyboardHeight > 0 
-        ? -(keyboardHeight * 0.15).clamp(-60.0, 0.0)
-        : 0.0;
-    
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
-      transform: Matrix4.translationValues(0, keyboardOffset, 0),
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: AlertDialog(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            surfaceTintColor: Colors.transparent,
-            elevation: 8,
-            shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.15),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            contentPadding: const EdgeInsets.all(16),
-            content: Container(
-              constraints: BoxConstraints(
-                maxHeight: dialogMaxHeight,
-                maxWidth: 430,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 16),
-                  _buildContentInput(),
-                  const SizedBox(height: 12),
-                  if (_hasUrl) _buildUrlDetectionHint(),
-                  if (!_hasUrl && _contentController.text.isNotEmpty) _buildNoUrlHint(),
-                  const SizedBox(height: 12),
-                  _buildButtons(),
-                ],
-              ),
+    final theme = Theme.of(context);
+    return Padding(
+      // This padding will move the sheet up when keyboard appears
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Material(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        elevation: 8,
+        shadowColor: theme.shadowColor.withOpacity(0.15),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top indicator
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: theme.dividerColor.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                _buildHeader(),
+                const SizedBox(height: 16),
+                _buildContentInput(),
+                const SizedBox(height: 12),
+                if (_hasUrl) _buildUrlDetectionHint(),
+                if (!_hasUrl && _contentController.text.isNotEmpty) _buildNoUrlHint(),
+                const SizedBox(height: 16),
+                _buildButtons(),
+                const SizedBox(height: 8),
+              ],
             ),
           ),
         ),
       ),
     );
   }
-  
+
   Widget _buildHeader() {
     return Row(
       children: [
@@ -378,7 +325,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       ],
     );
   }
-  
+
   Widget _buildContentInput() {
     return Container(
       constraints: const BoxConstraints(minHeight: 90),
@@ -386,14 +333,14 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _focusNode.hasFocus 
-              ? const Color(0xFF00BCF6) 
+          color: _focusNode.hasFocus
+              ? const Color(0xFF00BCF6)
               : Theme.of(context).colorScheme.outline.withOpacity(0.3),
           width: _focusNode.hasFocus ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: _focusNode.hasFocus 
+            color: _focusNode.hasFocus
                 ? const Color(0xFF00BCF6).withOpacity(0.1)
                 : Colors.black.withOpacity(0.05),
             offset: const Offset(0, 2),
@@ -426,7 +373,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       ),
     );
   }
-  
+
   Widget _buildNoUrlHint() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -460,7 +407,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       ),
     );
   }
-  
+
   Widget _buildUrlDetectionHint() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -501,7 +448,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _detectedUrl.length > 40 
+                  _detectedUrl.length > 40
                       ? '${_detectedUrl.substring(0, 40)}...'
                       : _detectedUrl,
                   style: TextStyle(
@@ -516,7 +463,7 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
       ),
     );
   }
-  
+
   Widget _buildButtons() {
     return Row(
       children: [
@@ -582,9 +529,11 @@ class _AddContentDialogState extends State<AddContentDialog> with TickerProvider
 
 /// 显示添加内容对话框
 Future<bool?> showAddContentDialog(BuildContext context) {
-  return showDialog<bool>(
+  return showModalBottomSheet<bool>(
     context: context,
-    barrierDismissible: false,
+    isScrollControlled: true, // Crucial for the sheet to resize when the keyboard appears.
+    backgroundColor: Colors.transparent, // The dialog itself will handle its background and shape.
     builder: (context) => const AddContentDialog(),
   );
-} 
+}
+ 

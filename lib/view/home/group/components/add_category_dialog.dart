@@ -56,42 +56,70 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-            ),
-          ],
+    return AnimatedPadding(
+      padding: EdgeInsets.only(bottom: keyboardHeight),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      child: Material(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_isSubCategory && !_isEditMode) _buildParentInfo(),
-                  if (_isEditMode) _buildEditInfo(),
-                  _buildNameInput(),
-                  const SizedBox(height: 16),
-                  _buildIconSelection(),
-                  const SizedBox(height: 16),
-                  _buildButtons(),
-                ],
-              ),
+        elevation: 8,
+        shadowColor: theme.shadowColor.withOpacity(0.15),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: screenHeight * 0.85,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
-          ],
+            color: theme.cardColor,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 顶部指示器
+              Container(
+                width: 40,
+                height: 3,
+                margin: const EdgeInsets.symmetric(vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.dividerColor.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_isSubCategory && !_isEditMode) _buildParentInfo(),
+                        if (_isEditMode) _buildEditInfo(),
+                        _buildNameInput(),
+                        const SizedBox(height: 24),
+                        _buildIconSelection(),
+                        const SizedBox(height: 24),
+                        _buildButtons(),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -102,7 +130,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [colorScheme.primary, colorScheme.secondary],
@@ -114,45 +142,20 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
       ),
       child: Row(
         children: [
-          // Container(
-          //   width: 48,
-          //   height: 48,
-          //   decoration: BoxDecoration(
-          //     color: Colors.white.withOpacity(0.2),
-          //     borderRadius: BorderRadius.circular(12),
-          //   ),
-          //   child: const Icon(
-          //     Icons.create_new_folder_outlined,
-          //     color: Colors.white,
-          //     size: 24,
-          //   ),
-          // ),
-          // const SizedBox(width: 16),
-          // Expanded(
-          //   child: Column(
-          //     crossAxisAlignment: CrossAxisAlignment.start,
-          //     children: [
-          //       Text(
-          //         _isSubCategory ? '新建子分类' : '新建分类',
-          //         style: const TextStyle(
-          //           fontSize: 20,
-          //           fontWeight: FontWeight.bold,
-          //           color: Colors.white,
-          //         ),
-          //       ),
-          //       const SizedBox(height: 4),
-          //       Text(
-          //         _isSubCategory 
-          //             ? '在 "${widget.parentCategory!.name}" 下创建子分类'
-          //             : '创建一个新的顶级分类',
-          //         style: const TextStyle(
-          //           fontSize: 14,
-          //           color: Colors.white70,
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
+          Expanded(
+            child: Text(
+              _isSubCategory ? 'i18n_group_新建子分类'.tr : 'i18n_group_新建分类'.tr,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ],
       ),
     );
@@ -293,41 +296,44 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
 
   Widget _buildNameInput() {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // const Text(
-        //   '分类名称',
-        //   style: TextStyle(
-        //     fontSize: 16,
-        //     fontWeight: FontWeight.w600,
-        //     color: Color(0xff2a2a2a),
-        //   ),
-        // ),
-        // const SizedBox(height: 4),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: theme.dividerColor,
-              width: 1,
-            ),
-          ),
-          child: TextField(
-            controller: _nameController,
-            autofocus: !_isEditMode, // 编辑模式时不自动聚焦
-            decoration: InputDecoration(
-              hintText: _isEditMode ? 'i18n_group_修改分类名称'.tr : 'i18n_group_请输入分类名称'.tr,
-              hintStyle: TextStyle(color: theme.hintColor),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            ),
-            style: theme.textTheme.titleMedium,
-            onChanged: (value) => setState(() {}),
+    return TextField(
+      controller: _nameController,
+      autofocus: !_isEditMode,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: colorScheme.surfaceContainerLow,
+        hintText: _isEditMode ? 'i18n_group_修改分类名称'.tr : 'i18n_group_请输入分类名称'.tr,
+        hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.6)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: colorScheme.outline.withOpacity(0.2),
           ),
         ),
-      ],
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: colorScheme.primary,
+            width: 2,
+          ),
+        ),
+        contentPadding: const EdgeInsets.all(16),
+        prefixIcon: Icon(
+          Icons.category_rounded,
+          size: 20,
+          color: colorScheme.onSurface.withOpacity(0.6),
+        ),
+      ),
+      style: theme.textTheme.titleMedium?.copyWith(
+        color: colorScheme.onSurface,
+      ),
+      onChanged: (value) => setState(() {}),
     );
   }
 
@@ -337,6 +343,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           children: [
@@ -381,17 +388,13 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Container(
-          height: 110,
-          padding: const EdgeInsets.all(12),
+          height: 120,
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: theme.dividerColor.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: theme.dividerColor,
-              width: 1,
-            ),
+            color: colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(16),
           ),
           child: GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -404,26 +407,27 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
             itemBuilder: (context, index) {
               final icon = _commonIcons[index];
               final isSelected = icon == _selectedIcon;
-              
+
               return GestureDetector(
                 onTap: () => setState(() => _selectedIcon = icon),
-                child: Container(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
                   decoration: BoxDecoration(
-                    color: isSelected 
-                        ? colorScheme.primary.withOpacity(0.1)
-                        : theme.cardColor,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isSelected 
-                          ? colorScheme.primary
-                          : Colors.transparent,
-                      width: 2,
-                    ),
+                    color: isSelected
+                        ? colorScheme.primary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
                     child: Text(
                       icon,
-                      style: const TextStyle(fontSize: 20),
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: isSelected
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurface,
+                      ),
                     ),
                   ),
                 ),
@@ -442,19 +446,12 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
           child: TextButton(
             onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
             style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: const BorderSide(color: Color(0xffe0e0e0)),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Text(
-              'i18n_group_取消'.tr,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xff666666),
-              ),
-            ),
+            child: Text('i18n_group_取消'.tr),
           ),
         ),
         const SizedBox(width: 12),
@@ -462,31 +459,26 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
           child: ElevatedButton(
             onPressed: _canSubmit ? _handleSubmit : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xff667eea),
-              disabledBackgroundColor: const Color(0xffe0e0e0),
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
-              elevation: 0,
             ),
             child: _isLoading
                 ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
                 : Text(
-                    _isEditMode ? 'i18n_group_保存'.tr : 'i18n_group_创建'.tr,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+              _isEditMode ? 'i18n_group_保存'.tr : 'i18n_group_创建'.tr,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ),
       ],
@@ -497,7 +489,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
     if (!_canSubmit) return;
 
     setState(() => _isLoading = true);
-    
+
     try {
       await widget.onConfirm(_nameController.text.trim(), _selectedIcon);
       if (mounted) {
@@ -508,4 +500,4 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
       // 错误处理已在父组件中处理
     }
   }
-} 
+}
