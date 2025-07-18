@@ -38,6 +38,14 @@
 			</array>
 		</dict>
 	</array>
+
+
+	<!-- 添加文件访问权限 -->
+	<key>NSDocumentDirectory</key>
+    <string>YES</string>
+    <key>NSDownloadsDirectory</key>
+    <string>YES</string>
+
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
