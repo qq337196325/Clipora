@@ -20,13 +20,13 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
   ReadingThemeType get currentReadingTheme => _currentReadingTheme.value;
 
   // 样式调整管理
-  final RxDouble _marginSize = 4.0.obs;
+  final RxDouble _marginSize = 18.0.obs;
   double get marginSize => _marginSize.value;
   
   final RxDouble _lineHeight = 1.6.obs;
   double get lineHeight => _lineHeight.value;
   
-  final RxDouble _letterSpacing = 0.0.obs;
+  final RxDouble _letterSpacing = 2.0.obs;
   double get letterSpacing => _letterSpacing.value;
   
   final RxDouble _paragraphSpacing = 4.0.obs;
@@ -118,7 +118,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
       // 加载边距设置
       final savedMarginSize = GetStorage().read<double>(_marginSizeStorageKey);
       if (savedMarginSize != null) {
-        _marginSize.value = savedMarginSize.clamp(4.0, 50.0);
+        _marginSize.value = savedMarginSize.clamp(0.0, 50.0);
         getLogger().i('📝 从存储加载边距设置: ${_marginSize.value}px');
       }
 
@@ -392,7 +392,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
 
   /// 调整边距大小
   Future<void> adjustMarginSize(double newSize) async {
-    final clampedSize = newSize.clamp(10.0, 50.0);
+    final clampedSize = newSize.clamp(0.0, 50.0);
     if (_marginSize.value != clampedSize) {
       _marginSize.value = clampedSize;
       _saveStyleSettingsToStorage();
@@ -404,7 +404,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
 
   /// 调整行高
   Future<void> adjustLineHeight(double newHeight) async {
-    final clampedHeight = newHeight.clamp(1.2, 2.5);
+    final clampedHeight = newHeight.clamp(1.0, 2.5);
     if (_lineHeight.value != clampedHeight) {
       _lineHeight.value = clampedHeight;
       _saveStyleSettingsToStorage();
@@ -471,8 +471,8 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
               // 更新容器边距
               const container = document.querySelector('.markdown-content') || document.body;
               if (container) {
-                container.style.padding = '${_marginSize.value}px';
-                container.style.padding = '${MediaQuery.of(context).padding.top + 10.0 + _marginSize.value}px';
+                container.style.padding = '${_marginSize.value}px'; 
+                container.style.paddingTop = '${MediaQuery.of(context).padding.top + 30.0 + _marginSize.value}px';
               }
               
               console.log('✅ 样式设置更新成功');

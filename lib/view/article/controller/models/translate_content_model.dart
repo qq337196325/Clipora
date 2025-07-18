@@ -10,6 +10,7 @@ class TranslateContentModel {
   final String languageCode;
   final String markdown;
   final String upId;
+  final String uuid;
 
   TranslateContentModel({
     required this.id,
@@ -19,6 +20,7 @@ class TranslateContentModel {
     required this.languageCode,
     required this.markdown,
     required this.upId,
+    required this.uuid,
   });
 
   factory TranslateContentModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,7 @@ class TranslateContentModel {
       languageCode: json['language_code'] ?? '',
       markdown: json['markdown'] ?? '',
       upId: json['up_id'] ?? '',
+      uuid: json['uuid'] ?? '',
     );
   }
 
@@ -42,6 +45,7 @@ class TranslateContentModel {
       'language_code': languageCode,
       'markdown': markdown,
       'up_id': upId,
+      'uuid': uuid,
     };
   }
 }

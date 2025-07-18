@@ -291,35 +291,35 @@ class _ReadThemeWidgetState extends State<ReadThemeWidget> with ReadThemeWidgetB
             valueText: '',
           ),
           
-          const SizedBox(height: 8), // 添加间距
+          const SizedBox(height: 4), // 添加间距
           
           // 边距调整
           _buildStyleControl(
             title: 'i18n_article_边距'.tr,
             icon: Icons.margin,
             value: 0.0,
-            min: 10.0,
+            min: 0.0,
             max: 50.0,
             divisions: 8,
             onChanged: (value) => articleController.adjustMarginSize(value),
             valueText: '',
           ),
 
-          const SizedBox(height: 8), // 添加间距
+          const SizedBox(height: 4), // 添加间距
           
           // 行高调整
           _buildStyleControl(
             title: 'i18n_article_行高'.tr,
             icon: Icons.format_line_spacing,
             value: 0.0,
-            min: 1.2,
+            min: 1.0,
             max: 2.5,
-            divisions: 13,
+            divisions: 8,
             onChanged: (value) => articleController.adjustLineHeight(value),
             valueText: '',
           ),
 
-          const SizedBox(height: 8), // 添加间距
+          const SizedBox(height: 4), // 添加间距
           
           // 字距调整
           _buildStyleControl(
@@ -328,7 +328,7 @@ class _ReadThemeWidgetState extends State<ReadThemeWidget> with ReadThemeWidgetB
             value: 0.0,
             min: -2.0,
             max: 5.0,
-            divisions: 14,
+            divisions: 8,
             onChanged: (value) => articleController.adjustLetterSpacing(value),
             valueText: '',
           ),

@@ -1,13 +1,16 @@
 import 'dart:async';
+import 'package:clipora/db/article/article_db.dart';
 import 'package:get/get.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:isar/isar.dart';
 
+import '../../../db/article/service/article_service.dart';
 import '../../../db/article_content/article_content_db.dart';
 import '../../../api/user_api.dart';
 import '../../../basics/logger.dart';
-import '../../../db/database_service.dart';
+import '../../../db/article_content/article_content_service.dart';
 import 'article_read_theme_controller.dart';
+import 'models/translate_content_model.dart';
 
 
 /// 文章控制器
@@ -250,7 +253,7 @@ class ArticleController extends ArticleReadThemeController {
     
     // 开始新的轮询，每3秒查询一次
     _pollingTimers[languageCode] = Timer.periodic(
-      const Duration(seconds: 2),
+      const Duration(seconds: 3),
       (timer) => _checkTranslationResult(languageCode, upId, timer),
     );
   }
@@ -265,20 +268,48 @@ class ArticleController extends ArticleReadThemeController {
       }
 
       /// 已经有了自动数据同步，所以这里不需要再写入数据库了；
+      // final articleContent = await DatabaseService.instance.articleContent
+      //     .filter()
+      //     .articleIdEqualTo(articleId)
+      //     .languageCodeEqualTo(languageCode)
+      //     .findFirst();
+      // if (articleContent != null) {
+      //   timer.cancel();
+      //   _pollingTimers.remove(languageCode);
+      //   _translationUpIds.remove(languageCode);
+      //   _translationStatus[languageCode] = 'translated';
+      // }
 
-    //   articleId: translateContent.articleId,
-    // markdown: translateContent.markdown,
-    // languageCode: translateContent.languageCode,
-      final articleContent = await DatabaseService.instance.articleContent
-          .filter()
-          .articleIdEqualTo(articleId)
-          .languageCodeEqualTo(languageCode)
-          .findFirst();
-      if (articleContent != null) {
+      final response = await UserApi.getTranslateContentApi({
+        'up_id': upId,
+        'service_article_id': article.serviceId,
+      });
+
+      if (response['code'] == 0) {
+        // 翻译完成
         timer.cancel();
         _pollingTimers.remove(languageCode);
         _translationUpIds.remove(languageCode);
+
         _translationStatus[languageCode] = 'translated';
+
+        final data = response['data'];
+        if (data != null) {
+          try {
+            // 解析翻译内容
+            final translateContent = TranslateContentModel.fromJson(data);
+
+            // 保存翻译后的内容到数据库
+            await _saveTranslatedContent(translateContent);
+            getLogger().i('✅ 翻译完成并保存，语言: $languageCode，内容长度: ${translateContent.markdown.length}');
+          } catch (e) {
+            getLogger().e('❌ 解析翻译内容失败: $e');
+            _translationStatus[languageCode] = 'failed';
+          }
+        }
+      } else {
+        // 继续轮询（翻译仍在进行中）
+        getLogger().d('⏳ 翻译进行中，语言: $languageCode');
       }
 
       getLogger().d('⏳ 翻译进行中，语言: $languageCode');
@@ -288,7 +319,29 @@ class ArticleController extends ArticleReadThemeController {
     }
   }
 
+  /// 保存翻译内容到数据库
+  Future<void> _saveTranslatedContent(TranslateContentModel translateContent) async {
+    try {
 
+      final articleData = await ArticleService.instance.dbService.articles
+          .where()
+          .serviceIdEqualTo(translateContent.serviceArticleId)
+          .findFirst();
+
+
+      await ArticleContentService.instance.createArticleContent(
+        articleId: articleData!.id,
+        markdown: translateContent.markdown,
+        languageCode: translateContent.languageCode,
+        isOriginal: false,
+        uuid: translateContent.uuid,
+        serviceId: translateContent.id, // 保存服务端的翻译内容ID
+      );
+      getLogger().i('💾 翻译内容已保存到数据库，语言: ${translateContent.languageCode}，serviceId: ${translateContent.id}');
+    } catch (e) {
+      getLogger().e('❌ 保存翻译内容失败: $e');
+    }
+  }
 
   /// 重新翻译
   Future<int> retranslate(String languageCode) async {
