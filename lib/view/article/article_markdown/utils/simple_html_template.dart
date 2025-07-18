@@ -81,7 +81,7 @@ class SimpleHtmlTemplate {
             line-height: 1.6;
             
             margin: 0;
-            padding: 20px;
+            padding: 0px;
             padding-top: 40px;
             padding-bottom: 60px;
             word-wrap: break-word;

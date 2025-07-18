@@ -129,8 +129,9 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Artic
 
           // 您可以在这里根据业务逻辑计算动态高度，并设置顶部内边距
           // 例如，可以根据文章标题、作者信息等元素的高度来计算
-          double dynamicPadding = MediaQuery.of(context).padding.top + 20.0; // 这是一个示例值，请替换为您的计算逻辑
-          await setMarkdownPaddingTop(dynamicPadding);
+          // double dynamicPadding = MediaQuery.of(context).padding.top + 20.0; // 这是一个示例值，请替换为您的计算逻辑
+          // await setMarkdownPaddingTop(dynamicPadding);
+          articleController.updateWebViewStyleSettings();
 
           // 添加小延迟，避免过快操作
           await Future.delayed(const Duration(milliseconds: 20));
@@ -797,6 +798,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       annotation.articleContentId = articleController.currentArticleContent!.id;
       annotation.serviceArticleContentId = articleController.currentArticleContent!.serviceId; // 服务端内容ID
       annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
+      annotation.uuid = getUuid();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);
@@ -857,6 +859,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       annotation.articleContentId = articleController.currentArticleContent!.id;
       annotation.serviceArticleContentId = articleController.currentArticleContent!.serviceId; // 服务端内容ID
       annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
+      annotation.uuid = getUuid();
 
       // 保存到数据库
       await EnhancedAnnotationService.instance.saveAnnotation(annotation);
@@ -1244,10 +1247,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   }
 
   void _showMenuAtPosition2(Map<String, dynamic> highlightData, Offset webViewOffset, Map<String, dynamic> boundingRect) async {
-    print("111111111111222222333: $boundingRect");
-    print("11111111111122222233344: $webViewOffset");
-    print("1111111111112222223334455: $highlightData");
-
     // 获取当前标注的颜色和笔记信息
     final highlightId = highlightData['highlightId'] as String;
     AnnotationColor currentColor = AnnotationColor.yellow; // 默认颜色
@@ -1304,7 +1303,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       // 上方有充足空间，在标注上方显示，增加更多间距
       menuY = highlightRectOnScreen.top - menuHeight - menuMargin - 42;
       if (Platform.isIOS) {
-        menuY = highlightRectOnScreen.top - menuHeight - 180;
+        menuY = highlightRectOnScreen.top - menuHeight - 160;
       }else{
         menuY = highlightRectOnScreen.top - menuHeight - 24;
       }

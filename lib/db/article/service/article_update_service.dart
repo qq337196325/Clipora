@@ -1,3 +1,4 @@
+import 'package:clipora/basics/ui.dart';
 import 'package:clipora/basics/utils/user_utils.dart';
 import 'package:isar/isar.dart';
 
@@ -24,6 +25,7 @@ class ArticleUpdateService extends ArticleBaseService {
       // 如果是新文章，设置创建时间并生成唯一ID
       if (isCreating) {
         article.createdAt = now;
+        article.uuid = getUuid();
         // 如果没有服务端ID (代表是本地新建的), 则生成一个客户端唯一ID
         if (article.serviceId.isEmpty) {
           article.serviceId = "";

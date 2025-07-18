@@ -26,18 +26,30 @@ class DataSyncService extends GetxService {
     super.onInit();
     getLogger().i('SyncService Initialized');
 
-    // 每12秒触发一次同步检查
-    _timer = Timer.periodic(const Duration(seconds: 25), (timer) async {
-      await triggerSync();
+    // // 每12秒触发一次同步检查
+    // _timer = Timer.periodic(const Duration(seconds: 25), (timer) async {
+    //   await triggerSync();
+    //
+    //   /// 获取服务器时间
+    //   final serviceCurrentTime = await getServiceCurrentTime();
+    //   int oidServiceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+    //   getLogger().i('······· 旧的服务器时间：$oidServiceCurrentTime, 新获取的服务器时间：$serviceCurrentTime');
+    //   if(serviceCurrentTime != 0){
+    //     box.write('serviceCurrentTime', serviceCurrentTime);
+    //   }
+    // });
+  }
 
-      /// 获取服务器时间
-      final serviceCurrentTime = await getServiceCurrentTime();
-      int oidServiceCurrentTime = box.read('serviceCurrentTime') ?? 0;
-      getLogger().i('······· 旧的服务器时间：$oidServiceCurrentTime, 新获取的服务器时间：$serviceCurrentTime');
-      if(serviceCurrentTime != 0){
-        box.write('serviceCurrentTime', serviceCurrentTime);
-      }
-    });
+  Future<void> run() async {
+    await triggerSync();
+
+    /// 获取服务器时间
+    final serviceCurrentTime = await getServiceCurrentTime();
+    int oidServiceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+    getLogger().i('······· 旧的服务器时间：$oidServiceCurrentTime, 新获取的服务器时间：$serviceCurrentTime');
+    if(serviceCurrentTime != 0){
+      box.write('serviceCurrentTime', serviceCurrentTime);
+    }
   }
 
 
@@ -118,6 +130,7 @@ class DataSyncService extends GetxService {
 
       for (final category in categoriesToSync) {
         final categoryData = {
+          'uuid': category.uuid,
           'client_id': category.id,
           'service_id': category.serviceId,
           'name': category.name,
@@ -174,6 +187,7 @@ class DataSyncService extends GetxService {
       
       final List<Map<String, dynamic>> annotationDataList = annotationsToSync.map((annotation) {
         return {
+            'uuid': annotation.uuid,
             'client_id': annotation.id,
             'service_id': annotation.serverId,
             'article_id': annotation.articleId,
@@ -278,6 +292,7 @@ class DataSyncService extends GetxService {
         }
         
         final articleData = {
+          'uuid': article.uuid,
           'client_id': article.id,
           'service_id': article.serviceId,
           'is_archived': article.isArchived,
@@ -357,6 +372,7 @@ class DataSyncService extends GetxService {
       
       for (final category in categoriesToSync) {
         final categoryData = {
+          'uuid': category.uuid,
           'client_id': category.id,
           'name': category.name,
           'description': category.description ?? '',

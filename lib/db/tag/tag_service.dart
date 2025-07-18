@@ -91,6 +91,7 @@ class TagService extends GetxService  {
       ..updateTimestamp = getStorageServiceCurrentTimeAdding()
       ..userId = getUserId()
       ..name = name
+      ..uuid = getUuid()
       ..createdAt = DateTime.now()
       ..updatedAt = DateTime.now();
 

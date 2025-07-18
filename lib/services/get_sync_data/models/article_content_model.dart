@@ -16,6 +16,7 @@ class ArticleContentModel {
   final String upId;
   final int version;
   final int updateTimestamp;
+  final String uuid;
 
   const ArticleContentModel({
     required this.id,
@@ -35,6 +36,7 @@ class ArticleContentModel {
     required this.upId,
     required this.version,
     required this.updateTimestamp,
+    required this.uuid,
   });
 
   factory ArticleContentModel.fromJson(Map<String, dynamic> json) {
@@ -56,6 +58,7 @@ class ArticleContentModel {
       upId: json['up_id'] as String? ?? '',
       version: json['version'] as int? ?? 0,
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
+      uuid: json['uuid'] as String? ?? "",
     );
   }
 
@@ -78,6 +81,7 @@ class ArticleContentModel {
       'up_id': upId,
       'version': version,
       'update_timestamp': updateTimestamp,
+      'uuid': uuid,
     };
   }
 
@@ -99,6 +103,7 @@ class ArticleContentModel {
     String? upId,
     int? version,
     int? updateTimestamp,
+    String? uuid,
   }) {
     return ArticleContentModel(
       id: id ?? this.id,
@@ -118,6 +123,7 @@ class ArticleContentModel {
       upId: upId ?? this.upId,
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
+      uuid: uuid ?? this.uuid,
     );
   }
 

@@ -19,6 +19,7 @@ class CategoryModel {
   final String path;
   final int version;
   final int updateTimestamp;
+  final String uuid;
 
   CategoryModel({
     required this.id,
@@ -41,6 +42,7 @@ class CategoryModel {
     required this.path,
     required this.version,
     required this.updateTimestamp,
+    required this.uuid,
   });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
@@ -65,6 +67,7 @@ class CategoryModel {
       path: json['path'] ?? '',
       version: json['version'] ?? 0,
       updateTimestamp: json['update_timestamp'] ?? 0,
+      uuid: json['uuid'] ?? "",
     );
   }
 
@@ -90,6 +93,7 @@ class CategoryModel {
       'path': path,
       'version': version,
       'update_timestamp': updateTimestamp,
+      'uuid': uuid,
     };
   }
 
@@ -129,6 +133,7 @@ class CategoryModel {
     String? path,
     int? version,
     int? updateTimestamp,
+    String? uuid,
   }) {
     return CategoryModel(
       id: id ?? this.id,
@@ -151,6 +156,7 @@ class CategoryModel {
       path: path ?? this.path,
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
+      uuid: uuid ?? this.uuid,
     );
   }
 }

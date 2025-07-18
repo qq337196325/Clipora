@@ -20,7 +20,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
   ReadingThemeType get currentReadingTheme => _currentReadingTheme.value;
 
   // 样式调整管理
-  final RxDouble _marginSize = 20.0.obs;
+  final RxDouble _marginSize = 4.0.obs;
   double get marginSize => _marginSize.value;
   
   final RxDouble _lineHeight = 1.6.obs;
@@ -29,7 +29,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
   final RxDouble _letterSpacing = 0.0.obs;
   double get letterSpacing => _letterSpacing.value;
   
-  final RxDouble _paragraphSpacing = 16.0.obs;
+  final RxDouble _paragraphSpacing = 4.0.obs;
   double get paragraphSpacing => _paragraphSpacing.value;
 
   // 存储键名
@@ -92,13 +92,13 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
         getLogger().i('📝 从存储加载阅读主题: $themeType');
       } else {
         // 如果没有保存的设置，使用默认主题
-        _currentReadingTheme.value = ReadingThemeType.defaultTheme;
-        getLogger().i('📝 使用默认阅读主题: ${ReadingThemeType.defaultTheme}');
+        _currentReadingTheme.value = ReadingThemeType.sepiaTheme;
+        getLogger().i('📝 使用默认阅读主题: ${ReadingThemeType.sepiaTheme}');
       }
     } catch (e) {
       getLogger().e('❌ 加载阅读主题设置失败: $e');
       // 出错时使用默认主题
-      _currentReadingTheme.value = ReadingThemeType.defaultTheme;
+      _currentReadingTheme.value = ReadingThemeType.sepiaTheme;
     }
   }
 
@@ -118,14 +118,14 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
       // 加载边距设置
       final savedMarginSize = GetStorage().read<double>(_marginSizeStorageKey);
       if (savedMarginSize != null) {
-        _marginSize.value = savedMarginSize.clamp(10.0, 50.0);
+        _marginSize.value = savedMarginSize.clamp(4.0, 50.0);
         getLogger().i('📝 从存储加载边距设置: ${_marginSize.value}px');
       }
 
       // 加载行高设置
       final savedLineHeight = GetStorage().read<double>(_lineHeightStorageKey);
       if (savedLineHeight != null) {
-        _lineHeight.value = savedLineHeight.clamp(1.2, 2.5);
+        _lineHeight.value = savedLineHeight.clamp(1, 2.5);
         getLogger().i('📝 从存储加载行高设置: ${_lineHeight.value}');
       }
 
@@ -139,7 +139,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
       // 加载段落间距设置
       final savedParagraphSpacing = GetStorage().read<double>(_paragraphSpacingStorageKey);
       if (savedParagraphSpacing != null) {
-        _paragraphSpacing.value = savedParagraphSpacing.clamp(8.0, 32.0);
+        _paragraphSpacing.value = savedParagraphSpacing.clamp(4.0, 32.0);
         getLogger().i('📝 从存储加载段落间距设置: ${_paragraphSpacing.value}px');
       }
     } catch (e) {
@@ -397,7 +397,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
       _marginSize.value = clampedSize;
       _saveStyleSettingsToStorage();
       getLogger().i('📝 边距大小调整为: ${clampedSize}px');
-      await _updateWebViewStyleSettings();
+      await updateWebViewStyleSettings();
       update();
     }
   }
@@ -409,7 +409,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
       _lineHeight.value = clampedHeight;
       _saveStyleSettingsToStorage();
       getLogger().i('📝 行高调整为: ${clampedHeight}');
-      await _updateWebViewStyleSettings();
+      await updateWebViewStyleSettings();
       update();
     }
   }
@@ -421,7 +421,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
       _letterSpacing.value = clampedSpacing;
       _saveStyleSettingsToStorage();
       getLogger().i('📝 字距调整为: ${clampedSpacing}px');
-      await _updateWebViewStyleSettings();
+      await updateWebViewStyleSettings();
       update();
     }
   }
@@ -433,7 +433,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
       _paragraphSpacing.value = clampedSpacing;
       _saveStyleSettingsToStorage();
       getLogger().i('📝 段落间距调整为: ${clampedSpacing}px');
-      await _updateWebViewStyleSettings();
+      await updateWebViewStyleSettings();
       update();
     }
   }
@@ -449,7 +449,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
   }
 
   /// 更新WebView样式设置
-  Future<void> _updateWebViewStyleSettings() async {
+  Future<void> updateWebViewStyleSettings() async {
     if (markdownController != null) {
       try {
         await markdownController!.evaluateJavascript(source: '''
@@ -472,7 +472,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
               const container = document.querySelector('.markdown-content') || document.body;
               if (container) {
                 container.style.padding = '${_marginSize.value}px';
-                container.style.padding = '${MediaQuery.of(context).padding.top + 20.0 + _marginSize.value}px';
+                container.style.padding = '${MediaQuery.of(context).padding.top + 10.0 + _marginSize.value}px';
               }
               
               console.log('✅ 样式设置更新成功');

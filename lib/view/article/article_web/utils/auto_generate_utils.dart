@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../basics/logger.dart';
 import '../../../../db/article/article_db.dart';
 import '../../../../db/article/service/article_service.dart';
+import '../../../../db/article_content/article_content_service.dart';
 import '../../controller/article_controller.dart';
 import '../../../../basics/web_view/snapshot/snapshot_base_utils.dart';
 import '../../../../api/user_api.dart';
@@ -140,12 +141,13 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
               }
               
               // 保存到 ArticleContentDb 表
-              final articleContent = await ArticleService.instance.saveOrUpdateArticleContent(
+              final articleContent = await ArticleContentService.instance.createArticleContent(
                 articleId: newArticle!.id,
                 markdown: markdownContent,
                 languageCode: "original",
                 isOriginal: true,
                 serviceId: response['data']['service_article_content_id'],
+                uuid: response['data']['article_content_uuid'],
               );
 
               // 更新 ArticleDb 的相关状态

@@ -25,6 +25,7 @@ class AnnotationModel {
   final double boundingHeight;
   final int version;
   final int updateTimestamp;
+  final String uuid;
 
   final int clientId;
   final String serviceArticleId;
@@ -64,6 +65,7 @@ class AnnotationModel {
     required this.boundingHeight,
     required this.version,
     required this.updateTimestamp,
+    required this.uuid,
   });
 
   factory AnnotationModel.fromJson(Map<String, dynamic> json) {
@@ -99,6 +101,7 @@ class AnnotationModel {
       boundingHeight: (json['bounding_height'] as num?)?.toDouble() ?? 0.0,
       version: json['version'] as int? ?? 1,
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
+      uuid: json['uuid'] as String? ?? "",
     );
   }
 
@@ -135,6 +138,7 @@ class AnnotationModel {
       'bounding_height': boundingHeight,
       'version': version,
       'update_timestamp': updateTimestamp,
+      'uuid': uuid,
     };
   }
 
@@ -170,6 +174,7 @@ class AnnotationModel {
     double? boundingHeight,
     int? version,
     int? updateTimestamp,
+    String? uuid,
   }) {
     return AnnotationModel(
       id: id ?? this.id,
@@ -203,6 +208,7 @@ class AnnotationModel {
       boundingHeight: boundingHeight ?? this.boundingHeight,
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
+      uuid: uuid ?? this.uuid,
     );
   }
 

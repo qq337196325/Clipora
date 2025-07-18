@@ -28,6 +28,7 @@ class ArticleModel {
   final bool isImportant;
   final int version;
   final int updateTimestamp;
+  final String uuid;
   final List<String> tagServiceIds;
   final List<String> categoryServiceIds;
 
@@ -61,6 +62,7 @@ class ArticleModel {
     required this.isImportant,
     required this.version,
     required this.updateTimestamp,
+    required this.uuid,
     required this.tagServiceIds,
     required this.categoryServiceIds,
   });
@@ -96,6 +98,7 @@ class ArticleModel {
       isImportant: json['is_important'] as bool? ?? false,
       version: json['version'] as int? ?? 0,
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
+      uuid: json['uuid'] as String? ?? "",
       tagServiceIds: json['tag_service_ids'] == null ? [] : List<String>.from(json["tag_service_ids"].map((x) => x)),
       categoryServiceIds: json['category_service_ids'] == null ? [] : List<String>.from(json["category_service_ids"].map((x) => x)),
     );
@@ -132,6 +135,7 @@ class ArticleModel {
       'is_important': isImportant,
       'version': version,
       'update_timestamp': updateTimestamp,
+      'uuid': uuid,
     };
   }
 
@@ -165,6 +169,7 @@ class ArticleModel {
     bool? isImportant,
     int? version,
     int? updateTimestamp,
+    String? uuid,
 
     List<String>? tagServiceIds,
     List<String>? categoryServiceIds,
@@ -199,6 +204,7 @@ class ArticleModel {
       isImportant: isImportant ?? this.isImportant,
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
+      uuid: uuid ?? this.uuid,
       tagServiceIds: tagServiceIds ?? this.tagServiceIds,
       categoryServiceIds: categoryServiceIds ?? this.categoryServiceIds,
     );

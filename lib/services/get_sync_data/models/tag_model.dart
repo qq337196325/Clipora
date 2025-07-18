@@ -10,6 +10,7 @@ class TagModel {
   final String name;
   final int version;
   final int updateTimestamp;
+  final String uuid;
 
   const TagModel({
     required this.id,
@@ -23,6 +24,7 @@ class TagModel {
     required this.name,
     required this.version,
     required this.updateTimestamp,
+    required this.uuid,
   });
 
   factory TagModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class TagModel {
       name: json['name'] as String? ?? '',
       version: json['version'] as int? ?? 1,
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
+      uuid: json['uuid'] as String? ?? "",
     );
   }
 
@@ -54,6 +57,7 @@ class TagModel {
       'name': name,
       'version': version,
       'update_timestamp': updateTimestamp,
+      'uuid': uuid,
     };
   }
 
@@ -69,6 +73,7 @@ class TagModel {
     String? name,
     int? version,
     int? updateTimestamp,
+    String? uuid,
   }) {
     return TagModel(
       id: id ?? this.id,
@@ -82,6 +87,7 @@ class TagModel {
       name: name ?? this.name,
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
+      uuid: uuid ?? this.uuid,
     );
   }
 

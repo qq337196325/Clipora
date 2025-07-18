@@ -160,8 +160,13 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
       name: r'userId',
       type: IsarType.string,
     ),
-    r'version': PropertySchema(
+    r'uuid': PropertySchema(
       id: 28,
+      name: r'uuid',
+      type: IsarType.string,
+    ),
+    r'version': PropertySchema(
+      id: 29,
       name: r'version',
       type: IsarType.long,
     )
@@ -180,6 +185,19 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'userId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'uuid': IndexSchema(
+      id: 2134397340427724972,
+      name: r'uuid',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'uuid',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -276,19 +294,6 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
         )
       ],
     ),
-    r'updateTimestamp': IndexSchema(
-      id: -2874489669811602764,
-      name: r'updateTimestamp',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'updateTimestamp',
-          type: IndexType.value,
-          caseSensitive: false,
-        )
-      ],
-    ),
     r'annotationType': IndexSchema(
       id: 4774460578614465591,
       name: r'annotationType',
@@ -340,6 +345,19 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'updateTimestamp': IndexSchema(
+      id: -2874489669811602764,
+      name: r'updateTimestamp',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'updateTimestamp',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -379,6 +397,7 @@ int _enhancedAnnotationDbEstimateSize(
   bytesCount += 3 + object.serviceArticleId.length * 3;
   bytesCount += 3 + object.startXPath.length * 3;
   bytesCount += 3 + object.userId.length * 3;
+  bytesCount += 3 + object.uuid.length * 3;
   return bytesCount;
 }
 
@@ -416,7 +435,8 @@ void _enhancedAnnotationDbSerialize(
   writer.writeLong(offsets[25], object.updateTimestamp);
   writer.writeDateTime(offsets[26], object.updatedAt);
   writer.writeString(offsets[27], object.userId);
-  writer.writeLong(offsets[28], object.version);
+  writer.writeString(offsets[28], object.uuid);
+  writer.writeLong(offsets[29], object.version);
 }
 
 EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
@@ -459,7 +479,8 @@ EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
   object.updateTimestamp = reader.readLong(offsets[25]);
   object.updatedAt = reader.readDateTime(offsets[26]);
   object.userId = reader.readString(offsets[27]);
-  object.version = reader.readLong(offsets[28]);
+  object.uuid = reader.readString(offsets[28]);
+  object.version = reader.readLong(offsets[29]);
   return object;
 }
 
@@ -531,6 +552,8 @@ P _enhancedAnnotationDbDeserializeProp<P>(
     case 27:
       return (reader.readString(offset)) as P;
     case 28:
+      return (reader.readString(offset)) as P;
+    case 29:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -671,15 +694,6 @@ extension EnhancedAnnotationDbQueryWhereSort
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhere>
-      anyUpdateTimestamp() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'updateTimestamp'),
-      );
-    });
-  }
-
-  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhere>
       anyAnnotationType() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -711,6 +725,15 @@ extension EnhancedAnnotationDbQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'updatedAt'),
+      );
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhere>
+      anyUpdateTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'updateTimestamp'),
       );
     });
   }
@@ -825,6 +848,51 @@ extension EnhancedAnnotationDbQueryWhere
               indexName: r'userId',
               lower: [],
               upper: [userId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      uuidEqualTo(String uuid) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'uuid',
+        value: [uuid],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      uuidNotEqualTo(String uuid) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uuid',
+              lower: [],
+              upper: [uuid],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uuid',
+              lower: [uuid],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uuid',
+              lower: [uuid],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uuid',
+              lower: [],
+              upper: [uuid],
               includeUpper: false,
             ));
       }
@@ -1265,99 +1333,6 @@ extension EnhancedAnnotationDbQueryWhere
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
-      updateTimestampEqualTo(int updateTimestamp) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'updateTimestamp',
-        value: [updateTimestamp],
-      ));
-    });
-  }
-
-  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
-      updateTimestampNotEqualTo(int updateTimestamp) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'updateTimestamp',
-              lower: [],
-              upper: [updateTimestamp],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'updateTimestamp',
-              lower: [updateTimestamp],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'updateTimestamp',
-              lower: [updateTimestamp],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'updateTimestamp',
-              lower: [],
-              upper: [updateTimestamp],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
-      updateTimestampGreaterThan(
-    int updateTimestamp, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'updateTimestamp',
-        lower: [updateTimestamp],
-        includeLower: include,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
-      updateTimestampLessThan(
-    int updateTimestamp, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'updateTimestamp',
-        lower: [],
-        upper: [updateTimestamp],
-        includeUpper: include,
-      ));
-    });
-  }
-
-  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
-      updateTimestampBetween(
-    int lowerUpdateTimestamp,
-    int upperUpdateTimestamp, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'updateTimestamp',
-        lower: [lowerUpdateTimestamp],
-        includeLower: includeLower,
-        upper: [upperUpdateTimestamp],
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
       annotationTypeEqualTo(AnnotationType annotationType) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
@@ -1724,6 +1699,99 @@ extension EnhancedAnnotationDbQueryWhere
         lower: [lowerUpdatedAt],
         includeLower: includeLower,
         upper: [upperUpdatedAt],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampEqualTo(int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'updateTimestamp',
+        value: [updateTimestamp],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampNotEqualTo(int updateTimestamp) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [updateTimestamp],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'updateTimestamp',
+              lower: [],
+              upper: [updateTimestamp],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampGreaterThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [updateTimestamp],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampLessThan(
+    int updateTimestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [],
+        upper: [updateTimestamp],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      updateTimestampBetween(
+    int lowerUpdateTimestamp,
+    int upperUpdateTimestamp, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'updateTimestamp',
+        lower: [lowerUpdateTimestamp],
+        includeLower: includeLower,
+        upper: [upperUpdateTimestamp],
         includeUpper: includeUpper,
       ));
     });
@@ -4409,6 +4477,144 @@ extension EnhancedAnnotationDbQueryFilter on QueryBuilder<EnhancedAnnotationDb,
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> uuidEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> uuidGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> uuidLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> uuidBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'uuid',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> uuidStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> uuidEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+          QAfterFilterCondition>
+      uuidContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+          QAfterFilterCondition>
+      uuidMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'uuid',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> uuidIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'uuid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> uuidIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'uuid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
       QAfterFilterCondition> versionEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -4866,6 +5072,20 @@ extension EnhancedAnnotationDbQuerySortBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByUuid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uuid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByUuidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uuid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       sortByVersion() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'version', Sort.asc);
@@ -5289,6 +5509,20 @@ extension EnhancedAnnotationDbQuerySortThenBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByUuid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uuid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByUuidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uuid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       thenByVersion() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'version', Sort.asc);
@@ -5506,6 +5740,13 @@ extension EnhancedAnnotationDbQueryWhereDistinct
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
+      distinctByUuid({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'uuid', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
       distinctByVersion() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'version');
@@ -5714,6 +5955,12 @@ extension EnhancedAnnotationDbQueryProperty on QueryBuilder<
       userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userId');
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, String, QQueryOperations> uuidProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'uuid');
     });
   }
 

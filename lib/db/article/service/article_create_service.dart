@@ -28,17 +28,15 @@ class ArticleCreateService extends ArticleUpdateService {
 
       final article = ArticleDb()
         ..title = title
-        // ..userId = getUserId()
         ..url = url
         ..shareOriginalContent = originalContent
         ..excerpt = excerpt
         ..isRead = 0
         ..readCount = 0
         ..readDuration = 0
+        ..uuid = getUuid()
         ..updateTimestamp = getStorageServiceCurrentTimeAdding()
         ..readProgress = 0.0;
-
-
 
       final savedArticle = await saveArticle(article);
 
@@ -47,6 +45,7 @@ class ArticleCreateService extends ArticleUpdateService {
         'client_article_id': savedArticle.id,
         'title': savedArticle.title,
         'url': savedArticle.url,
+        "uuid": article.uuid,
         'share_original_content': savedArticle.shareOriginalContent,
       };
       final response = await UserApi.createArticleApi(param);

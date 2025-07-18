@@ -38,6 +38,7 @@ class CategoryService extends GetxService {
         ..parentId = parentId
         ..sortOrder = sortOrder
         ..updateTimestamp = getStorageServiceCurrentTimeAdding()
+        ..uuid = getUuid()
         ..isEnabled = true; // getStorageServiceCurrentTime()
 
 

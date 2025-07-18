@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../basics/logger.dart';
 import '../../basics/ui.dart';
 import '../../db/database_service.dart';
+import '../update_data_sync/data_sync_service.dart';
 import 'get_sync_data.dart';
 
 
@@ -23,7 +24,13 @@ class IncrementSyncData extends GetxService {
 
     // 每30秒触发一次增量同步检查
     _timer = Timer.periodic(const Duration(seconds: 30), (timer) async {
+
+
+      await Get.find<DataSyncService>().run();
+
       await triggerIncrementSync();
+
+
 
       /// 获取服务器时间
       final serviceCurrentTime = getStorageServiceCurrentTime();

@@ -117,8 +117,13 @@ const CategoryDbSchema = CollectionSchema(
       name: r'userId',
       type: IsarType.string,
     ),
-    r'version': PropertySchema(
+    r'uuid': PropertySchema(
       id: 20,
+      name: r'uuid',
+      type: IsarType.string,
+    ),
+    r'version': PropertySchema(
+      id: 21,
       name: r'version',
       type: IsarType.long,
     )
@@ -150,6 +155,19 @@ const CategoryDbSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'serverId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'uuid': IndexSchema(
+      id: 2134397340427724972,
+      name: r'uuid',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'uuid',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -386,6 +404,7 @@ int _categoryDbEstimateSize(
     }
   }
   bytesCount += 3 + object.userId.length * 3;
+  bytesCount += 3 + object.uuid.length * 3;
   return bytesCount;
 }
 
@@ -415,7 +434,8 @@ void _categoryDbSerialize(
   writer.writeLong(offsets[17], object.updateTimestamp);
   writer.writeDateTime(offsets[18], object.updatedAt);
   writer.writeString(offsets[19], object.userId);
-  writer.writeLong(offsets[20], object.version);
+  writer.writeString(offsets[20], object.uuid);
+  writer.writeLong(offsets[21], object.version);
 }
 
 CategoryDb _categoryDbDeserialize(
@@ -445,7 +465,8 @@ CategoryDb _categoryDbDeserialize(
   object.updateTimestamp = reader.readLong(offsets[17]);
   object.updatedAt = reader.readDateTime(offsets[18]);
   object.userId = reader.readString(offsets[19]);
-  object.version = reader.readLong(offsets[20]);
+  object.uuid = reader.readString(offsets[20]);
+  object.version = reader.readLong(offsets[21]);
   return object;
 }
 
@@ -497,6 +518,8 @@ P _categoryDbDeserializeProp<P>(
     case 19:
       return (reader.readString(offset)) as P;
     case 20:
+      return (reader.readString(offset)) as P;
+    case 21:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -785,6 +808,51 @@ extension CategoryDbQueryWhere
               indexName: r'serverId',
               lower: [],
               upper: [serverId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> uuidEqualTo(
+      String uuid) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'uuid',
+        value: [uuid],
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterWhereClause> uuidNotEqualTo(
+      String uuid) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uuid',
+              lower: [],
+              upper: [uuid],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uuid',
+              lower: [uuid],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uuid',
+              lower: [uuid],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uuid',
+              lower: [],
+              upper: [uuid],
               includeUpper: false,
             ));
       }
@@ -3548,6 +3616,136 @@ extension CategoryDbQueryFilter
     });
   }
 
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'uuid',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'uuid',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'uuid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> uuidIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'uuid',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> versionEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -3914,6 +4112,18 @@ extension CategoryDbQuerySortBy
     });
   }
 
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByUuid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uuid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByUuidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uuid', Sort.desc);
+    });
+  }
+
   QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByVersion() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'version', Sort.asc);
@@ -4183,6 +4393,18 @@ extension CategoryDbQuerySortThenBy
     });
   }
 
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByUuid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uuid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByUuidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uuid', Sort.desc);
+    });
+  }
+
   QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByVersion() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'version', Sort.asc);
@@ -4328,6 +4550,13 @@ extension CategoryDbQueryWhereDistinct
     });
   }
 
+  QueryBuilder<CategoryDb, CategoryDb, QDistinct> distinctByUuid(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'uuid', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<CategoryDb, CategoryDb, QDistinct> distinctByVersion() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'version');
@@ -4460,6 +4689,12 @@ extension CategoryDbQueryProperty
   QueryBuilder<CategoryDb, String, QQueryOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userId');
+    });
+  }
+
+  QueryBuilder<CategoryDb, String, QQueryOperations> uuidProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'uuid');
     });
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 
 import '../api/user_api.dart';
 
@@ -35,6 +36,9 @@ class UiColour {
 }
 final globalBoxStorage = GetStorage();
 
+String getUuid(){
+  return Uuid().v4();
+}
 
 // 获取服务端当前时间戳
 Future<int> getServiceCurrentTime() async {

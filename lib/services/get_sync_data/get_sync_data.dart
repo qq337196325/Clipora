@@ -280,7 +280,7 @@ class GetSyncData {
             // 检查本地是否已存在该标签（通过serviceId查找）
             final existingTag = await dbService.tags
                 .where()
-                .serviceIdEqualTo(tagModel.id)
+                .uuidEqualTo(tagModel.uuid)
                 .findFirst();
             
             if (existingTag != null) {
@@ -360,8 +360,7 @@ class GetSyncData {
             // 检查本地是否已存在该分类（通过serverId查找）
             final existingCategory = await dbService.categories
                 .where()
-                .filter()
-                .serverIdEqualTo(categoryModel.id)
+                .uuidEqualTo(categoryModel.uuid)
                 .findFirst();
             
             if (existingCategory != null) {

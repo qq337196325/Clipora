@@ -7,17 +7,14 @@ part 'category_db.g.dart';
 class CategoryDb {
   Id id = Isar.autoIncrement;
   @Index() String userId = "";
+  @Index() String? serverId; /// 服务器端ID（同步后存储）
 
-  /// 服务器端ID（同步后存储）
-  @Index()
-  String? serverId;
 
-  /// 分类名称
-  @Index(unique: false, caseSensitive: false)
-  late String name;
+  /// 历史：新建分类的时候，客户端没有服务端ID，客户端同步数据的时候又是以服务端ID判断本地是否存在，判断的时候本地数据一直不存在，所以一直是新增
+  @Index() String uuid = ""; /// 服务端与客户端新建数据的时候都必须要有UUID,作为数据同步识别
 
-  /// 分类描述
-  String? description;
+  @Index(unique: false, caseSensitive: false) late String name; /// 分类名称
+  String? description;   /// 分类描述
 
   /// 分类图标
   String? icon;

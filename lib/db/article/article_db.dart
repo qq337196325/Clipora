@@ -11,7 +11,8 @@ class ArticleDb {
 
   Id id = Isar.autoIncrement;
   @Index() String serviceId = "";              // 对应服务端ID
-  
+  @Index() String uuid = ""; /// 服务端与客户端新建数据的时候都必须要有UUID,作为数据同步识别
+
   @Index() String title = "";
   String? excerpt;                  // 摘要/简介
   String? content;

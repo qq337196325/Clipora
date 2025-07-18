@@ -9,6 +9,7 @@ class EnhancedAnnotationDb {
   Id id = Isar.autoIncrement;
   @Index() String userId = "";
 
+  @Index() String uuid = ""; /// 服务端与客户端新建数据的时候都必须要有UUID,作为数据同步识别
   // 关联文章（旧版，现在改成为 articleContentId）
   @Index() int articleId = 0;
   @Index() String serviceArticleId = "";              // 对应服务端ID
