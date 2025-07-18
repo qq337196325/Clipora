@@ -48,6 +48,8 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
 
     return Stack(
       children: [
+
+        SnapshotServiceWidget(),
         Scaffold(
           // appBar: AppBar(
           //   title: const Text('InAppWebView Demo'),
@@ -304,14 +306,16 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
           ),
         ),
         // This is the hidden WebView that will be used for background tasks.
-        Offstage(
-          offstage: true,
-          child: SizedBox(
-            width: 1080,  // 最小尺寸，因为是后台任务
-            height: 2460,
-            child: SnapshotServiceWidget(),
-          ),
-        ),
+
+
+        // Offstage(
+        //   offstage: true,
+        //   child: SizedBox(
+        //     width: 1080,  // 最小尺寸，因为是后台任务
+        //     height: 2460,
+        //     child: SnapshotServiceWidget(),
+        //   ),
+        // ),
       ],
     );
   }
@@ -484,7 +488,7 @@ mixin IndexPageBLoC on State<IndexPage> {
     await Future.delayed(const Duration(milliseconds: 100));
     // box.write('completeSyncStatus', false);  /// 测试用
     bool? completeSyncStatus = box.read('completeSyncStatus');
-    getLogger().i('更新预热URL列表222');
+    // getLogger().i('更新预热URL列表222');
 
     // 如果需要全量同步，显示对话框
     if (completeSyncStatus == null || completeSyncStatus == false) {

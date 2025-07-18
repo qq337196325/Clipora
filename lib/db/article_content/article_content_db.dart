@@ -6,13 +6,13 @@ part 'article_content_db.g.dart'; // 用于代码生成
 class ArticleContentDb {
 
   Id id = Isar.autoIncrement;
-
+  @Index() String serviceId = "";                          // 服务端ID
 
   // 关联文章
-  @Index()
-  int articleId = 0;
+  @Index() int articleId = 0;
+  @Index() String serviceArticleId = "";                 // 文章服务端ID
 
-  String serviceId = "";                          // 服务端ID
+
 
   @Index() String userId = "";
 

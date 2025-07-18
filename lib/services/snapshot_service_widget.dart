@@ -17,8 +17,6 @@ import '../view/article/article_web/utils/web_utils.dart';
 
 
 class SnapshotServiceWidget extends StatefulWidget {
-
-  
   const SnapshotServiceWidget({
     super.key,
   });
@@ -379,9 +377,9 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
       }
 
       // 滚动页面以触发懒加载内容
-      await controller.evaluateJavascript(source: 'window.scrollTo(0, document.body.scrollHeight);');
-      await controller.evaluateJavascript(source: 'window.scrollTo(0, 0);');
-      await Future.delayed(const Duration(milliseconds: 800));
+      // await controller.evaluateJavascript(source: 'window.scrollTo(0, document.body.scrollHeight);');
+      // await controller.evaluateJavascript(source: 'window.scrollTo(0, 0);');
+      // await Future.delayed(const Duration(milliseconds: 800));
 
       /// onLoadStop 会存在多次请求的情况。所以需要等待5秒页面稳定下来
       _debouncedGenerateSnapshot();
@@ -404,6 +402,9 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
 
     getLogger().d('🕐 开始5秒防抖计时，等待generateSnapshot执行...');
 
+    // 执行顺滑的滚动动画
+    _performSmoothScroll();
+
     // 创建新的5秒定时器
     _generateSnapshotTimer = Timer(const Duration(seconds: 5), () {
       if (mounted && !hasError) {
@@ -413,6 +414,111 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
         getLogger().w('⚠️ 页面已销毁或有错误，跳过generateSnapshot执行');
       }
     });
+  }
+
+  /// 执行顺滑的滚动动画
+  Future<void> _performSmoothScroll() async {
+    if (webViewController == null) return;
+
+    try {
+      // 获取页面高度
+      final pageHeight = await webViewController!.evaluateJavascript(
+        source: 'document.body.scrollHeight || document.documentElement.scrollHeight;'
+      );
+      
+      if (pageHeight == null) return;
+      
+      final height = int.tryParse(pageHeight.toString()) ?? 0;
+      if (height <= 0) return;
+
+      getLogger().d('📏 页面高度: $height，开始顺滑滚动...');
+
+      // 顺滑滚动到底部
+      await webViewController!.evaluateJavascript(source: '''
+        (function() {
+          const scrollToBottom = () => {
+            return new Promise((resolve) => {
+              const startPosition = window.pageYOffset || document.documentElement.scrollTop;
+              const targetPosition = document.body.scrollHeight - window.innerHeight;
+              const distance = targetPosition - startPosition;
+              const duration = 1500; // 1.5秒滚动到底部
+              let startTime = null;
+              
+              const animation = (currentTime) => {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                const progress = Math.min(timeElapsed / duration, 1);
+                
+                // 使用缓动函数使动画更自然
+                const easeInOut = progress => {
+                  return progress < 0.5 
+                    ? 2 * progress * progress 
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                };
+                
+                const currentPosition = startPosition + (distance * easeInOut(progress));
+                window.scrollTo(0, currentPosition);
+                
+                if (progress < 1) {
+                  requestAnimationFrame(animation);
+                } else {
+                  resolve();
+                }
+              };
+              
+              requestAnimationFrame(animation);
+            });
+          };
+          
+          const scrollToTop = () => {
+            return new Promise((resolve) => {
+              const startPosition = window.pageYOffset || document.documentElement.scrollTop;
+              const distance = -startPosition;
+              const duration = 1000; // 1秒滚动到顶部
+              let startTime = null;
+              
+              const animation = (currentTime) => {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                const progress = Math.min(timeElapsed / duration, 1);
+                
+                // 使用缓动函数
+                const easeOut = progress => {
+                  return 1 - Math.pow(1 - progress, 3);
+                };
+                
+                const currentPosition = startPosition + (distance * easeOut(progress));
+                window.scrollTo(0, currentPosition);
+                
+                if (progress < 1) {
+                  requestAnimationFrame(animation);
+                } else {
+                  resolve();
+                }
+              };
+              
+              requestAnimationFrame(animation);
+            });
+          };
+          
+          // 执行滚动序列
+          scrollToBottom().then(() => {
+            // 在底部停留一段时间，让懒加载内容加载
+            setTimeout(() => {
+              scrollToTop();
+            }, 800);
+          });
+        })();
+      ''');
+
+      getLogger().d('✅ 顺滑滚动动画已启动');
+    } catch (e) {
+      getLogger().e('❌ 执行顺滑滚动时出错: $e');
+      // 如果顺滑滚动失败，回退到原来的简单滚动
+      webViewController?.evaluateJavascript(source: 'window.scrollTo(0, document.body.scrollHeight);');
+      await Future.delayed(const Duration(milliseconds: 800));
+      webViewController?.evaluateJavascript(source: 'window.scrollTo(0, 0);');
+    }
   }
 
   generateSnapshot() async {

@@ -27,11 +27,13 @@ class DataSyncService extends GetxService {
     getLogger().i('SyncService Initialized');
 
     // 每12秒触发一次同步检查
-    _timer = Timer.periodic(const Duration(seconds: 12), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 25), (timer) async {
       await triggerSync();
 
       /// 获取服务器时间
       final serviceCurrentTime = await getServiceCurrentTime();
+      int oidServiceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+      getLogger().i('······· 旧的服务器时间：$oidServiceCurrentTime, 新获取的服务器时间：$serviceCurrentTime');
       if(serviceCurrentTime != 0){
         box.write('serviceCurrentTime', serviceCurrentTime);
       }
@@ -45,7 +47,7 @@ class DataSyncService extends GetxService {
       getLogger().i('当前同步任务在执行....');
       return;
     }
-    getLogger().i('Triggering periodic sync...');
+    // getLogger().i('Triggering periodic sync...');
 
     // 获取数据库实例
     final dbService = DatabaseService.instance;
@@ -85,7 +87,7 @@ class DataSyncService extends GetxService {
       getLogger().e('❌ 数据同步异常: $e');
     } finally {
       isSyncing = false;
-      getLogger().i('🔄 同步流程结束');
+      // getLogger().i('🔄 同步流程结束');
     }
   }
 
@@ -93,20 +95,20 @@ class DataSyncService extends GetxService {
   // 同步标签数据
   updateSyncTagData(String dbName) async {
     try {
-      getLogger().i('🔄 开始同步标签数据...');
+      // getLogger().i('🔄 开始同步标签数据...');
 
       // 获取服务端当前时间
-      int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
-      getLogger().i('📅 服务端当前时间: $serviceCurrentTime');
+      // int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+      // getLogger().i('📅 服务端当前时间: $serviceCurrentTime');
 
       // 查询需要同步的分类数据（updateTimestamp > serviceCurrentTime）
       final categoriesToSync = await DatabaseService.instance.tags
           .where()
           .filter()
-          .updateTimestampGreaterThan(serviceCurrentTime)
+          .updateTimestampGreaterThan(getStorageServiceCurrentTime())
           .findAll();
       if (categoriesToSync.isEmpty) {
-        getLogger().i('✅ 没有需要同步的标签数据');
+        // getLogger().i('✅ 没有需要同步的标签数据');
         return;
       }
       getLogger().i('📋 找到 ${categoriesToSync.length} 个需要同步的标签');
@@ -146,21 +148,21 @@ class DataSyncService extends GetxService {
     } catch (e) {
       getLogger().e('❌ 同步分类数据异常: $e');
     } finally {
-      getLogger().i('🔄 分类数据同步流程结束');
+      // getLogger().i('🔄 分类数据同步流程结束');
     }
   }
 
   // 同步高亮（annotation）数据
   updateSyncAnnotationData(String dbName) async {
     try {
-      getLogger().i('🔄 开始同步标注数据...');
+      // getLogger().i('🔄 开始同步标注数据...');
       
-      int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+      // int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
       final dbService = DatabaseService.instance;
 
       final annotationsToSync = await dbService.enhancedAnnotation
         .filter()
-        .updateTimestampGreaterThan(serviceCurrentTime)
+        .updateTimestampGreaterThan(getStorageServiceCurrentTime())
         .findAll();
       
       if (annotationsToSync.isEmpty) {
@@ -173,8 +175,11 @@ class DataSyncService extends GetxService {
       final List<Map<String, dynamic>> annotationDataList = annotationsToSync.map((annotation) {
         return {
             'client_id': annotation.id,
+            'service_id': annotation.serverId,
             'article_id': annotation.articleId,
+            'service_article_id': annotation.serviceArticleId,
             'article_content_id': annotation.articleContentId,
+            'service_article_content_id': annotation.serviceArticleContentId,
             'highlight_id': annotation.highlightId,
             'start_x_path': annotation.startXPath,
             'start_offset': annotation.startOffset,
@@ -193,6 +198,7 @@ class DataSyncService extends GetxService {
             'bounding_width': annotation.boundingWidth,
             'bounding_height': annotation.boundingHeight,
             'version': annotation.version,
+            'updateTimestamp': annotation.updateTimestamp, // 用于排查问题
         };
       }).toList();
       
@@ -222,17 +228,17 @@ class DataSyncService extends GetxService {
     } catch (e) {
       getLogger().e('❌ 同步标注数据异常: $e');
     } finally {
-      getLogger().i('🔄 标注数据同步流程结束');
+      // getLogger().i('🔄 标注数据同步流程结束');
     }
   }
 
   // 同步文章数据
   updateSyncArticleData(String dbName) async {
     try {
-      getLogger().i('🔄 开始同步文章数据...');
+      // getLogger().i('🔄 开始同步文章数据...');
       
-      int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
-      getLogger().i('📅 服务端当前时间: $serviceCurrentTime');
+      // int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+      // getLogger().i('📅 服务端当前时间: $serviceCurrentTime');
       
       // 查询需要同步的文章数据（serviceId不为空且updateTimestamp > serviceCurrentTime）
       final articlesToSync = await DatabaseService.instance.articles
@@ -241,11 +247,11 @@ class DataSyncService extends GetxService {
           .filter()
           .serviceIdIsNotEmpty()
           .and()
-          .updateTimestampGreaterThan(serviceCurrentTime)
+          .updateTimestampGreaterThan(getStorageServiceCurrentTime())
           .findAll();
       
       if (articlesToSync.isEmpty) {
-        getLogger().i('✅ 没有需要同步的文章数据');
+        // getLogger().i('✅ 没有需要同步的文章数据');
         return;
       }
       
@@ -318,29 +324,29 @@ class DataSyncService extends GetxService {
     } catch (e) {
       getLogger().e('❌ 同步文章数据异常: $e');
     } finally {
-      getLogger().i('🔄 文章数据同步流程结束');
+      // getLogger().i('🔄 文章数据同步流程结束');
     }
   }
 
   // 同步分类数据
   updateSyncCategoryData(String dbName) async {
     try {
-      getLogger().i('🔄 开始同步分类数据...');
+      // getLogger().i('🔄 开始同步分类数据...');
       
       // 获取服务端当前时间
-      int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
-      getLogger().i('📅 服务端当前时间: $serviceCurrentTime');
+      // int serviceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+      // getLogger().i('📅 服务端当前时间: $serviceCurrentTime');
       
       // 查询需要同步的分类数据（updateTimestamp > serviceCurrentTime）
       final categoriesToSync = await DatabaseService.instance.categories
           .where()
           .userIdEqualTo(getUserId())
           .filter()
-          .updateTimestampGreaterThan(serviceCurrentTime)
+          .updateTimestampGreaterThan(getStorageServiceCurrentTime())
           .findAll();
       
       if (categoriesToSync.isEmpty) {
-        getLogger().i('✅ 没有需要同步的分类数据');
+        // getLogger().i('✅ 没有需要同步的分类数据');
         return;
       }
       
@@ -401,7 +407,7 @@ class DataSyncService extends GetxService {
     } catch (e) {
       getLogger().e('❌ 同步分类数据异常: $e');
     } finally {
-      getLogger().i('🔄 分类数据同步流程结束');
+      // getLogger().i('🔄 分类数据同步流程结束');
     }
   }
 

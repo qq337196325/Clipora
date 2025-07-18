@@ -145,6 +145,7 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
                 markdown: markdownContent,
                 languageCode: "original",
                 isOriginal: true,
+                serviceId: response['data']['service_article_content_id'],
               );
 
               // 更新 ArticleDb 的相关状态

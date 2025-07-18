@@ -6,9 +6,6 @@ class AnnotationModel {
   final String deleteById;
   final String createTime;
   final String updateTime;
-  final int clientId;
-  final int clientArticleId;
-  final int clientArticleContentId;
   final String highlightId;
   final String startXPath;
   final int startOffset;
@@ -29,6 +26,12 @@ class AnnotationModel {
   final int version;
   final int updateTimestamp;
 
+  final int clientId;
+  final String serviceArticleId;
+  final int clientArticleId;
+  final String serviceArticleContentId;
+  final int clientArticleContentId;
+
   const AnnotationModel({
     required this.id,
     required this.userId,
@@ -39,7 +42,9 @@ class AnnotationModel {
     required this.updateTime,
     required this.clientId,
     required this.clientArticleId,
+    required this.serviceArticleId,
     required this.clientArticleContentId,
+    required this.serviceArticleContentId,
     required this.highlightId,
     required this.startXPath,
     required this.startOffset,
@@ -72,7 +77,9 @@ class AnnotationModel {
       updateTime: json['update_time'] as String? ?? '',
       clientId: json['client_id'] as int? ?? 0,
       clientArticleId: json['client_article_id'] as int? ?? 0,
+      serviceArticleId: json['service_article_id'] as String? ?? "",
       clientArticleContentId: json['client_article_content_id'] as int? ?? 0,
+      serviceArticleContentId: json['service_article_content_id'] as String? ?? "",
       highlightId: json['highlight_id'] as String? ?? '',
       startXPath: json['start_x_path'] as String? ?? '',
       startOffset: json['start_offset'] as int? ?? 0,
@@ -106,7 +113,9 @@ class AnnotationModel {
       'update_time': updateTime,
       'client_id': clientId,
       'client_article_id': clientArticleId,
+      'service_article_id': serviceArticleId,
       'client_article_content_id': clientArticleContentId,
+      'service_article_content_id': serviceArticleContentId,
       'highlight_id': highlightId,
       'start_x_path': startXPath,
       'start_offset': startOffset,
@@ -139,7 +148,9 @@ class AnnotationModel {
     String? updateTime,
     int? clientId,
     int? clientArticleId,
+    String? serviceArticleId,
     int? clientArticleContentId,
+    String? serviceArticleContentId,
     String? highlightId,
     String? startXPath,
     int? startOffset,
@@ -170,7 +181,9 @@ class AnnotationModel {
       updateTime: updateTime ?? this.updateTime,
       clientId: clientId ?? this.clientId,
       clientArticleId: clientArticleId ?? this.clientArticleId,
+      serviceArticleId: serviceArticleId ?? this.serviceArticleId,
       clientArticleContentId: clientArticleContentId ?? this.clientArticleContentId,
+      serviceArticleContentId: serviceArticleContentId ?? this.serviceArticleContentId,
       highlightId: highlightId ?? this.highlightId,
       startXPath: startXPath ?? this.startXPath,
       startOffset: startOffset ?? this.startOffset,

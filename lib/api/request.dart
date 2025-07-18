@@ -25,8 +25,8 @@ Dio initDio(String _apiHost) {
     },
     onResponse: (response, handler) {
       if(
-      response.requestOptions.uri.path != "$apiVersion/api/base/supplier_list" &&
-          response.requestOptions.uri.path != "$apiVersion/api/base/customer_condition_list"
+          response.requestOptions.uri.path != "$apiVersion/api/user/get_sync_all_data" &&
+          response.requestOptions.uri.path != "$apiVersion/api/user/get_current_time"
       ){
         getLogger().i({
           "请求地址：": response.requestOptions.uri.toString(),

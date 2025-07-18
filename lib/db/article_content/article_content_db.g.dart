@@ -82,38 +82,43 @@ const ArticleContentDbSchema = CollectionSchema(
       name: r'markdownScrollY',
       type: IsarType.long,
     ),
-    r'serviceId': PropertySchema(
+    r'serviceArticleId': PropertySchema(
       id: 13,
+      name: r'serviceArticleId',
+      type: IsarType.string,
+    ),
+    r'serviceId': PropertySchema(
+      id: 14,
       name: r'serviceId',
       type: IsarType.string,
     ),
     r'textContent': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'textContent',
       type: IsarType.string,
     ),
     r'updateTimestamp': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'updateTimestamp',
       type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'userId',
       type: IsarType.string,
     ),
     r'version': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'version',
       type: IsarType.long,
     ),
     r'viewportHeight': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'viewportHeight',
       type: IsarType.long,
     )
@@ -124,6 +129,19 @@ const ArticleContentDbSchema = CollectionSchema(
   deserializeProp: _articleContentDbDeserializeProp,
   idName: r'id',
   indexes: {
+    r'serviceId': IndexSchema(
+      id: -2057415921448131436,
+      name: r'serviceId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'serviceId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
     r'articleId': IndexSchema(
       id: 2849477555030470394,
       name: r'articleId',
@@ -134,6 +152,19 @@ const ArticleContentDbSchema = CollectionSchema(
           name: r'articleId',
           type: IndexType.value,
           caseSensitive: false,
+        )
+      ],
+    ),
+    r'serviceArticleId': IndexSchema(
+      id: 2692428994754822370,
+      name: r'serviceArticleId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'serviceArticleId',
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     ),
@@ -260,6 +291,7 @@ int _articleContentDbEstimateSize(
   bytesCount += 3 + object.currentElementText.length * 3;
   bytesCount += 3 + object.languageCode.length * 3;
   bytesCount += 3 + object.markdown.length * 3;
+  bytesCount += 3 + object.serviceArticleId.length * 3;
   bytesCount += 3 + object.serviceId.length * 3;
   bytesCount += 3 + object.textContent.length * 3;
   bytesCount += 3 + object.userId.length * 3;
@@ -285,13 +317,14 @@ void _articleContentDbSerialize(
   writer.writeString(offsets[10], object.markdown);
   writer.writeLong(offsets[11], object.markdownScrollX);
   writer.writeLong(offsets[12], object.markdownScrollY);
-  writer.writeString(offsets[13], object.serviceId);
-  writer.writeString(offsets[14], object.textContent);
-  writer.writeLong(offsets[15], object.updateTimestamp);
-  writer.writeDateTime(offsets[16], object.updatedAt);
-  writer.writeString(offsets[17], object.userId);
-  writer.writeLong(offsets[18], object.version);
-  writer.writeLong(offsets[19], object.viewportHeight);
+  writer.writeString(offsets[13], object.serviceArticleId);
+  writer.writeString(offsets[14], object.serviceId);
+  writer.writeString(offsets[15], object.textContent);
+  writer.writeLong(offsets[16], object.updateTimestamp);
+  writer.writeDateTime(offsets[17], object.updatedAt);
+  writer.writeString(offsets[18], object.userId);
+  writer.writeLong(offsets[19], object.version);
+  writer.writeLong(offsets[20], object.viewportHeight);
 }
 
 ArticleContentDb _articleContentDbDeserialize(
@@ -315,13 +348,14 @@ ArticleContentDb _articleContentDbDeserialize(
   object.markdown = reader.readString(offsets[10]);
   object.markdownScrollX = reader.readLong(offsets[11]);
   object.markdownScrollY = reader.readLong(offsets[12]);
-  object.serviceId = reader.readString(offsets[13]);
-  object.textContent = reader.readString(offsets[14]);
-  object.updateTimestamp = reader.readLong(offsets[15]);
-  object.updatedAt = reader.readDateTime(offsets[16]);
-  object.userId = reader.readString(offsets[17]);
-  object.version = reader.readLong(offsets[18]);
-  object.viewportHeight = reader.readLong(offsets[19]);
+  object.serviceArticleId = reader.readString(offsets[13]);
+  object.serviceId = reader.readString(offsets[14]);
+  object.textContent = reader.readString(offsets[15]);
+  object.updateTimestamp = reader.readLong(offsets[16]);
+  object.updatedAt = reader.readDateTime(offsets[17]);
+  object.userId = reader.readString(offsets[18]);
+  object.version = reader.readLong(offsets[19]);
+  object.viewportHeight = reader.readLong(offsets[20]);
   return object;
 }
 
@@ -363,14 +397,16 @@ P _articleContentDbDeserializeProp<P>(
     case 14:
       return (reader.readString(offset)) as P;
     case 15:
-      return (reader.readLong(offset)) as P;
-    case 16:
-      return (reader.readDateTime(offset)) as P;
-    case 17:
       return (reader.readString(offset)) as P;
-    case 18:
+    case 16:
       return (reader.readLong(offset)) as P;
+    case 17:
+      return (reader.readDateTime(offset)) as P;
+    case 18:
+      return (reader.readString(offset)) as P;
     case 19:
+      return (reader.readLong(offset)) as P;
+    case 20:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -510,6 +546,51 @@ extension ArticleContentDbQueryWhere
   }
 
   QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterWhereClause>
+      serviceIdEqualTo(String serviceId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serviceId',
+        value: [serviceId],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterWhereClause>
+      serviceIdNotEqualTo(String serviceId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [],
+              upper: [serviceId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [serviceId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [serviceId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceId',
+              lower: [],
+              upper: [serviceId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterWhereClause>
       articleIdEqualTo(int articleId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
@@ -599,6 +680,51 @@ extension ArticleContentDbQueryWhere
         upper: [upperArticleId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterWhereClause>
+      serviceArticleIdEqualTo(String serviceArticleId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serviceArticleId',
+        value: [serviceArticleId],
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterWhereClause>
+      serviceArticleIdNotEqualTo(String serviceArticleId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleId',
+              lower: [],
+              upper: [serviceArticleId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleId',
+              lower: [serviceArticleId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleId',
+              lower: [serviceArticleId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleId',
+              lower: [],
+              upper: [serviceArticleId],
+              includeUpper: false,
+            ));
+      }
     });
   }
 
@@ -2252,6 +2378,142 @@ extension ArticleContentDbQueryFilter
   }
 
   QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'serviceArticleId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'serviceArticleId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceArticleId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
+      serviceArticleIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'serviceArticleId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterFilterCondition>
       serviceIdEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -3075,6 +3337,20 @@ extension ArticleContentDbQuerySortBy
   }
 
   QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
+      sortByServiceArticleId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
+      sortByServiceArticleIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
       sortByServiceId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'serviceId', Sort.asc);
@@ -3371,6 +3647,20 @@ extension ArticleContentDbQuerySortThenBy
   }
 
   QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
+      thenByServiceArticleId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
+      thenByServiceArticleIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QAfterSortBy>
       thenByServiceId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'serviceId', Sort.asc);
@@ -3565,6 +3855,14 @@ extension ArticleContentDbQueryWhereDistinct
   }
 
   QueryBuilder<ArticleContentDb, ArticleContentDb, QDistinct>
+      distinctByServiceArticleId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'serviceArticleId',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, ArticleContentDb, QDistinct>
       distinctByServiceId({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'serviceId', caseSensitive: caseSensitive);
@@ -3707,6 +4005,13 @@ extension ArticleContentDbQueryProperty
       markdownScrollYProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'markdownScrollY');
+    });
+  }
+
+  QueryBuilder<ArticleContentDb, String, QQueryOperations>
+      serviceArticleIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'serviceArticleId');
     });
   }
 

@@ -126,7 +126,7 @@ class GetSyncData {
   }) async {
     try {
       final syncType = isCompleteSync ? '全量' : '增量';
-      getLogger().i('🔄 开始${dataTypeName}数据${syncType}同步...');
+      // getLogger().i('🔄 开始${dataTypeName}数据${syncType}同步...');
       _updateProgress('初始化${dataTypeName}数据同步...', progressOffset);
       
       // 获取数据库服务实例
@@ -145,7 +145,7 @@ class GetSyncData {
       List<T> allData = [];
       while (hasMoreData) {
         try {
-          getLogger().i('📄 获取第 ${page + 1} 页${dataTypeName}数据 (每页 $limit 条)...');
+          // getLogger().i('📄 获取第 ${page + 1} 页${dataTypeName}数据 (每页 $limit 条)...');
           _updateProgress('获取第 ${page + 1} 页${dataTypeName}数据...', progressOffset + 0.05 + (page * 0.1));
           
           // 构建请求参数
@@ -690,6 +690,7 @@ class GetSyncData {
         if (existing != null) {
           // 更新现有内容
           existing.markdown = model.markdown;
+          existing.serviceArticleId = model.id;
           existing.textContent = model.textContent;
           existing.updatedAt = now;
           if (model.id.isNotEmpty) {
@@ -741,21 +742,21 @@ class GetSyncData {
       final dbService = DatabaseService.instance;
 
       // 预加载所有需要的文章和文章内容映射
-      final clientArticleIds = annotations.map((a) => a.clientArticleId).toSet().toList();
-      final clientArticleContentIds = annotations.map((a) => a.clientArticleContentId).toSet().toList();
+      // final clientArticleIds = annotations.map((a) => a.clientArticleId).toSet().toList();
+      // final clientArticleContentIds = annotations.map((a) => a.clientArticleContentId).toSet().toList();
       
       // 查找本地文章ID映射（通过serviceId查找，因为clientArticleId可能不匹配）
-      final localArticles = await dbService.articles.where().findAll();
-      final articleMap = <int, int>{}; // clientArticleId -> localArticleId
+      // final localArticles = await dbService.articles.where().findAll();
+      // final articleMap = <int, int>{}; // clientArticleId -> localArticleId
       
-      final localArticleContents = await dbService.articleContent.where().findAll();
-      final articleContentMap = <int, int>{}; // clientArticleContentId -> localArticleContentId
-
-      // 建立映射关系
-      for (final article in localArticles) {
-        // 这里可能需要根据实际情况调整映射逻辑
-        // 暂时假设直接通过ID匹配
-      }
+      // final localArticleContents = await dbService.articleContent.where().findAll();
+      // final articleContentMap = <int, int>{}; // clientArticleContentId -> localArticleContentId
+      //
+      // // 建立映射关系
+      // for (final article in localArticles) {
+      //   // 这里可能需要根据实际情况调整映射逻辑
+      //   // 暂时假设直接通过ID匹配
+      // }
 
       int successCount = 0;
       int updateCount = 0;
@@ -768,7 +769,7 @@ class GetSyncData {
             // 查找对应的本地文章
             final localArticle = await dbService.articles
                 .where()
-                .anyOf(clientArticleIds, (q, id) => q.idEqualTo(id))
+                .serviceIdEqualTo(annotationModel.serviceArticleId)
                 .findFirst();
             
             if (localArticle == null) {
@@ -780,7 +781,7 @@ class GetSyncData {
             // 查找对应的本地文章内容
             final localArticleContent = await dbService.articleContent
                 .where()
-                .articleIdEqualTo(localArticle.id)
+                .serviceIdEqualTo(annotationModel.serviceArticleContentId)
                 .findFirst();
             
             if (localArticleContent == null) {

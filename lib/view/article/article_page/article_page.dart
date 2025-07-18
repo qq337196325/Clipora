@@ -31,8 +31,7 @@ class ArticlePage extends StatefulWidget {
 
 class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin,ArticlePageBLoC {
 
-  final double _topBarHeight = 34.0;
-  final double _bottomBarHeight = 38.0;
+
 
   @override
   Widget build(BuildContext context) {
@@ -231,6 +230,9 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
 
 mixin ArticlePageBLoC on State<ArticlePage> {
 
+  final double _topBarHeight = 34.0;
+  final double _bottomBarHeight = 38.0;
+
   // 文章控制器
    final ArticleController articleController = Get.find<ArticleController>();
 
@@ -278,14 +280,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
   }
 
   void _initializeTabs() {
-    // 此方法仅在 articleController.hasArticle 为 true 时调用
-    // 网页tab总是显示
-    // tabs = ['网页'];
-
     final article = articleController.currentArticle!;
-
-
-
 
     // 根据isGenerateMarkdown决定是否显示图文tab
     if (article.isGenerateMarkdown) {
@@ -708,9 +703,6 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     getLogger().i('✅ ArticlePage dispose完成');
     super.dispose();
   }
-
-
-  
 
   /// 同步方式销毁所有WebView组件（用于dispose中）
   void _disposeAllWebViewsSync() {

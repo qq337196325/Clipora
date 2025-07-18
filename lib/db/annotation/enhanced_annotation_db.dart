@@ -10,26 +10,22 @@ class EnhancedAnnotationDb {
   @Index() String userId = "";
 
   // 关联文章（旧版，现在改成为 articleContentId）
-  @Index()
-  int articleId = 0;
+  @Index() int articleId = 0;
+  @Index() String serviceArticleId = "";              // 对应服务端ID
 
   // 关联文章内容 新版
-  @Index()
-  int articleContentId = 0;
+  @Index() int articleContentId = 0;
+  @Index() String serviceArticleContentId = "";
   
 
   @Index(unique: true, replace: true)
   String highlightId = "";  // 高亮HTML元素的唯一ID
 
   /// 服务器端ID（同步后存储）
-  @Index()
-  String? serverId;
+  @Index() String? serverId;
   /// 是否已同步到服务器
-  @Index()
-  bool isSynced = false;
-  /// 最后修改时间戳（用于同步判断）
-  @Index()
-  int updateTimestamp = 0;
+  @Index() bool isSynced = false;
+
 
   // === Range精确定位信息 ===
   String startXPath = "";        // 开始节点的XPath路径
@@ -72,6 +68,8 @@ class EnhancedAnnotationDb {
 
   // === 辅助字段 ===
   int version = 1;               // 数据版本（用于迁移）
+  /// 最后修改时间戳（用于同步判断）
+  @Index() int updateTimestamp = 0;
   String? backupData;            // 备份数据（JSON格式）
 
   // === 构造函数 ===

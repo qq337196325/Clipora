@@ -159,6 +159,8 @@ class ArticleMarkdownController extends ArticleBaseController {
 
           getLogger().i('💾 保存阅读位置成功: X=$currentScrollX, Y=$currentScrollY');
           _lastSaveTime = DateTime.now();
+
+
         }
       } else {
         getLogger().d('📍 位置变化不大，跳过保存 (差值: ${(currentScrollY - (currentArticleContent?.markdownScrollY ?? 0)).abs()})');
@@ -168,6 +170,15 @@ class ArticleMarkdownController extends ArticleBaseController {
         getLogger().w('⚠️ WebView已销毁，跳过保存阅读位置');
       } else {
         getLogger().e('❌ 保存阅读位置异常: $e');
+      }
+    }finally {
+      // final article = await dbService.articles.get(articleId);
+      final article = await articleService.getArticleById(articleId);
+      getLogger().i('🔧 手动触发位置保存1...$article');
+      getLogger().i('🔧 手动触发位置保存2...$articleId');
+      if (article != null) {
+        article.lastReadTime = DateTime.now();
+        await articleService.saveArticle(article);
       }
     }
   }

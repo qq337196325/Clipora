@@ -793,7 +793,9 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       );
 
       // 设置 articleContentId（新架构）
+      annotation.serviceArticleId = articleController.currentArticle!.serviceId; // 服务端文章ID
       annotation.articleContentId = articleController.currentArticleContent!.id;
+      annotation.serviceArticleContentId = articleController.currentArticleContent!.serviceId; // 服务端内容ID
       annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
       // 保存到数据库
@@ -851,7 +853,9 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       );
 
       // 设置 articleContentId（新架构）
+      annotation.serviceArticleId = articleController.currentArticle!.serviceId; // 服务端文章ID
       annotation.articleContentId = articleController.currentArticleContent!.id;
+      annotation.serviceArticleContentId = articleController.currentArticleContent!.serviceId; // 服务端内容ID
       annotation.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
       // 保存到数据库

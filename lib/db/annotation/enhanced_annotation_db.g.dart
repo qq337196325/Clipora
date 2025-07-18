@@ -125,33 +125,43 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
       name: r'serverId',
       type: IsarType.string,
     ),
-    r'startOffset': PropertySchema(
+    r'serviceArticleContentId': PropertySchema(
       id: 21,
+      name: r'serviceArticleContentId',
+      type: IsarType.string,
+    ),
+    r'serviceArticleId': PropertySchema(
+      id: 22,
+      name: r'serviceArticleId',
+      type: IsarType.string,
+    ),
+    r'startOffset': PropertySchema(
+      id: 23,
       name: r'startOffset',
       type: IsarType.long,
     ),
     r'startXPath': PropertySchema(
-      id: 22,
+      id: 24,
       name: r'startXPath',
       type: IsarType.string,
     ),
     r'updateTimestamp': PropertySchema(
-      id: 23,
+      id: 25,
       name: r'updateTimestamp',
       type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
-      id: 24,
+      id: 26,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 25,
+      id: 27,
       name: r'userId',
       type: IsarType.string,
     ),
     r'version': PropertySchema(
-      id: 26,
+      id: 28,
       name: r'version',
       type: IsarType.long,
     )
@@ -188,6 +198,19 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
         )
       ],
     ),
+    r'serviceArticleId': IndexSchema(
+      id: 2692428994754822370,
+      name: r'serviceArticleId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'serviceArticleId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
     r'articleContentId': IndexSchema(
       id: 6133014446145633714,
       name: r'articleContentId',
@@ -198,6 +221,19 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
           name: r'articleContentId',
           type: IndexType.value,
           caseSensitive: false,
+        )
+      ],
+    ),
+    r'serviceArticleContentId': IndexSchema(
+      id: -4926007843639365008,
+      name: r'serviceArticleContentId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'serviceArticleContentId',
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     ),
@@ -339,6 +375,8 @@ int _enhancedAnnotationDbEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.serviceArticleContentId.length * 3;
+  bytesCount += 3 + object.serviceArticleId.length * 3;
   bytesCount += 3 + object.startXPath.length * 3;
   bytesCount += 3 + object.userId.length * 3;
   return bytesCount;
@@ -371,12 +409,14 @@ void _enhancedAnnotationDbSerialize(
   writer.writeString(offsets[18], object.rangeFingerprint);
   writer.writeString(offsets[19], object.selectedText);
   writer.writeString(offsets[20], object.serverId);
-  writer.writeLong(offsets[21], object.startOffset);
-  writer.writeString(offsets[22], object.startXPath);
-  writer.writeLong(offsets[23], object.updateTimestamp);
-  writer.writeDateTime(offsets[24], object.updatedAt);
-  writer.writeString(offsets[25], object.userId);
-  writer.writeLong(offsets[26], object.version);
+  writer.writeString(offsets[21], object.serviceArticleContentId);
+  writer.writeString(offsets[22], object.serviceArticleId);
+  writer.writeLong(offsets[23], object.startOffset);
+  writer.writeString(offsets[24], object.startXPath);
+  writer.writeLong(offsets[25], object.updateTimestamp);
+  writer.writeDateTime(offsets[26], object.updatedAt);
+  writer.writeString(offsets[27], object.userId);
+  writer.writeLong(offsets[28], object.version);
 }
 
 EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
@@ -412,12 +452,14 @@ EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
   object.rangeFingerprint = reader.readString(offsets[18]);
   object.selectedText = reader.readString(offsets[19]);
   object.serverId = reader.readStringOrNull(offsets[20]);
-  object.startOffset = reader.readLong(offsets[21]);
-  object.startXPath = reader.readString(offsets[22]);
-  object.updateTimestamp = reader.readLong(offsets[23]);
-  object.updatedAt = reader.readDateTime(offsets[24]);
-  object.userId = reader.readString(offsets[25]);
-  object.version = reader.readLong(offsets[26]);
+  object.serviceArticleContentId = reader.readString(offsets[21]);
+  object.serviceArticleId = reader.readString(offsets[22]);
+  object.startOffset = reader.readLong(offsets[23]);
+  object.startXPath = reader.readString(offsets[24]);
+  object.updateTimestamp = reader.readLong(offsets[25]);
+  object.updatedAt = reader.readDateTime(offsets[26]);
+  object.userId = reader.readString(offsets[27]);
+  object.version = reader.readLong(offsets[28]);
   return object;
 }
 
@@ -475,16 +517,20 @@ P _enhancedAnnotationDbDeserializeProp<P>(
     case 20:
       return (reader.readStringOrNull(offset)) as P;
     case 21:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 22:
       return (reader.readString(offset)) as P;
     case 23:
       return (reader.readLong(offset)) as P;
     case 24:
-      return (reader.readDateTime(offset)) as P;
-    case 25:
       return (reader.readString(offset)) as P;
+    case 25:
+      return (reader.readLong(offset)) as P;
     case 26:
+      return (reader.readDateTime(offset)) as P;
+    case 27:
+      return (reader.readString(offset)) as P;
+    case 28:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -879,6 +925,51 @@ extension EnhancedAnnotationDbQueryWhere
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      serviceArticleIdEqualTo(String serviceArticleId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serviceArticleId',
+        value: [serviceArticleId],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      serviceArticleIdNotEqualTo(String serviceArticleId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleId',
+              lower: [],
+              upper: [serviceArticleId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleId',
+              lower: [serviceArticleId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleId',
+              lower: [serviceArticleId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleId',
+              lower: [],
+              upper: [serviceArticleId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
       articleContentIdEqualTo(int articleContentId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
@@ -968,6 +1059,51 @@ extension EnhancedAnnotationDbQueryWhere
         upper: [upperArticleContentId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      serviceArticleContentIdEqualTo(String serviceArticleContentId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serviceArticleContentId',
+        value: [serviceArticleContentId],
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterWhereClause>
+      serviceArticleContentIdNotEqualTo(String serviceArticleContentId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleContentId',
+              lower: [],
+              upper: [serviceArticleContentId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleContentId',
+              lower: [serviceArticleContentId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleContentId',
+              lower: [serviceArticleContentId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serviceArticleContentId',
+              lower: [],
+              upper: [serviceArticleContentId],
+              includeUpper: false,
+            ));
+      }
     });
   }
 
@@ -3551,6 +3687,284 @@ extension EnhancedAnnotationDbQueryFilter on QueryBuilder<EnhancedAnnotationDb,
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleContentIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceArticleContentId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleContentIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'serviceArticleContentId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleContentIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'serviceArticleContentId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleContentIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'serviceArticleContentId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleContentIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'serviceArticleContentId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleContentIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'serviceArticleContentId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+          QAfterFilterCondition>
+      serviceArticleContentIdContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'serviceArticleContentId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+          QAfterFilterCondition>
+      serviceArticleContentIdMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'serviceArticleContentId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleContentIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceArticleContentId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleContentIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'serviceArticleContentId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'serviceArticleId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+          QAfterFilterCondition>
+      serviceArticleIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'serviceArticleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+          QAfterFilterCondition>
+      serviceArticleIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'serviceArticleId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serviceArticleId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> serviceArticleIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'serviceArticleId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
       QAfterFilterCondition> startOffsetEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -4354,6 +4768,34 @@ extension EnhancedAnnotationDbQuerySortBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByServiceArticleContentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleContentId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByServiceArticleContentIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleContentId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByServiceArticleId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByServiceArticleIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       sortByStartOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startOffset', Sort.asc);
@@ -4749,6 +5191,34 @@ extension EnhancedAnnotationDbQuerySortThenBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByServiceArticleContentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleContentId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByServiceArticleContentIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleContentId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByServiceArticleId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByServiceArticleIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serviceArticleId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       thenByStartOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startOffset', Sort.asc);
@@ -4985,6 +5455,22 @@ extension EnhancedAnnotationDbQueryWhereDistinct
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
+      distinctByServiceArticleContentId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'serviceArticleContentId',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
+      distinctByServiceArticleId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'serviceArticleId',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
       distinctByStartOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'startOffset');
@@ -5179,6 +5665,20 @@ extension EnhancedAnnotationDbQueryProperty on QueryBuilder<
       serverIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'serverId');
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, String, QQueryOperations>
+      serviceArticleContentIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'serviceArticleContentId');
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, String, QQueryOperations>
+      serviceArticleIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'serviceArticleId');
     });
   }
 
