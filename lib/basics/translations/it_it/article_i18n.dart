@@ -69,4 +69,26 @@ const Map<String, String> articleI18n = {
   'i18n_article_快照保存成功': 'Istantanea salvata con successo',
   'i18n_article_快照加载失败': 'Caricamento istantanea fallito',
   'i18n_article_初始化失败': 'Inizializzazione fallita: ',
+
+  'i18n_article_标注记录不存在': 'Il record di annotazione non esiste',
+  'i18n_article_颜色已更新': 'Colore aggiornato',
+  'i18n_article_颜色更新失败': 'Aggiornamento colore fallito',
+  'i18n_article_原文引用': 'Citazione del testo originale',
+  'i18n_article_查看笔记': 'Visualizza nota',
+  'i18n_article_该标注没有笔记内容': 'Questa annotazione non ha contenuto di nota',
+  'i18n_article_查看笔记失败': 'Visualizzazione nota fallita',
+  'i18n_article_笔记详情': 'Dettagli nota',
+  'i18n_article_标注颜色': 'Colore annotazione',
+
+  /// v1.3.0
+  'i18n_article_阅读主题': 'Tema di lettura',
+  
+  // read_theme_widget
+  'i18n_article_阅读设置': 'Impostazioni di lettura',
+  'i18n_article_字体大小': 'Dimensione carattere',
+  'i18n_article_减小': 'Diminuisci',
+  'i18n_article_增大': 'Aumenta',
+  'i18n_article_预览效果': 'Effetto anteprima',
+  'i18n_article_重置为默认大小': 'Ripristina dimensione predefinita',
+  'i18n_article_字体大小已重置': 'La dimensione del carattere è stata ripristinata',
 }; 

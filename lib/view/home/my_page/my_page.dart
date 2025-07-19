@@ -996,7 +996,7 @@ mixin MyPageBLoC on State<MyPage> {
                     Row(
                       children: [
                         Text(
-                          'i18n_member_lifetime_member'.tr,
+                          'i18n_member_终身会员'.tr,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -1023,7 +1023,7 @@ mixin MyPageBLoC on State<MyPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'i18n_member_enjoying_premium'.tr,
+                      'i18n_member_正在享受高级会员特权'.tr,
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context).textTheme.bodySmall?.color,
@@ -1053,7 +1053,7 @@ mixin MyPageBLoC on State<MyPage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'i18n_member_status_active'.tr,
+                      'i18n_member_会员已激活'.tr,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -1086,7 +1086,7 @@ mixin MyPageBLoC on State<MyPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'i18n_member_permanent_access'.tr,
+                    'i18n_member_永久访问权限'.tr,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1095,7 +1095,7 @@ mixin MyPageBLoC on State<MyPage> {
                   ),
                 ),
                 Text(
-                  'i18n_member_thank_you_support'.tr,
+                  'i18n_member_感谢您的支持'.tr,
                   style: TextStyle(
                     fontSize: 11,
                     color: Theme.of(context).textTheme.bodySmall?.color,
@@ -1157,7 +1157,7 @@ mixin MyPageBLoC on State<MyPage> {
                     Row(
                       children: [
                         Text(
-                          'i18n_member_subscription_member'.tr,
+                          'i18n_member_订阅会员'.tr,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -1184,7 +1184,7 @@ mixin MyPageBLoC on State<MyPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'i18n_member_enjoying_premium'.tr,
+                      'i18n_member_正在享受高级会员特权'.tr,
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context).textTheme.bodySmall?.color,
@@ -1209,7 +1209,7 @@ mixin MyPageBLoC on State<MyPage> {
                   elevation: 0,
                   shadowColor: Colors.transparent,
                 ),
-                child: Text('i18n_member_renew_subscription'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                child: Text('i18n_member_续费'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
               )
             ],
           ),
@@ -1234,7 +1234,7 @@ mixin MyPageBLoC on State<MyPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'i18n_member_expires_on'.trParams({'date': formattedDate}),
+                    'i18n_member_到期时间'.trParams({'date': formattedDate}),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1249,7 +1249,7 @@ mixin MyPageBLoC on State<MyPage> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'i18n_member_status_active'.tr,
+                    'i18n_member_会员已激活'.tr,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,

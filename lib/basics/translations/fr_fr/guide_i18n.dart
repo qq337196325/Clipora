@@ -16,6 +16,8 @@ const Map<String, String> guideI18n = {
   'i18n_guide_在其他应用中点击分享': 'Dans d\'autres applications, appuyez sur partager',
   'i18n_guide_点击Clipora图标即可收藏': 'Appuyez sur l\'icône Clipora pour collecter',
   'i18n_guide_点击图片继续': 'Appuyez sur l\'image pour continuer',
+  'i18n_guide_点击分享图标继续': 'Appuyez sur l\'icône de partage pour continuer',
+  'i18n_guide_点击Clipora图标继续': 'Appuyez sur l\'icône Clipora pour continuer',
   'i18n_guide_继续': 'Continuer',
   'i18n_guide_我知道了': 'J\'ai compris',
 }; 

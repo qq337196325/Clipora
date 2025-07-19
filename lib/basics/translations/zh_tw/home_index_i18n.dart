@@ -11,9 +11,9 @@ const Map<String, String> homeIndexI18n = {
   'i18n_home_暂无最近阅读记录': '暫無最近閱讀記錄', 
   'i18n_home_我的标签': '我的標籤', 
   'i18n_home_标签': '標籤：', 
-  'i18n_home_稍后阅读': '稍後閱讀', 
+  'i18n_home_稍后阅读': '新增內容',
   'i18n_home_共count篇': '共 @count 篇',
-  'i18n_home_暂无需要稍后阅读的文章': '暫無需要稍後閱讀的文章',
+  'i18n_home_暂无需要稍后阅读的文章': '暫無新增內容',
 
   // upgrade_dialog
   'i18n_upgrade_发现新版本': '發現新版本 @version',

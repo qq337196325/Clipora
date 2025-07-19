@@ -115,7 +115,7 @@ class _AIOrderPageState extends State<AIOrderPage>
 
           // 标题
           Text(
-            'i18n_order_ai_translation_request_package'.tr,
+            'i18n_order_AI翻译请求包'.tr,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -177,7 +177,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'i18n_order_ai_translation_assistant'.tr,
+                      'i18n_order_AI翻译助手'.tr,
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -186,7 +186,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'i18n_order_smarter_reading_efficient_learning'.tr,
+                      'i18n_order_让阅读更智能'.tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
@@ -201,7 +201,7 @@ class _AIOrderPageState extends State<AIOrderPage>
           const SizedBox(height: 20),
 
           Text(
-            'i18n_order_translate_articles_with_ai'.tr,
+            'i18n_order_通过AI翻译助手'.tr,
             style: TextStyle(
               fontSize: 16,
               color: Theme.of(context).colorScheme.onPrimary,
@@ -246,7 +246,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'i18n_order_limited_time_offer'.tr,
+                  'i18n_order_限时优惠'.tr,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -273,8 +273,8 @@ class _AIOrderPageState extends State<AIOrderPage>
           // 套餐详情
           _buildPackageDetailItem(
             icon: Icons.flash_on,
-            title: 'i18n_order_requests'.trParams({'count': '320'}),
-            subtitle: 'i18n_order_enough_for_deep_reading'.tr,
+            title: 'i18n_order_AI请求次数'.trParams({'count': '320'}),
+            subtitle: 'i18n_order_足够深度阅读'.tr,
             iconColor: const Color(0xFFFF9500),
           ),
 
@@ -282,8 +282,8 @@ class _AIOrderPageState extends State<AIOrderPage>
 
           _buildPackageDetailItem(
             icon: Icons.access_time,
-            title: 'i18n_order_validity'.trParams({'days': '30'}),
-            subtitle: 'i18n_order_effective_immediately'.tr,
+            title: 'i18n_order_有效期'.trParams({'days': '30'}),
+            subtitle: 'i18n_order_立即生效'.tr,
             iconColor: const Color(0xFF4ECDC4),
           ),
 
@@ -291,8 +291,8 @@ class _AIOrderPageState extends State<AIOrderPage>
 
           _buildPackageDetailItem(
             icon: Icons.trending_up,
-            title: 'i18n_order_intelligent_and_powerful'.tr,
-            subtitle: 'i18n_order_translate_with_ai_models'.tr,
+            title: 'i18n_order_智能强大'.tr,
+            subtitle: 'i18n_order_AI大模型翻译'.tr,
             iconColor: const Color(0xFF9B59B6),
           ),
         ],
@@ -324,7 +324,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'i18n_order_original_price'.trParams({'price': '20'}),
+                'i18n_order_原价'.trParams({'price': '20'}),
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.error,
@@ -363,7 +363,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'i18n_order_original_price'.trParams({'price': '20'}),
+                'i18n_order_原价'.trParams({'price': '20'}),
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.error,
@@ -403,7 +403,7 @@ class _AIOrderPageState extends State<AIOrderPage>
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              'i18n_order_original_price'.trParams({'price': '20'}),
+              'i18n_order_原价'.trParams({'price': '20'}),
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.error,
@@ -488,8 +488,8 @@ class _AIOrderPageState extends State<AIOrderPage>
       // },
       {
         'icon': Icons.translate,
-        'title': 'i18n_order_multilingual_support'.tr,
-        'subtitle': 'i18n_order_support_translation_and_understanding'.tr,
+        'title': 'i18n_order_多国语言支持'.tr,
+        'subtitle': 'i18n_order_支持翻译和理解'.tr,
         'color': const Color(0xFFFF9500),
       },
     ];
@@ -498,7 +498,7 @@ class _AIOrderPageState extends State<AIOrderPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'i18n_order_core_features'.tr,
+          'i18n_order_核心功能'.tr,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -606,8 +606,8 @@ class _AIOrderPageState extends State<AIOrderPage>
     }
     
     final String buttonText = isAndroid
-        ? 'i18n_order_wechat_pay'.trParams({'price': priceString})
-        : 'i18n_order_buy_now'.trParams({'price': priceString});
+        ? 'i18n_order_微信支付'.trParams({'price': priceString})
+        : 'i18n_order_立即购买'.trParams({'price': priceString});
     final IconData buttonIcon = isAndroid ? Icons.payment : Icons.shopping_cart;
 
     return Container(
@@ -739,7 +739,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                   isAgreedToTerms = !isAgreedToTerms;
                 });
               },
-              child: Text('i18n_order_please_read_and_agree'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              child: Text('i18n_order_购买前请阅读并同意'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
             ),
             Expanded(
               child: RichText(
@@ -754,7 +754,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                       child: GestureDetector(
                         onTap: () => _handleUserAgreement(),
                         child: Text(
-                          'i18n_order_purchase_agreement'.tr,
+                          'i18n_order_购买协议'.tr,
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(context).primaryColor,

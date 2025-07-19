@@ -571,9 +571,13 @@ mixin SearchPageBLoC on State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    _init();
+  }
+
+  _init() async {
     searchController = TextEditingController();
     searchFocusNode = FocusNode();
-    
+
     searchFocusNode.addListener(() {
       setState(() {
         isSearchFocused = searchFocusNode.hasFocus;
@@ -582,6 +586,7 @@ mixin SearchPageBLoC on State<SearchPage> {
 
     // 自动聚焦到搜索框
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 20));
       searchFocusNode.requestFocus();
     });
   }

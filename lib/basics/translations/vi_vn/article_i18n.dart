@@ -69,4 +69,26 @@ const Map<String, String> articleI18n = {
   'i18n_article_快照保存成功': 'Lưu ảnh chụp thành công',
   'i18n_article_快照加载失败': 'Tải ảnh chụp thất bại',
   'i18n_article_初始化失败': 'Khởi tạo thất bại: ',
+
+  'i18n_article_标注记录不存在': 'Bản ghi chú thích không tồn tại',
+  'i18n_article_颜色已更新': 'Màu đã được cập nhật',
+  'i18n_article_颜色更新失败': 'Cập nhật màu thất bại',
+  'i18n_article_原文引用': 'Trích dẫn văn bản gốc',
+  'i18n_article_查看笔记': 'Xem ghi chú',
+  'i18n_article_该标注没有笔记内容': 'Chú thích này không có nội dung ghi chú',
+  'i18n_article_查看笔记失败': 'Xem ghi chú thất bại',
+  'i18n_article_笔记详情': 'Chi tiết ghi chú',
+  'i18n_article_标注颜色': 'Màu chú thích',
+
+  /// v1.3.0
+  'i18n_article_阅读主题': 'Chủ đề đọc',
+  
+  // read_theme_widget
+  'i18n_article_阅读设置': 'Cài đặt đọc',
+  'i18n_article_字体大小': 'Kích thước phông chữ',
+  'i18n_article_减小': 'Giảm',
+  'i18n_article_增大': 'Tăng',
+  'i18n_article_预览效果': 'Hiệu ứng xem trước',
+  'i18n_article_重置为默认大小': 'Đặt lại về kích thước mặc định',
+  'i18n_article_字体大小已重置': 'Kích thước phông chữ đã được đặt lại',
 }; 

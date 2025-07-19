@@ -11,9 +11,9 @@ const Map<String, String> homeIndexI18n = {
   'i18n_home_暂无最近阅读记录': 'Geen recente leesrecords', 
   'i18n_home_我的标签': 'Mijn tags', 
   'i18n_home_标签': 'Tag: ', 
-  'i18n_home_稍后阅读': 'Later lezen', 
+  'i18n_home_稍后阅读': 'Nieuwe inhoud',
   'i18n_home_共count篇': 'Totaal @count artikelen',
-  'i18n_home_暂无需要稍后阅读的文章': 'Geen artikelen om later te lezen',
+  'i18n_home_暂无需要稍后阅读的文章': 'Geen nieuwe inhoud',
 
   // upgrade_dialog
   'i18n_upgrade_发现新版本': 'Nieuwe versie @version gevonden',

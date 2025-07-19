@@ -11,9 +11,9 @@ const Map<String, String> homeIndexI18n = {
   'i18n_home_暂无最近阅读记录': 'Không có bản ghi đọc gần đây', 
   'i18n_home_我的标签': 'Thẻ của tôi', 
   'i18n_home_标签': 'Thẻ: ', 
-  'i18n_home_稍后阅读': 'Đọc sau', 
+  'i18n_home_稍后阅读': 'Nội dung mới',
   'i18n_home_共count篇': 'Tổng cộng @count bài viết',
-  'i18n_home_暂无需要稍后阅读的文章': 'Không có bài viết nào để đọc sau',
+  'i18n_home_暂无需要稍后阅读的文章': 'Không có nội dung mới',
 
   // upgrade_dialog
   'i18n_upgrade_发现新版本': 'Tìm thấy phiên bản mới @version',

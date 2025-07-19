@@ -11,9 +11,9 @@ const Map<String, String> homeIndexI18n = {
   'i18n_home_暂无最近阅读记录': '最近の読書記録がありません', 
   'i18n_home_我的标签': 'マイタグ', 
   'i18n_home_标签': 'タグ: ', 
-  'i18n_home_稍后阅读': '後で読む', 
+  'i18n_home_稍后阅读': '新しいコンテンツ',
   'i18n_home_共count篇': '合計 @count 件',
-  'i18n_home_暂无需要稍后阅读的文章': '後で読む記事がありません',
+  'i18n_home_暂无需要稍后阅读的文章': '新しいコンテンツがありません',
 
   // upgrade_dialog
   'i18n_upgrade_发现新版本': '新バージョン @version が見つかりました',

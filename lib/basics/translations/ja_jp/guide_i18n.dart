@@ -16,6 +16,8 @@ const Map<String, String> guideI18n = {
   'i18n_guide_在其他应用中点击分享': '他のアプリでシェアをタップ',
   'i18n_guide_点击Clipora图标即可收藏': 'Cliporaアイコンをタップしてコレクション',
   'i18n_guide_点击图片继续': '画像をタップして続行',
+  'i18n_guide_点击分享图标继续': 'シェアアイコンをタップして続行',
+  'i18n_guide_点击Clipora图标继续': 'Cliporaアイコンをタップして続行',
   'i18n_guide_继续': '続行',
   'i18n_guide_我知道了': '了解しました',
 }; 

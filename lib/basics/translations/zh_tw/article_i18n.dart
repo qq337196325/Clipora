@@ -165,4 +165,26 @@ const Map<String, String> articleI18n = {
   'i18n_article_快照文件不存在': '快照檔案不存在\n路徑: @path',
   'i18n_article_快照文件为空': '快照檔案為空\n路徑: @path',
   'i18n_article_初始化失败': '初始化失敗: ',
+
+  'i18n_article_标注记录不存在': '標註記錄不存在',
+  'i18n_article_颜色已更新': '顏色已更新',
+  'i18n_article_颜色更新失败': '顏色更新失敗',
+  'i18n_article_原文引用': '原文引用',
+  'i18n_article_查看笔记': '檢視筆記',
+  'i18n_article_该标注没有笔记内容': '該標註沒有筆記內容',
+  'i18n_article_查看笔记失败': '檢視筆記失敗',
+  'i18n_article_笔记详情': '筆記詳情',
+  'i18n_article_标注颜色': '標註顏色',
+
+  /// v1.3.0
+  'i18n_article_阅读主题': '閱讀主題',
+  
+  // read_theme_widget
+  'i18n_article_阅读设置': '閱讀設定',
+  'i18n_article_字体大小': '字體大小',
+  'i18n_article_减小': '縮小',
+  'i18n_article_增大': '放大',
+  'i18n_article_预览效果': '預覽效果',
+  'i18n_article_重置为默认大小': '重設為預設大小',
+  'i18n_article_字体大小已重置': '字體大小已重設',
 }; 

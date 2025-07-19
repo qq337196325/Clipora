@@ -165,4 +165,26 @@ const Map<String, String> articleI18n = {
   'i18n_article_快照文件不存在': 'Fichier d\'instantané non trouvé\nChemin : @path',
   'i18n_article_快照文件为空': 'Fichier d\'instantané vide\nChemin : @path',
   'i18n_article_初始化失败': 'Échec de l\'initialisation : ',
+
+  'i18n_article_标注记录不存在': 'L\'enregistrement d\'annotation n\'existe pas',
+  'i18n_article_颜色已更新': 'Couleur mise à jour',
+  'i18n_article_颜色更新失败': 'Échec de la mise à jour de la couleur',
+  'i18n_article_原文引用': 'Citation du texte original',
+  'i18n_article_查看笔记': 'Voir la note',
+  'i18n_article_该标注没有笔记内容': 'Cette annotation n\'a pas de contenu de note',
+  'i18n_article_查看笔记失败': 'Échec de l\'affichage de la note',
+  'i18n_article_笔记详情': 'Détails de la note',
+  'i18n_article_标注颜色': 'Couleur d\'annotation',
+
+  /// v1.3.0
+  'i18n_article_阅读主题': 'Thème de lecture',
+  
+  // read_theme_widget
+  'i18n_article_阅读设置': 'Paramètres de lecture',
+  'i18n_article_字体大小': 'Taille de police',
+  'i18n_article_减小': 'Diminuer',
+  'i18n_article_增大': 'Augmenter',
+  'i18n_article_预览效果': 'Effet d\'aperçu',
+  'i18n_article_重置为默认大小': 'Réinitialiser à la taille par défaut',
+  'i18n_article_字体大小已重置': 'La taille de police a été réinitialisée',
 }; 

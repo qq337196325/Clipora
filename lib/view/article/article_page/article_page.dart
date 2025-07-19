@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../db/article/service/article_service.dart';
 import '/basics/logger.dart';
@@ -79,7 +80,8 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
                   await _prepareForPageExit();
                   await articleController.manualSavePosition();
                   // await (_markdownWidgetKey.currentState)?.manualSavePosition();
-                  Navigator.of(context).pop();
+                  // Navigator.of(context).pop();
+                  context.pop(true);
                 },
                 onGenerateSnapshot: generateSnapshot,
                 onReGenerateSnapshot: () async {

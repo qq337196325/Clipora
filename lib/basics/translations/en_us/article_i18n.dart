@@ -165,4 +165,26 @@ const Map<String, String> articleI18n = {
   'i18n_article_快照文件不存在': 'Snapshot file not found\nPath: @path',
   'i18n_article_快照文件为空': 'Snapshot file is empty\nPath: @path',
   'i18n_article_初始化失败': 'Initialization failed: ',
+
+  'i18n_article_标注记录不存在': 'Annotation record does not exist',
+  'i18n_article_颜色已更新': 'Color updated',
+  'i18n_article_颜色更新失败': 'Color update failed',
+  'i18n_article_原文引用': 'Original text quote',
+  'i18n_article_查看笔记': 'View note',
+  'i18n_article_该标注没有笔记内容': 'This annotation has no note content',
+  'i18n_article_查看笔记失败': 'Failed to view note',
+  'i18n_article_笔记详情': 'Note details',
+  'i18n_article_标注颜色': 'Annotation color',
+
+  /// v1.3.0
+  'i18n_article_阅读主题': 'Reading Theme',
+  
+  // read_theme_widget
+  'i18n_article_阅读设置': 'Reading Settings',
+  'i18n_article_字体大小': 'Font Size',
+  'i18n_article_减小': 'Decrease',
+  'i18n_article_增大': 'Increase',
+  'i18n_article_预览效果': 'Preview Effect',
+  'i18n_article_重置为默认大小': 'Reset to Default Size',
+  'i18n_article_字体大小已重置': 'Font size has been reset',
 };

@@ -165,4 +165,26 @@ const Map<String, String> articleI18n = {
   'i18n_article_快照文件不存在': 'Archivo de instantánea no encontrado\nRuta: @path',
   'i18n_article_快照文件为空': 'Archivo de instantánea vacío\nRuta: @path',
   'i18n_article_初始化失败': 'Error de inicialización: ',
+
+  'i18n_article_标注记录不存在': 'El registro de anotación no existe',
+  'i18n_article_颜色已更新': 'Color actualizado',
+  'i18n_article_颜色更新失败': 'Error al actualizar color',
+  'i18n_article_原文引用': 'Cita del texto original',
+  'i18n_article_查看笔记': 'Ver nota',
+  'i18n_article_该标注没有笔记内容': 'Esta anotación no tiene contenido de nota',
+  'i18n_article_查看笔记失败': 'Error al ver nota',
+  'i18n_article_笔记详情': 'Detalles de la nota',
+  'i18n_article_标注颜色': 'Color de anotación',
+
+  /// v1.3.0
+  'i18n_article_阅读主题': 'Tema de lectura',
+  
+  // read_theme_widget
+  'i18n_article_阅读设置': 'Configuración de lectura',
+  'i18n_article_字体大小': 'Tamaño de fuente',
+  'i18n_article_减小': 'Disminuir',
+  'i18n_article_增大': 'Aumentar',
+  'i18n_article_预览效果': 'Efecto de vista previa',
+  'i18n_article_重置为默认大小': 'Restablecer al tamaño predeterminado',
+  'i18n_article_字体大小已重置': 'El tamaño de fuente se ha restablecido',
 }; 

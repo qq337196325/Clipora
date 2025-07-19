@@ -10,6 +10,9 @@ const Map<String, String> themeI18n = {
   'i18n_theme_纯白主题': '纯白主题',
   'i18n_theme_深色主题': '深色主题',
   'i18n_theme_护眼夜间': '护眼夜间',
+  'i18n_theme_海洋主题': '海洋主题',
+  'i18n_theme_森林主题': '森林主题',
+
   
   // 主题描述
   'i18n_theme_专为阅读优化的护眼配色': '专为阅读优化的护眼配色',

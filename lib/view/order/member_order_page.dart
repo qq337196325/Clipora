@@ -115,7 +115,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
 
           // 标题
           Text(
-            'i18n_member_premium_membership'.tr,
+            'i18n_member_高级会员'.tr,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -176,7 +176,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'i18n_member_clipora_premium'.tr,
+                      'i18n_member_Clipora高级版'.tr,
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -185,7 +185,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'i18n_member_unlock_full_potential'.tr,
+                      'i18n_member_解锁全部功能潜力'.tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
@@ -200,7 +200,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
           const SizedBox(height: 20),
 
           Text(
-            'i18n_member_enjoy_advanced_features'.tr,
+            'i18n_member_享受高级功能'.tr,
             style: TextStyle(
               fontSize: 16,
               color: Theme.of(context).colorScheme.onPrimary,
@@ -245,7 +245,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'i18n_member_limited_time_buyout'.tr,
+                  'i18n_member_限时买断'.tr,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -305,7 +305,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
             ),
             const SizedBox(width: 8),
             Text(
-              'i18n_member_one_time_purchase'.tr,
+              'i18n_member_一次性购买'.tr,
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).textTheme.bodySmall?.color,
@@ -336,7 +336,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
             ),
             const SizedBox(width: 8),
             Text(
-              'i18n_member_one_time_purchase'.tr,
+              'i18n_member_一次性购买'.tr,
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).textTheme.bodySmall?.color,
@@ -368,7 +368,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
           ),
           const SizedBox(width: 8),
           Text(
-            'i18n_member_one_time_purchase'.tr,
+            'i18n_member_一次性购买'.tr,
             style: TextStyle(
               fontSize: 12,
               color: Theme.of(context).textTheme.bodySmall?.color,
@@ -384,22 +384,22 @@ class _MemberOrderPageState extends State<MemberOrderPage>
     final features = [
       {
         'icon': Icons.schedule,
-        'text': 'i18n_member_future_subscription_plan'.tr,
+        'text': 'i18n_member_未来订阅计划'.tr,
         'color': const Color(0xFF4ECDC4),
       },
       {
         'icon': Icons.security,
-        'text': 'i18n_member_existing_data_guarantee'.tr,
+        'text': 'i18n_member_现有数据保证'.tr,
         'color': const Color(0xFF52c41a),
       },
       {
         'icon': Icons.update,
-        'text': 'i18n_member_lifetime_updates'.tr,
+        'text': 'i18n_member_终身更新'.tr,
         'color': const Color(0xFF1890ff),
       },
       {
         'icon': Icons.block,
-        'text': 'i18n_member_ad_free_guarantee'.tr,
+        'text': 'i18n_member_无广告保证'.tr,
         'color': const Color(0xFFff4d4f),
       },
     ];
@@ -417,7 +417,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
             ),
             const SizedBox(width: 6),
             Text(
-              'i18n_member_important_notice'.tr,
+              'i18n_member_重要说明'.tr,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -468,26 +468,26 @@ class _MemberOrderPageState extends State<MemberOrderPage>
     final features = [
       {
         'icon': Icons.cloud_sync,
-        'title': 'i18n_member_unlimited_sync'.tr,
-        'subtitle': 'i18n_member_unlimited_sync_desc'.tr,
+        'title': 'i18n_member_无限同步'.tr,
+        'subtitle': 'i18n_member_无限同步描述'.tr,
         'color': const Color(0xFF4ECDC4),
       },
       {
         'icon': Icons.storage,
-        'title': 'i18n_member_unlimited_storage'.tr,
-        'subtitle': 'i18n_member_unlimited_storage_desc'.tr,
+        'title': 'i18n_member_无限存储'.tr,
+        'subtitle': 'i18n_member_无限存储描述'.tr,
         'color': const Color(0xFF667eea),
       },
       {
         'icon': Icons.auto_awesome,
-        'title': 'i18n_member_advanced_features'.tr,
-        'subtitle': 'i18n_member_advanced_features_desc'.tr,
+        'title': 'i18n_member_高级功能'.tr,
+        'subtitle': 'i18n_member_高级功能描述'.tr,
         'color': const Color(0xFF9B59B6),
       },
       {
         'icon': Icons.support_agent,
-        'title': 'i18n_member_priority_support'.tr,
-        'subtitle': 'i18n_member_priority_support_desc'.tr,
+        'title': 'i18n_member_优先支持'.tr,
+        'subtitle': 'i18n_member_优先支持描述'.tr,
         'color': const Color(0xFFFF9500),
       },
     ];
@@ -496,7 +496,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'i18n_member_premium_features'.tr,
+          'i18n_member_高级特权'.tr,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -604,8 +604,8 @@ class _MemberOrderPageState extends State<MemberOrderPage>
     }
     
     final String buttonText = isAndroid
-        ? 'i18n_member_wechat_pay'.trParams({'price': priceString})
-        : 'i18n_member_buy_now'.trParams({'price': priceString});
+        ? 'i18n_member_微信支付'.trParams({'price': priceString})
+        : 'i18n_member_立即购买'.trParams({'price': priceString});
     final IconData buttonIcon = isAndroid ? Icons.payment : Icons.shopping_cart;
 
     return Container(
@@ -737,7 +737,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
                   isAgreedToTerms = !isAgreedToTerms;
                 });
               },
-              child: Text('i18n_member_please_read_and_agree'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              child: Text('i18n_member_购买前请阅读并同意'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
             ),
             Expanded(
               child: RichText(
@@ -752,7 +752,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
                       child: GestureDetector(
                         onTap: () => _handleUserAgreement(),
                         child: Text(
-                          'i18n_member_purchase_agreement'.tr,
+                          'i18n_member_购买协议'.tr,
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(context).primaryColor,

@@ -165,4 +165,26 @@ const Map<String, String> articleI18n = {
   'i18n_article_快照文件不存在': '스냅샷 파일이 존재하지 않습니다\n경로: @path',
   'i18n_article_快照文件为空': '스냅샷 파일이 비어있습니다\n경로: @path',
   'i18n_article_初始化失败': '초기화 실패: ',
+
+  'i18n_article_标注记录不存在': '주석 기록이 존재하지 않습니다',
+  'i18n_article_颜色已更新': '색상이 업데이트되었습니다',
+  'i18n_article_颜色更新失败': '색상 업데이트 실패',
+  'i18n_article_原文引用': '원문 인용',
+  'i18n_article_查看笔记': '노트 보기',
+  'i18n_article_该标注没有笔记内容': '이 주석에는 노트 내용이 없습니다',
+  'i18n_article_查看笔记失败': '노트 보기 실패',
+  'i18n_article_笔记详情': '노트 세부사항',
+  'i18n_article_标注颜色': '주석 색상',
+
+  /// v1.3.0
+  'i18n_article_阅读主题': '읽기 테마',
+  
+  // read_theme_widget
+  'i18n_article_阅读设置': '읽기 설정',
+  'i18n_article_字体大小': '글꼴 크기',
+  'i18n_article_减小': '축소',
+  'i18n_article_增大': '확대',
+  'i18n_article_预览效果': '미리보기 효과',
+  'i18n_article_重置为默认大小': '기본 크기로 재설정',
+  'i18n_article_字体大小已重置': '글꼴 크기가 재설정되었습니다',
 }; 

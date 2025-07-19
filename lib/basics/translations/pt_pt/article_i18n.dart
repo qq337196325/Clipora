@@ -70,4 +70,26 @@ const Map<String, String> articleI18n = {
   'i18n_article_快照保存成功': 'Instantâneo salvo com sucesso',
   'i18n_article_快照加载失败': 'Falha no carregamento do instantâneo',
   'i18n_article_初始化失败': 'Falha na inicialização: ',
+
+  'i18n_article_标注记录不存在': 'Registro de anotação não existe',
+  'i18n_article_颜色已更新': 'Cor atualizada',
+  'i18n_article_颜色更新失败': 'Falha ao atualizar cor',
+  'i18n_article_原文引用': 'Citação do texto original',
+  'i18n_article_查看笔记': 'Ver nota',
+  'i18n_article_该标注没有笔记内容': 'Esta anotação não tem conteúdo de nota',
+  'i18n_article_查看笔记失败': 'Falha ao ver nota',
+  'i18n_article_笔记详情': 'Detalhes da nota',
+  'i18n_article_标注颜色': 'Cor da anotação',
+
+  /// v1.3.0
+  'i18n_article_阅读主题': 'Tema de leitura',
+  
+  // read_theme_widget
+  'i18n_article_阅读设置': 'Configurações de leitura',
+  'i18n_article_字体大小': 'Tamanho da fonte',
+  'i18n_article_减小': 'Diminuir',
+  'i18n_article_增大': 'Aumentar',
+  'i18n_article_预览效果': 'Efeito de visualização',
+  'i18n_article_重置为默认大小': 'Redefinir para tamanho padrão',
+  'i18n_article_字体大小已重置': 'Tamanho da fonte foi redefinido',
 }; 
