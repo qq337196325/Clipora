@@ -29,8 +29,8 @@ class ArticleModel {
   final int version;
   final int updateTimestamp;
   final String uuid;
-  final List<String> tagServiceIds;
-  final List<String> categoryServiceIds;
+  final List<String> tagUuids;
+  final List<String> categoryUuids;
 
   const ArticleModel({
     required this.id,
@@ -63,8 +63,8 @@ class ArticleModel {
     required this.version,
     required this.updateTimestamp,
     required this.uuid,
-    required this.tagServiceIds,
-    required this.categoryServiceIds,
+    required this.tagUuids,
+    required this.categoryUuids,
   });
 
   factory ArticleModel.fromJson(Map<String, dynamic> json) {
@@ -99,8 +99,8 @@ class ArticleModel {
       version: json['version'] as int? ?? 0,
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
       uuid: json['uuid'] as String? ?? "",
-      tagServiceIds: json['tag_service_ids'] == null ? [] : List<String>.from(json["tag_service_ids"].map((x) => x)),
-      categoryServiceIds: json['category_service_ids'] == null ? [] : List<String>.from(json["category_service_ids"].map((x) => x)),
+      tagUuids: json['tag_uuids'] == null ? [] : List<String>.from(json["tag_uuids"].map((x) => x)),
+      categoryUuids: json['category_uuids'] == null ? [] : List<String>.from(json["category_uuids"].map((x) => x)),
     );
   }
 
@@ -171,8 +171,8 @@ class ArticleModel {
     int? updateTimestamp,
     String? uuid,
 
-    List<String>? tagServiceIds,
-    List<String>? categoryServiceIds,
+    List<String>? tagUuids,
+    List<String>? categoryUuids,
   }) {
     return ArticleModel(
       id: id ?? this.id,
@@ -205,8 +205,8 @@ class ArticleModel {
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
       uuid: uuid ?? this.uuid,
-      tagServiceIds: tagServiceIds ?? this.tagServiceIds,
-      categoryServiceIds: categoryServiceIds ?? this.categoryServiceIds,
+      tagUuids: tagUuids ?? this.tagUuids,
+      categoryUuids: categoryUuids ?? this.categoryUuids,
     );
   }
 

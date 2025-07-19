@@ -415,6 +415,7 @@ class GetSyncData {
       ..level = model.level
       ..path = model.path
       ..version = model.version
+      ..uuid = model.uuid
       ..updateTimestamp = model.updateTimestamp
       ..isSynced = true
       ..createdAt = now
@@ -612,13 +613,13 @@ class GetSyncData {
       final dbService = DatabaseService.instance;
       
       // 处理标签关联
-      if (model.tagServiceIds.isNotEmpty) {
+      if (model.tagUuids.isNotEmpty) {
         // 根据serviceId查找对应的本地标签
         final localTags = <TagDb>[];
-        for (final serviceId in model.tagServiceIds) {
+        for (final tagUuid in model.tagUuids) {
           final tag = await dbService.tags
               .where()
-              .serviceIdEqualTo(serviceId)
+              .uuidEqualTo(tagUuid)
               .findFirst();
           if (tag != null) {
             localTags.add(tag);
@@ -632,7 +633,7 @@ class GetSyncData {
           await article.tags.save();
           getLogger().d('🏷️ 为文章 ${article.title} 关联了 ${localTags.length} 个标签');
         } else {
-          getLogger().w('⚠️ 未找到对应的本地标签: ${model.tagServiceIds}');
+          getLogger().w('⚠️ 未找到对应的本地标签: ${model.tagUuids}');
         }
       } else {
         // 清除所有标签关联
@@ -641,14 +642,14 @@ class GetSyncData {
       }
       
       // 处理分类关联
-      if (model.categoryServiceIds.isNotEmpty) {
+      if (model.categoryUuids.isNotEmpty) {
         // 取第一个分类ID（文章只能属于一个分类）
-        final categoryServiceId = model.categoryServiceIds.first;
+        final categoryUuid = model.categoryUuids.first;
         
         // 根据serverId查找对应的本地分类
         final localCategory = await dbService.categories
             .where()
-            .serverIdEqualTo(categoryServiceId)
+            .uuidEqualTo(categoryUuid)
             .findFirst();
         
         if (localCategory != null) {
@@ -656,7 +657,7 @@ class GetSyncData {
           await article.category.save();
           getLogger().d('📁 为文章 ${article.title} 关联了分类: ${localCategory.name}');
         } else {
-          getLogger().w('⚠️ 未找到对应的本地分类，serverId: $categoryServiceId');
+          getLogger().w('⚠️ 未找到对应的本地分类，serverId: $categoryUuid');
         }
       } else {
         // 清除分类关联

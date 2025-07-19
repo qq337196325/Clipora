@@ -2,12 +2,10 @@ import 'package:clipora/db/article_content/article_content_db.dart';
 import 'package:clipora/db/category/category_db.dart';
 import 'package:isar/isar.dart';
 import 'package:get/get.dart';
-import 'package:isar/isar.dart';
 
 import '../../../basics/logger.dart';
 import '../../../basics/ui.dart';
 import '../../../basics/utils/user_utils.dart';
-import '../../sync_operation/sync_operation.dart';
 import '../article_db.dart';
 import 'article_create_service.dart';
 
@@ -834,9 +832,9 @@ class ArticleService extends ArticleCreateService {
           // 清除删除时间，恢复文章
           article.deletedAt = null;
           article.updatedAt = DateTime.now();
+          article.updateTimestamp = getStorageServiceCurrentTimeAdding();
           
           await dbService.articles.put(article);
-          await logSyncOperation(SyncOp.update, article);
           
           getLogger().i('♻️ 恢复已删除文章: ${article.title}');
         } else {

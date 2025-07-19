@@ -189,7 +189,6 @@ mixin ArticleListPageBLoC<T extends StatefulWidget> on State<T> {
         final firstArticle = articles.first;
         await firstArticle.category.load();
         print('🔍 [Debug] 第一篇文章: ${firstArticle.title}');
-        print('🔍 [Debug] 第一篇文章的分类: ${firstArticle.category.value?.name ?? '未设置分类'} (id: ${firstArticle.category.value?.id ?? '无'})');
       }
       
     } catch (e) {

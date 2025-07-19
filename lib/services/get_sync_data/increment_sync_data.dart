@@ -23,7 +23,7 @@ class IncrementSyncData extends GetxService {
     getLogger().i('IncrementSyncData Initialized');
 
     // 每30秒触发一次增量同步检查
-    _timer = Timer.periodic(const Duration(seconds: 30), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 45), (timer) async {
 
 
       await Get.find<DataSyncService>().run();

@@ -6,7 +6,6 @@ import 'article_base_service.dart';
 import '../article_db.dart';
 import '../../category/category_db.dart';
 import '../../../basics/logger.dart';
-import '../../sync_operation/sync_operation.dart';
 
 
 /// 文章服务类
@@ -19,6 +18,7 @@ class ArticleUpdateService extends ArticleBaseService {
       final now = DateTime.now();
       article.updatedAt = now;
       article.userId = getUserId();
+      article.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
       final isCreating = article.id == Isar.autoIncrement;
 
@@ -34,10 +34,6 @@ class ArticleUpdateService extends ArticleBaseService {
 
       await dbService.isar.writeTxn(() async {
         await dbService.articles.put(article);
-        await logSyncOperation(
-          isCreating ? SyncOp.create : SyncOp.update,
-          article,
-        );
       });
 
       getLogger().i('✅ 文章保存成功，ID: ${article.id}');
@@ -61,12 +57,12 @@ class ArticleUpdateService extends ArticleBaseService {
           // 设置新的分类关系
           article.category.value = category;
           article.updatedAt = DateTime.now();
+          article.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
           // 保存文章和关系
           await dbService.articles.put(article);
           await article.category.save();
 
-          await logSyncOperation(SyncOp.update, article);
           getLogger().i('✅ 文章分类更新成功: ${article.title} -> ${category?.name ?? "未分类"}');
         } else {
           getLogger().w('⚠️ 未找到ID为 $articleId 的文章');
@@ -94,6 +90,7 @@ class ArticleUpdateService extends ArticleBaseService {
           article.isRead = isRead ? 1 : 0;
           article.readCount += 1;
           article.updatedAt = DateTime.now();
+          article.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
           if (readDuration != null) {
             article.readDuration += readDuration;
@@ -104,7 +101,6 @@ class ArticleUpdateService extends ArticleBaseService {
           }
 
           await dbService.articles.put(article);
-          await logSyncOperation(SyncOp.update, article);
           getLogger().i('📖 更新文章阅读状态: ${article.title}');
         }
       });
@@ -127,9 +123,9 @@ class ArticleUpdateService extends ArticleBaseService {
           article.isImportant = !article.isImportant;
           newImportantStatus = article.isImportant;
           article.updatedAt = DateTime.now();
+          article.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
           await dbService.articles.put(article);
-          await logSyncOperation(SyncOp.update, article);
 
           getLogger().i('⭐ 切换文章重要状态: ${article.title} -> ${newImportantStatus ? '重要' : '普通'}');
         } else {
@@ -158,9 +154,9 @@ class ArticleUpdateService extends ArticleBaseService {
           article.isArchived = !article.isArchived;
           newArchiveStatus = article.isArchived;
           article.updatedAt = DateTime.now();
+          article.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
           await dbService.articles.put(article);
-          await logSyncOperation(SyncOp.update, article);
 
           getLogger().i('📦 切换文章归档状态: ${article.title} -> ${newArchiveStatus ? '已归档' : '未归档'}');
         } else {

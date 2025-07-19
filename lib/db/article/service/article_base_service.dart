@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:isar/isar.dart';
 import 'package:get/get.dart';
 
@@ -7,7 +6,6 @@ import '../../../basics/utils/user_utils.dart';
 import '../article_db.dart';
 import '../../database_service.dart';
 import '../../../basics/logger.dart';
-import '../../sync_operation/sync_operation.dart';
 import '../../article_content/article_content_db.dart';
 
 
@@ -18,25 +16,25 @@ class ArticleBaseService extends GetxService {
   DatabaseService get dbService => DatabaseService.instance;
 
 
-  /// 记录同步操作
-  Future<void> logSyncOperation(SyncOp op, ArticleDb article) async {
-    final syncOp = SyncOperation()
-      ..operation = op
-      ..collectionName = 'ArticleDb'
-      ..entityId = article.serviceId
-      ..timestamp = DateTime.now()
-      ..status = SyncStatus.pending;
-
-    // 对于非删除操作，我们存储文章的完整数据
-    if (op != SyncOp.delete) {
-      // 注意：这里需要一个方法将 ArticleDb 转换为 Map<String, dynamic>
-      // 暂时我们先假设有一个 toJson 方法，后续需要实现它
-      syncOp.data = jsonEncode(article.toJson());
-    }
-
-    await dbService.syncOperations.put(syncOp);
-    getLogger().i('📝 记录同步操作: ${op.name} for Article ${article.serviceId}');
-  }
+  // /// 记录同步操作
+  // Future<void> logSyncOperation(SyncOp op, ArticleDb article) async {
+  //   final syncOp = SyncOperation()
+  //     ..operation = op
+  //     ..collectionName = 'ArticleDb'
+  //     ..entityId = article.serviceId
+  //     ..timestamp = DateTime.now()
+  //     ..status = SyncStatus.pending;
+  //
+  //   // 对于非删除操作，我们存储文章的完整数据
+  //   if (op != SyncOp.delete) {
+  //     // 注意：这里需要一个方法将 ArticleDb 转换为 Map<String, dynamic>
+  //     // 暂时我们先假设有一个 toJson 方法，后续需要实现它
+  //     syncOp.data = jsonEncode(article.toJson());
+  //   }
+  //
+  //   await dbService.syncOperations.put(syncOp);
+  //   getLogger().i('📝 记录同步操作: ${op.name} for Article ${article.serviceId}');
+  // }
 
 
   /// 软删除文章（设置deletedAt字段）
@@ -52,7 +50,6 @@ class ArticleBaseService extends GetxService {
           article.updateTimestamp = getStorageServiceCurrentTimeAdding();
 
           await dbService.articles.put(article);
-          await logSyncOperation(SyncOp.update, article);
 
           getLogger().i('🗑️ 软删除文章: ${article.title}');
         } else {
@@ -81,11 +78,6 @@ class ArticleBaseService extends GetxService {
             .filter()
             .deletedAtIsNotNull()
             .findAll();
-
-        // 记录删除操作
-        for (final article in deletedArticles) {
-          await logSyncOperation(SyncOp.delete, article);
-        }
 
         // 批量删除
         final articleIds = deletedArticles.map((article) => article.id).toList();

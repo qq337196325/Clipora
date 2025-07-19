@@ -528,7 +528,7 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
 
 
 
-    if (_currentArticle != null) {
+    if (_currentArticle != null && filePath != "") {
       await generateMhtmlUtils.updateArticleSnapshot(filePath, _currentArticle!.id);
       final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath, _currentArticle!.id);
 

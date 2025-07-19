@@ -280,20 +280,33 @@ class DataSyncService extends GetxService {
       
       for (final article in articlesToSync) {
         // 获取关联的标签serviceId数组
+
+        // final List<String> tagServiceIds = article.tags
+        //     .where((tag) => tag.serviceId.isNotEmpty)
+        //     .map((tag) => tag.serviceId)
+        //     .toList();
+
         await article.tags.load();
-        final List<String> tagServiceIds = article.tags
-            .where((tag) => tag.serviceId.isNotEmpty)
-            .map((tag) => tag.serviceId)
-            .toList();
-        
-        // 获取关联的分类serverId数组
-        await article.category.load();
-        final List<String> categoryServiceIds = [];
-        if (article.category.value != null && 
-            article.category.value!.serverId != null && 
-            article.category.value!.serverId!.isNotEmpty) {
-          categoryServiceIds.add(article.category.value!.serverId!);
+        List<String> tagUuids = [];
+        for (var action in article.tags) {
+          tagUuids.add(action.uuid);
         }
+
+
+        await article.category.load();
+        List<String> categoryUuids = [];
+        if(article.category.value != null){
+          categoryUuids.add(article.category.value!.uuid);
+        }
+
+        // 获取关联的分类serverId数组
+        // await article.category.load();
+        // final List<String> categoryServiceIds = [];
+        // if (article.category.value != null &&
+        //     article.category.value!.serverId != null &&
+        //     article.category.value!.serverId!.isNotEmpty) {
+        //   categoryServiceIds.add(article.category.value!.serverId!);
+        // }
 
         final articleData = {
           'uuid': article.uuid,
@@ -307,12 +320,12 @@ class DataSyncService extends GetxService {
           'read_count': article.readCount,
           'read_duration': article.readDuration,
           'read_progress': article.readProgress,
-          'tag_service_ids': tagServiceIds,
-          'category_service_ids': categoryServiceIds,
+          'tag_uuids': tagUuids,
+          'category_uuids': categoryUuids,
         };
         
         articleDataList.add(articleData);
-        getLogger().d('📝 准备同步文章: ${article.title} (ID: ${article.id}), Tags: ${tagServiceIds.length}, Category: ${categoryServiceIds.length}');
+        getLogger().d('📝 准备同步文章: ${article.title} (ID: ${article.id}), Tags: ${tagUuids.length}, Category: ${categoryUuids.length}');
       }
       
       final requestData = {
