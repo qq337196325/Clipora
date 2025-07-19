@@ -135,6 +135,8 @@ class DataSyncService extends GetxService {
           'service_id': category.serviceId,
           'name': category.name,
           'version': category.version,
+          'delete_time': category.deletedAt?.toIso8601String() ?? '',
+          'delete_time_v2': category.deletedAt != null ? category.deletedAt!.millisecondsSinceEpoch ~/ 1000 : 0,
         };
 
         categoryDataList.add(categoryData);
@@ -213,6 +215,8 @@ class DataSyncService extends GetxService {
             'bounding_height': annotation.boundingHeight,
             'version': annotation.version,
             'updateTimestamp': annotation.updateTimestamp, // 用于排查问题
+            'delete_time': annotation.deletedAt?.toIso8601String() ?? '',
+            'delete_time_v2': annotation.deletedAt != null ? annotation.deletedAt!.millisecondsSinceEpoch ~/ 1000 : 0,
         };
       }).toList();
       
@@ -290,7 +294,7 @@ class DataSyncService extends GetxService {
             article.category.value!.serverId!.isNotEmpty) {
           categoryServiceIds.add(article.category.value!.serverId!);
         }
-        
+
         final articleData = {
           'uuid': article.uuid,
           'client_id': article.id,
@@ -298,6 +302,7 @@ class DataSyncService extends GetxService {
           'is_archived': article.isArchived,
           'is_important': article.isImportant,
           'delete_time': article.deletedAt?.toIso8601String() ?? '',
+          'delete_time_v2': article.deletedAt != null ? article.deletedAt!.millisecondsSinceEpoch ~/ 1000 : 0,
           'is_read': article.isRead,
           'read_count': article.readCount,
           'read_duration': article.readDuration,
@@ -384,6 +389,8 @@ class DataSyncService extends GetxService {
           'parent_id': category.parentId ?? 0,
           'level': category.level,
           'path': category.path,
+          'delete_time': category.deletedAt?.toIso8601String() ?? '',
+          'delete_time_v2': category.deletedAt != null ? category.deletedAt!.millisecondsSinceEpoch ~/ 1000 : 0,
         };
         
         categoryDataList.add(categoryData);

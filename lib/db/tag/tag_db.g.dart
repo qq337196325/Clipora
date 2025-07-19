@@ -22,38 +22,43 @@ const TagDbSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'name': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 1,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'name': PropertySchema(
+      id: 2,
       name: r'name',
       type: IsarType.string,
     ),
     r'serviceId': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'serviceId',
       type: IsarType.string,
     ),
     r'updateTimestamp': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'updateTimestamp',
       type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'userId',
       type: IsarType.string,
     ),
     r'uuid': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'uuid',
       type: IsarType.string,
     ),
     r'version': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'version',
       type: IsarType.long,
     )
@@ -205,13 +210,14 @@ void _tagDbSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.name);
-  writer.writeString(offsets[2], object.serviceId);
-  writer.writeLong(offsets[3], object.updateTimestamp);
-  writer.writeDateTime(offsets[4], object.updatedAt);
-  writer.writeString(offsets[5], object.userId);
-  writer.writeString(offsets[6], object.uuid);
-  writer.writeLong(offsets[7], object.version);
+  writer.writeDateTime(offsets[1], object.deletedAt);
+  writer.writeString(offsets[2], object.name);
+  writer.writeString(offsets[3], object.serviceId);
+  writer.writeLong(offsets[4], object.updateTimestamp);
+  writer.writeDateTime(offsets[5], object.updatedAt);
+  writer.writeString(offsets[6], object.userId);
+  writer.writeString(offsets[7], object.uuid);
+  writer.writeLong(offsets[8], object.version);
 }
 
 TagDb _tagDbDeserialize(
@@ -222,14 +228,15 @@ TagDb _tagDbDeserialize(
 ) {
   final object = TagDb();
   object.createdAt = reader.readDateTime(offsets[0]);
+  object.deletedAt = reader.readDateTimeOrNull(offsets[1]);
   object.id = id;
-  object.name = reader.readString(offsets[1]);
-  object.serviceId = reader.readString(offsets[2]);
-  object.updateTimestamp = reader.readLong(offsets[3]);
-  object.updatedAt = reader.readDateTime(offsets[4]);
-  object.userId = reader.readString(offsets[5]);
-  object.uuid = reader.readString(offsets[6]);
-  object.version = reader.readLong(offsets[7]);
+  object.name = reader.readString(offsets[2]);
+  object.serviceId = reader.readString(offsets[3]);
+  object.updateTimestamp = reader.readLong(offsets[4]);
+  object.updatedAt = reader.readDateTime(offsets[5]);
+  object.userId = reader.readString(offsets[6]);
+  object.uuid = reader.readString(offsets[7]);
+  object.version = reader.readLong(offsets[8]);
   return object;
 }
 
@@ -243,18 +250,20 @@ P _tagDbDeserializeProp<P>(
     case 0:
       return (reader.readDateTime(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readLong(offset)) as P;
-    case 4:
-      return (reader.readDateTime(offset)) as P;
-    case 5:
       return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readDateTime(offset)) as P;
     case 6:
       return (reader.readString(offset)) as P;
     case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -961,6 +970,75 @@ extension TagDbQueryFilter on QueryBuilder<TagDb, TagDb, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1768,6 +1846,18 @@ extension TagDbQuerySortBy on QueryBuilder<TagDb, TagDb, QSortBy> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1863,6 +1953,18 @@ extension TagDbQuerySortThenBy on QueryBuilder<TagDb, TagDb, QSortThenBy> {
   QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TagDb, TagDb, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
@@ -1970,6 +2072,12 @@ extension TagDbQueryWhereDistinct on QueryBuilder<TagDb, TagDb, QDistinct> {
     });
   }
 
+  QueryBuilder<TagDb, TagDb, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<TagDb, TagDb, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2027,6 +2135,12 @@ extension TagDbQueryProperty on QueryBuilder<TagDb, TagDb, QQueryProperty> {
   QueryBuilder<TagDb, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<TagDb, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
     });
   }
 

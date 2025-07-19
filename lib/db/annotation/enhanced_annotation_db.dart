@@ -61,11 +61,9 @@ class EnhancedAnnotationDb {
   double boundingHeight = 0.0;   // 边界框高度
 
   // === 元数据 ===
-  @Index()
-  DateTime createdAt = DateTime.now();
-  
-  @Index()
-  DateTime updatedAt = DateTime.now();
+  @Index() DateTime createdAt = DateTime.now();
+  @Index() DateTime updatedAt = DateTime.now();
+  DateTime? deletedAt;                         // 删除日期
 
   // === 辅助字段 ===
   int version = 1;               // 数据版本（用于迁移）

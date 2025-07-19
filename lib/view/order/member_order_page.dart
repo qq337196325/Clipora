@@ -114,13 +114,16 @@ class _MemberOrderPageState extends State<MemberOrderPage>
           const SizedBox(width: 16),
 
           // 标题
-          Text(
-            'i18n_member_高级会员'.tr,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context).textTheme.headlineMedium?.color,
-              letterSpacing: 0.5,
+          Flexible(
+            child: Text(
+              'i18n_member_高级会员'.tr,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Theme.of(context).textTheme.headlineMedium?.color,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
 
@@ -304,11 +307,14 @@ class _MemberOrderPageState extends State<MemberOrderPage>
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              'i18n_member_一次性购买'.tr,
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).textTheme.bodySmall?.color,
+            Flexible(
+              child: Text(
+                'i18n_member_一次性购买'.tr,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
               ),
             ),
           ],
@@ -335,11 +341,14 @@ class _MemberOrderPageState extends State<MemberOrderPage>
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              'i18n_member_一次性购买'.tr,
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).textTheme.bodySmall?.color,
+            Flexible(
+              child: Text(
+                'i18n_member_一次性购买'.tr,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
               ),
             ),
           ],
@@ -367,11 +376,14 @@ class _MemberOrderPageState extends State<MemberOrderPage>
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            'i18n_member_一次性购买'.tr,
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).textTheme.bodySmall?.color,
+          Flexible(
+            child: Text(
+              'i18n_member_一次性购买'.tr,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
             ),
           ),
         ],
@@ -677,11 +689,14 @@ class _MemberOrderPageState extends State<MemberOrderPage>
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              buttonText,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                            Flexible(
+                              child: Text(
+                                buttonText,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
@@ -731,13 +746,15 @@ class _MemberOrderPageState extends State<MemberOrderPage>
               ),
             ),
             const SizedBox(width: 8),
-            InkWell(
-              onTap: (){
-                setState(() {
-                  isAgreedToTerms = !isAgreedToTerms;
-                });
-              },
-              child: Text('i18n_member_购买前请阅读并同意'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+            Flexible(
+              child: InkWell(
+                onTap: (){
+                  setState(() {
+                    isAgreedToTerms = !isAgreedToTerms;
+                  });
+                },
+                child: Text('i18n_member_购买前请阅读并同意'.tr, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              ),
             ),
             Expanded(
               child: RichText(

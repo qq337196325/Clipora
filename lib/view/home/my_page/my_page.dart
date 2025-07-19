@@ -826,7 +826,7 @@ mixin MyPageBLoC on State<MyPage> {
         return _buildSubscriptionMemberCard(); // 订阅会员卡片
       default:
         return _buildPurchaseCard();
-    }
+    } 
   }
 
   /// 购买会员卡片（非会员状态）
@@ -871,7 +871,7 @@ mixin MyPageBLoC on State<MyPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'i18n_member_premium_membership'.tr,
+                      'i18n_member_高级会员'.tr,
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -879,7 +879,7 @@ mixin MyPageBLoC on State<MyPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'i18n_member_unlock_full_potential'.tr,
+                      'i18n_member_解锁全部功能潜力'.tr,
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context).textTheme.bodySmall?.color,
@@ -929,7 +929,7 @@ mixin MyPageBLoC on State<MyPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'i18n_member_limited_time_buyout'.tr,
+                    'i18n_member_限时买断'.tr,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -937,11 +937,14 @@ mixin MyPageBLoC on State<MyPage> {
                     ),
                   ),
                 ),
-                Text(
-                  'i18n_member_one_time_purchase'.tr,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
+                Flexible(
+                  child: Text(
+                    'i18n_member_一次性购买'.tr,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
                   ),
                 ),
               ],
@@ -995,12 +998,15 @@ mixin MyPageBLoC on State<MyPage> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'i18n_member_终身会员'.tr,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).textTheme.titleLarge?.color,
+                        Flexible(
+                          child: Text(
+                            'i18n_member_终身会员'.tr,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).textTheme.titleLarge?.color,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1033,34 +1039,39 @@ mixin MyPageBLoC on State<MyPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: Colors.green.withOpacity(0.3),
-                    width: 1,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.green.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'i18n_member_会员已激活'.tr,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.check_circle,
                         color: Colors.green,
+                        size: 14,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'i18n_member_会员已激活'.tr,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -1078,27 +1089,30 @@ mixin MyPageBLoC on State<MyPage> {
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.all_inclusive,
                   size: 16,
-                  color: const Color(0xFFFFD700),
+                  color: Color(0xFFFFD700),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'i18n_member_永久访问权限'.tr,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFFFFD700),
+                      color: Color(0xFFFFD700),
                     ),
                   ),
                 ),
-                Text(
-                  'i18n_member_感谢您的支持'.tr,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
+                Flexible(
+                  child: Text(
+                    'i18n_member_感谢您的支持'.tr,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
                   ),
                 ),
               ],
@@ -1156,12 +1170,15 @@ mixin MyPageBLoC on State<MyPage> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'i18n_member_订阅会员'.tr,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).textTheme.titleLarge?.color,
+                        Flexible(
+                          child: Text(
+                            'i18n_member_订阅会员'.tr,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).textTheme.titleLarge?.color,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1242,18 +1259,21 @@ mixin MyPageBLoC on State<MyPage> {
                     ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'i18n_member_会员已激活'.tr,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.green,
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'i18n_member_会员已激活'.tr,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green,
+                      ),
                     ),
                   ),
                 ),

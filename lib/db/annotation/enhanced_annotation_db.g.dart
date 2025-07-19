@@ -85,88 +85,93 @@ const EnhancedAnnotationDbSchema = CollectionSchema(
       name: r'crossParagraph',
       type: IsarType.bool,
     ),
-    r'endOffset': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 13,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'endOffset': PropertySchema(
+      id: 14,
       name: r'endOffset',
       type: IsarType.long,
     ),
     r'endXPath': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'endXPath',
       type: IsarType.string,
     ),
     r'highlightId': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'highlightId',
       type: IsarType.string,
     ),
     r'isSynced': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'isSynced',
       type: IsarType.bool,
     ),
     r'noteContent': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'noteContent',
       type: IsarType.string,
     ),
     r'rangeFingerprint': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'rangeFingerprint',
       type: IsarType.string,
     ),
     r'selectedText': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'selectedText',
       type: IsarType.string,
     ),
     r'serverId': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'serverId',
       type: IsarType.string,
     ),
     r'serviceArticleContentId': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'serviceArticleContentId',
       type: IsarType.string,
     ),
     r'serviceArticleId': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'serviceArticleId',
       type: IsarType.string,
     ),
     r'startOffset': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'startOffset',
       type: IsarType.long,
     ),
     r'startXPath': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'startXPath',
       type: IsarType.string,
     ),
     r'updateTimestamp': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'updateTimestamp',
       type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'userId',
       type: IsarType.string,
     ),
     r'uuid': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'uuid',
       type: IsarType.string,
     ),
     r'version': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'version',
       type: IsarType.long,
     )
@@ -420,23 +425,24 @@ void _enhancedAnnotationDbSerialize(
   writer.writeByte(offsets[10], object.colorType.index);
   writer.writeDateTime(offsets[11], object.createdAt);
   writer.writeBool(offsets[12], object.crossParagraph);
-  writer.writeLong(offsets[13], object.endOffset);
-  writer.writeString(offsets[14], object.endXPath);
-  writer.writeString(offsets[15], object.highlightId);
-  writer.writeBool(offsets[16], object.isSynced);
-  writer.writeString(offsets[17], object.noteContent);
-  writer.writeString(offsets[18], object.rangeFingerprint);
-  writer.writeString(offsets[19], object.selectedText);
-  writer.writeString(offsets[20], object.serverId);
-  writer.writeString(offsets[21], object.serviceArticleContentId);
-  writer.writeString(offsets[22], object.serviceArticleId);
-  writer.writeLong(offsets[23], object.startOffset);
-  writer.writeString(offsets[24], object.startXPath);
-  writer.writeLong(offsets[25], object.updateTimestamp);
-  writer.writeDateTime(offsets[26], object.updatedAt);
-  writer.writeString(offsets[27], object.userId);
-  writer.writeString(offsets[28], object.uuid);
-  writer.writeLong(offsets[29], object.version);
+  writer.writeDateTime(offsets[13], object.deletedAt);
+  writer.writeLong(offsets[14], object.endOffset);
+  writer.writeString(offsets[15], object.endXPath);
+  writer.writeString(offsets[16], object.highlightId);
+  writer.writeBool(offsets[17], object.isSynced);
+  writer.writeString(offsets[18], object.noteContent);
+  writer.writeString(offsets[19], object.rangeFingerprint);
+  writer.writeString(offsets[20], object.selectedText);
+  writer.writeString(offsets[21], object.serverId);
+  writer.writeString(offsets[22], object.serviceArticleContentId);
+  writer.writeString(offsets[23], object.serviceArticleId);
+  writer.writeLong(offsets[24], object.startOffset);
+  writer.writeString(offsets[25], object.startXPath);
+  writer.writeLong(offsets[26], object.updateTimestamp);
+  writer.writeDateTime(offsets[27], object.updatedAt);
+  writer.writeString(offsets[28], object.userId);
+  writer.writeString(offsets[29], object.uuid);
+  writer.writeLong(offsets[30], object.version);
 }
 
 EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
@@ -463,24 +469,25 @@ EnhancedAnnotationDb _enhancedAnnotationDbDeserialize(
       AnnotationColor.yellow;
   object.createdAt = reader.readDateTime(offsets[11]);
   object.crossParagraph = reader.readBool(offsets[12]);
-  object.endOffset = reader.readLong(offsets[13]);
-  object.endXPath = reader.readString(offsets[14]);
-  object.highlightId = reader.readString(offsets[15]);
+  object.deletedAt = reader.readDateTimeOrNull(offsets[13]);
+  object.endOffset = reader.readLong(offsets[14]);
+  object.endXPath = reader.readString(offsets[15]);
+  object.highlightId = reader.readString(offsets[16]);
   object.id = id;
-  object.isSynced = reader.readBool(offsets[16]);
-  object.noteContent = reader.readString(offsets[17]);
-  object.rangeFingerprint = reader.readString(offsets[18]);
-  object.selectedText = reader.readString(offsets[19]);
-  object.serverId = reader.readStringOrNull(offsets[20]);
-  object.serviceArticleContentId = reader.readString(offsets[21]);
-  object.serviceArticleId = reader.readString(offsets[22]);
-  object.startOffset = reader.readLong(offsets[23]);
-  object.startXPath = reader.readString(offsets[24]);
-  object.updateTimestamp = reader.readLong(offsets[25]);
-  object.updatedAt = reader.readDateTime(offsets[26]);
-  object.userId = reader.readString(offsets[27]);
-  object.uuid = reader.readString(offsets[28]);
-  object.version = reader.readLong(offsets[29]);
+  object.isSynced = reader.readBool(offsets[17]);
+  object.noteContent = reader.readString(offsets[18]);
+  object.rangeFingerprint = reader.readString(offsets[19]);
+  object.selectedText = reader.readString(offsets[20]);
+  object.serverId = reader.readStringOrNull(offsets[21]);
+  object.serviceArticleContentId = reader.readString(offsets[22]);
+  object.serviceArticleId = reader.readString(offsets[23]);
+  object.startOffset = reader.readLong(offsets[24]);
+  object.startXPath = reader.readString(offsets[25]);
+  object.updateTimestamp = reader.readLong(offsets[26]);
+  object.updatedAt = reader.readDateTime(offsets[27]);
+  object.userId = reader.readString(offsets[28]);
+  object.uuid = reader.readString(offsets[29]);
+  object.version = reader.readLong(offsets[30]);
   return object;
 }
 
@@ -522,38 +529,40 @@ P _enhancedAnnotationDbDeserializeProp<P>(
     case 12:
       return (reader.readBool(offset)) as P;
     case 13:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 14:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 15:
       return (reader.readString(offset)) as P;
     case 16:
-      return (reader.readBool(offset)) as P;
-    case 17:
       return (reader.readString(offset)) as P;
+    case 17:
+      return (reader.readBool(offset)) as P;
     case 18:
       return (reader.readString(offset)) as P;
     case 19:
       return (reader.readString(offset)) as P;
     case 20:
-      return (reader.readStringOrNull(offset)) as P;
-    case 21:
       return (reader.readString(offset)) as P;
+    case 21:
+      return (reader.readStringOrNull(offset)) as P;
     case 22:
       return (reader.readString(offset)) as P;
     case 23:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 24:
-      return (reader.readString(offset)) as P;
-    case 25:
       return (reader.readLong(offset)) as P;
-    case 26:
-      return (reader.readDateTime(offset)) as P;
-    case 27:
+    case 25:
       return (reader.readString(offset)) as P;
+    case 26:
+      return (reader.readLong(offset)) as P;
+    case 27:
+      return (reader.readDateTime(offset)) as P;
     case 28:
       return (reader.readString(offset)) as P;
     case 29:
+      return (reader.readString(offset)) as P;
+    case 30:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2787,6 +2796,80 @@ extension EnhancedAnnotationDbQueryFilter on QueryBuilder<EnhancedAnnotationDb,
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> deletedAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
+      QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb,
       QAfterFilterCondition> endOffsetEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -4862,6 +4945,20 @@ extension EnhancedAnnotationDbQuerySortBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       sortByEndOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'endOffset', Sort.asc);
@@ -5285,6 +5382,20 @@ extension EnhancedAnnotationDbQuerySortThenBy
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
+      thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QAfterSortBy>
       thenByEndOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'endOffset', Sort.asc);
@@ -5632,6 +5743,13 @@ extension EnhancedAnnotationDbQueryWhereDistinct
   }
 
   QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
+      distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, EnhancedAnnotationDb, QDistinct>
       distinctByEndOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'endOffset');
@@ -5850,6 +5968,13 @@ extension EnhancedAnnotationDbQueryProperty on QueryBuilder<
       crossParagraphProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'crossParagraph');
+    });
+  }
+
+  QueryBuilder<EnhancedAnnotationDb, DateTime?, QQueryOperations>
+      deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
     });
   }
 

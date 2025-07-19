@@ -83,7 +83,7 @@ class SimpleHtmlTemplate {
             margin: 0;
             padding: 0px;
             padding-top: 40px;
-            padding-bottom: 60px;
+            padding-bottom: 80px;
             word-wrap: break-word;
             overflow-x: hidden; /* 防止水平滚动 */
             width: 100%;

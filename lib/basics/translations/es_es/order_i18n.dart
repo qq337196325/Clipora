@@ -2,7 +2,7 @@ const Map<String, String> orderI18n = {
   // ai_order_page.dart
   'i18n_order_AI翻译请求包': 'Paquete de solicitudes de traducción IA',
   'i18n_order_AI翻译助手': 'Asistente de traducción IA',
-  'i18n_order_让阅读更智能': 'Lectura más inteligente, aprendizaje más eficiente',
+  'i18n_order_让阅读更智能': 'Hacer la lectura más inteligente, el aprendizaje más eficiente',
   'i18n_order_通过AI翻译助手': 'Con el asistente de traducción IA, puede traducir artículos a múltiples idiomas.',
   'i18n_order_限时优惠': 'Oferta por tiempo limitado',
   'i18n_order_原价': 'Precio original ¥@price',
@@ -43,10 +43,10 @@ const Map<String, String> orderI18n = {
   'i18n_member_享受高级功能': 'Disfrute de funciones avanzadas para una lectura y gestión del conocimiento más eficientes',
   'i18n_member_限时买断': 'Compra única por tiempo limitado',
   'i18n_member_一次性购买': 'Compra única, conviértete en miembro permanente',
-  'i18n_member_未来订阅计划': 'Planeamos ofrecer suscripciones anuales y mensuales en el futuro, actualmente ofrecemos compra única por tiempo limitado.',
-  'i18n_member_现有数据保证': 'Garantizamos que los no miembros siempre pueden usar los datos existentes de forma gratuita.',
-  'i18n_member_终身更新': 'Soporte para actualizaciones gratuitas de por vida.',
-  'i18n_member_无广告保证': 'Clipora garantiza nunca incluir publicidad, asegurando su experiencia. La membresía es nuestra única fuente de ingresos.',
+  'i18n_member_未来订阅计划': 'Planeamos facturar por suscripciones anuales y mensuales en el futuro. Actualmente, es una compra única por tiempo limitado.',
+  'i18n_member_现有数据保证': 'Para los no miembros, garantizamos que siempre podrá utilizar sus datos existentes de forma gratuita.',
+  'i18n_member_终身更新': 'Admite futuras actualizaciones gratuitas permanentes.',
+  'i18n_member_无广告保证': 'Clipora garantiza que nunca agregará negocios publicitarios para garantizar su experiencia de usuario. El sistema de membresía es nuestra única fuente de ingresos.',
   'i18n_member_高级特权': 'Privilegios Premium',
   'i18n_member_无限同步': 'Sincronización Ilimitada',
   'i18n_member_无限同步描述': 'Sincronización ilimitada de sus datos a la nube',
@@ -88,4 +88,4 @@ const Map<String, String> orderI18n = {
   'i18n_member_感谢您的支持': 'Gracias por su apoyo',
   'i18n_member_正在享受高级会员特权': 'Disfrutando de privilegios de membresía premium',
   'i18n_member_永久访问权限': 'Derechos de acceso permanente',
-}; 
+};

@@ -2,7 +2,7 @@ const Map<String, String> orderI18n = {
   // ai_order_page.dart
   'i18n_order_AI翻译请求包': 'AI-vertaalverzoekpakket',
   'i18n_order_AI翻译助手': 'AI-vertaalassistent',
-  'i18n_order_让阅读更智能': 'Slimmer lezen, efficiënter leren',
+  'i18n_order_让阅读更智能': 'Lezen slimmer maken, leren efficiënter maken',
   'i18n_order_通过AI翻译助手': 'Met de AI-vertaalassistent kunt u artikelen naar meerdere talen vertalen.',
   'i18n_order_限时优惠': 'Beperkte tijdaanbieding',
   'i18n_order_原价': 'Oorspronkelijke prijs ¥@price',
@@ -43,10 +43,10 @@ const Map<String, String> orderI18n = {
   'i18n_member_享受高级功能': 'Geniet van geavanceerde functies voor efficiënter lezen en kennisbeheer',
   'i18n_member_限时买断': 'Beperkte tijd eenmalige aankoop',
   'i18n_member_一次性购买': 'Eenmalige aankoop, word permanent lid',
-  'i18n_member_未来订阅计划': 'We plannen jaarlijkse en maandelijkse abonnementen in de toekomst, momenteel beperkte tijd eenmalige aankoop.',
-  'i18n_member_现有数据保证': 'We garanderen dat niet-leden bestaande gegevens altijd gratis kunnen gebruiken.',
-  'i18n_member_终身更新': 'Ondersteuning voor toekomstige permanente gratis updates.',
-  'i18n_member_无广告保证': 'Clipora garandeert nooit reclame toe te voegen, waardoor uw ervaring wordt gewaarborgd. Lidmaatschap is onze enige inkomstenbron.',
+  'i18n_member_未来订阅计划': 'We zijn van plan om in de toekomst jaarlijkse en maandelijkse abonnementen aan te bieden. Momenteel is het een eenmalige aankoop voor beperkte tijd.',
+  'i18n_member_现有数据保证': 'Voor niet-leden garanderen we dat u uw bestaande gegevens altijd gratis kunt gebruiken.',
+  'i18n_member_终身更新': 'Ondersteunt toekomstige permanente gratis updates.',
+  'i18n_member_无广告保证': 'Clipora garandeert dat er nooit reclameactiviteiten worden toegevoegd om uw gebruikerservaring te waarborgen. Het lidmaatschapssysteem is onze enige bron van inkomsten.',
   'i18n_member_高级特权': 'Premium Privileges',
   'i18n_member_无限同步': 'Onbeperkte Synchronisatie',
   'i18n_member_无限同步描述': 'Onbeperkte synchronisatie van uw gegevens naar de cloud',
@@ -88,4 +88,4 @@ const Map<String, String> orderI18n = {
   'i18n_member_感谢您的支持': 'Dank voor uw steun',
   'i18n_member_正在享受高级会员特权': 'Genietend van premium lidmaatschapsprivileges',
   'i18n_member_永久访问权限': 'Permanente toegangsrechten',
-}; 
+};

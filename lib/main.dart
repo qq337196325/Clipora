@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
       theme: themeController.currentThemeData,
       // 多语言配置
       translations: AppTranslations(),
-      fallbackLocale: const Locale('zh', 'CN'),
+      fallbackLocale: const Locale('en', 'US'),
       
       // 新增以下内容以支持Flutter内置组件的国际化
       localizationsDelegates: const [

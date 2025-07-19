@@ -8,7 +8,7 @@ class LanguageController extends GetxController {
   final _storage = GetStorage();
   
   // 当前语言
-  Rx<Locale> currentLocale = const Locale('zh', 'CN').obs;
+  Rx<Locale> currentLocale = const Locale('en', 'US').obs;
   
   // 支持的语言列表
   final List<LanguageModel> supportedLanguages = [
@@ -167,12 +167,12 @@ class LanguageController extends GetxController {
             langOnlyMatch.countryCode,
           );
         } else {
-          // 默认使用中文
-          currentLocale.value = const Locale('zh', 'CN');
+          // 默认使用英文
+          currentLocale.value = const Locale('en', 'US');
         }
       }
     } else {
-      currentLocale.value = const Locale('zh', 'CN');
+      currentLocale.value = const Locale('en', 'US');
     }
     
     Get.updateLocale(currentLocale.value);
@@ -199,7 +199,7 @@ class LanguageController extends GetxController {
       (lang) => lang.languageCode == currentLocale.value.languageCode &&
                 lang.countryCode == currentLocale.value.countryCode,
     );
-    return current?.languageName ?? '中文简体';
+    return current?.languageName ?? 'English';
   }
 
   /// 获取当前语言标志
@@ -208,7 +208,7 @@ class LanguageController extends GetxController {
       (lang) => lang.languageCode == currentLocale.value.languageCode &&
                 lang.countryCode == currentLocale.value.countryCode,
     );
-    return current?.flag ?? '🇨🇳';
+    return current?.flag ?? '🇺🇸';
   }
 
   /// 检查是否为当前语言

@@ -2,7 +2,7 @@ const Map<String, String> orderI18n = {
   // ai_order_page.dart
   'i18n_order_AI翻译请求包': 'Pacote de solicitações de tradução IA',
   'i18n_order_AI翻译助手': 'Assistente de tradução IA',
-  'i18n_order_让阅读更智能': 'Leitura mais inteligente, aprendizado mais eficiente',
+  'i18n_order_让阅读更智能': 'Tornar a leitura mais inteligente, a aprendizagem mais eficiente',
   'i18n_order_通过AI翻译助手': 'Com o assistente de tradução IA, você pode traduzir artigos para vários idiomas.',
   'i18n_order_限时优惠': 'Oferta por tempo limitado',
   'i18n_order_原价': 'Preço original ¥@price',
@@ -43,10 +43,10 @@ const Map<String, String> orderI18n = {
   'i18n_member_享受高级功能': 'Desfrute de recursos avançados para leitura e gestão de conhecimento mais eficientes',
   'i18n_member_限时买断': 'Compra única por tempo limitado',
   'i18n_member_一次性购买': 'Compra única, torne-se membro permanente',
-  'i18n_member_未来订阅计划': 'Planejamos oferecer assinaturas anuais e mensais no futuro, atualmente compra única por tempo limitado.',
-  'i18n_member_现有数据保证': 'Garantimos que não-membros sempre podem usar dados existentes gratuitamente.',
-  'i18n_member_终身更新': 'Suporte para atualizações gratuitas permanentes no futuro.',
-  'i18n_member_无广告保证': 'Clipora garante nunca incluir negócios de publicidade, garantindo sua experiência. A associação é nossa única fonte de receita.',
+  'i18n_member_未来订阅计划': 'Planejamos cobrar por assinaturas anuais e mensais no futuro. Atualmente, é uma compra única por tempo limitado.',
+  'i18n_member_现有数据保证': 'Para não membros, garantimos que você sempre pode usar seus dados existentes gratuitamente.',
+  'i18n_member_终身更新': 'Suporta futuras atualizações gratuitas permanentes.',
+  'i18n_member_无广告保证': 'A Clipora garante que nunca adicionará negócios de publicidade para garantir sua experiência de usuário. O sistema de associação é nossa única fonte de receita.',
   'i18n_member_高级特权': 'Privilégios Premium',
   'i18n_member_无限同步': 'Sincronização Ilimitada',
   'i18n_member_无限同步描述': 'Sincronização ilimitada de seus dados para a nuvem',
@@ -88,4 +88,4 @@ const Map<String, String> orderI18n = {
   'i18n_member_感谢您的支持': 'Obrigado pelo seu apoio',
   'i18n_member_正在享受高级会员特权': 'Desfrutando de privilégios de membro premium',
   'i18n_member_永久访问权限': 'Direitos de acesso permanente',
-}; 
+};

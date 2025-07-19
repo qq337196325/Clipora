@@ -27,103 +27,108 @@ const CategoryDbSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'description': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 2,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'description': PropertySchema(
+      id: 3,
       name: r'description',
       type: IsarType.string,
     ),
     r'deviceId': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'deviceId',
       type: IsarType.string,
     ),
     r'icon': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'icon',
       type: IsarType.string,
     ),
     r'isDeleted': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'isEnabled': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'isEnabled',
       type: IsarType.bool,
     ),
     r'isRoot': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'isRoot',
       type: IsarType.bool,
     ),
     r'isSynced': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'isSynced',
       type: IsarType.bool,
     ),
     r'lastModified': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'lastModified',
       type: IsarType.long,
     ),
     r'level': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'level',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'name',
       type: IsarType.string,
     ),
     r'parentId': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'parentId',
       type: IsarType.long,
     ),
     r'parentServerId': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'parentServerId',
       type: IsarType.string,
     ),
     r'path': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'path',
       type: IsarType.string,
     ),
     r'serverId': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'serverId',
       type: IsarType.string,
     ),
     r'sortOrder': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'sortOrder',
       type: IsarType.long,
     ),
     r'updateTimestamp': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'updateTimestamp',
       type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'userId',
       type: IsarType.string,
     ),
     r'uuid': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'uuid',
       type: IsarType.string,
     ),
     r'version': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'version',
       type: IsarType.long,
     )
@@ -416,26 +421,27 @@ void _categoryDbSerialize(
 ) {
   writer.writeString(offsets[0], object.color);
   writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeString(offsets[2], object.description);
-  writer.writeString(offsets[3], object.deviceId);
-  writer.writeString(offsets[4], object.icon);
-  writer.writeBool(offsets[5], object.isDeleted);
-  writer.writeBool(offsets[6], object.isEnabled);
-  writer.writeBool(offsets[7], object.isRoot);
-  writer.writeBool(offsets[8], object.isSynced);
-  writer.writeLong(offsets[9], object.lastModified);
-  writer.writeLong(offsets[10], object.level);
-  writer.writeString(offsets[11], object.name);
-  writer.writeLong(offsets[12], object.parentId);
-  writer.writeString(offsets[13], object.parentServerId);
-  writer.writeString(offsets[14], object.path);
-  writer.writeString(offsets[15], object.serverId);
-  writer.writeLong(offsets[16], object.sortOrder);
-  writer.writeLong(offsets[17], object.updateTimestamp);
-  writer.writeDateTime(offsets[18], object.updatedAt);
-  writer.writeString(offsets[19], object.userId);
-  writer.writeString(offsets[20], object.uuid);
-  writer.writeLong(offsets[21], object.version);
+  writer.writeDateTime(offsets[2], object.deletedAt);
+  writer.writeString(offsets[3], object.description);
+  writer.writeString(offsets[4], object.deviceId);
+  writer.writeString(offsets[5], object.icon);
+  writer.writeBool(offsets[6], object.isDeleted);
+  writer.writeBool(offsets[7], object.isEnabled);
+  writer.writeBool(offsets[8], object.isRoot);
+  writer.writeBool(offsets[9], object.isSynced);
+  writer.writeLong(offsets[10], object.lastModified);
+  writer.writeLong(offsets[11], object.level);
+  writer.writeString(offsets[12], object.name);
+  writer.writeLong(offsets[13], object.parentId);
+  writer.writeString(offsets[14], object.parentServerId);
+  writer.writeString(offsets[15], object.path);
+  writer.writeString(offsets[16], object.serverId);
+  writer.writeLong(offsets[17], object.sortOrder);
+  writer.writeLong(offsets[18], object.updateTimestamp);
+  writer.writeDateTime(offsets[19], object.updatedAt);
+  writer.writeString(offsets[20], object.userId);
+  writer.writeString(offsets[21], object.uuid);
+  writer.writeLong(offsets[22], object.version);
 }
 
 CategoryDb _categoryDbDeserialize(
@@ -447,26 +453,27 @@ CategoryDb _categoryDbDeserialize(
   final object = CategoryDb();
   object.color = reader.readStringOrNull(offsets[0]);
   object.createdAt = reader.readDateTime(offsets[1]);
-  object.description = reader.readStringOrNull(offsets[2]);
-  object.deviceId = reader.readStringOrNull(offsets[3]);
-  object.icon = reader.readStringOrNull(offsets[4]);
+  object.deletedAt = reader.readDateTimeOrNull(offsets[2]);
+  object.description = reader.readStringOrNull(offsets[3]);
+  object.deviceId = reader.readStringOrNull(offsets[4]);
+  object.icon = reader.readStringOrNull(offsets[5]);
   object.id = id;
-  object.isDeleted = reader.readBool(offsets[5]);
-  object.isEnabled = reader.readBool(offsets[6]);
-  object.isSynced = reader.readBool(offsets[8]);
-  object.lastModified = reader.readLong(offsets[9]);
-  object.level = reader.readLong(offsets[10]);
-  object.name = reader.readString(offsets[11]);
-  object.parentId = reader.readLongOrNull(offsets[12]);
-  object.parentServerId = reader.readStringOrNull(offsets[13]);
-  object.path = reader.readString(offsets[14]);
-  object.serverId = reader.readStringOrNull(offsets[15]);
-  object.sortOrder = reader.readLong(offsets[16]);
-  object.updateTimestamp = reader.readLong(offsets[17]);
-  object.updatedAt = reader.readDateTime(offsets[18]);
-  object.userId = reader.readString(offsets[19]);
-  object.uuid = reader.readString(offsets[20]);
-  object.version = reader.readLong(offsets[21]);
+  object.isDeleted = reader.readBool(offsets[6]);
+  object.isEnabled = reader.readBool(offsets[7]);
+  object.isSynced = reader.readBool(offsets[9]);
+  object.lastModified = reader.readLong(offsets[10]);
+  object.level = reader.readLong(offsets[11]);
+  object.name = reader.readString(offsets[12]);
+  object.parentId = reader.readLongOrNull(offsets[13]);
+  object.parentServerId = reader.readStringOrNull(offsets[14]);
+  object.path = reader.readString(offsets[15]);
+  object.serverId = reader.readStringOrNull(offsets[16]);
+  object.sortOrder = reader.readLong(offsets[17]);
+  object.updateTimestamp = reader.readLong(offsets[18]);
+  object.updatedAt = reader.readDateTime(offsets[19]);
+  object.userId = reader.readString(offsets[20]);
+  object.uuid = reader.readString(offsets[21]);
+  object.version = reader.readLong(offsets[22]);
   return object;
 }
 
@@ -482,13 +489,13 @@ P _categoryDbDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
       return (reader.readBool(offset)) as P;
     case 7:
@@ -496,30 +503,32 @@ P _categoryDbDeserializeProp<P>(
     case 8:
       return (reader.readBool(offset)) as P;
     case 9:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 10:
       return (reader.readLong(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
-    case 12:
-      return (reader.readLongOrNull(offset)) as P;
-    case 13:
-      return (reader.readStringOrNull(offset)) as P;
-    case 14:
-      return (reader.readString(offset)) as P;
-    case 15:
-      return (reader.readStringOrNull(offset)) as P;
-    case 16:
       return (reader.readLong(offset)) as P;
+    case 12:
+      return (reader.readString(offset)) as P;
+    case 13:
+      return (reader.readLongOrNull(offset)) as P;
+    case 14:
+      return (reader.readStringOrNull(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readStringOrNull(offset)) as P;
     case 17:
       return (reader.readLong(offset)) as P;
     case 18:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 19:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 20:
       return (reader.readString(offset)) as P;
     case 21:
+      return (reader.readString(offset)) as P;
+    case 22:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2024,6 +2033,78 @@ extension CategoryDbQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
+      deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
+      deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition>
+      deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -3894,6 +3975,18 @@ extension CategoryDbQuerySortBy
     });
   }
 
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> sortByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
@@ -4160,6 +4253,18 @@ extension CategoryDbQuerySortThenBy
   QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CategoryDb, CategoryDb, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
@@ -4433,6 +4538,12 @@ extension CategoryDbQueryWhereDistinct
     });
   }
 
+  QueryBuilder<CategoryDb, CategoryDb, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<CategoryDb, CategoryDb, QDistinct> distinctByDescription(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -4581,6 +4692,12 @@ extension CategoryDbQueryProperty
   QueryBuilder<CategoryDb, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<CategoryDb, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
     });
   }
 

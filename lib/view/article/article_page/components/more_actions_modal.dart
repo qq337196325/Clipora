@@ -3,6 +3,7 @@ import 'package:clipora/view/article/article_page/components/read_theme_widget.d
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../db/article/service/article_service.dart';
 import '../../controller/article_controller.dart';
@@ -336,9 +337,22 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
               child: Text('i18n_article_取消'.tr),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-                Navigator.of(context).pop(true);
+              onPressed: () async {
+                try {
+                  await ArticleService.instance.softDeleteArticle(widget.articleId);
+                  getLogger().i('🗑️ 软删除文章111111: ${widget.articleId}');
+                  BotToast.showText(text: 'i18n_article_文章已删除'.tr);
+                  Navigator.of(context).pop(true);
+                  context.pop(true);
+                  // 返回到文章列表页面
+                  // 确认对话框已经通过pop(true)关闭，这里只需要返回到文章列表
+                  // Navigator.of(context).pop(); // 返回到文章列表页面
+                } catch (e) {
+                  BotToast.showText(text: '${'i18n_article_删除失败'.tr}$e');
+                  getLogger().e('❌ 删除文章失败: $e');
+                }
+
+                // Navigator.of(context).pop(true);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
@@ -355,9 +369,9 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
     );
 
     // 如果用户确认删除
-    if (confirmed == true) {
-      await _deleteArticle(context);
-    }
+    // if (confirmed == true) {
+    //   await _deleteArticle(context);
+    // }
   }
 
   /// 执行删除操作

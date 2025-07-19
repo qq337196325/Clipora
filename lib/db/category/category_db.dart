@@ -70,11 +70,9 @@ class CategoryDb {
   @Backlink(to: 'category')
   final articles = IsarLinks<ArticleDb>();
 
-  @Index()
-  DateTime createdAt = DateTime.now();
-
-  @Index()
-  DateTime updatedAt = DateTime.now();
+  @Index() DateTime createdAt = DateTime.now();
+  @Index() DateTime updatedAt = DateTime.now();
+  DateTime? deletedAt;                         // 删除日期
 
   /// 版本号（用于冲突解决）
   @Index() int version = 1;

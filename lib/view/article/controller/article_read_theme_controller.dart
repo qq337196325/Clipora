@@ -473,6 +473,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
               if (container) {
                 container.style.padding = '${_marginSize.value}px'; 
                 container.style.paddingTop = '${MediaQuery.of(context).padding.top + 30.0 + _marginSize.value}px';
+                container.style.paddingBottom = '80px';
               }
               
               console.log('✅ 样式设置更新成功');

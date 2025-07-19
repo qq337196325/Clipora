@@ -2,7 +2,7 @@ const Map<String, String> orderI18n = {
   // ai_order_page.dart
   'i18n_order_AI翻译请求包': 'Pacchetto richieste traduzione IA',
   'i18n_order_AI翻译助手': 'Assistente traduzione IA',
-  'i18n_order_让阅读更智能': 'Lettura più intelligente, apprendimento più efficiente',
+  'i18n_order_让阅读更智能': 'Rendere la lettura più intelligente, l\'apprendimento più efficiente',
   'i18n_order_通过AI翻译助手': 'Con l\'assistente di traduzione IA, puoi tradurre articoli in più lingue.',
   'i18n_order_限时优惠': 'Offerta a tempo limitato',
   'i18n_order_原价': 'Prezzo originale ¥@price',
@@ -43,10 +43,10 @@ const Map<String, String> orderI18n = {
   'i18n_member_享受高级功能': 'Goditi funzionalità avanzate per una lettura e gestione della conoscenza più efficienti',
   'i18n_member_限时买断': 'Acquisto unico a tempo limitato',
   'i18n_member_一次性购买': 'Acquisto unico, diventa membro permanente',
-  'i18n_member_未来订阅计划': 'Pianifichiamo di offrire abbonamenti annuali e mensili in futuro, attualmente acquisto unico a tempo limitato.',
-  'i18n_member_现有数据保证': 'Garantiamo che i non membri possano sempre utilizzare i dati esistenti gratuitamente.',
-  'i18n_member_终身更新': 'Supporto per aggiornamenti gratuiti a vita.',
-  'i18n_member_无广告保证': 'Clipora garantisce di non includere mai pubblicità, assicurando la tua esperienza. L\'abbonamento è la nostra unica fonte di reddito.',
+  'i18n_member_未来订阅计划': 'Prevediamo di fatturare tramite abbonamenti annuali e mensili in futuro. Attualmente, si tratta di un acquisto unico a tempo limitato.',
+  'i18n_member_现有数据保证': 'Per i non membri, garantiamo che potrete sempre utilizzare gratuitamente i vostri dati esistenti.',
+  'i18n_member_终身更新': 'Supporta futuri aggiornamenti gratuiti permanenti.',
+  'i18n_member_无广告保证': 'Clipora garantisce di non aggiungere mai attività pubblicitarie per garantire la vostra esperienza utente. Il sistema di abbonamento è la nostra unica fonte di reddito.',
   'i18n_member_高级特权': 'Privilegi Premium',
   'i18n_member_无限同步': 'Sincronizzazione Illimitata',
   'i18n_member_无限同步描述': 'Sincronizzazione illimitata dei tuoi dati nel cloud',
@@ -87,5 +87,5 @@ const Map<String, String> orderI18n = {
   'i18n_member_续费': 'Rinnova',
   'i18n_member_感谢您的支持': 'Grazie per il tuo supporto',
   'i18n_member_正在享受高级会员特权': 'Godendo dei privilegi dell\'abbonamento premium',
-  'i18n_member_永久访问权限': 'Diritti di accesso permanenti',
-}; 
+  'i18n_member_永久访问权限': 'Diritti di accesso permanenti'
+};

@@ -102,7 +102,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.only(left: 16,right: 16),
             child: recentlyReadArticles.isEmpty
                 ?  Center(
               child: Padding(
@@ -132,7 +132,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                 return [
                   if (index > 0)
                     Container(
-                      margin: const EdgeInsets.symmetric(vertical: 14),
+                      // margin: const EdgeInsets.symmetric(vertical: 14),
                       height: 1,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -156,7 +156,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                       borderRadius: BorderRadius.circular(8),
                       splashColor: colorScheme.tertiary.withOpacity(0.1),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
                         child: Row(
                           children: [
                             Container(
@@ -378,7 +378,7 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.only(left: 16,right: 16),
             child: unreadArticles.isEmpty
                 ? Center(
               child: Padding(
@@ -408,7 +408,6 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                 return [
                   if (index > 0)
                     Container(
-                      margin: const EdgeInsets.symmetric(vertical: 14),
                       height: 1,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -421,13 +420,16 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
                       ),
                     ),
                   InkWell(
-                    onTap: article.markdownStatus == 3 ? null : () {
-                      context.push('/${RouteName.articlePage}?id=${article.id}');
+                    onTap: article.markdownStatus == 3 ? null : () async {
+                      final routeStatus = await context.push('/${RouteName.articlePage}?id=${article.id}');
+                      if(routeStatus == true) {
+                        _loadArticles();
+                      }
                     },
                     borderRadius: BorderRadius.circular(8),
                     splashColor: colorScheme.primary.withOpacity(0.1),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                       child: Row(
                         children: [
                           Container(

@@ -20,9 +20,7 @@ class TagDb {
   @Index() int version = 1;
   @Index() int updateTimestamp = 0;
 
-  @Index()
-  DateTime createdAt = DateTime.now();
-
-  @Index()
-  DateTime updatedAt = DateTime.now();
+  @Index() DateTime createdAt = DateTime.now();
+  @Index() DateTime updatedAt = DateTime.now();
+  DateTime? deletedAt;                         // 删除日期
 } 
