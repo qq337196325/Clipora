@@ -394,6 +394,7 @@ mixin ArticlePageBLoC on State<ArticleWebWidget> {
 
   /// 公共方法：供外部调用生成快照
   Future<void> createSnapshot() async {
+    generateMhtmlUtils.webViewController = webViewController;
     final filePath = await generateMhtmlUtils.generateSnapshot();
     if(filePath.isEmpty){
       BotToast.showText(text: 'i18n_article_保存快照失败'.tr);

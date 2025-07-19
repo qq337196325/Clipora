@@ -109,6 +109,7 @@ class _ArticlePageState extends State<ArticlePage> with TickerProviderStateMixin
                         await mhtmlState.reloadSnapshot();
                       }
                     } else {
+                      refreshTabs();
                       getLogger().w('⚠️ 无法获取快照widget状态或文章数据');
                       getLogger().w('   mhtmlState: ${mhtmlState?.runtimeType}');
                       getLogger().w('   hasArticle: ${articleController.hasArticle}');
@@ -382,7 +383,7 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     if (!articleController.hasArticle) return;
     
     getLogger().i('🔄 刷新tabs显示');
-    
+    tabs = [];
     // 清理现有缓存，因为文章内容可能发生了变化
     _clearTabWidgetsCache();
     
