@@ -585,8 +585,8 @@ mixin SearchPageBLoC on State<SearchPage> {
     });
 
     // 自动聚焦到搜索框
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 20));
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(milliseconds: 500));
       searchFocusNode.requestFocus();
     });
   }
