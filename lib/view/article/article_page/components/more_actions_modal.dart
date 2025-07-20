@@ -220,7 +220,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
       return true; // 如果无法获取tab信息，默认允许操作
     }
 
-    if(widget.tabs?[widget.currentTab.index] == "网页"){
+    if(widget.tabs?[widget.currentTab.index] == 'i18n_article_网页'.tr){
       return true;
     }
     return false;
