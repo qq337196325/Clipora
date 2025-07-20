@@ -18,9 +18,11 @@ class UserApi {
   static Future<Map> wechatLoginApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/wechat_login", data:param);
   }
-  
   static Future<Map> appleLoginApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/apple_login", data:param);
+  }
+  static Future<Map> getInitDataApi(dynamic param) async {
+    return await Request().post("$apiVersion/api/user/get_init_data", data:param);
   }
 
   static Future<Map> uploadMhtmlApi(dynamic param) async {

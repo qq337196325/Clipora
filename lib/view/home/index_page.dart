@@ -6,10 +6,12 @@ import 'package:get_storage/get_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:get/get.dart';
 
+import '../../api/user_api.dart';
 import '../../basics/config.dart';
 import '../../basics/logger.dart';
 import '../../basics/ui.dart';
 import '../../basics/utils/user_utils.dart';
+import '../../db/article/service/article_service.dart';
 import '../../services/get_sync_data/get_sync_data.dart';
 import '../../services/get_sync_data/increment_sync_data.dart';
 import '../../services/snapshot_service_widget.dart';
@@ -340,9 +342,6 @@ mixin IndexPageBLoC on State<IndexPage> {
   void initState() {
     super.initState();
 
-
-
-
     // _init();
     tabController = TabController(
       length: 2, 
@@ -379,11 +378,48 @@ mixin IndexPageBLoC on State<IndexPage> {
       }
     }
 
+
+
     // 登录过的用户显示同步数据
     bool? isNotLogin = globalBoxStorage.read('is_not_login');
     if(isNotLogin == null || isNotLogin == false){
       checkCompleteSync();
     }
+
+
+    if(isNotLogin != null && isNotLogin == true ){ // 首次登录的用户，添加介绍文章
+      // 调用上传接口
+      final response = await UserApi.getInitDataApi({});
+      // 检查响应结果
+      if (response['code'] != 0 ) {
+        return;
+      }
+
+      if(response['data']["init_article"].length <= 0){
+        return;
+      }
+
+      try {
+        for(int i = 0; response['data']["init_article"].length > i; i++ ){
+
+          Map<String,dynamic> initArticle = response['data']["init_article"][i];
+
+          ArticleService.instance.createArticleFromShare(
+            title: initArticle["title"]!,
+            url: initArticle["url"]!,
+            originalContent: initArticle["title"]!,
+            excerpt: initArticle["title"]!,
+            tags: [], // 可以根据内容类型添加不同标签
+          );
+        }
+
+        globalBoxStorage.write('is_not_login', false);  // 将状态设为登录过
+      }catch (e) {
+        getLogger().e('❌ 添加初始化文章失败: $e');
+        return false;
+      }
+    }
+
   }
 
   @override

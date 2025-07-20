@@ -14,8 +14,8 @@ import '../basics/translations/language_controller.dart';
 Dio initDio(String _apiHost) {
   BaseOptions options = BaseOptions(
     baseUrl: _apiHost,
-    connectTimeout: const Duration(milliseconds: 50000), // 5秒连接超时
-    receiveTimeout: const Duration(milliseconds: 50000), // 5秒接收超时
+    connectTimeout: const Duration(milliseconds: 80000), // 5秒连接超时
+    receiveTimeout: const Duration(milliseconds: 80000), // 5秒接收超时
   );
   Dio dio = Dio(options);
 

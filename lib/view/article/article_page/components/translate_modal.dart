@@ -27,11 +27,10 @@ class TranslateModal extends StatefulWidget {
   });
 
   @override
-  State<TranslateModal> createState() => _TranslateModalState(); 
+  State<TranslateModal> createState() => _TranslateModalState();
 }
 
 class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC {
-
   @override
   void initState() {
     super.initState();
@@ -43,16 +42,16 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     // 获取当前语言状态
     _currentLanguageCode = articleController.currentLanguageCode;
     getLogger().d('🌐 TranslateModal 获取当前语言: $_currentLanguageCode');
-    
+
     // 获取所有语言代码（除了原文，因为原文不需要翻译状态管理）
     final languageCodes = _allLanguages
         .where((lang) => lang.code != 'original')
         .map((lang) => lang.code)
         .toList();
-    
+
     // 批量初始化 ArticleController 中的翻译状态
     await articleController.initializeAllLanguageStatus(languageCodes);
-    
+
     getLogger().d('🔄 TranslateModal 状态初始化完成');
   }
 
@@ -219,7 +218,7 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
       // 直接使用 ArticleController 的实时状态
       final isCurrent = articleController.currentLanguageCode == lang.code;
       final displayStatus = articleController.getTranslationStatus(lang.code);
-      
+
       return Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -236,20 +235,26 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Row(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    lang.name,
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 4),
-                  _buildStatusWidget(context, displayStatus, lang.code),
-                ],
+              // 左侧信息区域
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      lang.name,
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    const SizedBox(height: 4),
+                    _buildStatusWidget(context, displayStatus, lang.code),
+                  ],
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 12),
+              // 右侧按钮区域
               _buildActionButton(context, lang, index, displayStatus, isCurrent),
             ],
           ),
@@ -260,140 +265,112 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
 
   Widget _buildStatusWidget(BuildContext context, String status, [String? languageCode]) {
     final theme = Theme.of(context);
-    
+    Widget icon;
+    String text;
+    Color color;
+
     // 原文的特殊处理
     if (languageCode == 'original') {
-      return Text(
-        'i18n_article_已可用'.tr,
-        style: theme.textTheme.bodySmall
-            ?.copyWith(color: theme.colorScheme.primary),
-      );
+      icon = Icon(Icons.check_circle, size: 14, color: theme.colorScheme.primary);
+      text = 'i18n_article_已可用'.tr;
+      color = theme.colorScheme.primary;
+    } else {
+      // 其他语言的翻译状态
+      switch (status) {
+        case 'translated':
+          icon = Icon(Icons.check_circle, size: 14, color: theme.colorScheme.primary);
+          text = 'i18n_article_翻译完成'.tr;
+          color = theme.colorScheme.primary;
+          break;
+        case 'translating':
+          icon = SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.primary),
+          );
+          text = 'i18n_article_正在翻译中'.tr;
+          color = theme.colorScheme.onSurfaceVariant;
+          break;
+        case 'failed':
+          icon = Icon(Icons.error, size: 14, color: theme.colorScheme.error);
+          text = 'i18n_article_翻译失败'.tr;
+          color = theme.colorScheme.error;
+          break;
+        case 'untranslated':
+        default:
+          icon = Icon(Icons.info_outline, size: 14, color: theme.colorScheme.onSurfaceVariant);
+          text = 'i18n_article_待翻译'.tr;
+          color = theme.colorScheme.onSurfaceVariant;
+          break;
+      }
     }
-    
-    // 其他语言的翻译状态
-    switch (status) {
-      case 'translated':
-        return Text(
-          'i18n_article_翻译完成'.tr,
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: theme.colorScheme.primary),
-        );
-      case 'translating':
-        return Row(
-          children: [
-            SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'i18n_article_正在翻译中'.tr,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
-          ],
-        );
-      case 'failed':
-        return Text(
-          'i18n_article_翻译失败'.tr,
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: theme.colorScheme.error),
-        );
-      case 'untranslated':
-      default:
-        return Text(
-          'i18n_article_待翻译'.tr,
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-        );
-    }
+
+    return Row(
+      children: [
+        icon,
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: theme.textTheme.bodySmall?.copyWith(color: color),
+        ),
+      ],
+    );
   }
 
   Widget _buildActionButton(BuildContext context, _Language lang, int index, String displayStatus, bool isCurrent) {
     final theme = Theme.of(context);
-    
-    // 检查是否有任何语言正在翻译中（用于并发控制）
     final isAnyTranslating = articleController.isAnyLanguageTranslating;
-    final isCurrentTranslating = displayStatus == 'translating';
-    
+
     // 原文的特殊处理 - 只显示查看按钮
     if (lang.code == 'original') {
-      return ElevatedButton(
+      return FilledButton.tonal(
         onPressed: () => _switchToLanguage(lang.code),
-        style: isCurrent
-            ? ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primaryContainer,
-                foregroundColor: theme.colorScheme.onPrimaryContainer,
-              )
-            : null,
-        child: Text('i18n_article_查看'.tr),
+        style: FilledButton.styleFrom(
+          backgroundColor: isCurrent ? theme.colorScheme.primaryContainer : null,
+        ),
+        child: Text('i18n_article_查看'.tr, style: TextStyle(fontSize: 13)),
       );
     }
-    
+
     // 其他语言的翻译状态处理
     switch (displayStatus) {
       case 'untranslated':
         return ElevatedButton(
-          // 如果有其他语言正在翻译中，则禁用当前翻译按钮
           onPressed: isAnyTranslating ? null : () => _translate(index),
-          style: isAnyTranslating 
-              ? ElevatedButton.styleFrom(
-                  disabledBackgroundColor: theme.colorScheme.onSurface.withOpacity(0.12),
-                )
-              : null,
-          child: Text('i18n_article_翻译'.tr),
+          child: Text('i18n_article_翻译'.tr, style: TextStyle(fontSize: 13)),
         );
       case 'translating':
         return ElevatedButton(
           onPressed: null,
-          style: ElevatedButton.styleFrom(
-            disabledBackgroundColor:
-                theme.colorScheme.onSurface.withOpacity(0.12),
-          ),
-          child: Text('i18n_article_翻译'.tr),
+          child: Text('i18n_article_翻译中...'.tr),
         );
       case 'translated':
         return Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            TextButton(
-              // 如果有其他语言正在翻译中，则禁用重新翻译按钮
+
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'i18n_article_重新翻译'.tr,
               onPressed: isAnyTranslating ? null : () => _retranslate(index),
-              style: isAnyTranslating 
-                  ? TextButton.styleFrom(
-                      disabledForegroundColor: theme.colorScheme.onSurface.withOpacity(0.38),
-                    )
-                  : null,
-              child: Text('i18n_article_重新翻译'.tr),
             ),
-            const SizedBox(width: 8),
-            ElevatedButton(
+            const SizedBox(width: 6),
+            FilledButton.tonal(
               onPressed: () => _switchToLanguage(lang.code),
-              style: isCurrent
-                  ? ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      foregroundColor: theme.colorScheme.onPrimaryContainer,
-                    )
-                  : null,
-              child: Text('i18n_article_查看'.tr),
+              style: FilledButton.styleFrom(
+                backgroundColor: isCurrent ? theme.colorScheme.primaryContainer : null,
+              ),
+              child: Text('i18n_article_查看'.tr,style: TextStyle(fontSize: 13)),
             ),
           ],
         );
       case 'failed':
         return ElevatedButton(
-          // 如果有其他语言正在翻译中，则禁用重试按钮
           onPressed: isAnyTranslating ? null : () => _translate(index),
-          style: isAnyTranslating 
-              ? ElevatedButton.styleFrom(
-                  disabledBackgroundColor: theme.colorScheme.onSurface.withOpacity(0.12),
-                )
-              : ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.errorContainer,
-                  foregroundColor: theme.colorScheme.onErrorContainer,
-                ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: theme.colorScheme.error,
+            foregroundColor: theme.colorScheme.onError,
+          ),
           child: Text('i18n_article_重试'.tr),
         );
       default:
@@ -401,7 +378,6 @@ class _TranslateModalState extends State<TranslateModal> with TranslateModalBLoC
     }
   }
 }
-
 
 mixin TranslateModalBLoC on State<TranslateModal> {
   final ArticleController articleController = Get.find<ArticleController>();
@@ -428,7 +404,7 @@ mixin TranslateModalBLoC on State<TranslateModal> {
   /// 获取当前应该显示的语言列表
   List<_Language> get _languages {
     final currentLanguage = articleController.currentLanguageCode;
-    
+
     // 如果当前是原文，则不显示原文选项
     if (currentLanguage == 'original') {
       return _allLanguages.where((lang) => lang.code != 'original').toList();
@@ -439,8 +415,4 @@ mixin TranslateModalBLoC on State<TranslateModal> {
   }
 
   String _currentLanguageCode = 'original'; // 默认为原文，将从ArticleController获取
-
-
-
-
 }
