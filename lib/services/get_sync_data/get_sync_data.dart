@@ -540,8 +540,8 @@ class GetSyncData {
       ..articleDate = _parseDateTime(model.articleDate)
       ..url = model.url
       ..shareOriginalContent = model.shareOriginalContent
-      ..mhtmlPath = ""//model.mhtmlPath
-      ..isGenerateMhtml = false//model.mhtmlPath.isNotEmpty
+      // ..mhtmlPath = ""//model.mhtmlPath
+      // ..isGenerateMhtml = false//model.mhtmlPath.isNotEmpty
       ..markdownStatus = model.markdownStatus
       ..isRead = model.isRead
       ..readCount = model.readCount
