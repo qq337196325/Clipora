@@ -325,6 +325,7 @@ class GetSyncData {
       ..userId = model.userId
       ..serviceId = model.id
       ..name = model.name
+      ..uuid = model.uuid
       ..version = model.version
       ..updateTimestamp = model.updateTimestamp
       ..createdAt = _parseDateTime(model.createTime) ?? now
