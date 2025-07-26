@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'dart:async';
 
 import '../basics/logger.dart';
+import '../basics/ui.dart';
 import '../basics/web_view/settings.dart';
 import '../basics/web_view/utils.dart';
 import '../basics/web_view/warmup_urls.dart';
@@ -164,7 +165,11 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
     
     _serviceStarted = true;
     getLogger().i('📸 快照服务已启动');
-    
+
+    if( !getAutoParseEnabled() ){
+      return;
+    }
+
     // 启动快照生成定时任务
     _snapshotTimer = Timer.periodic(Duration(seconds: 2), (timer) {
       if (!mounted) {

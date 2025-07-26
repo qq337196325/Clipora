@@ -16,15 +16,14 @@ class SharePage extends StatefulWidget {
   State<SharePage> createState() => _SharePageState();
 }
 
-class _SharePageState extends State<SharePage> 
+class _SharePageState extends State<SharePage>
     with SharePageBLoC, TickerProviderStateMixin {
-  
   // 动画控制器声明在 State 类中
   late AnimationController dropController;
   late AnimationController spreadController;
   late AnimationController successController;
   late AnimationController breatheController;
-  
+
   late Animation<double> _dropAnimation;
   late Animation<double> _spreadAnimation;
   late Animation<double> _successScaleAnimation;
@@ -43,19 +42,19 @@ class _SharePageState extends State<SharePage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     // 墨水扩散动画控制器
     spreadController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     // 成功图标缩放动画控制器
     successController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     // 呼吸效果动画控制器
     breatheController = AnimationController(
       duration: const Duration(milliseconds: 2000),
@@ -67,17 +66,17 @@ class _SharePageState extends State<SharePage>
       parent: dropController,
       curve: Curves.easeInQuart,
     );
-    
+
     _spreadAnimation = CurvedAnimation(
       parent: spreadController,
       curve: Curves.easeOutCirc,
     );
-    
+
     _successScaleAnimation = CurvedAnimation(
       parent: successController,
       curve: Curves.elasticOut,
     );
-    
+
     _breatheAnimation = CurvedAnimation(
       parent: breatheController,
       curve: Curves.easeInOut,
@@ -211,7 +210,7 @@ class _SharePageState extends State<SharePage>
             ),
           ],
         );
-      
+
       case ShareStatus.success:
         return Column(
           key: const ValueKey('success'),
@@ -260,7 +259,7 @@ class _SharePageState extends State<SharePage>
             ),
           ],
         );
-      
+
       case ShareStatus.error:
         return Column(
           key: const ValueKey('error'),
@@ -348,7 +347,7 @@ class PaperTexturePainter extends CustomPainter {
       final x = math.Random().nextDouble() * size.width;
       final y = math.Random().nextDouble() * size.height;
       final length = math.Random().nextDouble() * 20 + 5;
-      
+
       canvas.drawLine(
         Offset(x, y),
         Offset(x + length, y),
@@ -378,7 +377,7 @@ class InkDropPainter extends CustomPainter {
     if (status == ShareStatus.dropping && dropProgress > 0) {
       _paintDrop(canvas, size);
     }
-    
+
     if (status == ShareStatus.spreading && spreadProgress > 0) {
       _paintSpread(canvas, size);
     }
@@ -396,7 +395,7 @@ class InkDropPainter extends CustomPainter {
     // 绘制水滴形状
     final dropPath = Path();
     final dropRadius = 6.0;
-    
+
     dropPath.addOval(Rect.fromCircle(
       center: Offset(centerX, currentY),
       radius: dropRadius,
@@ -441,35 +440,44 @@ mixin SharePageBLoC on State<SharePage> {
     try {
       // 开始动画序列
       await _playAnimationSequence();
-      
+
       // 实际处理分享内容
-      final initialMedia = await ReceiveSharingIntent.instance.getInitialMedia();
+      final initialMedia =
+          await ReceiveSharingIntent.instance.getInitialMedia();
       await Get.find<ShareService>().processInitialShare(initialMedia);
 
       if (!mounted) return;
-      
+
       // 成功状态
       setState(() {
         status = ShareStatus.success;
       });
-      
+
       // 播放成功动画
       (this as _SharePageState).successController.forward();
-      (this as _SharePageState).breatheController.repeat(reverse: true);
 
-      // 等待动画完成后关闭
-      await Future.delayed(const Duration(milliseconds: 1000));
+      // 播放有限次数的呼吸动画，避免无限闪烁
+      for (int i = 0; i < 2; i++) {
+        await (this as _SharePageState).breatheController.forward();
+        await (this as _SharePageState).breatheController.reverse();
+      }
+
+      // 等待动画完成后关闭应用程序
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // 分享处理完成后直接关闭应用程序
       SystemNavigator.pop();
-      
     } catch (e) {
       getLogger().e("Error processing share", error: e);
       if (!mounted) return;
-      
+
       setState(() {
         status = ShareStatus.error;
       });
-      
+
       await Future.delayed(const Duration(milliseconds: 1000));
+
+      // 分享处理失败后也直接关闭应用程序
       SystemNavigator.pop();
     }
   }

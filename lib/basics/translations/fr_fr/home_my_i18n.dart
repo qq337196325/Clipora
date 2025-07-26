@@ -18,6 +18,8 @@ const Map<String, String> homeMyI18n = {
   // 设置项目
   'i18n_my_语言设置': 'Paramètres de langue',
   'i18n_my_当前语言': 'Actuel: @language',
+  'i18n_my_主题设置': 'Paramètres de thème',
+  'i18n_my_当前主题': 'Actuel: @theme',
   'i18n_my_用户协议': 'Conditions d\'utilisation',
   'i18n_my_了解我们的用户协议': 'Découvrir nos conditions d\'utilisation',
   'i18n_my_隐私协议': 'Politique de confidentialité',
@@ -26,6 +28,7 @@ const Map<String, String> homeMyI18n = {
   'i18n_my_了解更多应用信息': 'En savoir plus sur l\'application',
   'i18n_my_使用帮助': 'Aide à l\'utilisation',
   'i18n_my_常见问题与解答': 'Questions fréquentes et réponses',
+  'help_documentation': 'Documentation d\'aide',
   'i18n_my_评价一下': 'Évaluer',
   'i18n_my_您的评价是我们前进的动力': 'Votre évaluation est notre motivation',
   'i18n_my_应用商店测试': 'Test de l\'App Store',

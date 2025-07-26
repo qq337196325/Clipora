@@ -56,4 +56,27 @@ const Map<String, String> loginI18n = {
   'i18n_login_登录成功': 'Đăng nhập thành công',
   'i18n_login_登录失败': 'Đăng nhập thất bại',
   'i18n_login_验证码发送频繁请稍后再试': 'Gửi mã xác minh quá thường xuyên, vui lòng thử lại sau',
+  
+  // Apple 登录相关
+  'i18n_login_使用Apple登录': 'Đăng nhập bằng Apple',
+  'i18n_login_Apple登录认证': 'Xác thực đăng nhập Apple',
+  'i18n_login_Apple登录失败': 'Đăng nhập Apple thất bại',
+  'i18n_login_Apple授权失败': 'Ủy quyền Apple thất bại',
+  'i18n_login_Apple认证失败': 'Xác thực Apple thất bại',
+  'i18n_login_Apple登录不可用': 'Đăng nhập Apple không khả dụng',
+  'i18n_login_当前设备不支持Apple登录': 'Thiết bị hiện tại không hỗ trợ đăng nhập Apple',
+  'i18n_login_Apple登录发生未知错误': 'Lỗi không xác định xảy ra khi đăng nhập Apple',
+  'i18n_login_Apple登录成功但未获取到token': 'Đăng nhập Apple thành công nhưng không nhận được token',
+  'i18n_login_Apple服务器响应无效': 'Phản hồi máy chủ Apple không hợp lệ',
+  'i18n_login_Apple登录请求未被处理': 'Yêu cầu đăng nhập Apple không được xử lý',
+  
+  // Web 认证相关
+  'i18n_login_正在打开Web认证窗口': 'Đang mở cửa sổ xác thực web',
+  'i18n_login_Web认证失败请重试': 'Xác thực web thất bại, vui lòng thử lại',
+  'i18n_login_Web认证失败请检查网络连接': 'Xác thực web thất bại, vui lòng kiểm tra kết nối mạng',
+  'i18n_login_Web认证发生未知错误': 'Lỗi không xác định xảy ra trong xác thực web',
+  'i18n_login_Web认证响应无效': 'Phản hồi xác thực web không hợp lệ',
+  'i18n_login_Web认证窗口加载失败': 'Tải cửa sổ xác thực web thất bại',
+  'i18n_login_Web认证超时请重试': 'Xác thực web hết thời gian, vui lòng thử lại',
+  'i18n_login_网络连接异常请检查网络': 'Kết nối mạng bất thường, vui lòng kiểm tra mạng',
 }; 

@@ -56,4 +56,27 @@ const Map<String, String> loginI18n = {
   'i18n_login_登录成功': 'Inicio de sesión exitoso',
   'i18n_login_登录失败': 'Falló el inicio de sesión',
   'i18n_login_验证码发送频繁请稍后再试': 'Código de verificación enviado con demasiada frecuencia, por favor inténtelo más tarde',
+  
+  // Apple 登录相关
+  'i18n_login_使用Apple登录': 'Iniciar sesión con Apple',
+  'i18n_login_Apple登录认证': 'Autenticación de inicio de sesión con Apple',
+  'i18n_login_Apple登录失败': 'Falló el inicio de sesión con Apple',
+  'i18n_login_Apple授权失败': 'Falló la autorización de Apple',
+  'i18n_login_Apple认证失败': 'Falló la autenticación de Apple',
+  'i18n_login_Apple登录不可用': 'Inicio de sesión con Apple no disponible',
+  'i18n_login_当前设备不支持Apple登录': 'El dispositivo actual no admite inicio de sesión con Apple',
+  'i18n_login_Apple登录发生未知错误': 'Ocurrió un error desconocido en el inicio de sesión con Apple',
+  'i18n_login_Apple登录成功但未获取到token': 'Inicio de sesión con Apple exitoso pero no se obtuvo token',
+  'i18n_login_Apple服务器响应无效': 'Respuesta del servidor de Apple inválida',
+  'i18n_login_Apple登录请求未被处理': 'La solicitud de inicio de sesión con Apple no fue procesada',
+  
+  // Web 认证相关
+  'i18n_login_正在打开Web认证窗口': 'Abriendo ventana de autenticación web',
+  'i18n_login_Web认证失败请重试': 'Falló la autenticación web, por favor inténtelo de nuevo',
+  'i18n_login_Web认证失败请检查网络连接': 'Falló la autenticación web, por favor verifique la conexión de red',
+  'i18n_login_Web认证发生未知错误': 'Ocurrió un error desconocido en la autenticación web',
+  'i18n_login_Web认证响应无效': 'Respuesta de autenticación web inválida',
+  'i18n_login_Web认证窗口加载失败': 'Falló la carga de la ventana de autenticación web',
+  'i18n_login_Web认证超时请重试': 'Tiempo de espera de autenticación web agotado, por favor inténtelo de nuevo',
+  'i18n_login_网络连接异常请检查网络': 'Conexión de red anormal, por favor verifique la red',
 }; 

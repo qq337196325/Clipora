@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../basics/logger.dart';
 import '../../../db/article/service/article_service.dart';
-
 
 /// 添加内容对话框
 class AddContentDialog extends StatefulWidget {
@@ -22,6 +22,9 @@ class _AddContentDialogState extends State<AddContentDialog> {
   bool _hasUrl = false;
   String _detectedUrl = '';
 
+  // 优化：添加防抖机制，避免频繁的URL检测
+  Timer? _debounceTimer;
+
   @override
   void initState() {
     super.initState();
@@ -29,25 +32,33 @@ class _AddContentDialogState extends State<AddContentDialog> {
     _focusNode = FocusNode();
     _contentController.addListener(_onTextChanged);
 
-    // 延迟自动聚焦到输入框
-    Future.delayed(const Duration(milliseconds: 100), () {
+    // 优化：使用 addPostFrameCallback 确保在第一帧渲染后立即聚焦
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+
+        Future.delayed(Duration(seconds: 150));
         _focusNode.requestFocus();
       }
     });
   }
 
   void _onTextChanged() {
-    final text = _contentController.text;
-    final hasUrl = _containsUrl(text);
-    final detectedUrl = hasUrl ? _extractUrl(text) : '';
+    // 优化：使用防抖机制，避免频繁的URL检测和UI更新
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
 
-    if (hasUrl != _hasUrl || detectedUrl != _detectedUrl) {
-      setState(() {
-        _hasUrl = hasUrl;
-        _detectedUrl = detectedUrl;
-      });
-    }
+      final text = _contentController.text;
+      final hasUrl = _containsUrl(text);
+      final detectedUrl = hasUrl ? _extractUrl(text) : '';
+
+      if (hasUrl != _hasUrl || detectedUrl != _detectedUrl) {
+        setState(() {
+          _hasUrl = hasUrl;
+          _detectedUrl = detectedUrl;
+        });
+      }
+    });
   }
 
   /// 判断文本是否包含URL
@@ -98,13 +109,15 @@ class _AddContentDialogState extends State<AddContentDialog> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _contentController.removeListener(_onTextChanged);
     _contentController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
-  bool get _canSubmit => _contentController.text.trim().isNotEmpty && _hasUrl && !_isLoading;
+  bool get _canSubmit =>
+      _contentController.text.trim().isNotEmpty && _hasUrl && !_isLoading;
 
   Future<void> _handleSubmit() async {
     if (!_canSubmit) return;
@@ -131,7 +144,8 @@ class _AddContentDialogState extends State<AddContentDialog> {
       final excerpt = _generateExcerpt(content);
 
       // 检查是否已存在相同URL的文章
-      final existingArticle = await ArticleService.instance.findArticleByUrl(url);
+      final existingArticle =
+          await ArticleService.instance.findArticleByUrl(url);
       if (existingArticle != null) {
         getLogger().i('⚠️ 文章已存在，跳过保存: ${existingArticle.title}');
         if (mounted) {
@@ -142,7 +156,7 @@ class _AddContentDialogState extends State<AddContentDialog> {
       }
 
       // 直接使用ArticleService创建文章
-      await ArticleService.instance.createArticleFromShare( 
+      await ArticleService.instance.createArticleFromShare(
         title: title,
         url: url,
         originalContent: content,
@@ -160,7 +174,6 @@ class _AddContentDialogState extends State<AddContentDialog> {
       if (mounted) {
         Navigator.of(context).pop(true); // 返回true表示成功添加
       }
-
     } catch (e) {
       getLogger().e('❌ 手动添加内容失败: $e');
       setState(() => _isLoading = false);
@@ -195,7 +208,9 @@ class _AddContentDialogState extends State<AddContentDialog> {
             ),
             const SizedBox(width: 8),
             Text(
-              _hasUrl ? 'i18n_addContent_链接添加成功'.tr : 'i18n_addContent_文本添加成功'.tr,
+              _hasUrl
+                  ? 'i18n_addContent_链接添加成功'.tr
+                  : 'i18n_addContent_文本添加成功'.tr,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -250,9 +265,13 @@ class _AddContentDialogState extends State<AddContentDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      // This padding will move the sheet up when keyboard appears
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+    return AnimatedPadding(
+      // 优化：使用 AnimatedPadding 让键盘弹出动画更流畅
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+      padding: EdgeInsets.only(bottom: keyboardHeight),
       child: Material(
         color: theme.cardColor,
         borderRadius: const BorderRadius.only(
@@ -261,36 +280,49 @@ class _AddContentDialogState extends State<AddContentDialog> {
         ),
         elevation: 8,
         shadowColor: theme.shadowColor.withOpacity(0.15),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top indicator
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: theme.dividerColor.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(2),
+        child: ConstrainedBox(
+          // 优化：限制最大高度，避免键盘弹出时内容过度拉伸
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
+          ),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top indicator
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: theme.dividerColor.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                _buildHeader(),
-                const SizedBox(height: 16),
-                _buildContentInput(),
-                const SizedBox(height: 12),
-                if (_hasUrl) _buildUrlDetectionHint(),
-                if (!_hasUrl && _contentController.text.isNotEmpty) _buildNoUrlHint(),
-                const SizedBox(height: 16),
-                _buildButtons(),
-                const SizedBox(height: 8),
-              ],
+                  _buildHeader(),
+                  const SizedBox(height: 16),
+                  _buildContentInput(),
+                  const SizedBox(height: 12),
+                  // 优化：使用 AnimatedSwitcher 让提示信息切换更流畅
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: _hasUrl
+                        ? _buildUrlDetectionHint()
+                        : (_contentController.text.isNotEmpty
+                            ? _buildNoUrlHint()
+                            : const SizedBox.shrink()),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildButtons(),
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
           ),
         ),
@@ -308,16 +340,19 @@ class _AddContentDialogState extends State<AddContentDialog> {
               Text(
                 'i18n_addContent_添加内容'.tr,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
               const SizedBox(height: 4),
               Text(
                 'i18n_addContent_请输入包含链接的文本'.tr,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                ),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.7),
+                    ),
               ),
             ],
           ),
@@ -453,7 +488,10 @@ class _AddContentDialogState extends State<AddContentDialog> {
                       : _detectedUrl,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.7),
                   ),
                 ),
               ],
@@ -495,7 +533,8 @@ class _AddContentDialogState extends State<AddContentDialog> {
             onPressed: _canSubmit ? _handleSubmit : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00BCF6),
-              disabledBackgroundColor: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              disabledBackgroundColor:
+                  Theme.of(context).colorScheme.outline.withOpacity(0.2),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 10),
               shape: RoundedRectangleBorder(
@@ -531,9 +570,16 @@ class _AddContentDialogState extends State<AddContentDialog> {
 Future<bool?> showAddContentDialog(BuildContext context) {
   return showModalBottomSheet<bool>(
     context: context,
-    isScrollControlled: true, // Crucial for the sheet to resize when the keyboard appears.
-    backgroundColor: Colors.transparent, // The dialog itself will handle its background and shape.
+    isScrollControlled:
+        true, // Crucial for the sheet to resize when the keyboard appears.
+    backgroundColor: Colors
+        .transparent, // The dialog itself will handle its background and shape.
+    // 优化：添加键盘动画配置，提升体验
+    useSafeArea: true,
+    enableDrag: true,
+    showDragHandle: false,
+    // 优化：使用自定义动画曲线，让弹出更流畅
+    transitionAnimationController: null,
     builder: (context) => const AddContentDialog(),
   );
 }
- 

@@ -56,4 +56,27 @@ const Map<String, String> loginI18n = {
   'i18n_login_登录成功': '登入成功',
   'i18n_login_登录失败': '登入失敗',
   'i18n_login_验证码发送频繁请稍后再试': '驗證碼發送頻繁，請稍後再試',
+  
+  // Apple 登录相关
+  'i18n_login_使用Apple登录': '使用 Apple 登入',
+  'i18n_login_Apple登录认证': 'Apple 登入認證',
+  'i18n_login_Apple登录失败': 'Apple 登入失敗',
+  'i18n_login_Apple授权失败': 'Apple 授權失敗',
+  'i18n_login_Apple认证失败': 'Apple 認證失敗',
+  'i18n_login_Apple登录不可用': 'Apple 登入不可用',
+  'i18n_login_当前设备不支持Apple登录': '目前設備不支援 Apple 登入',
+  'i18n_login_Apple登录发生未知错误': 'Apple 登入發生未知錯誤',
+  'i18n_login_Apple登录成功但未获取到token': 'Apple 登入成功但未獲取到 token',
+  'i18n_login_Apple服务器响应无效': 'Apple 伺服器回應無效',
+  'i18n_login_Apple登录请求未被处理': 'Apple 登入請求未被處理',
+  
+  // Web 认证相关
+  'i18n_login_正在打开Web认证窗口': '正在開啟 Web 認證視窗',
+  'i18n_login_Web认证失败请重试': 'Web 認證失敗，請重試',
+  'i18n_login_Web认证失败请检查网络连接': 'Web 認證失敗，請檢查網絡連接',
+  'i18n_login_Web认证发生未知错误': 'Web 認證發生未知錯誤',
+  'i18n_login_Web认证响应无效': 'Web 認證回應無效',
+  'i18n_login_Web认证窗口加载失败': 'Web 認證視窗載入失敗',
+  'i18n_login_Web认证超时请重试': 'Web 認證逾時，請重試',
+  'i18n_login_网络连接异常请检查网络': '網絡連接異常，請檢查網絡',
 }; 

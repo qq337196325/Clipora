@@ -56,4 +56,27 @@ const Map<String, String> loginI18n = {
   'i18n_login_登录成功': 'Accesso riuscito',
   'i18n_login_登录失败': 'Accesso fallito',
   'i18n_login_验证码发送频繁请稍后再试': 'Codice di verifica inviato troppo frequentemente, riprova più tardi',
+  
+  // Apple 登录相关
+  'i18n_login_使用Apple登录': 'Accedi con Apple',
+  'i18n_login_Apple登录认证': 'Autenticazione accesso Apple',
+  'i18n_login_Apple登录失败': 'Accesso Apple fallito',
+  'i18n_login_Apple授权失败': 'Autorizzazione Apple fallita',
+  'i18n_login_Apple认证失败': 'Autenticazione Apple fallita',
+  'i18n_login_Apple登录不可用': 'Accesso Apple non disponibile',
+  'i18n_login_当前设备不支持Apple登录': 'Il dispositivo attuale non supporta l\'accesso Apple',
+  'i18n_login_Apple登录发生未知错误': 'Errore sconosciuto nell\'accesso Apple',
+  'i18n_login_Apple登录成功但未获取到token': 'Accesso Apple riuscito ma token non ottenuto',
+  'i18n_login_Apple服务器响应无效': 'Risposta server Apple non valida',
+  'i18n_login_Apple登录请求未被处理': 'Richiesta di accesso Apple non elaborata',
+  
+  // Web 认证相关
+  'i18n_login_正在打开Web认证窗口': 'Apertura finestra autenticazione web',
+  'i18n_login_Web认证失败请重试': 'Autenticazione web fallita, riprova',
+  'i18n_login_Web认证失败请检查网络连接': 'Autenticazione web fallita, controlla la connessione di rete',
+  'i18n_login_Web认证发生未知错误': 'Errore sconosciuto nell\'autenticazione web',
+  'i18n_login_Web认证响应无效': 'Risposta autenticazione web non valida',
+  'i18n_login_Web认证窗口加载失败': 'Caricamento finestra autenticazione web fallito',
+  'i18n_login_Web认证超时请重试': 'Timeout autenticazione web, riprova',
+  'i18n_login_网络连接异常请检查网络': 'Connessione di rete anomala, controlla la rete',
 }; 

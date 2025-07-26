@@ -56,4 +56,27 @@ const Map<String, String> loginI18n = {
   'i18n_login_登录成功': 'Anmeldung erfolgreich',
   'i18n_login_登录失败': 'Anmeldung fehlgeschlagen',
   'i18n_login_验证码发送频繁请稍后再试': 'Bestätigungscode zu häufig gesendet, bitte versuchen Sie es später erneut',
+  
+  // Apple 登录相关
+  'i18n_login_使用Apple登录': 'Mit Apple anmelden',
+  'i18n_login_Apple登录认证': 'Apple-Anmeldung Authentifizierung',
+  'i18n_login_Apple登录失败': 'Apple-Anmeldung fehlgeschlagen',
+  'i18n_login_Apple授权失败': 'Apple-Autorisierung fehlgeschlagen',
+  'i18n_login_Apple认证失败': 'Apple-Authentifizierung fehlgeschlagen',
+  'i18n_login_Apple登录不可用': 'Apple-Anmeldung nicht verfügbar',
+  'i18n_login_当前设备不支持Apple登录': 'Aktuelles Gerät unterstützt Apple-Anmeldung nicht',
+  'i18n_login_Apple登录发生未知错误': 'Unbekannter Fehler bei Apple-Anmeldung aufgetreten',
+  'i18n_login_Apple登录成功但未获取到token': 'Apple-Anmeldung erfolgreich, aber kein Token erhalten',
+  'i18n_login_Apple服务器响应无效': 'Ungültige Apple-Server-Antwort',
+  'i18n_login_Apple登录请求未被处理': 'Apple-Anmeldungsanfrage wurde nicht verarbeitet',
+  
+  // Web 认证相关
+  'i18n_login_正在打开Web认证窗口': 'Web-Authentifizierungsfenster wird geöffnet',
+  'i18n_login_Web认证失败请重试': 'Web-Authentifizierung fehlgeschlagen, bitte versuchen Sie es erneut',
+  'i18n_login_Web认证失败请检查网络连接': 'Web-Authentifizierung fehlgeschlagen, bitte überprüfen Sie die Netzwerkverbindung',
+  'i18n_login_Web认证发生未知错误': 'Unbekannter Fehler bei Web-Authentifizierung aufgetreten',
+  'i18n_login_Web认证响应无效': 'Ungültige Web-Authentifizierungsantwort',
+  'i18n_login_Web认证窗口加载失败': 'Laden des Web-Authentifizierungsfensters fehlgeschlagen',
+  'i18n_login_Web认证超时请重试': 'Web-Authentifizierung Timeout, bitte versuchen Sie es erneut',
+  'i18n_login_网络连接异常请检查网络': 'Netzwerkverbindung abnormal, bitte überprüfen Sie das Netzwerk',
 }; 

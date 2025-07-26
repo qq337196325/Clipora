@@ -56,4 +56,27 @@ const Map<String, String> loginI18n = {
   'i18n_login_登录成功': '로그인 성공',
   'i18n_login_登录失败': '로그인 실패',
   'i18n_login_验证码发送频繁请稍后再试': '인증번호 전송이 너무 빈번합니다. 잠시 후 다시 시도해주세요',
+  
+  // Apple 登录相关
+  'i18n_login_使用Apple登录': 'Apple로 로그인',
+  'i18n_login_Apple登录认证': 'Apple 로그인 인증',
+  'i18n_login_Apple登录失败': 'Apple 로그인에 실패했습니다',
+  'i18n_login_Apple授权失败': 'Apple 인증에 실패했습니다',
+  'i18n_login_Apple认证失败': 'Apple 인증에 실패했습니다',
+  'i18n_login_Apple登录不可用': 'Apple 로그인을 사용할 수 없습니다',
+  'i18n_login_当前设备不支持Apple登录': '현재 기기는 Apple 로그인을 지원하지 않습니다',
+  'i18n_login_Apple登录发生未知错误': 'Apple 로그인에서 알 수 없는 오류가 발생했습니다',
+  'i18n_login_Apple登录成功但未获取到token': 'Apple 로그인은 성공했지만 토큰을 가져오지 못했습니다',
+  'i18n_login_Apple服务器响应无效': 'Apple 서버 응답이 유효하지 않습니다',
+  'i18n_login_Apple登录请求未被处理': 'Apple 로그인 요청이 처리되지 않았습니다',
+  
+  // Web 认证相关
+  'i18n_login_正在打开Web认证窗口': 'Web 인증 창을 열고 있습니다',
+  'i18n_login_Web认证失败请重试': 'Web 인증에 실패했습니다. 다시 시도해주세요',
+  'i18n_login_Web认证失败请检查网络连接': 'Web 인증에 실패했습니다. 네트워크 연결을 확인해주세요',
+  'i18n_login_Web认证发生未知错误': 'Web 인증에서 알 수 없는 오류가 발생했습니다',
+  'i18n_login_Web认证响应无效': 'Web 인증 응답이 유효하지 않습니다',
+  'i18n_login_Web认证窗口加载失败': 'Web 인증 창 로드에 실패했습니다',
+  'i18n_login_Web认证超时请重试': 'Web 인증이 시간 초과되었습니다. 다시 시도해주세요',
+  'i18n_login_网络连接异常请检查网络': '네트워크 연결에 이상이 있습니다. 네트워크를 확인해주세요',
 }; 

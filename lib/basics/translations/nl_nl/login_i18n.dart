@@ -56,4 +56,27 @@ const Map<String, String> loginI18n = {
   'i18n_login_登录成功': 'Inloggen succesvol',
   'i18n_login_登录失败': 'Inloggen mislukt',
   'i18n_login_验证码发送频繁请稍后再试': 'Verificatiecode te vaak verzonden, probeer later opnieuw',
+  
+  // Apple 登录相关
+  'i18n_login_使用Apple登录': 'Inloggen met Apple',
+  'i18n_login_Apple登录认证': 'Apple inlog authenticatie',
+  'i18n_login_Apple登录失败': 'Apple inloggen mislukt',
+  'i18n_login_Apple授权失败': 'Apple autorisatie mislukt',
+  'i18n_login_Apple认证失败': 'Apple authenticatie mislukt',
+  'i18n_login_Apple登录不可用': 'Apple inloggen niet beschikbaar',
+  'i18n_login_当前设备不支持Apple登录': 'Huidig apparaat ondersteunt Apple inloggen niet',
+  'i18n_login_Apple登录发生未知错误': 'Onbekende fout bij Apple inloggen',
+  'i18n_login_Apple登录成功但未获取到token': 'Apple inloggen succesvol maar geen token verkregen',
+  'i18n_login_Apple服务器响应无效': 'Ongeldige Apple server respons',
+  'i18n_login_Apple登录请求未被处理': 'Apple inlogverzoek niet verwerkt',
+  
+  // Web 认证相关
+  'i18n_login_正在打开Web认证窗口': 'Web authenticatievenster openen',
+  'i18n_login_Web认证失败请重试': 'Web authenticatie mislukt, probeer opnieuw',
+  'i18n_login_Web认证失败请检查网络连接': 'Web authenticatie mislukt, controleer netwerkverbinding',
+  'i18n_login_Web认证发生未知错误': 'Onbekende fout bij web authenticatie',
+  'i18n_login_Web认证响应无效': 'Ongeldige web authenticatie respons',
+  'i18n_login_Web认证窗口加载失败': 'Laden van web authenticatievenster mislukt',
+  'i18n_login_Web认证超时请重试': 'Web authenticatie timeout, probeer opnieuw',
+  'i18n_login_网络连接异常请检查网络': 'Abnormale netwerkverbinding, controleer netwerk',
 }; 

@@ -56,4 +56,27 @@ const Map<String, String> loginI18n = {
   'i18n_login_登录成功': 'ログイン成功',
   'i18n_login_登录失败': 'ログイン失敗',
   'i18n_login_验证码发送频繁请稍后再试': '認証コードの送信が頻繁です。しばらくしてから再度お試しください',
+  
+  // Apple 登录相关
+  'i18n_login_使用Apple登录': 'Apple でログイン',
+  'i18n_login_Apple登录认证': 'Apple ログイン認証',
+  'i18n_login_Apple登录失败': 'Apple ログインに失敗しました',
+  'i18n_login_Apple授权失败': 'Apple 認証に失敗しました',
+  'i18n_login_Apple认证失败': 'Apple 認証に失敗しました',
+  'i18n_login_Apple登录不可用': 'Apple ログインは利用できません',
+  'i18n_login_当前设备不支持Apple登录': '現在のデバイスは Apple ログインをサポートしていません',
+  'i18n_login_Apple登录发生未知错误': 'Apple ログインで不明なエラーが発生しました',
+  'i18n_login_Apple登录成功但未获取到token': 'Apple ログインは成功しましたが、トークンを取得できませんでした',
+  'i18n_login_Apple服务器响应无效': 'Apple サーバーの応答が無効です',
+  'i18n_login_Apple登录请求未被处理': 'Apple ログインリクエストが処理されませんでした',
+  
+  // Web 认证相关
+  'i18n_login_正在打开Web认证窗口': 'Web 認証ウィンドウを開いています',
+  'i18n_login_Web认证失败请重试': 'Web 認証に失敗しました。再度お試しください',
+  'i18n_login_Web认证失败请检查网络连接': 'Web 認証に失敗しました。ネットワーク接続を確認してください',
+  'i18n_login_Web认证发生未知错误': 'Web 認証で不明なエラーが発生しました',
+  'i18n_login_Web认证响应无效': 'Web 認証の応答が無効です',
+  'i18n_login_Web认证窗口加载失败': 'Web 認証ウィンドウの読み込みに失敗しました',
+  'i18n_login_Web认证超时请重试': 'Web 認証がタイムアウトしました。再度お試しください',
+  'i18n_login_网络连接异常请检查网络': 'ネットワーク接続に異常があります。ネットワークを確認してください',
 }; 
