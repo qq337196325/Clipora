@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../db/annotation/enhanced_annotation_service.dart';
 import '../db/category/category_service.dart';
 import '../view/article/controller/article_controller.dart';
+import '../view/article_v2/controllers/tab_controller.dart';
 
 
 class AppsState extends StatefulWidget {
@@ -37,6 +38,7 @@ class _MyHomePageState extends State<AppsState> {
     Get.lazyPut(() => LanguageController());
 
     Get.lazyPut(() => ArticleController());
+    // Get.lazyPut(() => ArticleTabController());
     // Get.lazyPut(() => ArticleMarkdownController());
     // Get.lazyPut(() => SnapshotService());
     // Get.lazyPut(() => FullCommodityCategoryController());
