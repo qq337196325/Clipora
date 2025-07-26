@@ -281,6 +281,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
               _buildLanguageSetting(),
               _buildDivider(),
               _buildThemeSetting(),
+              _buildDivider(),
+              _buildAutoParseSettings(),
               // _buildModernSettingItem(
               //   icon: Icons.help_center_outlined,
               //   title: '使用帮助',
@@ -343,9 +345,28 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         iconBgColor: Theme.of(context).primaryColor.withOpacity(0.1),
         onTap: () => ThemeSelectorWidget.show(context),
         isFirst: false,
-        isLast: true,
+        isLast: false,
       );
     });
+  }
+
+  Widget _buildAutoParseSettings() {
+    return _buildModernSettingSwitchItem(
+      icon: Icons.auto_fix_high_outlined,
+      title: '自动解析',
+      subtitle: '自动解析网页内容并提取文本',
+      iconColor: const Color(0xFF34C759),
+      iconBgColor: const Color(0xFF34C759).withOpacity(0.1),
+      value: _autoParseEnabled,
+      onChanged: (bool value) {
+        setState(() {
+          _autoParseEnabled = value;
+          setAutoParseEnabled(value);
+        });
+      },
+      isFirst: false,
+      isLast: true,
+    );
   }
 
   Widget _buildAiTranslationCard() {
@@ -584,6 +605,142 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
     );
   }
 
+  Widget _buildModernSettingSwitchItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color iconColor,
+    required Color iconBgColor,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              size: 16,
+              color: iconColor,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.titleMedium?.color,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _buildCustomSwitch(value, onChanged),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomSwitch(bool value, ValueChanged<bool> onChanged) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        width: 50,
+        height: 28,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: value
+              ? LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    Theme.of(context).primaryColor.withOpacity(0.8),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                )
+              : LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                    Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  ],
+                ),
+          boxShadow: [
+            BoxShadow(
+              color: value 
+                  ? Theme.of(context).primaryColor.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.1),
+              blurRadius: value ? 8 : 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              left: value ? 24 : 2,
+              top: 2,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: value
+                    ? Icon(
+                        Icons.check,
+                        size: 14,
+                        color: Theme.of(context).primaryColor,
+                      )
+                    : Icon(
+                        Icons.close,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildDivider() {
     return Container(
@@ -661,11 +818,28 @@ mixin MyPageBLoC on State<MyPage> {
   int? _remainingTranslateQuantity;
   int? _totalTranslateQuantity;
   bool _isLoadingQuantity = true;
+  bool _autoParseEnabled = true; // 添加自动解析状态变量
 
   @override
   void initState() {
     super.initState();
     _loadTranslateQuantity();
+    _loadAutoParseSettings(); // 加载自动解析设置
+  }
+
+  // 加载自动解析设置
+  void _loadAutoParseSettings() {
+    setState(() {
+      _autoParseEnabled = getAutoParseEnabled();
+    });
+  }
+
+  bool getAutoParseEnabled() {
+    return globalBoxStorage.read('auto_parse_enabled') ?? true;
+  }
+
+  void setAutoParseEnabled(bool enabled) {
+    globalBoxStorage.write('auto_parse_enabled', enabled);
   }
 
   void _loadTranslateQuantity() async {
@@ -1284,4 +1458,4 @@ mixin MyPageBLoC on State<MyPage> {
       ),
     );
   }
-} 
+}

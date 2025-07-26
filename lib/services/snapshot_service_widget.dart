@@ -10,10 +10,11 @@ import '../basics/web_view/utils.dart';
 import '../basics/web_view/warmup_urls.dart';
 import '../db/article/article_db.dart';
 import '../db/article/service/article_service.dart';
-import '../view/article/article_web/browser_simulation/core/browser_simulation_manager.dart';
-import '../view/article/article_web/browser_simulation/utils/js_injector.dart';
-import '../view/article/article_web/utils/auto_generate_utils.dart';
-import '../view/article/article_web/utils/web_utils.dart';
+import '../view/article/tabs/web/browser_simulation/core/browser_simulation_manager.dart';
+import '../view/article/tabs/web/browser_simulation/utils/js_injector.dart';
+import '../view/article/tabs/web/utils/auto_generate_utils.dart';
+import '../view/article/tabs/web/utils/web_utils.dart';
+
 
 
 class SnapshotServiceWidget extends StatefulWidget {

@@ -65,6 +65,16 @@ int getStorageServiceCurrentTimeAdding(){
   return serverTime + (serverLocalDiff > 0 ? serverLocalDiff : 0) + 10;
 }
 
+// 获取自动解析设置状态
+bool getAutoParseEnabled() {
+  return globalBoxStorage.read('auto_parse_enabled') ?? true; // 默认开启
+}
+
+// 设置自动解析状态
+void setAutoParseEnabled(bool enabled) {
+  globalBoxStorage.write('auto_parse_enabled', enabled);
+}
+
 
 /// 跳转链接
 Future<void> goLaunchUrl(Uri _url) async {

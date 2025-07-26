@@ -8,7 +8,7 @@ import '../view/order/ai_order_page.dart';
 import '../view/order/member_order_page.dart';
 import '../view/share/share_page.dart';
 import '/route/route_name.dart';
-import '../view/article/article_page/article_page.dart';
+import '../view/article/article_page.dart';
 import '../view/home/index_page.dart';
 import '../view/transfer_route.dart';
 import '../view/article_list/article_list_page.dart';

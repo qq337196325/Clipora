@@ -10,6 +10,7 @@ import '../../basics/logger.dart';
 import '../../db/article/service/article_service.dart';
 import '../../db/tag/tag_service.dart';
 import '../../db/article/article_db.dart';
+import 'components/auto_parse_tip_widget.dart'; // 添加导入
 
 
 class IndexWidget extends StatefulWidget {
@@ -365,6 +366,8 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
             ),
           ),
           const SizedBox(height: 12),
+          // 添加自动解析提示组件
+          const AutoParseTipWidget(),
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
