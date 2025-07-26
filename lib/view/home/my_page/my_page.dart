@@ -209,6 +209,19 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
       ),
       child: Column(
         children: [
+
+
+          _buildModernSettingItem(
+            icon: Icons.help_outline,
+            title: 'i18n_my_使用帮助'.tr,
+            subtitle: 'i18n_my_常见问题与解答'.tr,
+            iconColor: const Color(0xFF45B7D1),
+            iconBgColor: const Color(0xFF45B7D1).withOpacity(0.1),
+            onTap: () => _handleHelp(),
+            isLast: true,
+            isExternalLink: false,
+          ),
+          _buildDivider(),
           _buildModernSettingItem(
             icon: Icons.policy_outlined,
             title: 'i18n_my_用户协议'.tr,
@@ -240,6 +253,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
             onTap: () => _handleAboutUs(),
             isExternalLink: false,
           ),
+
           // _buildDivider(),
           // _buildModernSettingItem(
           //   icon: Icons.bug_report,
@@ -898,6 +912,14 @@ mixin MyPageBLoC on State<MyPage> {
         builder: (context) => const AboutPage(),
       ),
     );
+  }
+
+  void _handleHelp() {
+    getLogger().i('使用帮助');
+
+    context.push('/${RouteName.helpDocumentation}');
+    // final helpWidget = HelpWidget();
+    // helpWidget.openHelpDocumentation(context);
   }
 
   void _handleAppStoreTest() {

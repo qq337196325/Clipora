@@ -33,5 +33,6 @@ class RouteName {
   static String articleList = "article_list";
   static String aiOrderPage = "ai_order_page";
   static String memberOrderPage = "member_order_page";
+  static String helpDocumentation = "help_documentation";
 
 }

@@ -4,9 +4,8 @@ import 'package:get_storage/get_storage.dart';
 
 import '../../../basics/config.dart';
 import '../../../basics/logger.dart';
-import '../widgets/read_theme_widget.dart';
 import 'article_markdown_controller.dart';
-
+import '../article_page/components/read_theme_widget.dart';
 
 
 /// 文章控制器

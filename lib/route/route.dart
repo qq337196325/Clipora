@@ -1,15 +1,17 @@
 import 'package:go_router/go_router.dart';
 import 'package:bot_toast/bot_toast.dart';
 
+import '../view/article/article_page/article_page.dart';
 import '../view/guide/guide_page.dart';
 import '../view/home/search/search_page.dart';
 import '../view/login/login_page.dart';
 import '../view/order/ai_order_page.dart';
 import '../view/order/member_order_page.dart';
 import '../view/share/share_page.dart';
+import '../view/home/my_page/help_widget.dart';
 import '/route/route_name.dart';
 // import '../view/article/article_page.dart';
-import '../view/article_v2/article_page.dart';
+// import '../view/article_v2/article_page.dart';
 import '../view/home/index_page.dart';
 import '../view/transfer_route.dart';
 import '../view/article_list/article_list_page.dart';
@@ -39,6 +41,13 @@ List<RouteInfo> routeInfos = [
 
   RouteInfo(path: "/${RouteName.aiOrderPage}", name: RouteName.aiOrderPage, builder: (context, state) => AIOrderPage()),
   RouteInfo(path: "/${RouteName.memberOrderPage}", name: RouteName.memberOrderPage, builder: (context, state) => MemberOrderPage()),
+  
+  // 帮助文档页面路由
+  RouteInfo(path: "/${RouteName.helpDocumentation}", name: RouteName.helpDocumentation, builder: (context, state) => HelpDocumentationPage()),
+  // RouteInfo(path: "/${RouteName.helpDocumentation}", name: RouteName.helpDocumentation, builder: (context, state) {
+  //   final url = getQueryParam("url", state);
+  //   return HelpDocumentationPage(url: url.isNotEmpty ? url : 'https://docs.guanshangyun.com/clipora-docs/zh/docs/intro');
+  // }),
 
   // RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state) => ArticlePage()),
   RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state){

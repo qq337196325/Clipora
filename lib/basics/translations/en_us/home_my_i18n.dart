@@ -28,6 +28,7 @@ const Map<String, String> homeMyI18n = {
   'i18n_my_了解更多应用信息': 'Learn more about the app',
   'i18n_my_使用帮助': 'Usage Help',
   'i18n_my_常见问题与解答': 'FAQ and Answers',
+  'help_documentation': 'Help Documentation',
   'i18n_my_评价一下': 'Rate Us',
   'i18n_my_您的评价是我们前进的动力': 'Your rating is our motivation',
   'i18n_my_应用商店测试': 'App Store Test',
