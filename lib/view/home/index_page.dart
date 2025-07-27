@@ -32,8 +32,7 @@ class IndexPage extends StatefulWidget {
   State<IndexPage> createState() => _IndexPageState();
 }
 
-class _IndexPageState extends State<IndexPage>
-    with TickerProviderStateMixin, IndexPageBLoC {
+class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, IndexPageBLoC {
   @override
   Widget build(BuildContext context) {
     final tabs = [
@@ -714,16 +713,20 @@ mixin IndexPageBLoC on State<IndexPage> {
     double topPosition;
 
     if (keyboardHeight > 0) {
-      // 键盘弹出时，将浮动框定位在键盘上方
+      // 键盘弹出时，在剩余可用空间中居中显示
       final keyboardTop = screenHeight - keyboardHeight - safeAreaBottom;
-      topPosition = keyboardTop - idealHeight - 20; // 20px 间距
-
-      // 确保不会超出屏幕顶部
-      final minTop = safeAreaTop + 60; // 至少距离顶部60px
-      topPosition = topPosition.clamp(minTop, keyboardTop - 200); // 至少保留200px高度
+      final availableHeight = keyboardTop - safeAreaTop; // 键盘上方的可用高度
+      
+      // 在可用空间中居中
+      final centerY = safeAreaTop + (availableHeight - idealHeight) / 2;
+      
+      // 设置合理的边界
+      final minTop = safeAreaTop + 20; // 顶部最小边距
+      final maxTop = keyboardTop - idealHeight - 20; // 距离键盘最小边距
+      
+      topPosition = centerY.clamp(minTop, maxTop);
     } else {
-      // 键盘未弹出时，真正的居中显示
-      // 计算内容区域的中心点（排除状态栏和导航栏）
+      // 键盘未弹出时，在整个屏幕中居中显示
       final contentHeight = screenHeight - safeAreaTop - safeAreaBottom;
       final centerY = safeAreaTop + (contentHeight - idealHeight) / 2;
 
