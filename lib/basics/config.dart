@@ -26,8 +26,8 @@ const isHuawei = false; /// 是否是华为平台
 
 const bool isDevelop = true;
 const String apiVersion = "/v130";
-String version = "v1.3.0";
-int clientVersion = 130;
+String version = "v1.4.0";
+int clientVersion = 140;
 const String apiHost = "https://clipora-api.guanshangyun.com";
 
 
