@@ -7,33 +7,32 @@ import 'package:get/get.dart';
 
 import '../../basics/logger.dart';
 
-
 /// ArticleMhtmlWidget - 快照文章显示组件
-/// 
+///
 /// 使用示例：
 /// ```dart
 /// class ParentPage extends StatefulWidget {
 ///   @override
 ///   State<ParentPage> createState() => _ParentPageState();
 /// }
-/// 
+///
 /// class _ParentPageState extends State<ParentPage> {
 ///   final GlobalKey<_ArticlePageState> _articleKey = GlobalKey();
 ///   String currentMhtmlPath = 'path/to/snapshot.mhtml';
-/// 
+///
 ///   // 重新加载当前快照
 ///   Future<void> _reloadCurrentSnapshot() async {
 ///     await _articleKey.currentState?.reloadSnapshot();
 ///   }
-/// 
+///
 ///   // 加载新的快照文件
 ///   Future<void> _loadNewSnapshot(String newPath) async {
 ///     await _articleKey.currentState?.loadNewSnapshot(newPath);
 ///   }
-/// 
+///
 ///   // 检查加载状态
 ///   bool get isLoading => _articleKey.currentState?.isSnapshotLoading ?? false;
-/// 
+///
 ///   @override
 ///   Widget build(BuildContext context) {
 ///     return Scaffold(
@@ -54,12 +53,12 @@ import '../../basics/logger.dart';
 /// ```
 
 class ArticleMhtmlWidget extends StatefulWidget {
-  final String mhtmlPath;  // MHTML文件路径
-  final String? title;     // 可选的标题显示
+  final String mhtmlPath; // MHTML文件路径
+  final String? title; // 可选的标题显示
   final void Function(ScrollDirection direction, double scrollY)? onScroll;
   final VoidCallback? onTap; // 添加点击回调
   final EdgeInsetsGeometry contentPadding;
-  
+
   const ArticleMhtmlWidget({
     super.key,
     required this.mhtmlPath,
@@ -73,7 +72,8 @@ class ArticleMhtmlWidget extends StatefulWidget {
   State<ArticleMhtmlWidget> createState() => ArticleMhtmlWidgetState();
 }
 
-class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePageBLoC {
+class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget>
+    with ArticlePageBLoC {
   double _lastScrollY = 0.0;
 
   /// 重新加载当前快照
@@ -87,14 +87,14 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
   /// 供外部调用的公开方法，用于加载新生成的快照
   Future<void> loadNewSnapshot(String newMhtmlPath) async {
     getLogger().i('🔄 加载新的快照文件: $newMhtmlPath');
-    
+
     // 重置状态
     setState(() {
       hasError = false;
       errorMessage = '';
       isLoading = true;
     });
-    
+
     // 先验证新的快照文件
     final isValid = await validateSnapshotFile(newMhtmlPath);
     if (!isValid) {
@@ -103,18 +103,19 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
       });
       return;
     }
-    
+
     // 如果路径相同，直接重新加载
     if (newMhtmlPath == widget.mhtmlPath) {
       await _reloadMhtml();
       return;
     }
-    
+
     // 如果路径不同，需要重新加载新的URL
     if (webViewController != null) {
       final newUrl = 'file://$newMhtmlPath';
       getLogger().i('📄 加载新快照URL: $newUrl');
-      await webViewController!.loadUrl(urlRequest: URLRequest(url: WebUri(newUrl)));
+      await webViewController!
+          .loadUrl(urlRequest: URLRequest(url: WebUri(newUrl)));
     } else {
       // 如果WebView控制器不存在，重新初始化
       await _initializeMhtmlView();
@@ -124,18 +125,22 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
   /// 获取当前快照的加载状态
   /// 供外部查询使用
   bool get isSnapshotLoading => isLoading;
-  
+
   /// 获取当前快照是否有错误
   /// 供外部查询使用
   bool get hasSnapshotError => hasError;
-  
+
   /// 获取当前快照的错误信息
   /// 供外部查询使用
   String get snapshotErrorMessage => errorMessage;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return SafeArea(
+      // 可以选择性地控制哪些边需要安全区域
+      top: true, // 避免刘海屏遮挡
+      bottom: false, // 如果需要沉浸式底部，可以设为false
+      child: Column(
         children: [
           // 加载进度条
           if (isLoading)
@@ -202,7 +207,6 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                     isLoading = false;
                   });
 
-
                   // 注入移动端弹窗处理脚本 - 恢复滚动功能
                   // await WebViewUtils.injectMobilePopupHandler(controller);
 
@@ -229,7 +233,7 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                 },
                 onReceivedError: (controller, request, error) {
                   getLogger().e('MHTML加载错误', error: error.description);
-                  
+
                   setState(() {
                     isLoading = false;
                     hasError = true;
@@ -240,8 +244,10 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                   });
                 },
                 onReceivedHttpError: (controller, request, errorResponse) {
-                  getLogger().e('MHTML HTTP错误', error: '${errorResponse.statusCode}: ${errorResponse.reasonPhrase}');
-                  
+                  getLogger().e('MHTML HTTP错误',
+                      error:
+                          '${errorResponse.statusCode}: ${errorResponse.reasonPhrase}');
+
                   setState(() {
                     isLoading = false;
                     hasError = true;
@@ -255,7 +261,9 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                   final scrollY = y.toDouble();
                   // 只有在滚动距离超过一个阈值时才触发，避免过于敏感
                   if ((scrollY - _lastScrollY).abs() > 15) {
-                    final direction = scrollY > _lastScrollY ? ScrollDirection.reverse : ScrollDirection.forward;
+                    final direction = scrollY > _lastScrollY
+                        ? ScrollDirection.reverse
+                        : ScrollDirection.forward;
                     widget.onScroll?.call(direction, scrollY);
                     _lastScrollY = scrollY;
                   }
@@ -268,22 +276,23 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
               ),
             ),
         ],
-      );
+      ),
+    );
   }
 }
 
 mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
   // WebView控制器
   InAppWebViewController? webViewController;
-  
+
   // 加载状态
   bool isLoading = true;
   double loadingProgress = 0.0;
-  
+
   // 错误状态
   bool hasError = false;
   String errorMessage = '';
-  
+
   // 获取MHTML文件的URL
   String get mhtmlFileUrl {
     final file = File(widget.mhtmlPath);
@@ -291,53 +300,54 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
       getLogger().e('MHTML文件不存在: ${widget.mhtmlPath}');
       return '';
     }
-    
+
     // 使用file协议加载本地文件
     return 'file://${widget.mhtmlPath}';
     // return '${widget.mhtmlPath}';
   }
-  
+
   // WebView设置 - 针对MHTML文件优化
   InAppWebViewSettings webViewSettings = InAppWebViewSettings(
     // ==== 核心功能设置 ====
     javaScriptEnabled: true,
     domStorageEnabled: true,
-    
+
     // ==== 本地文件访问设置 ====
     allowFileAccess: true,
     allowContentAccess: true,
     allowFileAccessFromFileURLs: true,
     allowUniversalAccessFromFileURLs: true,
-    
+
     // ==== 缓存设置 ====
     clearCache: false,
     cacheMode: CacheMode.LOAD_CACHE_ELSE_NETWORK,
-    
+
     // ==== 安全设置（适用于本地文件） ====
     mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-    
+
     // ==== 用户代理 ====
-    userAgent: "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-    
+    userAgent:
+        "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+
     // ==== 视口和缩放设置 ====
     supportZoom: true,
     builtInZoomControls: true,
     displayZoomControls: false,
     useWideViewPort: true,
     loadWithOverviewMode: true,
-    
+
     // ==== 基本设置 ====
     blockNetworkImage: false,
     blockNetworkLoads: false,
     loadsImagesAutomatically: true,
-    
+
     // ==== 媒体设置 ====
     mediaPlaybackRequiresUserGesture: false,
-    
+
     // ==== 滚动条设置 ====
     verticalScrollBarEnabled: true,
     horizontalScrollBarEnabled: true,
-    
+
     // ==== 禁用URL跳转拦截（本地文件不需要） ====
     useShouldOverrideUrlLoading: false,
   );
@@ -360,13 +370,13 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
   Future<void> _injectPageClickListener() async {
     try {
       getLogger().d('🔄 开始注入MHTML页面点击监听器...');
-      
+
       // 注册JavaScript Handler
       webViewController!.addJavaScriptHandler(
         handlerName: 'onPageClicked',
         callback: _handlePageClick,
       );
-      
+
       await webViewController!.evaluateJavascript(source: '''
         (function() {
           // 防止重复注册
@@ -404,7 +414,6 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
       ''');
 
       getLogger().i('✅ MHTML页面点击监听脚本注入成功');
-
     } catch (e) {
       getLogger().e('❌ 注入MHTML页面点击监听脚本失败: $e');
     }
@@ -420,33 +429,34 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
   Future<void> _initializeMhtmlView() async {
     try {
       getLogger().i('📄 初始化MHTML视图，文件路径: ${widget.mhtmlPath}');
-      
+
       // 检查文件是否存在
       final file = File(widget.mhtmlPath);
       if (!file.existsSync()) {
         setState(() {
           hasError = true;
-          errorMessage = 'i18n_article_快照文件不存在'.trParams({'path': widget.mhtmlPath});
+          errorMessage =
+              'i18n_article_快照文件不存在'.trParams({'path': widget.mhtmlPath});
           isLoading = false;
         });
         return;
       }
-      
+
       // 检查文件大小
       final fileSize = await file.length();
       getLogger().i('📄 MHTML文件大小: ${(fileSize / 1024).toStringAsFixed(2)} KB');
-      
+
       if (fileSize == 0) {
         setState(() {
           hasError = true;
-          errorMessage = 'i18n_article_快照文件为空'.trParams({'path': widget.mhtmlPath});
+          errorMessage =
+              'i18n_article_快照文件为空'.trParams({'path': widget.mhtmlPath});
           isLoading = false;
         });
         return;
       }
-      
+
       getLogger().i('✅ MHTML文件检查通过，准备加载');
-      
     } catch (e) {
       getLogger().e('❌ 初始化MHTML视图失败: $e');
       setState(() {
@@ -460,13 +470,13 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
   // 重新加载MHTML
   Future<void> _reloadMhtml() async {
     getLogger().i('🔄 重新加载MHTML快照');
-    
+
     setState(() {
       hasError = false;
       errorMessage = '';
       isLoading = true;
     });
-    
+
     if (webViewController != null) {
       await webViewController!.reload();
     } else {
@@ -480,7 +490,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
   Future<bool> validateSnapshotFile(String filePath) async {
     try {
       final file = File(filePath);
-      
+
       // 检查文件是否存在
       if (!file.existsSync()) {
         getLogger().e('❌ 快照文件不存在: $filePath');
@@ -490,7 +500,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
         });
         return false;
       }
-      
+
       // 检查文件大小
       final fileSize = await file.length();
       if (fileSize == 0) {
@@ -501,10 +511,10 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
         });
         return false;
       }
-      
-      getLogger().i('✅ 快照文件验证通过: $filePath (${(fileSize / 1024).toStringAsFixed(2)} KB)');
+
+      getLogger().i(
+          '✅ 快照文件验证通过: $filePath (${(fileSize / 1024).toStringAsFixed(2)} KB)');
       return true;
-      
     } catch (e) {
       getLogger().e('❌ 验证快照文件失败: $e');
       setState(() {
@@ -518,15 +528,14 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
   // 获取当前页面信息（调试用）
   Future<void> getPageInfo() async {
     if (webViewController == null) return;
-    
+
     try {
       final url = await webViewController!.getUrl();
       final title = await webViewController!.getTitle();
-      
+
       getLogger().i('📄 当前页面信息:');
       getLogger().i('  URL: $url');
       getLogger().i('  标题: $title');
-      
     } catch (e) {
       getLogger().e('❌ 获取页面信息失败: $e');
     }
@@ -542,7 +551,9 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
     getLogger().d('🌐 URL跳转拦截: $url');
 
     // 检查是否是自定义scheme（非http/https）
-    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('file://')) {
+    if (!url.startsWith('http://') &&
+        !url.startsWith('https://') &&
+        !url.startsWith('file://')) {
       getLogger().w('⚠️ 拦截自定义scheme跳转: ${uri.scheme}://');
       return NavigationActionPolicy.CANCEL;
     }
