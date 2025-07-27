@@ -67,7 +67,7 @@ class _FloatingAddInputState extends State<FloatingAddInput>
     _animationController.forward();
 
     // 延迟聚焦，确保动画完成后再聚焦
-    Future.delayed(const Duration(milliseconds: 350), () {
+    Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
         _focusNode.requestFocus();
       }
