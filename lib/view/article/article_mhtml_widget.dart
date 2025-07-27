@@ -260,6 +260,7 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget> with ArticlePage
                     _lastScrollY = scrollY;
                   }
                 },
+                shouldOverrideUrlLoading: _handleOptimizedUrlNavigation,
                 // 设置控制台消息处理
                 onConsoleMessage: (controller, consoleMessage) {
                   getLogger().d('MHTML Console: ${consoleMessage.message}');
@@ -293,6 +294,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
     
     // 使用file协议加载本地文件
     return 'file://${widget.mhtmlPath}';
+    // return '${widget.mhtmlPath}';
   }
   
   // WebView设置 - 针对MHTML文件优化
@@ -528,5 +530,36 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
     } catch (e) {
       getLogger().e('❌ 获取页面信息失败: $e');
     }
+  }
+
+  /// 优化的URL导航处理
+  Future<NavigationActionPolicy> _handleOptimizedUrlNavigation(
+      InAppWebViewController controller,
+      NavigationAction navigationAction) async {
+    final uri = navigationAction.request.url!;
+    final url = uri.toString();
+
+    getLogger().d('🌐 URL跳转拦截: $url');
+
+    // 检查是否是自定义scheme（非http/https）
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('file://')) {
+      getLogger().w('⚠️ 拦截自定义scheme跳转: ${uri.scheme}://');
+      return NavigationActionPolicy.CANCEL;
+    }
+
+    // 检查是否是应用内跳转scheme
+    if (url.startsWith('snssdk') ||
+        url.startsWith('sslocal') ||
+        url.startsWith('toutiao') ||
+        url.startsWith('newsarticle') ||
+        url.startsWith('zhihu')) {
+      // 明确拦截知乎的App拉起协议
+      getLogger().w('⚠️ 拦截应用跳转scheme: $url');
+      return NavigationActionPolicy.CANCEL;
+    }
+
+    // 允许正常的HTTP/HTTPS链接
+    getLogger().d('✅ 允许正常HTTP跳转: $url');
+    return NavigationActionPolicy.ALLOW;
   }
 }
