@@ -111,7 +111,7 @@ class _AutoParseTipWidgetState extends State<AutoParseTipWidget>
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                '可在设置中开或关闭自动解析'.tr,
+                'i18n_permission_可在设置中开或关闭自动解析'.tr,
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontSize: 12,
                   color: colorScheme.primary,
@@ -122,7 +122,7 @@ class _AutoParseTipWidgetState extends State<AutoParseTipWidget>
             GestureDetector(
               onTap: _goToSettings,
               child: Text(
-                '去设置'.tr,
+                'i18n_permission_去设置'.tr,
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontSize: 12,
                   color: colorScheme.primary,
