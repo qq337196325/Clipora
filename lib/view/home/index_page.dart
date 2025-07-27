@@ -23,7 +23,7 @@ import 'index_widget.dart';
 import 'my_page/my_page.dart';
 import '../../route/route_name.dart';
 import 'components/add_content_dialog.dart';
-
+import 'components/floating_add_input.dart';
 
 class IndexPage extends StatefulWidget {
   const IndexPage({super.key});
@@ -32,9 +32,9 @@ class IndexPage extends StatefulWidget {
   State<IndexPage> createState() => _IndexPageState();
 }
 
-class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, IndexPageBLoC {
-
-@override
+class _IndexPageState extends State<IndexPage>
+    with TickerProviderStateMixin, IndexPageBLoC {
+  @override
   Widget build(BuildContext context) {
     final tabs = [
       SegmentTab(label: 'i18n_home_首页'.tr, color: const Color(0xFF00BCF6)),
@@ -43,14 +43,14 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
 
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
-        systemNavigationBarColor: Theme.of(context).scaffoldBackgroundColor, // 或你想要的颜色
+        systemNavigationBarColor:
+            Theme.of(context).scaffoldBackgroundColor, // 或你想要的颜色
         // systemNavigationBarIconBrightness: Brightness.light, // 或 light，看你的主题
       ),
     );
 
     return Stack(
       children: [
-
         SnapshotServiceWidget(),
         Scaffold(
           // appBar: AppBar(
@@ -61,7 +61,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
           extendBody: true,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: SafeArea(
-            bottom :false,
+            bottom: false,
             child: Column(
               children: [
                 Container(
@@ -84,7 +84,8 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Row(
                     children: [
                       // 左边的"我的"图标 - 添加更好的交互效果
@@ -101,10 +102,15 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             duration: const Duration(milliseconds: 150),
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface.withOpacity(0.6),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surface
+                                  .withOpacity(0.6),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Theme.of(context).dividerColor.withOpacity(0.5),
+                                color: Theme.of(context)
+                                    .dividerColor
+                                    .withOpacity(0.5),
                                 width: 0.5,
                               ),
                             ),
@@ -125,7 +131,9 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                           decoration: BoxDecoration(
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(context).shadowColor.withOpacity(0.04),
+                                color: Theme.of(context)
+                                    .shadowColor
+                                    .withOpacity(0.04),
                                 offset: const Offset(0, 1),
                                 blurRadius: 3,
                                 spreadRadius: 0,
@@ -138,7 +146,10 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                               gradient: LinearGradient(
                                 colors: [
                                   Theme.of(context).colorScheme.surface,
-                                  Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                                  Theme.of(context)
+                                      .colorScheme
+                                      .surface
+                                      .withOpacity(0.8),
                                 ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
@@ -153,7 +164,9 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                               gradient: LinearGradient(
                                 colors: [
                                   Theme.of(context).primaryColor,
-                                  Theme.of(context).primaryColor.withOpacity(0.8),
+                                  Theme.of(context)
+                                      .primaryColor
+                                      .withOpacity(0.8),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -161,18 +174,23 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                               borderRadius: BorderRadius.circular(6),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                                  color: Theme.of(context)
+                                      .primaryColor
+                                      .withOpacity(0.3),
                                   offset: const Offset(0, 2),
                                   blurRadius: 4,
                                   spreadRadius: 0,
                                 ),
                               ],
                             ),
-                            tabTextColor: Theme.of(context).textTheme.bodyMedium?.color,
-                            selectedTabTextColor: Theme.of(context).colorScheme.onPrimary,
+                            tabTextColor:
+                                Theme.of(context).textTheme.bodyMedium?.color,
+                            selectedTabTextColor:
+                                Theme.of(context).colorScheme.onPrimary,
                             squeezeIntensity: 2,
                             height: 32,
-                            tabPadding: const EdgeInsets.symmetric(horizontal: 12),
+                            tabPadding:
+                                const EdgeInsets.symmetric(horizontal: 12),
                             tabs: tabs,
                           ),
                         ),
@@ -195,21 +213,29 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             duration: const Duration(milliseconds: 150),
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor.withOpacity(0.85),
+                              color:
+                                  Theme.of(context).cardColor.withOpacity(0.85),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Theme.of(context).dividerColor.withOpacity(0.6),
+                                color: Theme.of(context)
+                                    .dividerColor
+                                    .withOpacity(0.6),
                                 width: 0.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Theme.of(context).shadowColor.withOpacity(0.08),
+                                  color: Theme.of(context)
+                                      .shadowColor
+                                      .withOpacity(0.08),
                                   offset: const Offset(0, 2),
                                   blurRadius: 8,
                                   spreadRadius: 0,
                                 ),
                                 BoxShadow(
-                                  color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surface
+                                      .withOpacity(0.7),
                                   offset: const Offset(0, -1),
                                   blurRadius: 2,
                                   spreadRadius: 0,
@@ -219,7 +245,8 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             child: Icon(
                               Icons.search_rounded,
                               size: 22,
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              color:
+                                  Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                         ),
@@ -239,21 +266,29 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             duration: const Duration(milliseconds: 150),
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor.withOpacity(0.85),
+                              color:
+                                  Theme.of(context).cardColor.withOpacity(0.85),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Theme.of(context).dividerColor.withOpacity(0.6),
+                                color: Theme.of(context)
+                                    .dividerColor
+                                    .withOpacity(0.6),
                                 width: 0.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Theme.of(context).shadowColor.withOpacity(0.08),
+                                  color: Theme.of(context)
+                                      .shadowColor
+                                      .withOpacity(0.08),
                                   offset: const Offset(0, 2),
                                   blurRadius: 8,
                                   spreadRadius: 0,
                                 ),
                                 BoxShadow(
-                                  color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surface
+                                      .withOpacity(0.7),
                                   offset: const Offset(0, -1),
                                   blurRadius: 2,
                                   spreadRadius: 0,
@@ -263,7 +298,8 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                             child: Icon(
                               Icons.add,
                               size: 22,
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              color:
+                                  Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                         ),
@@ -293,7 +329,6 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
                   ),
                 ),
 
-
                 //
                 // InkWell(
                 //   onTap: (){
@@ -309,7 +344,6 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
         ),
         // This is the hidden WebView that will be used for background tasks.
 
-
         // Offstage(
         //   offstage: true,
         //   child: SizedBox(
@@ -318,25 +352,49 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
         //     child: SnapshotServiceWidget(),
         //   ),
         // ),
+
+        // 浮动输入框背景遮罩
+        if (_showFloatingInput)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _closeFloatingInput,
+              child: Container(
+                color: Colors.black.withOpacity(0.3),
+              ),
+            ),
+          ),
+
+        // 浮动输入框
+        if (_showFloatingInput)
+          Positioned(
+            top: 100,
+            left: 16,
+            right: 16,
+            child: FloatingAddInput(
+              onClose: _closeFloatingInput,
+              onSuccess: _onAddContentSuccess,
+            ),
+          ),
       ],
     );
   }
-
 }
 
 mixin IndexPageBLoC on State<IndexPage> {
-
   late TabController tabController;
-  
+
   // 手势检测相关变量
   double _totalDx = 0.0; // 水平滑动总距离
   double _totalDy = 0.0; // 垂直滑动总距离
   static const double _horizontalThreshold = 80.0; // 水平滑动阈值
   static const double _verticalTolerance = 80.0; // 垂直滑动容忍度
-  
+
   // 同步进度相关
   double _syncProgress = 0.0;
   String _syncMessage = 'i18n_home_正在初始化'.tr;
+
+  // 浮动输入框状态
+  bool _showFloatingInput = false;
 
   @override
   void initState() {
@@ -344,11 +402,11 @@ mixin IndexPageBLoC on State<IndexPage> {
 
     // _init();
     tabController = TabController(
-      length: 2, 
+      length: 2,
       vsync: this as TickerProvider,
       animationDuration: const Duration(milliseconds: 350), // 优化切换动画时长
     );
-    
+
     // 添加页面切换监听，确保tab指示器与页面同步
     tabController.addListener(() {
       // 监听tab切换，保持状态同步
@@ -358,7 +416,7 @@ mixin IndexPageBLoC on State<IndexPage> {
     });
 
     // 使用addPostFrameCallback确保在第一帧渲染后执行，避免阻塞UI
-    WidgetsBinding.instance.addPostFrameCallback((_)  {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _init();
     });
   }
@@ -371,38 +429,37 @@ mixin IndexPageBLoC on State<IndexPage> {
 
     await _checkAppVersion(); // 在这里调用版本检查
 
-    if(isHuawei){
-      bool? huaweiStoragePermission = globalBoxStorage.read('huaweiStoragePermission');
-      if(huaweiStoragePermission == null){
+    if (isHuawei) {
+      bool? huaweiStoragePermission =
+          globalBoxStorage.read('huaweiStoragePermission');
+      if (huaweiStoragePermission == null) {
         await handleAndroidPermission();
       }
     }
 
-
-
     // 登录过的用户显示同步数据
     bool? isNotLogin = globalBoxStorage.read('is_not_login');
-    if(isNotLogin == null || isNotLogin == false){
+    if (isNotLogin == null || isNotLogin == false) {
       checkCompleteSync();
     }
 
-
-    if(isNotLogin != null && isNotLogin == true ){ // 首次登录的用户，添加介绍文章
+    if (isNotLogin != null && isNotLogin == true) {
+      // 首次登录的用户，添加介绍文章
       // 调用上传接口
       final response = await UserApi.getInitDataApi({});
       // 检查响应结果
-      if (response['code'] != 0 ) {
+      if (response['code'] != 0) {
         return;
       }
 
-      if(response['data']["init_article"].length <= 0){
+      if (response['data']["init_article"].length <= 0) {
         return;
       }
 
       try {
-        for(int i = 0; response['data']["init_article"].length > i; i++ ){
-
-          Map<String,dynamic> initArticle = response['data']["init_article"][i];
+        for (int i = 0; response['data']["init_article"].length > i; i++) {
+          Map<String, dynamic> initArticle =
+              response['data']["init_article"][i];
 
           ArticleService.instance.createArticleFromShare(
             title: initArticle["title"]!,
@@ -413,13 +470,12 @@ mixin IndexPageBLoC on State<IndexPage> {
           );
         }
 
-        globalBoxStorage.write('is_not_login', false);  // 将状态设为登录过
-      }catch (e) {
+        globalBoxStorage.write('is_not_login', false); // 将状态设为登录过
+      } catch (e) {
         getLogger().e('❌ 添加初始化文章失败: $e');
         return false;
       }
     }
-
   }
 
   @override
@@ -428,10 +484,8 @@ mixin IndexPageBLoC on State<IndexPage> {
     super.dispose();
   }
 
-
   /// 检查并显示引导
   Future<void> _checkAndShowTutorial() async {
-
     bool? tutorialCompleted = globalBoxStorage.read('tutorial_completed');
 
     if (tutorialCompleted == null) {
@@ -469,7 +523,8 @@ mixin IndexPageBLoC on State<IndexPage> {
   // 处理滑动结束
   void _handlePanEnd() {
     // 只有当水平滑动距离足够大，且垂直滑动距离相对较小时，才切换页面
-    if (_totalDx.abs() > _horizontalThreshold && _totalDy < _verticalTolerance) {
+    if (_totalDx.abs() > _horizontalThreshold &&
+        _totalDy < _verticalTolerance) {
       if (_totalDx > 0) {
         // 向右滑动，切换到上一个tab
         if (tabController.index > 0) {
@@ -482,7 +537,7 @@ mixin IndexPageBLoC on State<IndexPage> {
         }
       }
     }
-    
+
     // 重置滑动距离
     _totalDx = 0.0;
     _totalDy = 0.0;
@@ -502,13 +557,24 @@ mixin IndexPageBLoC on State<IndexPage> {
     );
   }
 
-  /// 显示添加内容对话框
-  void _showAddContentDialog() async {
-    final result = await showAddContentDialog(context);
-    if (result == true) {
-      // 内容添加成功，可以在这里做一些刷新操作
-      // 例如刷新首页列表等
-    }
+  /// 显示浮动添加内容输入框
+  void _showAddContentDialog() {
+    setState(() {
+      _showFloatingInput = true;
+    });
+  }
+
+  /// 关闭浮动输入框
+  void _closeFloatingInput() {
+    setState(() {
+      _showFloatingInput = false;
+    });
+  }
+
+  /// 处理添加内容成功
+  void _onAddContentSuccess() {
+    // 内容添加成功，可以在这里做一些刷新操作
+    // 例如刷新首页列表等
   }
 
   /// 检查应用版本
@@ -518,9 +584,9 @@ mixin IndexPageBLoC on State<IndexPage> {
   }
 
   final box = GetStorage();
+
   /// 新用户检查全量更新
   checkCompleteSync() async {
-
     await Future.delayed(const Duration(milliseconds: 100));
     // box.write('completeSyncStatus', false);  /// 测试用
     bool? completeSyncStatus = box.read('completeSyncStatus');
@@ -546,41 +612,40 @@ mixin IndexPageBLoC on State<IndexPage> {
         // 开始同步过程
         _startSyncProcess();
       }
-    }else{
+    } else {
       /// 只有全量更新完或者不需要全量更新的时候初始化
       Get.put(DataSyncService(), permanent: true);
       Get.put(IncrementSyncData(), permanent: true);
     }
-
   }
 
   /// 开始同步过程
   void _startSyncProcess() async {
     try {
       getLogger().i('🔄 开始执行全量同步...');
-      
+
       // 更新同步状态显示
       _updateSyncProgress('i18n_home_正在初始化同步'.tr, 0.1);
-      
+
       // 导入全量同步类
       final getSyncData = GetSyncData();
-      
+
       // 执行全量同步，传递进度回调
       final syncResult = await getSyncData.completeSyncAllData(
         progressCallback: (message, progress) {
           _updateSyncProgress(message, progress);
         },
       );
-      
+
       if (syncResult) {
         getLogger().i('✅ 全量同步成功完成');
-        
+
         _updateSyncProgress('i18n_home_正在完成同步'.tr, 0.9);
         await Future.delayed(const Duration(milliseconds: 500));
-        
+
         // 更新同步状态显示
         _updateSyncProgress('i18n_home_同步完成'.tr, 1.0);
-        
+
         // 等待一下让用户看到完成状态
         await Future.delayed(const Duration(milliseconds: 1000));
 
@@ -590,7 +655,7 @@ mixin IndexPageBLoC on State<IndexPage> {
         }
       } else {
         getLogger().e('❌ 全量同步失败');
-        
+
         // 更新同步状态显示
         _updateSyncProgress('i18n_home_同步失败请检查网络连接后重试'.tr, 0.0);
 
@@ -599,11 +664,15 @@ mixin IndexPageBLoC on State<IndexPage> {
       }
     } catch (e) {
       getLogger().e('❌ 同步过程发生异常: $e');
-      
-      // 更新同步状态显示
-      _updateSyncProgress('i18n_home_同步异常'.tr + (e.toString().length > 50 ? e.toString().substring(0, 50) + '...' : e.toString()), 0.0);
-    } finally {
 
+      // 更新同步状态显示
+      _updateSyncProgress(
+          'i18n_home_同步异常'.tr +
+              (e.toString().length > 50
+                  ? e.toString().substring(0, 50) + '...'
+                  : e.toString()),
+          0.0);
+    } finally {
       final serviceCurrentTime = await getServiceCurrentTime();
       box.write('serviceCurrentTime', serviceCurrentTime);
 
@@ -617,8 +686,6 @@ mixin IndexPageBLoC on State<IndexPage> {
         Navigator.of(context).pop(false);
       }
     }
-
-
   }
 
   /// 更新同步进度
@@ -630,8 +697,4 @@ mixin IndexPageBLoC on State<IndexPage> {
       });
     }
   }
-
-
-
 }
-
