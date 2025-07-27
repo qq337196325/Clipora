@@ -31,8 +31,8 @@ class _AutoParseTipWidgetState extends State<AutoParseTipWidget>
       parent: _animationController,
       curve: Curves.easeOut,
     ));
-    globalBoxStorage.write('auto_parse_enabled',null);
-    globalBoxStorage.write('auto_parse_tip_dismissed',null);
+    // globalBoxStorage.write('auto_parse_enabled',null);
+    // globalBoxStorage.write('auto_parse_tip_dismissed',null);
     _animationController.forward();
   }
 
