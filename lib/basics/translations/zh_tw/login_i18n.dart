@@ -79,4 +79,8 @@ const Map<String, String> loginI18n = {
   'i18n_login_Web认证窗口加载失败': 'Web 認證視窗載入失敗',
   'i18n_login_Web认证超时请重试': 'Web 認證逾時，請重試',
   'i18n_login_网络连接异常请检查网络': '網絡連接異常，請檢查網絡',
+
+  // 0727
+  'i18n_login_没有收到验证码': '沒有收到驗證碼',
+  'i18n_login_验证手机号': '驗證手機號',
 }; 

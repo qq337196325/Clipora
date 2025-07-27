@@ -125,7 +125,6 @@ class _AIOrderPageState extends State<AIOrderPage>
           ),
 
           const Spacer(),
-
         ],
       ),
     );
@@ -162,7 +161,8 @@ class _AIOrderPageState extends State<AIOrderPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.2),
+                  color:
+                      Theme.of(context).colorScheme.onPrimary.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
@@ -189,7 +189,10 @@ class _AIOrderPageState extends State<AIOrderPage>
                       'i18n_order_让阅读更智能'.tr,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onPrimary
+                            .withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -197,9 +200,7 @@ class _AIOrderPageState extends State<AIOrderPage>
               ),
             ],
           ),
-
           const SizedBox(height: 20),
-
           Text(
             'i18n_order_通过AI翻译助手'.tr,
             style: TextStyle(
@@ -240,7 +241,8 @@ class _AIOrderPageState extends State<AIOrderPage>
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -303,13 +305,16 @@ class _AIOrderPageState extends State<AIOrderPage>
   /// 价格显示组件
   Widget _buildPriceDisplay() {
     if (Platform.isIOS) {
-      if (products.isNotEmpty) {
-        // iOS使用App Store价格
+      if (products.isNotEmpty && productAiRequest != null) {
+        // iOS使用App Store价格 - 自动包含本地货币符号
+        final String localizedPrice = productAiRequest.price;
+        getLogger().d('🏷️ iOS本地化价格: $localizedPrice');
+
         return Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              productAiRequest.price,
+              localizedPrice,
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
@@ -324,7 +329,7 @@ class _AIOrderPageState extends State<AIOrderPage>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'i18n_order_原价'.trParams({'price': '20'}),
+                'i18n_order_原价'.trParams({'price': _getOriginalPrice()}),
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.error,
@@ -335,7 +340,7 @@ class _AIOrderPageState extends State<AIOrderPage>
           ],
         );
       } else {
-        // iOS价格加载中
+        // iOS价格加载中或加载失败
         return Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -343,16 +348,24 @@ class _AIOrderPageState extends State<AIOrderPage>
               width: 80,
               height: 36,
               child: Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ),
+                child: products.isEmpty
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).primaryColor,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        'N/A',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(width: 8),
@@ -375,12 +388,15 @@ class _AIOrderPageState extends State<AIOrderPage>
         );
       }
     } else {
-      // Android使用默认价格
+      // Android使用默认价格 - 根据地区显示不同货币
+      final String currencySymbol = _getLocalCurrencySymbol();
+      final String price = _getLocalPrice();
+
       return Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            '¥',
+            currencySymbol,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -388,7 +404,7 @@ class _AIOrderPageState extends State<AIOrderPage>
             ),
           ),
           Text(
-            '12',
+            price,
             style: TextStyle(
               fontSize: 36,
               fontWeight: FontWeight.bold,
@@ -403,7 +419,7 @@ class _AIOrderPageState extends State<AIOrderPage>
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              'i18n_order_原价'.trParams({'price': '20'}),
+              'i18n_order_原价'.trParams({'price': _getOriginalPrice()}),
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.error,
@@ -413,6 +429,93 @@ class _AIOrderPageState extends State<AIOrderPage>
           ),
         ],
       );
+    }
+  }
+
+  /// 获取本地货币符号
+  String _getLocalCurrencySymbol() {
+    final String locale = Get.locale?.toString() ?? 'zh_CN';
+
+    switch (locale) {
+      case 'zh_CN':
+      case 'zh_TW':
+        return '¥';
+      case 'en_US':
+        return '\$';
+      case 'en_GB':
+        return '£';
+      case 'ja_JP':
+        return '¥';
+      case 'ko_KR':
+        return '₩';
+      case 'th_TH':
+        return '฿';
+      case 'vi_VN':
+        return '₫';
+      case 'ru_RU':
+        return '₽';
+      case 'ar_AR':
+        return 'ر.س';
+      default:
+        return '\$'; // 默认美元
+    }
+  }
+
+  /// 获取本地价格
+  String _getLocalPrice() {
+    final String locale = Get.locale?.toString() ?? 'zh_CN';
+
+    switch (locale) {
+      case 'zh_CN':
+      case 'zh_TW':
+        return '12';
+      case 'en_US':
+        return '1.99';
+      case 'en_GB':
+        return '1.79';
+      case 'ja_JP':
+        return '220';
+      case 'ko_KR':
+        return '2,500';
+      case 'th_TH':
+        return '69';
+      case 'vi_VN':
+        return '49,000';
+      case 'ru_RU':
+        return '149';
+      case 'ar_AR':
+        return '7.5';
+      default:
+        return '1.99'; // 默认美元价格
+    }
+  }
+
+  /// 获取原价显示
+  String _getOriginalPrice() {
+    final String locale = Get.locale?.toString() ?? 'zh_CN';
+
+    switch (locale) {
+      case 'zh_CN':
+      case 'zh_TW':
+        return '20';
+      case 'en_US':
+        return '2.99';
+      case 'en_GB':
+        return '2.49';
+      case 'ja_JP':
+        return '320';
+      case 'ko_KR':
+        return '3,500';
+      case 'th_TH':
+        return '99';
+      case 'vi_VN':
+        return '69,000';
+      case 'ru_RU':
+        return '199';
+      case 'ar_AR':
+        return '11';
+      default:
+        return '2.99'; // 默认美元价格
     }
   }
 
@@ -507,14 +610,14 @@ class _AIOrderPageState extends State<AIOrderPage>
         ),
         const SizedBox(height: 16),
         ...features.map((feature) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _buildFeatureItem(
-            icon: feature['icon'] as IconData,
-            title: feature['title'] as String,
-            subtitle: feature['subtitle'] as String,
-            color: feature['color'] as Color,
-          ),
-        )),
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildFeatureItem(
+                icon: feature['icon'] as IconData,
+                title: feature['title'] as String,
+                subtitle: feature['subtitle'] as String,
+                color: feature['color'] as Color,
+              ),
+            )),
       ],
     );
   }
@@ -561,11 +664,11 @@ class _AIOrderPageState extends State<AIOrderPage>
               children: [
                 Text(
                   title,
-                                  style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).textTheme.titleLarge?.color,
-                ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.titleLarge?.color,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -592,26 +695,30 @@ class _AIOrderPageState extends State<AIOrderPage>
   Widget _buildBottomPurchaseArea() {
     // 根据平台显示不同的支付方式
     final bool isAndroid = Platform.isAndroid;
-    
+
     // 获取价格字符串
     String priceString;
     if (Platform.isIOS) {
-      if (products.isNotEmpty) {
+      if (products.isNotEmpty && productAiRequest != null) {
         priceString = productAiRequest.price;
       } else {
         priceString = '...'; // 价格加载中
       }
     } else {
-      priceString = '¥12';
+      // Android使用本地化价格
+      final String currencySymbol = _getLocalCurrencySymbol();
+      final String price = _getLocalPrice();
+      priceString = '$currencySymbol$price';
     }
-    
+
     final String buttonText = isAndroid
         ? 'i18n_order_微信支付'.trParams({'price': priceString})
         : 'i18n_order_立即购买'.trParams({'price': priceString});
     final IconData buttonIcon = isAndroid ? Icons.payment : Icons.shopping_cart;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
+      padding: EdgeInsets.fromLTRB(
+          20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         boxShadow: [
@@ -633,7 +740,9 @@ class _AIOrderPageState extends State<AIOrderPage>
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: (isLoading || (Platform.isIOS && products.isEmpty)) ? null : handlePurchase,
+              onPressed: (isLoading || (Platform.isIOS && products.isEmpty))
+                  ? null
+                  : handlePurchase,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -653,12 +762,14 @@ class _AIOrderPageState extends State<AIOrderPage>
               ),
               child: Container(
                 decoration: BoxDecoration(
-                  gradient: isLoading ? null : LinearGradient(
-                    colors: [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withOpacity(0.8),
-                    ],
-                  ),
+                  gradient: isLoading
+                      ? null
+                      : LinearGradient(
+                          colors: [
+                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColor.withOpacity(0.8),
+                          ],
+                        ),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
@@ -668,7 +779,8 @@ class _AIOrderPageState extends State<AIOrderPage>
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : Row(
@@ -716,9 +828,13 @@ class _AIOrderPageState extends State<AIOrderPage>
                 height: 18,
                 margin: const EdgeInsets.only(top: 1),
                 decoration: BoxDecoration(
-                  color: isAgreedToTerms ? Theme.of(context).primaryColor : Colors.transparent,
+                  color: isAgreedToTerms
+                      ? Theme.of(context).primaryColor
+                      : Colors.transparent,
                   border: Border.all(
-                    color: isAgreedToTerms ? Theme.of(context).primaryColor : Theme.of(context).dividerColor,
+                    color: isAgreedToTerms
+                        ? Theme.of(context).primaryColor
+                        : Theme.of(context).dividerColor,
                     width: 1.5,
                   ),
                   borderRadius: BorderRadius.circular(4),
@@ -734,12 +850,14 @@ class _AIOrderPageState extends State<AIOrderPage>
             ),
             const SizedBox(width: 8),
             InkWell(
-              onTap: (){
+              onTap: () {
                 setState(() {
                   isAgreedToTerms = !isAgreedToTerms;
                 });
               },
-              child: Text('i18n_order_购买前请阅读并同意'.tr, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              child: Text('i18n_order_购买前请阅读并同意'.tr,
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color)),
             ),
             Expanded(
               child: RichText(
@@ -794,15 +912,17 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
     // 页面初始化
 
     // 监听微信支付结果
-    if(Platform.isAndroid){
+    if (Platform.isAndroid) {
       _setupPaymentListener();
     }
 
     /// 监听IOS支付
     if (Platform.isIOS) {
       _iosPayInit();
-      final Stream<List<PurchaseDetails>> purchaseUpdated = inAppPurchase.purchaseStream;
-      subscription = purchaseUpdated.listen((List<PurchaseDetails> purchaseDetailsList) {
+      final Stream<List<PurchaseDetails>> purchaseUpdated =
+          inAppPurchase.purchaseStream;
+      subscription =
+          purchaseUpdated.listen((List<PurchaseDetails> purchaseDetailsList) {
         listenToPurchaseUpdated(purchaseDetailsList);
       }, onDone: () {
         subscription.cancel();
@@ -810,16 +930,15 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
         // handle error here.
       });
     }
-
   }
-
 
   _iosPayInit() async {
     /// 获取IOS支付价格
     if (Platform.isIOS) {
       // final bool isAvailable = await inAppPurchase.isAvailable();
       const Set<String> kIds = {'ai_request'};
-      final ProductDetailsResponse response = await inAppPurchase.queryProductDetails(kIds);
+      final ProductDetailsResponse response =
+          await inAppPurchase.queryProductDetails(kIds);
 
       if (mounted) {
         setState(() {
@@ -835,7 +954,6 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
         });
       }
     }
-
   }
 
   @override
@@ -854,8 +972,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
 
   /// 设置支付结果监听
   void _setupPaymentListener() {
-
-    fluwx.addSubscriber((response){
+    fluwx.addSubscriber((response) {
       getLogger().i('💰 微信支付结果: ${response.errCode} - ${response.errStr}');
       if (mounted) {
         setState(() {
@@ -915,7 +1032,7 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
     try {
       // 调用支付API获取支付参数
 
-      if(Platform.isAndroid){
+      if (Platform.isAndroid) {
         final res = await UserApi.createTranslatePayOrderApi({
           "pay_type": 1,
           "platform": "app",
@@ -951,8 +1068,6 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
         await buyProduct();
         // loading状态将在支付流程回调中处理
       }
-
-
     } catch (e) {
       getLogger().e('❌ 支付API调用异常: $e');
       if (mounted) {
@@ -965,7 +1080,6 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
     }
   }
 
-
   /// 发起Ios支付
   Future<void> buyProduct() async {
     ProductDetails prod = productAiRequest;
@@ -975,7 +1089,8 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
   }
 
   /// IOS支付监听
-  Future<void> listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
+  Future<void> listenToPurchaseUpdated(
+      List<PurchaseDetails> purchaseDetailsList) async {
     for (final PurchaseDetails purchaseDetails in purchaseDetailsList) {
       // 检查Widget是否还存在
       if (!mounted) return;
@@ -1062,14 +1177,17 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
   }
 
   /// 处理支付验证
-  Future<void> _handlePaymentVerification(PurchaseDetails purchaseDetails) async {
+  Future<void> _handlePaymentVerification(
+      PurchaseDetails purchaseDetails) async {
     try {
       // 构建验证参数
       Map<String, dynamic> param = {
         "platform": "ios",
         "pay_type": 3,
-        "local_verification_data": purchaseDetails.verificationData.localVerificationData,
-        "server_verification_data": purchaseDetails.verificationData.serverVerificationData,
+        "local_verification_data":
+            purchaseDetails.verificationData.localVerificationData,
+        "server_verification_data":
+            purchaseDetails.verificationData.serverVerificationData,
         "source": purchaseDetails.verificationData.source,
       };
 
@@ -1091,8 +1209,8 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
       } else {
         // 验证失败
         print("iOS支付：后台验证失败 - ${res["message"] ?? "未知错误"}");
-        String errorMessage =
-            res["message"] ?? 'i18n_order_verification_failed_contact_support'.tr;
+        String errorMessage = res["message"] ??
+            'i18n_order_verification_failed_contact_support'.tr;
         _showErrorDialog(errorMessage);
       }
     } catch (e) {
@@ -1113,10 +1231,10 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
 
   /// 处理用户协议点击
   void _handleUserAgreement() {
-    final Uri _url = Uri.parse("https://clipora.guanshangyun.com/payment_agreement");
+    final Uri _url =
+        Uri.parse("https://clipora.guanshangyun.com/payment_agreement");
     goLaunchUrl(_url);
   }
-
 
   /// 显示成功对话框
   void _showSuccessDialog() {

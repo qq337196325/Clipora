@@ -81,4 +81,10 @@ const Map<String, String> loginI18n = {
   'i18n_login_Web认证失败请重试': 'Web认证失败，请重试',
   'i18n_login_Apple登录认证': 'Apple登录认证',
   'i18n_login_Apple认证失败': 'Apple认证失败',
+
+
+  // 0727
+  'i18n_login_没有收到验证码': '没有收到验证码',
+  'i18n_login_验证手机号': '验证手机号',
+
 };

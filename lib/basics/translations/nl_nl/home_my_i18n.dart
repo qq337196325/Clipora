@@ -89,4 +89,8 @@ const Map<String, String> homeMyI18n = {
   'i18n_my_将跳转到AppStore进行评价': 'Wordt omgeleid naar App Store voor beoordeling',
   'i18n_my_将根据您的设备自动选择应用商店': 'App Store wordt automatisch geselecteerd op basis van uw apparaat',
   'i18n_my_暂时无法打开应用商店请稍后重试': 'Kan App Store momenteel niet openen, probeer later opnieuw',
+
+  // 0727
+  'i18n_my_自动解析': 'Automatische analyse',
+  'i18n_my_自动解析网页内容并提取文本': 'Webinhoud automatisch analyseren en tekst extraheren',
 }; 

@@ -100,4 +100,8 @@ const Map<String, String> homeMyI18n = {
   'i18n_my_将根据您的设备自动选择应用商店': 'L\'App Store sera automatiquement sélectionné selon votre appareil',
   'i18n_my_暂时无法打开应用商店请稍后重试': 'Impossible d\'ouvrir l\'App Store pour le moment, veuillez réessayer plus tard',
   'i18n_my_确定': 'Confirmer',
+
+  // 0727
+  'i18n_my_自动解析': 'Analyse automatique',
+  'i18n_my_自动解析网页内容并提取文本': 'Analyser automatiquement le contenu web et extraire le texte',
 }; 

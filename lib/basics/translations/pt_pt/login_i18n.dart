@@ -79,4 +79,8 @@ const Map<String, String> loginI18n = {
   'i18n_login_Web认证窗口加载失败': 'Falha no carregamento da janela de autenticação web',
   'i18n_login_Web认证超时请重试': 'Timeout da autenticação web, por favor tente novamente',
   'i18n_login_网络连接异常请检查网络': 'Ligação de rede anormal, por favor verifique a rede',
+
+  // 0727
+  'i18n_login_没有收到验证码': 'Não recebi o código de verificação',
+  'i18n_login_验证手机号': 'Verificar número de telemóvel',
 }; 

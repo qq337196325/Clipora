@@ -1,5 +1,6 @@
 // lib/basics/translations/ko_kr/ko_kr.dart
 
+import 'theme_i18n.dart';
 import 'login_i18n.dart';
 import 'article_i18n.dart';
 import 'article_list_i18n.dart';
@@ -15,6 +16,7 @@ import 'language_selector_i18n.dart';
 const Map<String, String> koKR = {
   // 使用 ... 扩展操作符来合并 map
   ...loginI18n,
+  ...themeI18n,
   ...articleI18n,
   ...articleListI18n,
   ...guideI18n,

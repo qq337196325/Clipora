@@ -46,4 +46,8 @@ const Map<String, String> homeIndexI18n = {
   'i18n_permission_存储文件权限说明': 'ご利用中に、ファイル保存権限を取得する必要があります。ウェブページをローカルストレージにキャッシュします。',
   'i18n_permission_不同意': '同意しない',
   'i18n_permission_同意': '同意する',
+
+  // 0727
+  'i18n_permission_可在设置中开或关闭自动解析': '設定で自動解析のオン・オフを切り替えできます',
+  'i18n_permission_去设置': '設定へ',
 }; 

@@ -367,8 +367,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
   Widget _buildAutoParseSettings() {
     return _buildModernSettingSwitchItem(
       icon: Icons.auto_fix_high_outlined,
-      title: '自动解析',
-      subtitle: '自动解析网页内容并提取文本',
+      title: 'i18n_my_自动解析'.tr,
+      subtitle: 'i18n_my_自动解析网页内容并提取文本'.tr,
       iconColor: const Color(0xFF34C759),
       iconBgColor: const Color(0xFF34C759).withOpacity(0.1),
       value: _autoParseEnabled,

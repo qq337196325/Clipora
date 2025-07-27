@@ -79,4 +79,8 @@ const Map<String, String> loginI18n = {
   'i18n_login_Web认证失败请重试': 'Web authentication failed, please retry',
   'i18n_login_Apple登录认证': 'Apple Sign In Authentication',
   'i18n_login_Apple认证失败': 'Apple Authentication Failed',
+
+  // 0727
+  'i18n_login_没有收到验证码': 'Didn\'t receive verification code',
+  'i18n_login_验证手机号': 'Verify phone number',
 };

@@ -46,4 +46,8 @@ const Map<String, String> homeIndexI18n = {
   'i18n_permission_存储文件权限说明': '在使用過程中，我們需要獲取您的存儲文件權限，我們會將網頁緩存到您本地存儲中。',
   'i18n_permission_不同意': '不同意',
   'i18n_permission_同意': '同意',
+
+  // 0727
+  'i18n_permission_可在设置中开或关闭自动解析': '可在設定中開啟或關閉自動解析',
+  'i18n_permission_去设置': '前往設定',
 }; 

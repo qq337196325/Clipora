@@ -46,4 +46,8 @@ const Map<String, String> homeIndexI18n = {
   'i18n_permission_存储文件权限说明': 'Trong quá trình sử dụng, chúng tôi cần có quyền lưu trữ tệp của bạn. Chúng tôi sẽ lưu cache các trang web trong bộ nhớ cục bộ của bạn.',
   'i18n_permission_不同意': 'Không đồng ý',
   'i18n_permission_同意': 'Đồng ý',
+
+  // 0727
+  'i18n_permission_可在设置中开或关闭自动解析': 'Có thể bật hoặc tắt phân tích tự động trong cài đặt',
+  'i18n_permission_去设置': 'Đi đến cài đặt',
 }; 

@@ -79,4 +79,8 @@ const Map<String, String> loginI18n = {
   'i18n_login_Web认证窗口加载失败': 'Laden van web authenticatievenster mislukt',
   'i18n_login_Web认证超时请重试': 'Web authenticatie timeout, probeer opnieuw',
   'i18n_login_网络连接异常请检查网络': 'Abnormale netwerkverbinding, controleer netwerk',
+
+  // 0727
+  'i18n_login_没有收到验证码': 'Verificatiecode niet ontvangen',
+  'i18n_login_验证手机号': 'Telefoonnummer verifiëren',
 }; 

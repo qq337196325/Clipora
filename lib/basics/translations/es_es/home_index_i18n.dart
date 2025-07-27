@@ -46,4 +46,8 @@ const Map<String, String> homeIndexI18n = {
   'i18n_permission_存储文件权限说明': 'Durante el uso, necesitamos obtener sus permisos de almacenamiento de archivos. Almacenaremos en caché las páginas web en su almacenamiento local.',
   'i18n_permission_不同意': 'No acepto',
   'i18n_permission_同意': 'Acepto',
+
+  // 0727
+  'i18n_permission_可在设置中开或关闭自动解析': 'El análisis automático se puede activar o desactivar en la configuración',
+  'i18n_permission_去设置': 'Ir a configuración',
 }; 
