@@ -279,6 +279,14 @@ class _FloatingAddInputState extends State<FloatingAddInput>
 
   @override
   Widget build(BuildContext context) {
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final safeAreaTop = MediaQuery.of(context).padding.top;
+    
+    // 计算可用空间
+    final availableHeight = screenHeight - keyboardHeight - safeAreaTop - 40; // 40是上下边距
+    final maxHeight = availableHeight * 0.8; // 最多占用80%的可用空间
+    
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -293,7 +301,7 @@ class _FloatingAddInputState extends State<FloatingAddInput>
               shadowColor: Theme.of(context).shadowColor.withOpacity(0.3),
               child: Container(
                 constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.6,
+                  maxHeight: maxHeight.clamp(300.0, screenHeight * 0.8), // 最小300，最大屏幕80%
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -304,7 +312,7 @@ class _FloatingAddInputState extends State<FloatingAddInput>
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           children: [
-                            _buildContentInput(),
+                            _buildContentInput(keyboardHeight > 0), // 传递键盘状态
                             const SizedBox(height: 12),
                             AnimatedSwitcher(
                               duration: const Duration(milliseconds: 200),
@@ -379,9 +387,14 @@ class _FloatingAddInputState extends State<FloatingAddInput>
     );
   }
 
-  Widget _buildContentInput() {
+  Widget _buildContentInput(bool isKeyboardVisible) {
+    // 当键盘弹出时，减少输入框的行数以节省空间
+    final maxLines = isKeyboardVisible ? 4 : 6;
+    final minLines = isKeyboardVisible ? 2 : 4;
+    final minHeight = isKeyboardVisible ? 80.0 : 120.0;
+    
     return Container(
-      constraints: const BoxConstraints(minHeight: 120),
+      constraints: BoxConstraints(minHeight: minHeight),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
@@ -405,8 +418,8 @@ class _FloatingAddInputState extends State<FloatingAddInput>
       child: TextField(
         controller: _contentController,
         focusNode: _focusNode,
-        maxLines: 6,
-        minLines: 4,
+        maxLines: maxLines,
+        minLines: minLines,
         style: TextStyle(
           fontSize: 16,
           color: Theme.of(context).colorScheme.onSurface,

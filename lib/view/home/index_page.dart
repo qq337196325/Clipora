@@ -366,8 +366,10 @@ class _IndexPageState extends State<IndexPage>
 
         // 浮动输入框
         if (_showFloatingInput)
-          Positioned(
-            top: 100,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            top: _calculateFloatingInputTop(),
             left: 16,
             right: 16,
             child: FloatingAddInput(
@@ -696,5 +698,42 @@ mixin IndexPageBLoC on State<IndexPage> {
         _syncProgress = progress;
       });
     }
+  }
+
+  /// 计算浮动输入框的位置
+  double _calculateFloatingInputTop() {
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final safeAreaTop = MediaQuery.of(context).padding.top;
+    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+
+    // 计算浮动框的理想高度（根据内容动态调整）
+    final idealHeight = keyboardHeight > 0 ? 320.0 : 400.0;
+
+    // 计算顶部位置
+    double topPosition;
+
+    if (keyboardHeight > 0) {
+      // 键盘弹出时，将浮动框定位在键盘上方
+      final keyboardTop = screenHeight - keyboardHeight - safeAreaBottom;
+      topPosition = keyboardTop - idealHeight - 20; // 20px 间距
+
+      // 确保不会超出屏幕顶部
+      final minTop = safeAreaTop + 60; // 至少距离顶部60px
+      topPosition = topPosition.clamp(minTop, keyboardTop - 200); // 至少保留200px高度
+    } else {
+      // 键盘未弹出时，真正的居中显示
+      // 计算内容区域的中心点（排除状态栏和导航栏）
+      final contentHeight = screenHeight - safeAreaTop - safeAreaBottom;
+      final centerY = safeAreaTop + (contentHeight - idealHeight) / 2;
+
+      // 确保有合理的边距，但优先保持居中
+      final minTop = safeAreaTop + 80; // 顶部最小边距
+      final maxTop = screenHeight - safeAreaBottom - idealHeight - 80; // 底部最小边距
+
+      topPosition = centerY.clamp(minTop, maxTop);
+    }
+
+    return topPosition;
   }
 }
