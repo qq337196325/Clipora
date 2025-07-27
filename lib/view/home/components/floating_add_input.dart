@@ -66,9 +66,9 @@ class _FloatingAddInputState extends State<FloatingAddInput>
     // 启动进入动画
     _animationController.forward();
 
-    // 延迟聚焦，确保动画完成后再聚焦
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (mounted) {
+    // 延迟聚焦，确保动画完成后再聚焦，iOS需要更长的延迟
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted && _animationController.isCompleted) {
         _focusNode.requestFocus();
       }
     });
@@ -135,6 +135,12 @@ class _FloatingAddInputState extends State<FloatingAddInput>
   void dispose() {
     _debounceTimer?.cancel();
     _contentController.removeListener(_onTextChanged);
+    
+    // 确保在dispose前释放焦点，避免iOS键盘问题
+    if (_focusNode.hasFocus) {
+      _focusNode.unfocus();
+    }
+    
     _contentController.dispose();
     _focusNode.dispose();
     _animationController.dispose();
@@ -273,6 +279,14 @@ class _FloatingAddInputState extends State<FloatingAddInput>
   }
 
   Future<void> _handleClose() async {
+    // 先释放焦点，避免iOS键盘问题
+    if (_focusNode.hasFocus) {
+      _focusNode.unfocus();
+      // 给键盘一点时间收起
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    
+    // 然后执行关闭动画
     await _animationController.reverse();
     widget.onClose();
   }

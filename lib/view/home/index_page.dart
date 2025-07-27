@@ -32,7 +32,8 @@ class IndexPage extends StatefulWidget {
   State<IndexPage> createState() => _IndexPageState();
 }
 
-class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, IndexPageBLoC {
+class _IndexPageState extends State<IndexPage>
+    with TickerProviderStateMixin, IndexPageBLoC {
   @override
   Widget build(BuildContext context) {
     final tabs = [
@@ -396,6 +397,7 @@ mixin IndexPageBLoC on State<IndexPage> {
 
   // 浮动输入框状态
   bool _showFloatingInput = false;
+  bool _isClosingFloatingInput = false; // 防止重复关闭
 
   @override
   void initState() {
@@ -560,6 +562,8 @@ mixin IndexPageBLoC on State<IndexPage> {
 
   /// 显示浮动添加内容输入框
   void _showAddContentDialog() {
+    if (_showFloatingInput || _isClosingFloatingInput) return; // 防止重复打开
+
     setState(() {
       _showFloatingInput = true;
     });
@@ -567,8 +571,21 @@ mixin IndexPageBLoC on State<IndexPage> {
 
   /// 关闭浮动输入框
   void _closeFloatingInput() {
-    setState(() {
-      _showFloatingInput = false;
+    if (_isClosingFloatingInput) return; // 防止重复关闭
+
+    _isClosingFloatingInput = true;
+
+    // 先隐藏键盘，然后关闭浮动框
+    FocusScope.of(context).unfocus();
+
+    // 延迟一点时间确保键盘完全收起
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) {
+        setState(() {
+          _showFloatingInput = false;
+          _isClosingFloatingInput = false; // 重置状态
+        });
+      }
     });
   }
 
@@ -716,14 +733,14 @@ mixin IndexPageBLoC on State<IndexPage> {
       // 键盘弹出时，在剩余可用空间中居中显示
       final keyboardTop = screenHeight - keyboardHeight - safeAreaBottom;
       final availableHeight = keyboardTop - safeAreaTop; // 键盘上方的可用高度
-      
+
       // 在可用空间中居中
       final centerY = safeAreaTop + (availableHeight - idealHeight) / 2;
-      
+
       // 设置合理的边界
       final minTop = safeAreaTop + 20; // 顶部最小边距
       final maxTop = keyboardTop - idealHeight - 20; // 距离键盘最小边距
-      
+
       topPosition = centerY.clamp(minTop, maxTop);
     } else {
       // 键盘未弹出时，在整个屏幕中居中显示
