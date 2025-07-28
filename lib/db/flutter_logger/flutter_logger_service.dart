@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 
 import '../../basics/logger.dart';
 import '../../basics/utils/user_utils.dart';
-import '../../api/user_api.dart';
 import '../database_service.dart';
 import 'flutter_logger_db.dart';
 
@@ -40,7 +39,7 @@ class FlutterLoggerService extends GetxService {
       final logsToUpload = pendingLogs.take(batchSize).toList();
       
       getLogger().i('发现 ${pendingLogs.length} 条待上传日志，准备上传前 ${logsToUpload.length} 条...');
-      await _uploadLogs(logsToUpload);
+      // await _uploadLogs(logsToUpload);
       
       // Clean up old uploaded logs periodically
       await cleanUploadedLogs();
@@ -61,21 +60,21 @@ class FlutterLoggerService extends GetxService {
         
         getLogger().i('开始上传 ${logs.length} 条日志到服务器... (尝试 ${retryCount + 1}/$maxRetries)');
         
-        // Call the API
-        final response = await UserApi.createFlutterLoggerApi(apiData);
-        
-        // Check if upload was successful
-        if (response['code'] == 0) {
-          // After successful upload, delete the logs from the local database.
-          final logIds = logs.map((e) => e.id).toList();
-          await _deleteLogs(logIds);
-          getLogger().i('✅ 成功上传并清除了 ${logs.length} 条日志');
-          return; // Success, exit retry loop
-        } else {
-          final errorMsg = response['message'] ?? response['msg'] ?? 'Unknown error';
-          getLogger().e('❌ 服务器返回错误: $errorMsg');
-          throw Exception('Server error: $errorMsg');
-        }
+        // // Call the API
+        // final response = await UserApi.createFlutterLoggerApi(apiData);
+        //
+        // // Check if upload was successful
+        // if (response['code'] == 0) {
+        //   // After successful upload, delete the logs from the local database.
+        //   final logIds = logs.map((e) => e.id).toList();
+        //   await _deleteLogs(logIds);
+        //   getLogger().i('✅ 成功上传并清除了 ${logs.length} 条日志');
+        //   return; // Success, exit retry loop
+        // } else {
+        //   final errorMsg = response['message'] ?? response['msg'] ?? 'Unknown error';
+        //   getLogger().e('❌ 服务器返回错误: $errorMsg');
+        //   throw Exception('Server error: $errorMsg');
+        // }
 
       } catch (e) {
         retryCount++;

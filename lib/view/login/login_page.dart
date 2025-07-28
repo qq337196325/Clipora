@@ -11,14 +11,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
+import '../../basics/app_config_interface.dart';
 import '../../basics/config.dart';
 import '../../basics/ui.dart';
 import '../../components/ui_border_radius_widget.dart';
 import '../../basics/translations/select_language_widget.dart';
 import '../../basics/translations/language_controller.dart';
+import '../../private/api/user_api.dart';
 import 'phone_login_page.dart';
 import 'apple_web_auth_widget.dart';
-import '../../api/user_api.dart';
 import '../../route/route_name.dart';
 import '../../basics/logger.dart';
 
@@ -350,7 +351,9 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
                       fontWeight: FontWeight.w500,
                     ), recognizer: TapGestureRecognizer()
                   ..onTap = () {
-                    final Uri _url = Uri.parse(urlPrivacy);
+
+                    final config = Get.find<IConfig>();
+                    final Uri _url = Uri.parse(config.urlPrivacy);
                     goLaunchUrl(_url);
                   }
                 ),
@@ -362,7 +365,9 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
                       fontWeight: FontWeight.w500,
                     ), recognizer: TapGestureRecognizer()
                   ..onTap = () {
-                    final Uri _url = Uri.parse(urlAgreement);
+
+                    final config = Get.find<IConfig>();
+                    final Uri _url = Uri.parse(config.urlAgreement);
                     goLaunchUrl(_url);
                   }
                 ),
@@ -414,7 +419,9 @@ mixin LoginPageBLoC on State<LoginPage> {
     final privacy = prefs.getBool('privacy');
     if(privacy == null || privacy == false){
       // TODO: 发布华为版注释下面两行
-      if(!isHuawei){
+
+      final config = Get.find<IConfig>();
+      if(!config.isHuawei){
         openSmartDialog();
       }
     }
@@ -1043,7 +1050,9 @@ mixin LoginPageBLoC on State<LoginPage> {
                     TextSpan(text: 'i18n_login_隐私政策内容'.tr, style: TextStyle(color: UiColour.neutral_3)),
                     TextSpan(text: 'i18n_login_隐私政策链接'.tr, style: TextStyle(color: UiColour.primary),recognizer: TapGestureRecognizer()
                       ..onTap = () {
-                        final Uri _url = Uri.parse(urlAgreement);
+
+                        final config = Get.find<IConfig>();
+                        final Uri _url = Uri.parse(config.urlAgreement);
                         goLaunchUrl(_url);
                       }),
                   ],

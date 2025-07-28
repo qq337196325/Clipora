@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:get/get.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../api/user_api.dart';
+import '../../private/api/user_api.dart';
 import '../../route/route_name.dart';
 
 class PhoneVerifyPage extends StatefulWidget {

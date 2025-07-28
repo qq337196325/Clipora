@@ -1,15 +1,14 @@
 import 'package:isar/isar.dart';
 import '../../api/user_api.dart';
-import '../../basics/logger.dart';
-import '../../basics/ui.dart';
-import '../../db/database_service.dart';
-import '../../db/category/category_db.dart';
-import '../../db/category/category_service.dart';
-import '../../db/article/article_db.dart';
-import '../../db/article/service/article_service.dart';
-import '../../db/article_content/article_content_db.dart';
-import '../../db/tag/tag_db.dart';
-import '../../db/annotation/enhanced_annotation_db.dart';
+import '../../../basics/logger.dart';
+import '../../../basics/ui.dart';
+import '../../../db/database_service.dart';
+import '../../../db/category/category_db.dart';
+import '../../../db/category/category_service.dart';
+import '../../../db/article/article_db.dart';
+import '../../../db/article_content/article_content_db.dart';
+import '../../../db/tag/tag_db.dart';
+import '../../../db/annotation/enhanced_annotation_db.dart';
 import 'models/category_model.dart';
 import 'models/tag_model.dart';
 import 'models/article_model.dart';
@@ -19,8 +18,6 @@ import 'models/annotation_model.dart';
 /// 获取同步数据
 class GetSyncData {
   final CategoryService _categoryService = CategoryService();
-  final ArticleService _articleService = ArticleService.instance;
-
 
   List<String> dbList = [
     "category",

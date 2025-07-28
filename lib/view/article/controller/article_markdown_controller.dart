@@ -1,9 +1,10 @@
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
-import '../../../api/user_api.dart';
+import '../../../basics/api_services_interface.dart';
 import '../../../basics/logger.dart';
 import '../../../db/article_content/article_content_service.dart';
 import 'article_base_controller.dart';
+import 'package:get/get.dart';
 
 
 /// 文章控制器
@@ -62,7 +63,8 @@ class ArticleMarkdownController extends ArticleBaseController {
     try {
       getLogger().i('🌐 从服务端获取Markdown内容，serviceId: $serviceId，语言: ${language}');
 
-      final response = await UserApi.getArticleApi({
+      final apiServices = Get.find<IApiServices>();
+      final response = await apiServices.getArticle({
         'service_article_id': serviceId,
       });
 

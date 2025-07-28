@@ -4,8 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../api/user_api.dart';
-import '../../../basics/config.dart';
+
+import '../../../basics/api_services_interface.dart';
+import '../../../basics/app_config_interface.dart';
 import '../../../basics/translations/select_language_widget.dart';
 import '../../../basics/translations/language_controller.dart';
 import '../../../basics/theme/app_theme.dart';
@@ -857,8 +858,15 @@ mixin MyPageBLoC on State<MyPage> {
   }
 
   void _loadTranslateQuantity() async {
+
+
+
     try {
-      final res = await UserApi.getTranslateRequestQuantityApi({});
+
+      final apiServices = Get.find<IApiServices>();
+      final res = await apiServices.getTranslateRequestQuantity({});
+
+
       if (!mounted) return;
 
       if (res['code'] == 0 && res['data'] != null) {
@@ -886,13 +894,17 @@ mixin MyPageBLoC on State<MyPage> {
 
   void _handleThirdPartyInfo() { // 用户协议
     getLogger().i('第三方信息共享清单');
-    final Uri _url = Uri.parse(urlPrivacy);
+
+    final config = Get.find<IConfig>();
+
+    final Uri _url = Uri.parse(config.urlPrivacy);
     goLaunchUrl(_url);
   }
 
   void _handlePrivacyPolicy() {
     getLogger().i('隐私公约');
-    final Uri _url = Uri.parse(urlAgreement);
+    final config = Get.find<IConfig>();
+    final Uri _url = Uri.parse(config.urlAgreement);
     goLaunchUrl(_url);
   }
 

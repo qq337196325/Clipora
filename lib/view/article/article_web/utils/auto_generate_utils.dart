@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../../basics/api_services_interface.dart';
 import '../../../../basics/logger.dart';
 import '../../../../db/article/article_db.dart';
 import '../../../../db/article/service/article_service.dart';
 import '../../../../db/article_content/article_content_service.dart';
 import '../../controller/article_controller.dart';
 import '../../../../basics/web_view/snapshot/snapshot_base_utils.dart';
-import '../../../../api/user_api.dart';
 import '../../../../db/annotation/enhanced_annotation_service.dart';
 
 
@@ -105,7 +106,8 @@ class GenerateMhtmlUtils extends SnapshotBaseUtils {
         try {
           getLogger().i('🌐 第${retry + 1}次尝试从服务端获取Markdown内容，serviceId: ${article.serviceId}');
 
-          final response = await UserApi.getArticleApi({
+          final apiServices = Get.find<IApiServices>();
+          final response = await apiServices.getArticle({
             'service_article_id': article.serviceId,
           });
 

@@ -1,11 +1,12 @@
 import 'package:clipora/basics/utils/user_utils.dart';
 
-import '../../../api/user_api.dart';
+import '../../../basics/api_services_interface.dart';
 import '../../../basics/ui.dart';
 import '../article_db.dart';
 import '../../../basics/logger.dart';
 import 'article_service.dart';
 import 'article_update_service.dart';
+import 'package:get/get.dart';
 
 
 /// 文章服务类
@@ -48,7 +49,9 @@ class ArticleCreateService extends ArticleUpdateService {
         "uuid": article.uuid,
         'share_original_content': savedArticle.shareOriginalContent,
       };
-      final response = await UserApi.createArticleApi(param);
+
+      final apiServices = Get.find<IApiServices>();
+      final response = await apiServices.createArticle(param);
       if (response['code'] == 0) {
         final serviceIdData = response['data'];
         String serviceId = '';

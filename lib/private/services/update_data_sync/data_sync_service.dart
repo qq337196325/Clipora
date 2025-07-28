@@ -1,17 +1,17 @@
 import 'dart:async';
-import 'package:clipora/basics/utils/user_utils.dart';
-import 'package:clipora/db/annotation/enhanced_annotation_db.dart';
-import 'package:clipora/db/article/article_db.dart';
-import 'package:clipora/db/tag/tag_db.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:isar/isar.dart';
 
-import '../../basics/logger.dart';
-import '../../basics/ui.dart';
-import '../../db/database_service.dart';
-import '../../db/category/category_db.dart';
+import '../../../basics/logger.dart';
+import '../../../basics/ui.dart';
+import '../../../db/database_service.dart';
+import '../../../db/category/category_db.dart';
 import '../../api/user_api.dart';
+import '/basics/utils/user_utils.dart';
+import '/db/annotation/enhanced_annotation_db.dart';
+import '/db/article/article_db.dart';
+import '/db/tag/tag_db.dart';
 
 /// 负责处理数据同步到后台服务
 class DataSyncService extends GetxService {

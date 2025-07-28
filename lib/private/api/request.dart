@@ -2,13 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart' hide Response;
 
-import '../basics/logger.dart';
+import '../../basics/logger.dart';
+import '../../basics/translations/language_controller.dart';
 import '/basics/config.dart';
-import '../basics/translations/language_controller.dart';
 
-// 参考来源： https://blog.csdn.net/UserNamezhangxi/article/details/112576483
-// 官方文档： https://github.com/flutterchina/dio/blob/master/README-ZH.md
-// https://www.liujunmin.com/flutter/dio_encapsulation.html
 
 /// 将 Dio 实例化和拦截器注册的操作放到单独的方法中，方便管理
 Dio initDio(String _apiHost) {

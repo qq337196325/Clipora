@@ -1,7 +1,9 @@
 import 'package:logger/logger.dart';
+import 'package:get/get.dart';
 
 import '../db/flutter_logger/flutter_logger_service.dart';
 import '/basics/config.dart';
+import 'app_config_interface.dart';
 
 // 日志监听回调函数类型
 typedef LogCallback = void Function(String level, String message, DateTime timestamp);
@@ -17,6 +19,9 @@ bool shouldUploadLog(String level) {
 }
 
 Logger getLogger() {
+
+  final config = Get.find<IConfig>();
+
   final logData = Logger(
       printer: PrettyPrinter(
         methodCount: 1,
@@ -25,7 +30,7 @@ Logger getLogger() {
         colors: true,
         printEmojis: true,
       ),
-      level: isDevelop ? Level.info : Level.warning,
+      level: config.isDevelop ? Level.info : Level.warning,
       output: MultiOutput([
         ConsoleOutput(), // 保持原有的控制台输出
         ServerLogOutput() // 添加我们的监听功能

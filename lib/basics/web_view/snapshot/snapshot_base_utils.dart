@@ -6,9 +6,11 @@ import 'package:dio/dio.dart' as dio;
 import 'package:bot_toast/bot_toast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import '../../../api/user_api.dart';
 import '../../../db/article/service/article_service.dart';
+import '../../api_services_interface.dart';
 import '/basics/logger.dart';
+
+import 'package:get/get.dart' as getx;
 
 
 ///********
@@ -232,7 +234,8 @@ class SnapshotBaseUtils {
         ),
       });
 
-      final response = await UserApi.uploadMhtmlApi(formData);
+      final apiServices = getx.Get.find<IApiServices>();
+      final response = await apiServices.uploadMhtml(formData);
 
       if (response['code'] == 0) {
         getLogger().i('✅ 快照上传成功！');

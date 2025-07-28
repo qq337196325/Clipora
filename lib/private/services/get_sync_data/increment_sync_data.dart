@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:get/get.dart';
 
-import '../../basics/logger.dart';
-import '../../basics/ui.dart';
-import '../../db/database_service.dart';
+import '../../../basics/logger.dart';
+import '../../../basics/ui.dart';
+import '../../../db/database_service.dart';
 import '../update_data_sync/data_sync_service.dart';
 import 'get_sync_data.dart';
 

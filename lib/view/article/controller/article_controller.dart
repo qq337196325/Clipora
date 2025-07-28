@@ -4,9 +4,9 @@ import 'package:get/get.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:isar/isar.dart';
 
+import '../../../basics/api_services_interface.dart';
 import '../../../db/article/service/article_service.dart';
 import '../../../db/article_content/article_content_db.dart';
-import '../../../api/user_api.dart';
 import '../../../basics/logger.dart';
 import '../../../db/article_content/article_content_service.dart';
 import 'article_read_theme_controller.dart';
@@ -210,7 +210,8 @@ class ArticleController extends ArticleReadThemeController {
 
     try {
       // 调用翻译 API
-      final response = await UserApi.translateApi({
+      final apiServices = Get.find<IApiServices>();
+      final response = await apiServices.translate({
         'service_article_id': article.serviceId,
         'language_code': languageCode,
       });
@@ -280,7 +281,8 @@ class ArticleController extends ArticleReadThemeController {
       //   _translationStatus[languageCode] = 'translated';
       // }
 
-      final response = await UserApi.getTranslateContentApi({
+      final apiServices = Get.find<IApiServices>();
+      final response = await apiServices.getTranslateContent({
         'up_id': upId,
         'service_article_id': article.serviceId,
       });

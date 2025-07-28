@@ -2,11 +2,12 @@ import 'dart:io';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 
-import '../../../api/user_api.dart';
-import '../../../basics/config.dart';
-import '../../../basics/logger.dart';
-import '../../../components/upgrade_dialog.dart';
-import 'app_store_helper.dart';
+
+import '../../basics/config.dart';
+import '../../basics/logger.dart';
+import '../../components/upgrade_dialog.dart';
+import '../../view/home/utils/app_store_helper.dart';
+import '../api/user_api.dart';
 
 class UpgradeService {
 

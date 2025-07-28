@@ -3,10 +3,16 @@ import 'package:get_storage/get_storage.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
+import 'package:get/get.dart';
 
-import '../api/user_api.dart';
+import 'api_services_interface.dart';
 
 
+// 字体大小范围
+const double kMinFontSize = 12.0;
+const double kMaxFontSize = 24.0;
+const double kDefaultFontSize = 16.0;
+const double kFontSizeStep = 2.0;
 
 class UiColour {
   // 中性色
@@ -42,7 +48,8 @@ String getUuid(){
 
 // 获取服务端当前时间戳
 Future<int> getServiceCurrentTime() async {
-  final res = await UserApi.getCurrentTimeApi();
+  final apiServices = Get.find<IApiServices>();
+  final res = await apiServices.getCurrentTime();
   if (res['code'] != 0) {
     return 0;
   }

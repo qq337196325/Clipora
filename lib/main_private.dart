@@ -1,4 +1,3 @@
-import 'package:clipora/private/view/home/index_service.dart';
 import 'package:clipora/view/home/index_service_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:bot_toast/bot_toast.dart';
@@ -11,9 +10,8 @@ import '/route/route.dart';
 import '/services/share_service.dart';
 import '/db/database_service.dart';
 import '/basics/translations/app_translations.dart';
-import 'basics/api_services.dart';
+import '/private/api/api_services.dart';
 import 'basics/api_services_interface.dart';
-import 'basics/app_config.dart';
 import 'basics/app_config_interface.dart';
 import 'basics/translations/language_controller.dart';
 import 'basics/theme/app_theme.dart';
@@ -21,6 +19,8 @@ import 'basics/apps_state.dart';
 import 'db/article/service/article_service.dart';
 import 'db/article_content/article_content_service.dart';
 import 'db/tag/tag_service.dart';
+import 'private/basics/app_config.dart';
+import 'private/view/home/index_service.dart';
 
 
 void main() async {
@@ -49,7 +49,7 @@ void main() async {
 
   // 注册语言控制器
   Get.put(LanguageController(), permanent: true);
-  
+
   // 注册主题控制器
   Get.put(ThemeController(), permanent: true);
 
@@ -64,7 +64,7 @@ class MyApp extends StatelessWidget {
     // 获取主题控制器和语言控制器
     final themeController = Get.find<ThemeController>();
     final languageController = Get.find<LanguageController>();
-    
+
     // 从 LanguageController 获取支持的语言列表
     final supportedLocales = languageController
         .supportedLanguages
@@ -79,7 +79,7 @@ class MyApp extends StatelessWidget {
       // 多语言配置
       translations: AppTranslations(),
       fallbackLocale: const Locale('en', 'US'),
-      
+
       // 新增以下内容以支持Flutter内置组件的国际化
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -87,7 +87,7 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: supportedLocales,
-      
+
       routeInformationParser: router.routeInformationParser,
       routerDelegate: router.routerDelegate,
       routeInformationProvider: router.routeInformationProvider,

@@ -40,35 +40,27 @@ class UserApi {
   static Future<Map> getTranslateContentApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/get_translate_content", data:param);
   }
-  static Future<Map> createTranslatePayOrderApi(Map<String, dynamic> param) async {
+  static Future<Map> createTranslatePayOrderApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/create_translate_pay_order", data:param);
   }
-  static Future<Map> iosPayTranslateOrderApi(Map<String, dynamic> param) async {
+  static Future<Map> iosPayTranslateOrderApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/ios_pay_translate_order", data:param);
   }
-  static Future<Map> getTranslateRequestQuantityApi(Map<String, dynamic> param) async {
+  static Future<Map> getTranslateRequestQuantityApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/get_translate_request_quantity", data:param);
   }
-  
-  // static Future<Map> createMemberPayOrderApi(Map<String, dynamic> param) async {
-  //   return await Request().post("$apiVersion/api/user/create_member_pay_order", data:param);
-  // }
-  //
-  // static Future<Map> iosPayMemberOrderApi(Map<String, dynamic> param) async {
-  //   return await Request().post("$apiVersion/api/user/ios_pay_member_order", data:param);
-  // }
 
   // ------------------------  数据同步  -----------------------------
   static Future<Map> getCurrentTimeApi() async {
     return await Request().post("$apiVersion/api/user/get_current_time");
   }
-  static Future<Map> getSyncAllDataApi(Map<String, dynamic> param) async {
+  static Future<Map> getSyncAllDataApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/get_sync_all_data", data:param);
   }
-  static Future<Map> updateSyncDataApi(Map<String, dynamic> param) async {
+  static Future<Map> updateSyncDataApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/update_sync_data", data:param);
   }
-  static Future<Map> createFlutterLoggerApi(Map<String, dynamic> param) async {
+  static Future<Map> createFlutterLoggerApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/create_flutter_logger", data:param);
   }
 

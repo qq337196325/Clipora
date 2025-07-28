@@ -7,10 +7,12 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'dart:io';
 import 'dart:async';
 
-import '../../api/user_api.dart';
+
+import '../../basics/app_config_interface.dart';
 import '../../basics/config.dart';
 import '../../basics/logger.dart';
 import '../../basics/ui.dart';
+import '../../private/api/user_api.dart';
 
 /// AI请求包购买页面
 class AIOrderPage extends StatefulWidget {
@@ -1038,10 +1040,13 @@ mixin AIOrderPageBLoC on State<AIOrderPage> {
           "platform": "app",
         });
 
+
+        final config = Get.find<IConfig>();
+
         // 发起微信支付
         final payStatus = await fluwx.pay(
           which: Payment(
-            appId: wxAppId,
+            appId: config.wxAppId,
             partnerId: res["data"]["data"]["partnerId"].toString(),
             prepayId: res["data"]["data"]["prepayId"].toString(),
             packageValue: res["data"]["data"]["package"].toString(),

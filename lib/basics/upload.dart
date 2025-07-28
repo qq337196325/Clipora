@@ -1,15 +1,13 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:get/get.dart' as getx;
 
-import '../../api/user_api.dart';
 
 
-// 上传快照文件到服务端
-import 'dart:io';
-
+import 'api_services_interface.dart';
 import 'logger.dart';
 
-Future<void> uploadSnapshotToServer(String filePath,String serviceArticleId) async {
+Future<void> uploadSnapshotToServer(String filePath, String serviceArticleId) async {
   if (filePath.isEmpty) {
     getLogger().e('上传失败：文件路径为空');
     return;
@@ -26,7 +24,7 @@ Future<void> uploadSnapshotToServer(String filePath,String serviceArticleId) asy
     getLogger().e('上传失败：无效的文章ID格式，serviceArticleId: "$serviceArticleId"');
     return;
   }
-getLogger().i('ID格式，serviceArticleId: "$serviceArticleId"');
+  getLogger().i('ID格式，serviceArticleId: "$serviceArticleId"');
   try {
     // 检查文件是否存在
     final File file = File(filePath);
@@ -46,7 +44,8 @@ getLogger().i('ID格式，serviceArticleId: "$serviceArticleId"');
     });
 
     // 调用上传接口
-    final response = await UserApi.uploadMhtmlApi(formData);
+    final apiServices = getx.Get.find<IApiServices>();
+    final response = await apiServices.uploadMhtml(formData);
     // 检查响应结果
     if (response['code'] == 0) {
       getLogger().i('快照上传成功！');
@@ -54,7 +53,6 @@ getLogger().i('ID格式，serviceArticleId: "$serviceArticleId"');
       getLogger().e('🗄️ 上传失败...');
       throw Exception(response['message'] ?? '上传失败');
     }
-
   } catch (e) {
     getLogger().e('🗄️ 上传失败: $e');
   } finally {
@@ -70,20 +68,20 @@ bool _isValidObjectId(String id) {
     getLogger().w('ObjectID长度错误: ${id.length}, 期望: 24');
     return false;
   }
-  
+
   // 检查是否为十六进制字符串
   final hexPattern = RegExp(r'^[0-9a-fA-F]{24}$');
   if (!hexPattern.hasMatch(id)) {
     getLogger().w('ObjectID格式错误，应为24位十六进制字符串: "$id"');
     return false;
   }
-  
+
   // 检查是否为全0（无效的ObjectID）
   if (id == '000000000000000000000000') {
     getLogger().w('ObjectID不能为全0: "$id"');
     return false;
   }
-  
+
   getLogger().i('ObjectID格式验证通过: "$id"');
   return true;
 }

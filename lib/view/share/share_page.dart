@@ -172,7 +172,7 @@ class _SharePageState extends State<SharePage>
         ),
         const SizedBox(height: 8),
         Text(
-          "您的灵感墨水池",
+          "i18n_theme_您的灵感墨水池".tr,
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[600],
@@ -242,7 +242,7 @@ class _SharePageState extends State<SharePage>
             ),
             const SizedBox(height: 24),
             Text(
-              "收藏成功！",
+              "i18n_theme_收藏成功".tr,
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey[800],
@@ -251,7 +251,7 @@ class _SharePageState extends State<SharePage>
             ),
             const SizedBox(height: 8),
             Text(
-              "内容已安全保存到您的灵感库",
+              "i18n_theme_内容已安全保存到您的灵感库".tr,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -283,7 +283,7 @@ class _SharePageState extends State<SharePage>
             ),
             const SizedBox(height: 24),
             Text(
-              "收藏失败",
+              "i18n_theme_收藏失败".tr,
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey[800],
@@ -292,7 +292,7 @@ class _SharePageState extends State<SharePage>
             ),
             const SizedBox(height: 8),
             Text(
-              "请稍后重试",
+              "i18n_theme_请稍后重试".tr,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -323,11 +323,11 @@ class _SharePageState extends State<SharePage>
   String _getStatusMessage() {
     switch (status) {
       case ShareStatus.initial:
-        return "准备接收您的灵感...";
+        return "i18n_theme_准备接收您的灵感".tr;
       case ShareStatus.dropping:
-        return "墨水正在滴落...";
+        return "i18n_theme_墨水正在滴落".tr;
       case ShareStatus.spreading:
-        return "正在精心收藏...";
+        return "i18n_theme_正在精心收藏".tr;
       default:
         return "";
     }

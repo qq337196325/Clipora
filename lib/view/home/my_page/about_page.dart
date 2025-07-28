@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../basics/app_config_interface.dart';
 import '../../../basics/config.dart';
 
 
@@ -151,6 +152,8 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Widget _buildVersionInfo() {
+    final config = Get.find<IConfig>();
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -196,12 +199,13 @@ class _AboutPageState extends State<AboutPage> {
           ),
           
           const SizedBox(height: 16),
-          
-          _buildInfoRow('i18n_my_版本号'.tr, version),
+
+
+          _buildInfoRow('i18n_my_版本号'.tr, config.version),
           const SizedBox(height: 12),
-          _buildInfoRow('i18n_my_构建号'.tr, clientVersion.toString()),
+          _buildInfoRow('i18n_my_构建号'.tr, config.clientVersion.toString()),
           const SizedBox(height: 12),
-          _buildInfoRow('i18n_my_备案号'.tr, "粤ICP备2021048632号-5A"),
+          _buildInfoRow('i18n_my_备案号'.tr, config.recordNumber),
           // const SizedBox(height: 12),
           // _buildInfoRow('发布日期', '2024年3月'),
         ],

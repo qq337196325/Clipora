@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import '../../api/user_api.dart';
+import '../../private/api/user_api.dart';
 import 'phone_verify_page.dart';
 
 class PhoneLoginPage extends StatefulWidget {
