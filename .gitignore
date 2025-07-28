@@ -50,6 +50,7 @@ app.*.map.json
 /android/app/release
 
 /private/
+/script/
 /lib/private/
 /lib/view/order/
 /lib/view/login/
