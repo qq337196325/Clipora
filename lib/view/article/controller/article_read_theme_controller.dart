@@ -1,8 +1,14 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
+
 import 'package:flutter/material.dart' hide kDefaultFontSize;
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
-import '../../../basics/config.dart';
 import '../../../basics/logger.dart';
 import '../../../basics/ui.dart';
 import 'article_markdown_controller.dart';

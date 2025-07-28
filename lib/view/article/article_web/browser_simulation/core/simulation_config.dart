@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
+
 /// 浏览器仿真配置类
 /// 包含所有仿真功能的配置参数
 class SimulationConfig {

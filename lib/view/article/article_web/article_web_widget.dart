@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
+
 import 'package:bot_toast/bot_toast.dart';
 import 'package:clipora/view/article/article_web/utils/auto_generate_utils.dart';
 import 'package:clipora/view/article/article_web/utils/web_utils.dart';
