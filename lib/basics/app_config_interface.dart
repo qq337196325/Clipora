@@ -7,7 +7,6 @@
 
 
 abstract class IConfig {
-  String get wxAppId;
   String get urlAgreement;
   String get urlPrivacy;
   bool get isHuawei;
@@ -18,4 +17,7 @@ abstract class IConfig {
   String get apiHost;
   String get recordNumber;
   bool get isCommunityEdition;
+
+  String get wxAppId;
+  String get wxUniversalLink;
 }

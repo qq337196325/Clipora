@@ -10,7 +10,7 @@ import 'package:get/get.dart' hide Response;
 
 import '../../basics/logger.dart';
 import '../../basics/translations/language_controller.dart';
-import '/basics/config.dart';
+import '/private/basics/config.dart';
 
 
 /// 将 Dio 实例化和拦截器注册的操作放到单独的方法中，方便管理

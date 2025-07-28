@@ -27,6 +27,9 @@ class TransferRoute extends StatefulWidget {
 
 class _TransferRouteState extends State<TransferRoute> {
 
+  final config = Get.find<IConfig>();
+
+
   @override
   void initState() {
     _init();
@@ -62,7 +65,7 @@ class _TransferRouteState extends State<TransferRoute> {
 
     Get.put(FlutterLoggerService(), permanent: true);
 
-    final config = Get.find<IConfig>();
+
     if(config.isCommunityEdition && mounted){
       context.go('/${RouteName.index}');
       return;
@@ -89,12 +92,12 @@ class _TransferRouteState extends State<TransferRoute> {
     try {
       // 创建Fluwx实例
       Fluwx fluwx = Fluwx();
-      // 从pubspec.yaml中读取的app_id: wx629011ac595bee08
+
       await fluwx.registerApi(
-        appId: "wx629011ac595bee08",
+        appId: config.wxAppId,
         doOnAndroid: true,
         doOnIOS: true,
-        universalLink: "https://clipora-api.guanshangyun.com/wechat/app/", // 与pubspec.yaml保持一致
+        universalLink: config.wxUniversalLink, // 与pubspec.yaml保持一致
       );
       getLogger().i('✅ 微信SDK初始化成功');
     } catch (e) {

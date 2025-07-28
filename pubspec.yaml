@@ -84,7 +84,7 @@ flutter:
 
 
 fluwx:
-  app_id: wx629011ac595bee08
+  app_id:
   # only debug in debug mode
   debug_logging: true
   android:
@@ -93,7 +93,7 @@ fluwx:
   # https://juejin.cn/post/6937614343840202766
   # https://juejin.cn/post/7254809601873690681
   ios:
-    universal_link: https://clipora-api.guanshangyun.com/wechat/app/
+    universal_link: 
     #    scene_delegate: true #default false
     # payment is enabled by default
     no_pay: false

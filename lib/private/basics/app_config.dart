@@ -10,9 +10,6 @@ import '../../basics/app_config_interface.dart';
 /// App apecific configuration implementation
 class AppConfig implements IConfig {
   @override
-  String get wxAppId => "wx629011ac595bee08";
-
-  @override
   String get urlAgreement => "https://clipora.guanshangyun.com/agreement";
 
   @override
@@ -42,4 +39,11 @@ class AppConfig implements IConfig {
 
   @override
   bool get isCommunityEdition => false;
+
+
+  @override
+  String get wxAppId => "wx629011ac595bee08";
+
+  @override
+  String get wxUniversalLink => "https://clipora-api.guanshangyun.com/wechat/app/";
 }

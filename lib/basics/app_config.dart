@@ -10,13 +10,16 @@ import 'app_config_interface.dart';
 /// App apecific configuration implementation
 class AppConfig implements IConfig {
   @override
-  String get wxAppId => "wx629011ac595bee08";
+  String get wxAppId => "";
 
   @override
-  String get urlAgreement => "https://clipora.guanshangyun.com/agreement";
+  String get wxUniversalLink => "";
 
   @override
-  String get urlPrivacy => "https://clipora.guanshangyun.com/privacy";
+  String get urlAgreement => "";
+
+  @override
+  String get urlPrivacy => "";
 
   @override
   bool get isHuawei => false;
@@ -25,7 +28,7 @@ class AppConfig implements IConfig {
   bool get isDevelop => true;
 
   @override
-  String get apiVersion => "/v130";
+  String get apiVersion => "/v130"; 
 
   @override
   String get version => "v1.4.0";
@@ -34,10 +37,10 @@ class AppConfig implements IConfig {
   int get clientVersion => 140;
 
   @override
-  String get apiHost => "https://clipora-api.guanshangyun.com";
+  String get apiHost => "";
 
   @override
-  String get recordNumber => "粤ICP备2021048632号-5A";
+  String get recordNumber => "";
 
   @override
   bool get isCommunityEdition=>true;
