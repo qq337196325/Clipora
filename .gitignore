@@ -10,6 +10,10 @@
 .history
 .svn/
 .swiftpm/
+.kiro
+.cursor
+.run
+.vscode
 migrate_working_dir/
 
 # IntelliJ related
@@ -45,5 +49,8 @@ app.*.map.json
 /android/app/release
 
 /private/
+/lib/private/
 /lib/view/order/
 /lib/view/login/
+CLAUDE.md
+GEMINI.md
