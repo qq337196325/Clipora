@@ -1,4 +1,10 @@
-// lib/basics/translations/app_translations.dart
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
+
 
 import 'package:get/get.dart';
 import 'zh_cn/zh_cn.dart'; // 导入中文总文件

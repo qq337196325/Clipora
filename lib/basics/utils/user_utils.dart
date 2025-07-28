@@ -1,13 +1,24 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../app_config_interface.dart';
 import '../logger.dart';
 import '../ui.dart';
 
 
 String getUserId(){
+  final config = Get.find<IConfig>();
+  if(config.isCommunityEdition){
+    return "";
+  }
   return globalBoxStorage.read('user_id');
 }
 

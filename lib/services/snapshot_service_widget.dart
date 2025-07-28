@@ -1,9 +1,16 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 
+import '../basics/app_config_interface.dart';
 import '../basics/logger.dart';
 import '../basics/ui.dart';
 import '../basics/web_view/settings.dart';
@@ -128,6 +135,8 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
   String errorMessage = '';
   Timer? _generateSnapshotTimer;
   bool _isShowPermissionModel = false; // 是否显示申请权限模态框
+
+  final config = Get.find<IConfig>();
 
   @override
   void initState() {
@@ -536,8 +545,17 @@ mixin SnapshotServiceBLoC on State<SnapshotServiceWidget> {
 
     if (_currentArticle != null && filePath != "") {
       await generateMhtmlUtils.updateArticleSnapshot(filePath, _currentArticle!.id);
-      final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath, _currentArticle!.id);
 
+      if(config.isCommunityEdition){
+        final title = await webViewController?.getTitle();
+        final article = await ArticleService.instance.getArticleById(_currentArticle!.id);
+        article?.title = title!;
+        article?.markdownStatus = 2;
+        await ArticleService.instance.saveArticle(article!);
+        return;
+      }
+
+      final uploadStatus = await generateMhtmlUtils.uploadSnapshotToServer(filePath, _currentArticle!.id);
       if (uploadStatus) {
         _currentArticle!.mhtmlPath = filePath;
         _currentArticle!.isGenerateMhtml = true;

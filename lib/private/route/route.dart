@@ -7,18 +7,19 @@
 import 'package:go_router/go_router.dart';
 import 'package:bot_toast/bot_toast.dart';
 
-import '../view/article/article_page/article_page.dart';
-import '../view/guide/guide_page.dart';
-import '../view/home/search/search_page.dart';
-import '../view/login/login_page.dart';
-import '../view/order/ai_order_page.dart';
-import '../view/order/member_order_page.dart';
-import '../view/share/share_page.dart';
-import '../view/home/my_page/help_widget.dart';
-import '/route/route_name.dart';
-import '../view/home/index_page.dart';
-import '../view/transfer_route.dart';
-import '../view/article_list/article_list_page.dart';
+import '../../route/route_name.dart';
+import '../../view/article/article_page/article_page.dart';
+import '../../view/article_list/article_list_page.dart';
+import '../../view/guide/guide_page.dart';
+import '../../view/home/index_page.dart';
+import '../../view/home/my_page/help_widget.dart';
+import '../../view/home/search/search_page.dart';
+import '../../view/login/login_page.dart';
+import '../../view/order/ai_order_page.dart';
+import '../../view/order/member_order_page.dart';
+import '../../view/share/share_page.dart';
+import '../../view/transfer_route.dart';
+
 
 
 getQueryParam(String param, GoRouterState state){

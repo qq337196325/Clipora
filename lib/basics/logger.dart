@@ -1,8 +1,13 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:logger/logger.dart';
 import 'package:get/get.dart';
 
 import '../db/flutter_logger/flutter_logger_service.dart';
-import '/basics/config.dart';
 import 'app_config_interface.dart';
 
 // 日志监听回调函数类型
@@ -50,14 +55,6 @@ class ServerLogOutput extends LogOutput {
   void output(OutputEvent event) async {
     final String logMessage = event.lines.join("\n");
     final String level = _getLevelString(event.level);
-    final DateTime timestamp = DateTime.now();
-
-    // print(event.origin.message);
-    // print(111111111111111111);
-    // print(event.origin.stackTrace.toString());
-    // print(event.origin.error.toString());
-    // print(22222222);
-    // print(logMessage);
 
     if(level == "warning" || level == "error"){
       _flutterLoggerService.saveLog(
@@ -67,9 +64,7 @@ class ServerLogOutput extends LogOutput {
         linesMessage: logMessage,
       );
     }
-
   }
-
 
   // 获取日志级别字符串
   String _getLevelString(Level level) {

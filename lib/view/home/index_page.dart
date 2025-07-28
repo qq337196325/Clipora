@@ -1,3 +1,9 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:animated_segmented_tab_control/animated_segmented_tab_control.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -9,6 +15,7 @@ import '../../basics/ui.dart';
 import '../../services/snapshot_service_widget.dart';
 import 'components/tutorial_guide_widget.dart';
 import 'group/group_widget.dart';
+import 'index_service_interface.dart';
 import 'index_widget.dart';
 import 'my_page/my_page.dart';
 import '../../route/route_name.dart';
@@ -21,8 +28,7 @@ class IndexPage extends StatefulWidget {
   State<IndexPage> createState() => _IndexPageState();
 }
 
-class _IndexPageState extends State<IndexPage>
-    with TickerProviderStateMixin, IndexPageBLoC {
+class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, IndexPageBLoC {
   @override
   Widget build(BuildContext context) {
     final tabs = [
@@ -416,9 +422,8 @@ mixin IndexPageBLoC on State<IndexPage> {
     await _checkAndShowTutorial();
 
 
-
-
-
+    final indexService = Get.find<IIndexService>();
+    indexService.initRun(context);
 
   }
 

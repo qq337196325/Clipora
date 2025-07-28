@@ -1,4 +1,10 @@
-// lib/basics/translations/vi_vn/article_i18n.dart
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
+
 
 const Map<String, String> articleI18n = {
   'i18n_article_文章链接不存在': 'Liên kết bài viết không tồn tại',

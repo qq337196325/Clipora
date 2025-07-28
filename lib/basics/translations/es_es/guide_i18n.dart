@@ -1,4 +1,8 @@
-// lib/basics/translations/es_es/guide_i18n.dart
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
 
 const Map<String, String> guideI18n = {
   'i18n_guide_跳过': 'Saltar',

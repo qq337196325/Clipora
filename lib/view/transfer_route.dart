@@ -1,3 +1,9 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:flutter/material.dart';
 import 'package:fluwx/fluwx.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +11,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 
+import '../basics/app_config_interface.dart';
 import '../basics/logger.dart';
 import '../db/flutter_logger/flutter_logger_service.dart';
 import '../route/route_name.dart';
@@ -55,10 +62,15 @@ class _TransferRouteState extends State<TransferRoute> {
 
     Get.put(FlutterLoggerService(), permanent: true);
 
+    final config = Get.find<IConfig>();
+    if(config.isCommunityEdition && mounted){
+      context.go('/${RouteName.index}');
+      return;
+    }
+
     if (token == null || token.isEmpty) {
       getLogger().i('📱 未找到本地token，跳转到登录页面');
       if (mounted) {
-        // context.go('/${RouteName.login}');
         context.go('/${RouteName.guide}');
       }
       return;

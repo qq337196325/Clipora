@@ -605,6 +605,7 @@ class ShareService extends GetxService {
       final String type = data['type'] ?? 'text';
       final String content = data['content'] ?? '';
       final String? fileName = data['fileName'];
+      final double? timestamp = data['timestamp'];
 
       getLogger().i('📦 处理Share Extension数据: type=$type, content=${content.length > 100 ? content.substring(0, 100) + '...' : content}');
 

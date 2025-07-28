@@ -1,17 +1,23 @@
-import 'package:clipora/basics/ui.dart';
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import '../../../basics/api_services_interface.dart';
-import '../../../basics/app_config_interface.dart';
-import '../../../basics/translations/select_language_widget.dart';
-import '../../../basics/translations/language_controller.dart';
-import '../../../basics/theme/app_theme.dart';
-import '../../../route/route_name.dart';
-import '../../../basics/logger.dart';
+import '/basics/ui.dart';
+import '/basics/api_services_interface.dart';
+import '/basics/app_config_interface.dart';
+import '/basics/translations/select_language_widget.dart';
+import '/basics/translations/language_controller.dart';
+import '/basics/theme/app_theme.dart';
+import '/route/route_name.dart';
+import '/basics/logger.dart';
 import 'about_page.dart';
 import 'rating_dialog.dart';
 import 'app_store_test_page.dart';
@@ -25,6 +31,7 @@ class MyPage extends StatefulWidget {
 } 
 
 class _MyPageModalState extends State<MyPage> with MyPageBLoC {
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -66,30 +73,37 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
                   _buildPrivacySection(),
 
                   const SizedBox(height: 54),
-                  
-                  // 退出登录按钮
-                  _buildLogoutButton(),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // 注销账号
-                  InkWell(
-                    onTap: ()=>_handleDeleteAccount(),
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'i18n_my_注销账号'.tr,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          letterSpacing: 0.3,
+
+
+                  if(!config.isCommunityEdition)
+                    Column(
+                      children: [
+                        // 退出登录按钮
+                        _buildLogoutButton(),
+
+                        const SizedBox(height: 24),
+
+                        // 注销账号
+                        InkWell(
+                          onTap: ()=>_handleDeleteAccount(),
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: Text(
+                              'i18n_my_注销账号'.tr,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Theme.of(context).textTheme.bodySmall?.color,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
 
 
-                  const SizedBox(height: 36),
+                        const SizedBox(height: 36),
+                      ],
+                    )
+
                 ],
               ),
             ),
@@ -222,38 +236,47 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
             isLast: true,
             isExternalLink: false,
           ),
-          _buildDivider(),
-          _buildModernSettingItem(
-            icon: Icons.policy_outlined,
-            title: 'i18n_my_用户协议'.tr,
-            subtitle: 'i18n_my_了解我们的用户协议'.tr,
-            iconColor: Theme.of(context).colorScheme.error,
-            iconBgColor: Theme.of(context).colorScheme.error.withOpacity(0.1),
-            onTap: () => _handleThirdPartyInfo(),
-            isFirst: true,
-            isExternalLink: true,
-          ),
-          _buildDivider(),
-          _buildModernSettingItem(
-            icon: Icons.verified_user_outlined,
-            title: 'i18n_my_隐私协议'.tr,
-            subtitle: 'i18n_my_保护您的隐私权益'.tr,
-            iconColor: Theme.of(context).colorScheme.secondary,
-            iconBgColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-            onTap: () => _handlePrivacyPolicy(),
-            isLast: true,
-            isExternalLink: true,
-          ),
-          _buildDivider(),
-          _buildModernSettingItem(
-            icon: Icons.info_outline,
-            title: 'i18n_my_关于我们'.tr,
-            subtitle: 'i18n_my_了解更多应用信息'.tr,
-            iconColor: Theme.of(context).primaryColor,
-            iconBgColor: Theme.of(context).primaryColor.withOpacity(0.1),
-            onTap: () => _handleAboutUs(),
-            isExternalLink: false,
-          ),
+
+
+
+          if(!config.isCommunityEdition)
+            Column(
+              children: [
+                _buildDivider(),
+                _buildModernSettingItem(
+                  icon: Icons.policy_outlined,
+                  title: 'i18n_my_用户协议'.tr,
+                  subtitle: 'i18n_my_了解我们的用户协议'.tr,
+                  iconColor: Theme.of(context).colorScheme.error,
+                  iconBgColor: Theme.of(context).colorScheme.error.withOpacity(0.1),
+                  onTap: () => _handleThirdPartyInfo(),
+                  isFirst: true,
+                  isExternalLink: true,
+                ),
+                _buildDivider(),
+                _buildModernSettingItem(
+                  icon: Icons.verified_user_outlined,
+                  title: 'i18n_my_隐私协议'.tr,
+                  subtitle: 'i18n_my_保护您的隐私权益'.tr,
+                  iconColor: Theme.of(context).colorScheme.secondary,
+                  iconBgColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                  onTap: () => _handlePrivacyPolicy(),
+                  isLast: true,
+                  isExternalLink: true,
+                ),
+                _buildDivider(),
+                _buildModernSettingItem(
+                  icon: Icons.info_outline,
+                  title: 'i18n_my_关于我们'.tr,
+                  subtitle: 'i18n_my_了解更多应用信息'.tr,
+                  iconColor: Theme.of(context).primaryColor,
+                  iconBgColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                  onTap: () => _handleAboutUs(),
+                  isExternalLink: false,
+                ),
+              ],
+            ),
+
 
           // _buildDivider(),
           // _buildModernSettingItem(
@@ -274,10 +297,15 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
   Widget _buildFunctionSection() {
     return Column(
       children: [
-        _buildMembershipCard(),
-        const SizedBox(height: 12),
-        _buildAiTranslationCard(),
-        const SizedBox(height: 12),
+        if(!config.isCommunityEdition)
+          Column(
+            children: [
+              _buildMembershipCard(),
+              const SizedBox(height: 12),
+              _buildAiTranslationCard(),
+              const SizedBox(height: 12),
+            ],
+          ),
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
@@ -298,15 +326,7 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
               _buildThemeSetting(),
               _buildDivider(),
               _buildAutoParseSettings(),
-              // _buildModernSettingItem(
-              //   icon: Icons.help_center_outlined,
-              //   title: '使用帮助',
-              //   subtitle: '常见问题与解答',
-              //   iconColor: const Color(0xFF45B7D1),
-              //   iconBgColor: const Color(0xFF45B7D1).withOpacity(0.1),
-              //   onTap: () => _handleHelp(),
-              //   isFirst: true,
-              // ),
+
               // _buildDivider(),
               // _buildModernSettingItem(
               //   icon: Icons.star_rate_outlined,
@@ -835,6 +855,9 @@ mixin MyPageBLoC on State<MyPage> {
   bool _isLoadingQuantity = true;
   bool _autoParseEnabled = true; // 添加自动解析状态变量
 
+  IApiServices apiServices = Get.find<IApiServices>();
+  IConfig config = Get.find<IConfig>();
+
   @override
   void initState() {
     super.initState();
@@ -894,16 +917,12 @@ mixin MyPageBLoC on State<MyPage> {
 
   void _handleThirdPartyInfo() { // 用户协议
     getLogger().i('第三方信息共享清单');
-
-    final config = Get.find<IConfig>();
-
     final Uri _url = Uri.parse(config.urlPrivacy);
     goLaunchUrl(_url);
   }
 
   void _handlePrivacyPolicy() {
     getLogger().i('隐私公约');
-    final config = Get.find<IConfig>();
     final Uri _url = Uri.parse(config.urlAgreement);
     goLaunchUrl(_url);
   }

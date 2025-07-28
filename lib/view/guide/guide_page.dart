@@ -1,8 +1,15 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../basics/app_config_interface.dart';
 import '../../basics/logger.dart';
 import '../../route/route_name.dart';
 import 'guide_service.dart';
@@ -283,6 +290,12 @@ mixin GuidePageBLoC on State<GuidePage> {
 
       // 跳转到主页面（使用现有的路由名称）
       if (mounted) {
+        final config = Get.find<IConfig>();
+
+        if(config.isCommunityEdition){
+          context.go('/${RouteName.index}');
+          return;
+        }
         context.go('/${RouteName.login}');
       }
     } catch (e) {

@@ -1,6 +1,13 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:clipora/basics/utils/user_utils.dart';
 
 import '../../../basics/api_services_interface.dart';
+import '../../../basics/app_config_interface.dart';
 import '../../../basics/ui.dart';
 import '../article_db.dart';
 import '../../../basics/logger.dart';
@@ -41,6 +48,12 @@ class ArticleCreateService extends ArticleUpdateService {
 
       final savedArticle = await saveArticle(article);
 
+      final config = Get.find<IConfig>();
+
+      if(config.isCommunityEdition){
+        return savedArticle;
+      }
+
       /// 将数据保存到服务端
       final param = {
         'client_article_id': savedArticle.id,
@@ -61,11 +74,8 @@ class ArticleCreateService extends ArticleUpdateService {
         }
 
         if (serviceId.isNotEmpty) {
-          // 假设 article_service 中有 markArticleAsSynced 方法
           await ArticleService.instance.markArticleAsSynced(article.id, serviceId);
           getLogger().i('✅ 文章同步成功。 服务端ID: $serviceId');
-          // 触发Markdown生成
-          // MarkdownService.instance.triggerMarkdownProcessing();
         } else {
           getLogger().e('❌ 后端返回了无效的服务端ID: "$serviceId" (本地ID: ${article.id})');
         }

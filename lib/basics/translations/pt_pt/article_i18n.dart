@@ -1,4 +1,10 @@
-// lib/basics/translations/pt_pt/article_i18n.dart
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
+
 
 const Map<String, String> articleI18n = {
   // 基础翻译（简化版，包含主要功能）

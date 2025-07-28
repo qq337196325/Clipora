@@ -1,3 +1,9 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -455,18 +461,12 @@ mixin SharePageBLoC on State<SharePage> {
 
       // 播放成功动画
       (this as _SharePageState).successController.forward();
+      (this as _SharePageState).breatheController.repeat(reverse: true);
 
-      // 播放有限次数的呼吸动画，避免无限闪烁
-      for (int i = 0; i < 2; i++) {
-        await (this as _SharePageState).breatheController.forward();
-        await (this as _SharePageState).breatheController.reverse();
-      }
-
-      // 等待动画完成后关闭应用程序
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // 分享处理完成后直接关闭应用程序
+      // 等待动画完成后关闭
+      await Future.delayed(const Duration(milliseconds: 1000));
       SystemNavigator.pop();
+
     } catch (e) {
       getLogger().e("Error processing share", error: e);
       if (!mounted) return;
@@ -476,8 +476,6 @@ mixin SharePageBLoC on State<SharePage> {
       });
 
       await Future.delayed(const Duration(milliseconds: 1000));
-
-      // 分享处理失败后也直接关闭应用程序
       SystemNavigator.pop();
     }
   }

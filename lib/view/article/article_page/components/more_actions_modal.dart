@@ -1,3 +1,9 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:bot_toast/bot_toast.dart';
 import 'package:clipora/view/article/article_page/components/read_theme_widget.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../basics/app_config_interface.dart';
 import '../../../../db/article/service/article_service.dart';
 import '../../controller/article_controller.dart';
 import 'move_to_category_modal.dart';
@@ -60,6 +67,7 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
   bool _isLoading = false;
   // 文章控制器
   final ArticleController articleController = Get.find<ArticleController>();
+  final config = Get.find<IConfig>();
 
   @override
   void initState() {
@@ -412,23 +420,25 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
         onTap: () => _copyLink(context),
         isEnabled: hasUrl,
       ),
-      _ActionItem(
-        icon: Icons.refresh,
-        label: 'i18n_article_刷新解析'.tr,
-        onTap: () {
-          if (!_isInWebTab()) {
-            _showSwitchToWebTabHint(context, 'i18n_article_刷新解析'.tr);
-            return;
-          }
-          
-          if (widget.onReGenerateMarkdown != null) {
-            Navigator.of(context).pop();
-            widget.onReGenerateMarkdown!();
-          } else {
-            _showToast(context, 'i18n_article_刷新解析'.tr);
-          }
-        },
-    ),
+
+      if(!config.isCommunityEdition)
+        _ActionItem(
+          icon: Icons.refresh,
+          label: 'i18n_article_刷新解析'.tr,
+          onTap: () {
+            if (!_isInWebTab()) {
+              _showSwitchToWebTabHint(context, 'i18n_article_刷新解析'.tr);
+              return;
+            }
+
+            if (widget.onReGenerateMarkdown != null) {
+              Navigator.of(context).pop();
+              widget.onReGenerateMarkdown!();
+            } else {
+              _showToast(context, 'i18n_article_刷新解析'.tr);
+            }
+          },
+      ),
     _ActionItem(
         icon: Icons.camera_alt_outlined,
         label: 'i18n_article_重新生成快照'.tr,
@@ -446,8 +456,8 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
           }
         }),
 
-
-      _ActionItem(icon: Icons.g_translate, label: 'i18n_article_AI翻译'.tr, onTap: () => _showTranslateModal(context)),
+      if(!config.isCommunityEdition)
+        _ActionItem(icon: Icons.g_translate, label: 'i18n_article_AI翻译'.tr, onTap: () => _showTranslateModal(context)),
 
       _ActionItem(icon: Icons.local_offer_outlined, label: 'i18n_article_标签'.tr, onTap: () => _showTagEditModal(context)),
       _ActionItem(icon: Icons.drive_file_move_outline, label: 'i18n_article_移动'.tr, onTap: () => _showMoveToCategoryModal(context)),
@@ -457,7 +467,8 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
          onTap: () => _toggleImportantStatus(context)
        ),
 
-      _ActionItem(icon: Icons.style, label: 'i18n_article_阅读主题'.tr, onTap: () => _showReadThemeWidgetModal(context)),
+      if(!config.isCommunityEdition)
+        _ActionItem(icon: Icons.style, label: 'i18n_article_阅读主题'.tr, onTap: () => _showReadThemeWidgetModal(context)),
 
        _ActionItem(
          icon: isArchived ? Icons.unarchive : Icons.archive_outlined, 

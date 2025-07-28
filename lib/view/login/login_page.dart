@@ -1,3 +1,9 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +18,6 @@ import 'package:get/get.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../basics/app_config_interface.dart';
-import '../../basics/config.dart';
 import '../../basics/ui.dart';
 import '../../components/ui_border_radius_widget.dart';
 import '../../basics/translations/select_language_widget.dart';

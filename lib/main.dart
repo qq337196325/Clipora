@@ -1,5 +1,9 @@
-import 'package:clipora/private/view/home/index_service.dart';
-import 'package:clipora/view/home/index_service_interface.dart';
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:flutter/material.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -7,6 +11,8 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
+import '/view/home/index_service_interface.dart';
+import '/view/home/index_service.dart';
 import '/route/route.dart';
 import '/services/share_service.dart';
 import '/db/database_service.dart';

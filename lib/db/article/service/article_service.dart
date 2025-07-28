@@ -1,8 +1,15 @@
+// Copyright (c) 2025 Clipora.
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 import 'package:clipora/db/article_content/article_content_db.dart';
 import 'package:clipora/db/category/category_db.dart';
 import 'package:isar/isar.dart';
 import 'package:get/get.dart';
 
+import '../../../basics/app_config_interface.dart';
 import '../../../basics/logger.dart';
 import '../../../basics/ui.dart';
 import '../../../basics/utils/user_utils.dart';
@@ -225,6 +232,22 @@ class ArticleService extends ArticleCreateService {
   /// 获取所有需要生成快照的文章
   Future<List<ArticleDb>> getUnsnapshottedArticles() async {
     try {
+
+      final config = Get.find<IConfig>();
+      if(config.isCommunityEdition){
+        return await dbService.articles
+            .where()
+            .userIdEqualTo(getUserId())
+            .filter()
+            .isGenerateMhtmlEqualTo(false)
+            .deletedAtIsNull() // 过滤未删除的文章
+            .markdownStatusEqualTo(0)
+            .and()
+            .urlIsNotEmpty()
+            .findAll();
+      }
+
+
       return await dbService.articles
           .where()
           .userIdEqualTo(getUserId())
