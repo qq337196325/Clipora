@@ -645,3 +645,41 @@ pointer to where the full notice is found.
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+================================================================================
+TRADEMARK NOTICE
+================================================================================
+
+"Clipora" is a trademark of the copyright holder. The following additional 
+terms apply to the use of the "Clipora" name and any associated logos, icons, 
+or branding materials:
+
+1. TRADEMARK RESTRICTIONS:
+   - The name "Clipora" and any associated branding materials are NOT covered 
+     by the GNU AGPL v3 license above.
+   - Use of the "Clipora" name in derivative works, distributions, or any 
+     commercial or non-commercial applications is PROHIBITED without explicit 
+     written permission from the copyright holder.
+
+2. PERMITTED USES:
+   - You may refer to this software as "based on Clipora" or "derived from 
+     Clipora" for attribution purposes only.
+   - You may use the name "Clipora" in academic papers, reviews, or technical 
+     documentation when referring to this original software.
+
+3. REQUIRED MODIFICATIONS:
+   - If you distribute a modified version of this software, you MUST:
+     a) Remove all "Clipora" branding, names, and logos
+     b) Use a different name for your derivative work
+     c) Clearly indicate that your work is derived from Clipora but is not 
+        the original Clipora software
+
+4. ENFORCEMENT:
+   - Violation of these trademark terms may result in legal action.
+   - These trademark restrictions are in addition to, not in place of, the 
+     GNU AGPL v3 license terms above.
+
+For trademark licensing inquiries, please contact the copyright holder.
+
+The GNU AGPL v3 license terms above apply to the source code only and do not 
+grant any rights to use the "Clipora" trademark.
