@@ -16,15 +16,15 @@ Clipora is a web bookmark management tool that automatically generates snapshots
 
 ### Open Source Version
 
-- � WCross-platform support (iOS/Android)
-- �  Web page snapshot generation
-- � Loscal storage management
+- 📱 WCross-platform support (iOS/Android)
+- 📄 Web page snapshot generation
+- 💾 Loscal storage management
 - 🔄 System sharing integration
 - 🎨 Customizable reading themes
 
 ### Commercial Version (App Store)
 
-- � Usetr authentication and sync
+- 🔐 Usetr authentication and sync
 - 📝 Markdown document parsing
 - 🌐 AI translation functionality
 - ☁️ Data synchronization across devices
