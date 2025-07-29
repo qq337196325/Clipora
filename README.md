@@ -1,19 +1,64 @@
 # Clipora
 
-## 📚 Project Introduction
+[English](README.md) | [中文](README-CN.md)
+
+A powerful web bookmark management tool built with Flutter that automatically generates snapshots of web pages and saves them to local storage.
+
+[![Flutter](https://img.shields.io/badge/Flutter-3.24.5-blue.svg)](https://flutter.dev/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![App Store](https://img.shields.io/badge/App%20Store-Available-blue.svg)](https://apps.apple.com/us/app/clipora-web-clipper-reader/id6747252007)
+
+## 📚 About
 
 Clipora is a web bookmark management tool that automatically generates snapshots of web pages you want to bookmark through system sharing and saves these snapshots to your local storage. The commercial version also parses web articles into more reader-friendly Markdown documents.
 
-### 📏 This Project is Divided into Commercial and Open Source Versions
+## ✨ Features
 
-The difference between versions is that the open source version does not include server-side related functions.
+### Open Source Version
 
-- The open source version does not require login and directly jumps to the homepage.
-- Does not include parsing web pages into Markdown documents.
-- Does not include AI translation functionality.
-- Does not include data synchronization functionality.
+- � WCross-platform support (iOS/Android)
+- �  Web page snapshot generation
+- � Loscal storage management
+- 🔄 System sharing integration
+- 🎨 Customizable reading themes
 
-### 💡 Flutter Version
+### Commercial Version (App Store)
+
+- � Usetr authentication and sync
+- 📝 Markdown document parsing
+- 🌐 AI translation functionality
+- ☁️ Data synchronization across devices
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Flutter 3.24.5 or higher
+- Dart 3.5.4 or higher
+- iOS 12.0+ / Android API 21+
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/qq337196325/Clipora.git
+cd Clipora
+```
+
+2. Install dependencies:
+
+```bash
+flutter pub get
+```
+
+3. Run the app:
+
+```bash
+flutter run
+```
+
+## 🛠 Development Environment
 
 ```shell
 > flutter --version
@@ -23,11 +68,13 @@ Engine • revision a18df97ca5
 Tools • Dart 3.5.4 • DevTools 2.37.3 
 ```
 
-The complete version of the project has been launched on the Apple App Store:
+## 📱 Download
 
-<https://apps.apple.com/us/app/clipora-web-clipper-reader/id6747252007>
+The complete version is available on the App Store:
 
-### ⌨️ Core Features of the Complete Version
+[![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/us/app/clipora-web-clipper-reader/id6747252007)
+
+## ⌨️ Core Features (Commercial Version)
 
 ### 1. One-Click Web Page Collection and Permanent Snapshots
 
@@ -40,7 +87,7 @@ The complete version of the project has been launched on the Apple App Store:
 - **Clean Reading**: Automatically extracts web page content, removes ads and distracting elements, providing an immersive, distraction-free reading experience.
 - **Highlighting and Annotation**: Like reading physical books, freely highlight and add notes on the original web page text. Closely combine your thoughts with the original text to deepen understanding and memory.
 
-### 💡 Problems Clipora Solves for You
+## 💡 Problems Clipora Solves for You
 
 - **Aggregated Management**: Unified management of knowledge fragments scattered everywhere.
 - **Permanent Storage**: Web page snapshot functionality ensures your bookmarks never expire.
@@ -48,6 +95,16 @@ The complete version of the project has been launched on the Apple App Store:
 - **Barrier-Free Reading**: AI translation functionality breaks down language barriers.
 - **Minimalist Experience**: Pursuing extremely simple design, you can configure reading themes according to your needs to create the most suitable reading experience for yourself.
 
-|                          ·                           |                          ·                           |
-|:----------------------------------------------------:|:----------------------------------------------------:|
+## 📸 Screenshots
+
+|                             ·                              |                             ·                              |
+| :--------------------------------------------------------: | :--------------------------------------------------------: |
 | ![Homepage](docs/img/6c134a5a3d5140031d12f782f9d8fa8a.png) | ![Homepage](docs/img/65ab1b87521c92a357ad628c670b9b03.png) |
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
