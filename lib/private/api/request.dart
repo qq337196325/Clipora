@@ -38,7 +38,7 @@ Dio initDio(String _apiHost) {
     },
     onResponse: (response, handler) {
       if(
-          response.requestOptions.uri.path != "$apiVersion/api/user/get_sync_all_data" &&
+          // response.requestOptions.uri.path != "$apiVersion/api/user/get_sync_all_data" &&
           response.requestOptions.uri.path != "$apiVersion/api/user/get_current_time"
       ){
         getLogger().i({
@@ -97,8 +97,6 @@ class Request {
     Map<String, dynamic>? param,
     Map<String, dynamic>? headers,
   }) async {
-    String hToken = "";
-    int tokenType = 0;
     final prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 

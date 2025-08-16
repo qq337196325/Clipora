@@ -29,6 +29,7 @@ class ArticleModel {
   final int version;
   final int updateTimestamp;
   final String uuid;
+  final String description;
   final List<String> tagUuids;
   final List<String> categoryUuids;
 
@@ -63,6 +64,7 @@ class ArticleModel {
     required this.version,
     required this.updateTimestamp,
     required this.uuid,
+    required this.description,
     required this.tagUuids,
     required this.categoryUuids,
   });
@@ -99,6 +101,7 @@ class ArticleModel {
       version: json['version'] as int? ?? 0,
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
       uuid: json['uuid'] as String? ?? "",
+      description: json['description'] as String? ?? "",
       tagUuids: json['tag_uuids'] == null ? [] : List<String>.from(json["tag_uuids"].map((x) => x)),
       categoryUuids: json['category_uuids'] == null ? [] : List<String>.from(json["category_uuids"].map((x) => x)),
     );
@@ -136,6 +139,7 @@ class ArticleModel {
       'version': version,
       'update_timestamp': updateTimestamp,
       'uuid': uuid,
+      'description': description,
     };
   }
 
@@ -170,6 +174,7 @@ class ArticleModel {
     int? version,
     int? updateTimestamp,
     String? uuid,
+    String? description,
 
     List<String>? tagUuids,
     List<String>? categoryUuids,
@@ -205,6 +210,7 @@ class ArticleModel {
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
       uuid: uuid ?? this.uuid,
+      description: description ?? this.description,
       tagUuids: tagUuids ?? this.tagUuids,
       categoryUuids: categoryUuids ?? this.categoryUuids,
     );

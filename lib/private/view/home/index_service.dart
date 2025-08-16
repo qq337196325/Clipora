@@ -30,7 +30,6 @@ import '../../../view/home/index_service_interface.dart';
 import '../../api/user_api.dart';
 import '../../basics/upgrade_service.dart';
 import '../../services/get_sync_data/get_sync_data.dart';
-import '../../services/get_sync_data/increment_sync_data.dart';
 import '../../services/update_data_sync/data_sync_service.dart';
 
 class IndexService implements IIndexService {
@@ -128,7 +127,8 @@ class IndexService implements IIndexService {
     } else {
       /// 只有全量更新完或者不需要全量更新的时候初始化
       Get.put(DataSyncService(), permanent: true);
-      Get.put(IncrementSyncData(), permanent: true);
+      Get.put(GetSyncData(), permanent: true);
+      // Get.put(IncrementSyncData(), permanent: true);
     }
   }
 
@@ -141,38 +141,38 @@ class IndexService implements IIndexService {
       // _updateSyncProgress('i18n_home_正在初始化同步'.tr, 0.1);
 
       // 导入全量同步类
-      final getSyncData = GetSyncData();
+      // final getSyncData = GetSyncData();
 
       // 执行全量同步，传递进度回调
-      final syncResult = await getSyncData.completeSyncAllData(
-        progressCallback: (message, progress) {
-          // _updateSyncProgress(message, progress);
-        },
-      );
+      // final syncResult = await getSyncData.completeSyncAllData(
+      //   progressCallback: (message, progress) {
+      //     // _updateSyncProgress(message, progress);
+      //   },
+      // );
 
-      if (syncResult) {
-        getLogger().i('✅ 全量同步成功完成');
-
-        // _updateSyncProgress('i18n_home_正在完成同步'.tr, 0.9);
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        // 更新同步状态显示
-        // _updateSyncProgress('i18n_home_同步完成'.tr, 1.0);
-
-        // 等待一下让用户看到完成状态
-        await Future.delayed(const Duration(milliseconds: 1000));
-
-        // 保存同步完成状态并关闭对话框
-        GetStorage().write('completeSyncStatus', true);
-      } else {
-        getLogger().e('❌ 全量同步失败');
-
-        // // 更新同步状态显示
-        // _updateSyncProgress('i18n_home_同步失败请检查网络连接后重试'.tr, 0.0);
-
-        // 等待一下然后关闭对话框
-        await Future.delayed(const Duration(milliseconds: 1000));
-      }
+      // if (syncResult) {
+      //   getLogger().i('✅ 全量同步成功完成');
+      //
+      //   // _updateSyncProgress('i18n_home_正在完成同步'.tr, 0.9);
+      //   await Future.delayed(const Duration(milliseconds: 500));
+      //
+      //   // 更新同步状态显示
+      //   // _updateSyncProgress('i18n_home_同步完成'.tr, 1.0);
+      //
+      //   // 等待一下让用户看到完成状态
+      //   await Future.delayed(const Duration(milliseconds: 1000));
+      //
+      //   // 保存同步完成状态并关闭对话框
+      //   GetStorage().write('completeSyncStatus', true);
+      // } else {
+      //   getLogger().e('❌ 全量同步失败');
+      //
+      //   // // 更新同步状态显示
+      //   // _updateSyncProgress('i18n_home_同步失败请检查网络连接后重试'.tr, 0.0);
+      //
+      //   // 等待一下然后关闭对话框
+      //   await Future.delayed(const Duration(milliseconds: 1000));
+      // }
     } catch (e) {
       getLogger().e('❌ 同步过程发生异常: $e');
 
@@ -184,12 +184,12 @@ class IndexService implements IIndexService {
       //             : e.toString()),
       //     0.0);
     } finally {
-      final serviceCurrentTime = await getServiceCurrentTime();
-      GetStorage().write('serviceCurrentTime', serviceCurrentTime);
+      // final serviceCurrentTime = await getServiceCurrentTime();
+      // GetStorage().write('serviceCurrentTime', serviceCurrentTime);
 
       /// 只有全量更新完或者不需要全量更新的时候初始化
       Get.put(DataSyncService(), permanent: true);
-      Get.put(IncrementSyncData(), permanent: true);
+      Get.put(GetSyncData(), permanent: true);
 
       // 等待一下然后关闭对话框
       await Future.delayed(const Duration(milliseconds: 1000));

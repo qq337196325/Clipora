@@ -99,3 +99,18 @@ Future<void> handleAndroidPermission() async {
     );
   }
 }
+
+
+/// 解析日期时间字符串
+DateTime? parseDateTime(String? dateTimeStr) {
+  if (dateTimeStr == null || dateTimeStr.isEmpty) {
+    return null;
+  }
+
+  try {
+    return DateTime.parse(dateTimeStr);
+  } catch (e) {
+    getLogger().e('❌ 解析日期时间失败: $dateTimeStr, 错误: $e');
+    return null;
+  }
+}

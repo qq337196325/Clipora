@@ -82,10 +82,10 @@ int getStorageServiceCurrentTime(){
 // 服务端时间加10秒，表示数据要同步到服务端
 int getStorageServiceCurrentTimeAdding(){
   final serverTime = getStorageServiceCurrentTime();
-  final localTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  final serverLocalDiff = localTime - serverTime;
+  // final localTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  // final serverLocalDiff = localTime - serverTime;
 
-  return serverTime + (serverLocalDiff > 0 ? serverLocalDiff : 0) + 10;
+  return serverTime + 1;
 }
 
 // 获取自动解析设置状态
@@ -260,3 +260,6 @@ Widget buildSyncDialogWithProgress(
     ),
   );
 }
+
+
+

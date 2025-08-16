@@ -26,6 +26,6 @@
 // const String apiHost = "http://192.168.31.31";
 
 
-const String apiVersion = "/v130";
-int clientVersion = 140;
+const String apiVersion = "/v150";
+int clientVersion = 150;
 const String apiHost = "https://clipora-api.guanshangyun.com";

@@ -22,7 +22,6 @@ import 'package:go_router/go_router.dart';
 import 'package:get/get.dart';
 
 import '../../basics/ui.dart';
-import '../../services/snapshot_service_widget.dart';
 import 'components/tutorial_guide_widget.dart';
 import 'group/group_widget.dart';
 import 'index_service_interface.dart';
@@ -56,7 +55,7 @@ class _IndexPageState extends State<IndexPage> with TickerProviderStateMixin, In
 
     return Stack(
       children: [
-        SnapshotServiceWidget(),
+        // SnapshotServiceWidget(),
         Scaffold(
           // appBar: AppBar(
           //   title: const Text('InAppWebView Demo'),

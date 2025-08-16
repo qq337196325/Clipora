@@ -17,7 +17,7 @@
 import 'dart:async';
 
 import 'request.dart';
-import "/basics/config.dart";
+import "/private/basics/config.dart";
 
 class UserApi {
 
@@ -41,6 +41,9 @@ class UserApi {
     return await Request().post("$apiVersion/api/user/get_init_data", data:param);
   }
 
+  static Future<Map> getArticleFileApi(dynamic param) async {
+    return await Request().post("$apiVersion/api/user/get_article_file", data:param);
+  }
   static Future<Map> uploadMhtmlApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/upload_mhtml", data:param);
   }

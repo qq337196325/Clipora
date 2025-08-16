@@ -32,6 +32,9 @@ class AnnotationModel {
   final int clientArticleId;
   final String serviceArticleContentId;
   final int clientArticleContentId;
+  final String staticFilePath;
+
+
 
   const AnnotationModel({
     required this.id,
@@ -66,6 +69,7 @@ class AnnotationModel {
     required this.version,
     required this.updateTimestamp,
     required this.uuid,
+    required this.staticFilePath,
   });
 
   factory AnnotationModel.fromJson(Map<String, dynamic> json) {
@@ -102,6 +106,7 @@ class AnnotationModel {
       version: json['version'] as int? ?? 1,
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
       uuid: json['uuid'] as String? ?? "",
+      staticFilePath: json['static_file_path'] as String? ?? "",
     );
   }
 
@@ -139,6 +144,7 @@ class AnnotationModel {
       'version': version,
       'update_timestamp': updateTimestamp,
       'uuid': uuid,
+      'static_file_path': staticFilePath,
     };
   }
 
@@ -175,6 +181,7 @@ class AnnotationModel {
     int? version,
     int? updateTimestamp,
     String? uuid,
+    String? staticFilePath,
   }) {
     return AnnotationModel(
       id: id ?? this.id,
@@ -209,6 +216,7 @@ class AnnotationModel {
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
       uuid: uuid ?? this.uuid,
+      staticFilePath: staticFilePath ?? this.staticFilePath,
     );
   }
 

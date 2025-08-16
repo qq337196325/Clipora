@@ -59,13 +59,13 @@ class DataSyncService extends GetxService {
   Future<void> run() async {
     await triggerSync();
 
-    /// 获取服务器时间
-    final serviceCurrentTime = await getServiceCurrentTime();
-    int oidServiceCurrentTime = box.read('serviceCurrentTime') ?? 0;
-    getLogger().i('······· 旧的服务器时间：$oidServiceCurrentTime, 新获取的服务器时间：$serviceCurrentTime');
-    if(serviceCurrentTime != 0){
-      box.write('serviceCurrentTime', serviceCurrentTime);
-    }
+    // /// 获取服务器时间
+    // final serviceCurrentTime = getStorageServiceCurrentTime();
+    // int oidServiceCurrentTime = box.read('serviceCurrentTime') ?? 0;
+    // getLogger().i('······· 旧的服务器时间：$oidServiceCurrentTime, 新获取的服务器时间：$serviceCurrentTime');
+    // if(serviceCurrentTime != 0){
+    //   box.write('serviceCurrentTime', serviceCurrentTime);
+    // }
   }
 
 
@@ -336,8 +336,10 @@ class DataSyncService extends GetxService {
           'read_count': article.readCount,
           'read_duration': article.readDuration,
           'read_progress': article.readProgress,
+          'update_timestamp': article.updateTimestamp,
           'tag_uuids': tagUuids,
           'category_uuids': categoryUuids,
+
         };
         
         articleDataList.add(articleData);

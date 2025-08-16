@@ -32,13 +32,13 @@ class AppConfig implements IConfig {
   bool get isDevelop => true;
 
   @override
-  String get apiVersion => "/v130";
+  String get apiVersion => "/v150";
 
   @override
-  String get version => "v1.4.0";
+  String get version => "v1.5.0";
 
   @override
-  int get clientVersion => 140;
+  int get clientVersion => 150;
 
   @override
   String get apiHost => "https://clipora-api.guanshangyun.com";
