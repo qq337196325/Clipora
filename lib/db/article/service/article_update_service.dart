@@ -31,7 +31,6 @@ class ArticleUpdateService extends ArticleBaseService {
   /// 保存文章
   Future<ArticleDb> saveArticle(ArticleDb article) async {
     try {
-
       final now = DateTime.now();
       article.updatedAt = now;
       article.userId = getUserId();
@@ -55,6 +54,16 @@ class ArticleUpdateService extends ArticleBaseService {
 
       getLogger().i('✅ 文章保存成功，ID: ${article.id}');
       return article;
+    } catch (e) {
+      getLogger().e('❌ 保存文章失败: $e');
+      rethrow;
+    }
+  }
+
+/// 更新本地资源文件路径
+  updateLocalMhtmlPath(ArticleDb article) async {
+    try {
+      await dbService.articles.put(article);
     } catch (e) {
       getLogger().e('❌ 保存文章失败: $e');
       rethrow;

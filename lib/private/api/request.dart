@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart' hide Response;
@@ -39,6 +40,7 @@ Dio initDio(String _apiHost) {
     onResponse: (response, handler) {
       if(
           // response.requestOptions.uri.path != "$apiVersion/api/user/get_sync_all_data" &&
+          response.requestOptions.uri.path != "$apiVersion/api/user/get_article_file" &&
           response.requestOptions.uri.path != "$apiVersion/api/user/get_current_time"
       ){
         getLogger().i({
@@ -162,6 +164,114 @@ class Request {
       ),
     );
     return _handleResponse(response);
+  }
+
+  /// 专门用于文件下载的post请求
+  /// 可以处理返回JSON（错误情况）或二进制文件（成功情况）的接口
+  Future<Map<String, dynamic>> postForFile(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? headers,
+  }) async {
+    String hToken = "";
+    int tokenType = 0;
+    final prefs = await SharedPreferences.getInstance();
+    String? temporary_token = prefs.getString('temporary_token');
+    String? token = prefs.getString('token');
+    if (token != null) {
+      hToken = token;
+      tokenType = 1;
+    } else if (temporary_token != null) {
+      hToken = temporary_token;
+    } else {
+      hToken = "";
+    }
+
+    if (headers != null) {
+      headers.addAll({
+        "token": hToken,
+        "X-Language": _getCurrentLanguage(),
+      });
+    } else {
+      headers = {
+        "token": hToken,
+        "X-Language": _getCurrentLanguage(),
+      };
+    }
+
+    Response response = await dio.post(
+      path,
+      data: data,
+      options: Options(
+        headers: headers,
+        responseType: ResponseType.bytes, // 设置为bytes以处理二进制数据
+      ),
+    );
+    return _handleFileResponse(response);
+  }
+
+  /// 处理文件下载响应
+  Map<String, dynamic> _handleFileResponse(Response response) {
+    if (response.statusCode == 200) {
+      try {
+        // 检查Content-Type
+        final contentType = response.headers.value('content-type') ?? '';
+        
+        if (contentType.contains('application/json')) {
+          // 返回的是JSON数据（通常是错误信息）
+          final jsonString = String.fromCharCodes(response.data);
+          final jsonData = jsonDecode(jsonString);
+          return {
+            'success': false,
+            'isFile': false,
+            'data': jsonData,
+            'error': jsonData['msg'] ?? jsonData['message'] ?? '请求失败'
+          };
+        } else {
+          // 返回的是二进制文件数据
+          return {
+            'success': true,
+            'isFile': true,
+            'data': response.data,
+            'contentType': contentType,
+            'fileName': _extractFileName(response.headers)
+          };
+        }
+      } catch (e) {
+        getLogger().e({
+          "type": "文件响应处理错误",
+          "错误信息": e.toString(),
+          "服务端返回的数据：": response,
+        });
+        return {
+          'success': false,
+          'isFile': false,
+          'error': '响应数据处理失败: ${e.toString()}'
+        };
+      }
+    } else {
+      getLogger().e({
+        "type": "HTTP错误",
+        "状态码": response.statusCode,
+        "服务端返回的数据：": response,
+      });
+      return {
+        'success': false,
+        'isFile': false,
+        'error': 'HTTP错误: ${response.statusCode}'
+      };
+    }
+  }
+
+  /// 从响应头中提取文件名
+  String? _extractFileName(Headers headers) {
+    final contentDisposition = headers.value('content-disposition');
+    if (contentDisposition != null) {
+      final regex = RegExp(r'filename="?([^"]+)"?');
+      final match = regex.firstMatch(contentDisposition);
+      return match?.group(1);
+    }
+    return null;
   }
 
   dynamic _handleResponse(Response response) {

@@ -17,6 +17,7 @@ import 'dart:async';
 import 'package:get/get.dart';
 
 import 'package:isar/isar.dart';
+import '../../../basics/utils/article_file_utils.dart';
 import '../../api/user_api.dart';
 import '../../../basics/logger.dart';
 import '../../../basics/ui.dart';
@@ -652,11 +653,21 @@ class GetSyncData extends GetxService{
               getLogger().d('✨ 创建文章内容: (serverId: ${contentModel.id})');
             }
             successCount++;
+
+
+
           } catch (e) {
             getLogger().e('❌ 保存文章内容失败: (serverId: ${contentModel.id}), 错误: $e');
           }
         }
       });
+
+      for (final contentModel in contents) {
+        /// 下载文章静态资源文件
+        if(contentModel.staticFilePath != ""){
+          extractArticleFile(contentModel.serviceArticleId);
+        }
+      }
 
       return successCount == (contents.length - skipCount);
     } catch (e) {

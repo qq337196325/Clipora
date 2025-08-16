@@ -17,6 +17,7 @@ class ArticleContentModel {
   final int version;
   final int updateTimestamp;
   final String uuid;
+  final String staticFilePath;
 
   const ArticleContentModel({
     required this.id,
@@ -37,6 +38,7 @@ class ArticleContentModel {
     required this.version,
     required this.updateTimestamp,
     required this.uuid,
+    required this.staticFilePath,
   });
 
   factory ArticleContentModel.fromJson(Map<String, dynamic> json) {
@@ -59,6 +61,7 @@ class ArticleContentModel {
       version: json['version'] as int? ?? 0,
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
       uuid: json['uuid'] as String? ?? "",
+      staticFilePath: json['static_file_path'] as String? ?? "",
     );
   }
 
@@ -82,6 +85,7 @@ class ArticleContentModel {
       'version': version,
       'update_timestamp': updateTimestamp,
       'uuid': uuid,
+      'static_file_path': staticFilePath,
     };
   }
 
@@ -104,6 +108,7 @@ class ArticleContentModel {
     int? version,
     int? updateTimestamp,
     String? uuid,
+    String? staticFilePath,
   }) {
     return ArticleContentModel(
       id: id ?? this.id,
@@ -124,6 +129,7 @@ class ArticleContentModel {
       version: version ?? this.version,
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
       uuid: uuid ?? this.uuid,
+      staticFilePath: staticFilePath ?? this.staticFilePath,
     );
   }
 

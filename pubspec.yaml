@@ -48,6 +48,7 @@ dependencies:
   lottie: ^3.1.0                                   # 动画效果库
 
   animated_segmented_tab_control: ^2.0.0           # 切换tab
+  archive: ^3.6.1                                  # zip文件解压缩
   markdown_widget: ^2.3.2+8
   flutter_markdown_selectionarea: ^0.6.17+1        # 支持 SelectionArea 的 MarkdownWidget
   page_flip_builder: ^0.1.4

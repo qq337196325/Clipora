@@ -69,6 +69,10 @@ class UserApi {
     return await Request().post("$apiVersion/api/user/get_translate_request_quantity", data:param);
   }
 
+  static Future<Map<String, dynamic>> getArticleFileDownloadApi(dynamic param) async {
+    return await Request().postForFile("$apiVersion/api/user/get_article_file", data:param);
+  }
+
   // ------------------------  数据同步  -----------------------------
   static Future<Map> getCurrentTimeApi() async {
     return await Request().post("$apiVersion/api/user/get_current_time");
