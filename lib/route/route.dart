@@ -46,6 +46,8 @@ List<RouteInfo> routeInfos = [
   
   // 帮助文档页面路由
   RouteInfo(path: "/${RouteName.helpDocumentation}", name: RouteName.helpDocumentation, builder: (context, state) => HelpDocumentationPage()),
+  
+
 
   RouteInfo(path: "/${RouteName.articlePage}", name: RouteName.articlePage, builder: (context, state){
     final idStr = getQueryParam("id", state);

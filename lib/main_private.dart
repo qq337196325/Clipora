@@ -22,7 +22,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
-import '/route/route.dart';
+import '/private/route/route.dart';
 import '/services/share_service.dart';
 import '/db/database_service.dart';
 import '/basics/translations/app_translations.dart';

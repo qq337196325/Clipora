@@ -32,7 +32,8 @@ dependencies:
   loading_animation_widget: ^1.3.0                 # 加载动画
   in_app_purchase: 3.1.7                           # 苹果支付
   flutter_smart_dialog: ^4.9.8                     # 模态框
-  flutter_webrtc: ^1.0.0
+  flutter_webrtc: 0.12.11
+  web_socket_channel: ^3.0.1                       # WebSocket 客户端
 
 #  receive_sharing_intent: ^1.8.1                   # 接收分享内容
   receive_sharing_intent:

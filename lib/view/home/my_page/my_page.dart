@@ -335,6 +335,8 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
               _buildDivider(),
               _buildThemeSetting(),
               _buildDivider(),
+              _buildDataSyncSetting(),
+              _buildDivider(),
               _buildAutoParseSettings(),
 
               // _buildDivider(),
@@ -393,6 +395,19 @@ class _MyPageModalState extends State<MyPage> with MyPageBLoC {
         isLast: false,
       );
     });
+  }
+
+  Widget _buildDataSyncSetting() {
+    return _buildModernSettingItem(
+      icon: Icons.sync_outlined,
+      title: '数据同步',
+      subtitle: '与其他设备同步数据和文件',
+      iconColor: const Color(0xFF007AFF),
+      iconBgColor: const Color(0xFF007AFF).withOpacity(0.1),
+      onTap: () => context.push('/${RouteName.dataSync}'),
+      isFirst: false,
+      isLast: false,
+    );
   }
 
   Widget _buildAutoParseSettings() {

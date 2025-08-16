@@ -49,5 +49,5 @@ class RouteName {
   static String aiOrderPage = "ai_order_page";
   static String memberOrderPage = "member_order_page";
   static String helpDocumentation = "help_documentation";
-
+  static String dataSync = "data_sync";
 }

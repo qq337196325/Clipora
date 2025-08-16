@@ -24,6 +24,7 @@ android {
         applicationId = "com.guanshangyun.clipora"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
+//        targetSdkVersion = 35
         minSdk = 21  // 明确设置最小 SDK 版本
         targetSdk = 35  // 升级到 35，满足所有插件要求
         versionCode = flutter.versionCode
