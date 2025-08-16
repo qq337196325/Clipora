@@ -23,51 +23,7 @@ import 'dart:async';
 import 'package:get/get.dart';
 
 import '../../basics/logger.dart';
-
-/// ArticleMhtmlWidget - 快照文章显示组件
-///
-/// 使用示例：
-/// ```dart
-/// class ParentPage extends StatefulWidget {
-///   @override
-///   State<ParentPage> createState() => _ParentPageState();
-/// }
-///
-/// class _ParentPageState extends State<ParentPage> {
-///   final GlobalKey<_ArticlePageState> _articleKey = GlobalKey();
-///   String currentMhtmlPath = 'path/to/snapshot.mhtml';
-///
-///   // 重新加载当前快照
-///   Future<void> _reloadCurrentSnapshot() async {
-///     await _articleKey.currentState?.reloadSnapshot();
-///   }
-///
-///   // 加载新的快照文件
-///   Future<void> _loadNewSnapshot(String newPath) async {
-///     await _articleKey.currentState?.loadNewSnapshot(newPath);
-///   }
-///
-///   // 检查加载状态
-///   bool get isLoading => _articleKey.currentState?.isSnapshotLoading ?? false;
-///
-///   @override
-///   Widget build(BuildContext context) {
-///     return Scaffold(
-///       body: ArticleMhtmlWidget(
-///         key: _articleKey,
-///         mhtmlPath: currentMhtmlPath,
-///         onScroll: (direction, scrollY) {
-///           // 处理滚动事件
-///         },
-///       ),
-///       floatingActionButton: FloatingActionButton(
-///         onPressed: _reloadCurrentSnapshot,
-///         child: Icon(Icons.refresh),
-///       ),
-///     );
-///   }
-/// }
-/// ```
+import 'controller/article_controller.dart';
 
 class ArticleMhtmlWidget extends StatefulWidget {
   final String mhtmlPath; // MHTML文件路径
@@ -205,14 +161,24 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget>
           if (!hasError)
             Expanded(
               child: InAppWebView(
-                initialUrlRequest: URLRequest(url: WebUri(mhtmlFileUrl)),
+                // initialUrlRequest: URLRequest(url: WebUri(mhtmlFileUrl)),
+                // initialUrlRequest: URLRequest(url: WebUri(mhtmlFileUrl)),
+                // initialFile: "${articleController.currentArticle!.localMhtmlPath}/index.html",
+                // 尝试多种加载方式
+                initialUrlRequest: _getInitialUrlRequest(),
                 // initialSettings: WebViewSettings.getWebViewSettings(),
                 onWebViewCreated: (controller) {
                   webViewController = controller;
+                  
+                  // 执行详细的路径检查
+                  _performDetailedPathCheck();
+                  
                   getLogger().i('MHTML WebView创建成功');
                 },
                 onLoadStart: (controller, url) {
-                  getLogger().i('开始加载MHTML: $url');
+                  getLogger().i('🚀 开始加载MHTML: $url');
+                  getLogger().i('🚀 URL类型: ${url?.scheme}');
+                  getLogger().i('🚀 URL路径: ${url?.path}');
                   setState(() {
                     isLoading = true;
                     hasError = false;
@@ -250,13 +216,37 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget>
                 },
                 onReceivedError: (controller, request, error) {
                   getLogger().e('MHTML加载错误', error: error.description);
+                  getLogger().e('请求URL: ${request.url}');
+                  getLogger().e('错误类型: ${error.type}');
+                  // getLogger().e('错误代码: ${error.code}');
+                  
+                  // 添加详细的文件检查信息
+                  final localMhtmlPath = articleController.currentArticle?.localMhtmlPath;
+                  if (localMhtmlPath != null) {
+                    final htmlPath = '$localMhtmlPath/index.html';
+                    final htmlFile = File(htmlPath);
+                    getLogger().e('HTML文件路径: $htmlPath');
+                    getLogger().e('HTML文件存在: ${htmlFile.existsSync()}');
+                    
+                    final dir = Directory(localMhtmlPath);
+                    if (dir.existsSync()) {
+                      getLogger().e('目录内容:');
+                      try {
+                        dir.listSync().forEach((entity) {
+                          getLogger().e('  ${entity.path}');
+                        });
+                      } catch (e) {
+                        getLogger().e('无法列出目录内容: $e');
+                      }
+                    }
+                  }
 
                   setState(() {
                     isLoading = false;
                     hasError = true;
                     errorMessage = 'i18n_article_加载错误文件路径'.trParams({
                       'description': error.description ?? '',
-                      'path': widget.mhtmlPath
+                      'path': request.url?.toString() ?? widget.mhtmlPath
                     });
                   });
                 },
@@ -299,6 +289,9 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget>
 }
 
 mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
+
+  final ArticleController articleController = Get.find<ArticleController>();
+
   // WebView控制器
   InAppWebViewController? webViewController;
 
@@ -323,118 +316,136 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
     // return '${widget.mhtmlPath}';
   }
 
-  // WebView设置 - 针对MHTML文件优化
-  InAppWebViewSettings webViewSettings = InAppWebViewSettings(
-    // ==== 核心功能设置 ====
-    javaScriptEnabled: true,
-    domStorageEnabled: true,
+  // 智能获取初始URL请求
+  URLRequest _getInitialUrlRequest() {
+    final localMhtmlPath = articleController.currentArticle?.localMhtmlPath;
+    
+    if (localMhtmlPath != null && localMhtmlPath.isNotEmpty) {
+      // 首先尝试加载解压后的HTML文件
+      final htmlPath = '$localMhtmlPath/index.html';
+      final htmlFile = File(htmlPath);
+      
+      getLogger().i('🔍 检查HTML文件: $htmlPath');
+      
+      if (htmlFile.existsSync()) {
+        getLogger().i('✅ 使用解压后的HTML文件: $htmlPath');
+        // Android使用file://协议，不需要额外的斜杠
+        final finalUrl = 'file://$htmlPath';
+        getLogger().i('🔗 构建的URL: $finalUrl');
+        return URLRequest(url: WebUri(finalUrl));
+      } else {
+        getLogger().w('⚠️ HTML文件不存在，回退到MHTML: $htmlPath');
+      }
+    }
+    
+    // 如果HTML文件不存在，回退到加载原始MHTML文件
+    final mhtmlFile = File(widget.mhtmlPath);
+    if (mhtmlFile.existsSync()) {
+      getLogger().i('📄 使用原始MHTML文件: ${widget.mhtmlPath}');
+      final finalUrl = 'file://${widget.mhtmlPath}';
+      getLogger().i('🔗 构建的MHTML URL: $finalUrl');
+      return URLRequest(url: WebUri(finalUrl));
+    }
+    
+    // 如果都不存在，返回空URL（会触发错误）
+    getLogger().e('❌ 没有找到可用的文件进行加载');
+    return URLRequest(url: WebUri('about:blank'));
+  }
+   
+   // 执行详细的路径检查
+   void _performDetailedPathCheck() {
+     getLogger().i('=== 开始详细路径检查 ===');
+     
+     final localMhtmlPath = articleController.currentArticle?.localMhtmlPath;
+     final mhtmlPath = widget.mhtmlPath;
+     
+     getLogger().i('localMhtmlPath: $localMhtmlPath');
+     getLogger().i('mhtmlPath: $mhtmlPath');
+     
+     // 检查localMhtmlPath目录
+     if (localMhtmlPath != null && localMhtmlPath.isNotEmpty) {
+       final dir = Directory(localMhtmlPath);
+       getLogger().i('检查目录: ${dir.path}');
+       getLogger().i('目录存在: ${dir.existsSync()}');
+       
+       if (dir.existsSync()) {
+         try {
+           final entities = dir.listSync();
+           getLogger().i('目录内容 (${entities.length} 个项目):');
+           for (final entity in entities) {
+             if (entity is File) {
+               final file = entity;
+               getLogger().i('  文件: ${file.path} (${file.lengthSync()} bytes)');
+             } else if (entity is Directory) {
+               getLogger().i('  目录: ${entity.path}');
+             }
+           }
+           
+           // 特别检查index.html
+           final htmlPath = '$localMhtmlPath/index.html';
+           final htmlFile = File(htmlPath);
+           getLogger().i('index.html路径: $htmlPath');
+           getLogger().i('index.html存在: ${htmlFile.existsSync()}');
+           if (htmlFile.existsSync()) {
+             getLogger().i('index.html大小: ${htmlFile.lengthSync()} bytes');
+             // 读取文件开头内容
+             try {
+               final content = htmlFile.readAsStringSync();
+               final preview = content.length > 200 ? content.substring(0, 200) : content;
+               getLogger().i('index.html内容预览: $preview...');
+             } catch (e) {
+               getLogger().e('无法读取index.html内容: $e');
+             }
+           }
+         } catch (e) {
+           getLogger().e('无法列出目录内容: $e');
+         }
+       }
+     }
+     
+     // 检查原始MHTML文件
+     final mhtmlFile = File(mhtmlPath);
+     getLogger().i('MHTML文件: $mhtmlPath');
+     getLogger().i('MHTML文件存在: ${mhtmlFile.existsSync()}');
+     if (mhtmlFile.existsSync()) {
+       getLogger().i('MHTML文件大小: ${mhtmlFile.lengthSync()} bytes');
+     }
+     
+     getLogger().i('=== 路径检查完成 ===');
+   }
 
-    // ==== 本地文件访问设置 ====
-    allowFileAccess: true,
-    allowContentAccess: true,
-    allowFileAccessFromFileURLs: true,
-    allowUniversalAccessFromFileURLs: true,
-
-    // ==== 缓存设置 ====
-    clearCache: false,
-    cacheMode: CacheMode.LOAD_CACHE_ELSE_NETWORK,
-
-    // ==== 安全设置（适用于本地文件） ====
-    mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-
-    // ==== 用户代理 ====
-    userAgent:
-        "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-
-    // ==== 视口和缩放设置 ====
-    supportZoom: true,
-    builtInZoomControls: true,
-    displayZoomControls: false,
-    useWideViewPort: true,
-    loadWithOverviewMode: true,
-
-    // ==== 基本设置 ====
-    blockNetworkImage: false,
-    blockNetworkLoads: false,
-    loadsImagesAutomatically: true,
-
-    // ==== 媒体设置 ====
-    mediaPlaybackRequiresUserGesture: false,
-
-    // ==== 滚动条设置 ====
-    verticalScrollBarEnabled: true,
-    horizontalScrollBarEnabled: true,
-
-    // ==== 禁用URL跳转拦截（本地文件不需要） ====
-    useShouldOverrideUrlLoading: false,
-  );
 
   @override
   void initState() {
     super.initState();
+
+
+    print("2222222222222222222");
+    print(articleController.currentArticle?.localMhtmlPath);
+    
+    // 调试：检查HTML文件路径
+    final htmlPath = "${articleController.currentArticle?.localMhtmlPath}/index.html";
+    print("HTML文件路径: $htmlPath");
+    final htmlFile = File(htmlPath);
+    print("HTML文件是否存在: ${htmlFile.existsSync()}");
+    if (htmlFile.existsSync()) {
+      print("HTML文件大小: ${htmlFile.lengthSync()} bytes");
+    }
+    
+    // 检查目录内容
+    final dir = Directory(articleController.currentArticle?.localMhtmlPath ?? "");
+    if (dir.existsSync()) {
+      print("目录内容:");
+      dir.listSync().forEach((entity) {
+        print("  ${entity.path}");
+      });
+    } else {
+      print("目录不存在: ${articleController.currentArticle?.localMhtmlPath}");
+    }
+
     _initializeMhtmlView();
   }
 
-  /// 处理页面点击事件
-  void _handlePageClick(List<dynamic> args) {
-    getLogger().d('🎯 MHTML页面被点击');
-    if (widget.onTap != null) {
-      widget.onTap!();
-    }
-  }
-
-  /// 注入页面点击监听器
-  Future<void> _injectPageClickListener() async {
-    try {
-      getLogger().d('🔄 开始注入MHTML页面点击监听器...');
-
-      // 注册JavaScript Handler
-      webViewController!.addJavaScriptHandler(
-        handlerName: 'onPageClicked',
-        callback: _handlePageClick,
-      );
-
-      await webViewController!.evaluateJavascript(source: '''
-        (function() {
-          // 防止重复注册
-          if (window.mhtmlPageClickListenerInstalled) {
-            console.log('⚠️ MHTML页面点击监听器已存在，跳过重复注册');
-            return;
-          }
-          
-          // 添加全局点击事件监听器
-          document.addEventListener('click', function(e) {
-            try {
-              console.log('🎯 检测到MHTML页面点击');
-              
-              // 调用Flutter Handler
-              if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                window.flutter_inappwebview.callHandler('onPageClicked', {
-                  timestamp: Date.now(),
-                  target: e.target.tagName,
-                  type: 'mhtml'
-                });
-                console.log('✅ MHTML页面点击数据已发送到Flutter');
-              } else {
-                console.error('❌ Flutter桥接不可用，无法发送MHTML页面点击数据');
-              }
-            } catch (error) {
-              console.error('❌ 处理MHTML页面点击异常:', error);
-            }
-          }, false);
-          
-          // 标记监听器已安装
-          window.mhtmlPageClickListenerInstalled = true;
-          console.log('✅ MHTML页面点击监听器安装完成');
-          
-        })();
-      ''');
-
-      getLogger().i('✅ MHTML页面点击监听脚本注入成功');
-    } catch (e) {
-      getLogger().e('❌ 注入MHTML页面点击监听脚本失败: $e');
-    }
-  }
 
   @override
   void dispose() {
@@ -445,9 +456,28 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
   // 初始化MHTML视图
   Future<void> _initializeMhtmlView() async {
     try {
-      getLogger().i('📄 初始化MHTML视图，文件路径: ${widget.mhtmlPath}');
+      final localMhtmlPath = articleController.currentArticle?.localMhtmlPath;
+      getLogger().i('📄 初始化MHTML视图，localMhtmlPath: $localMhtmlPath');
+      getLogger().i('📄 widget.mhtmlPath: ${widget.mhtmlPath}');
 
-      // 检查文件是否存在
+      // 优先检查解压后的HTML文件
+      if (localMhtmlPath != null && localMhtmlPath.isNotEmpty) {
+        final htmlPath = '$localMhtmlPath/index.html';
+        final htmlFile = File(htmlPath);
+        
+        getLogger().i('📄 检查HTML文件: $htmlPath');
+        
+        if (htmlFile.existsSync()) {
+          final fileSize = await htmlFile.length();
+          getLogger().i('📄 HTML文件大小: ${(fileSize / 1024).toStringAsFixed(2)} KB');
+          getLogger().i('✅ HTML文件检查通过，准备加载');
+          return; // HTML文件存在，直接返回
+        } else {
+          getLogger().w('⚠️ HTML文件不存在: $htmlPath');
+        }
+      }
+
+      // 回退检查原始MHTML文件
       final file = File(widget.mhtmlPath);
       if (!file.existsSync()) {
         setState(() {
@@ -459,7 +489,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
         return;
       }
 
-      // 检查文件大小
+      // 检查MHTML文件大小
       final fileSize = await file.length();
       getLogger().i('📄 MHTML文件大小: ${(fileSize / 1024).toStringAsFixed(2)} KB');
 
@@ -495,6 +525,7 @@ mixin ArticlePageBLoC on State<ArticleMhtmlWidget> {
     });
 
     if (webViewController != null) {
+
       await webViewController!.reload();
     } else {
       // 如果WebView控制器不存在，重新初始化

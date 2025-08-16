@@ -310,9 +310,10 @@ mixin ArticlePageBLoC on State<ArticlePage> {
       tabs.add('i18n_article_网页'.tr);
     }
     // 根据isGenerateMhtml决定是否显示快照tab
-    if (article.isGenerateMhtml) {
-      tabs.add('i18n_article_快照'.tr);
-    }
+    // if (article.isGenerateMhtml) {
+    //
+    // }
+    tabs.add('i18n_article_快照'.tr);
     
     // 先初始化tabWidget，再更新TabController
     _initializeTabWidgets();
