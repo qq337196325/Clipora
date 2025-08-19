@@ -22,6 +22,31 @@ import 'package:path_provider/path_provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 
+import '../../basics/ui.dart';
+
+// 文件接收信息类
+class _FileReceiveInfo {
+  final String fileId;
+  final String fileName;
+  final int fileSize;
+  final int totalChunks;
+  final int chunkSize;
+  final String from;
+  final Map<int, bool> receivedChunks;
+  final List<List<int>?> chunks;
+
+  _FileReceiveInfo({
+    required this.fileId,
+    required this.fileName,
+    required this.fileSize,
+    required this.totalChunks,
+    required this.chunkSize,
+    required this.from,
+    required this.receivedChunks,
+    required this.chunks,
+  });
+}
+
 class DataSyncPage extends StatefulWidget {
   const DataSyncPage({super.key});
 
@@ -45,8 +70,11 @@ class _DataSyncPageState extends State<DataSyncPage> {
   final TextEditingController _roomIdController = TextEditingController();
   final TextEditingController _targetUserController = TextEditingController();
   
+  // 文件分块接收相关变量
+  final Map<String, _FileReceiveInfo> _receivingFiles = {};
+  
   // 信令服务器配置
-  static const String _signalingServerUrl = 'ws://111.230.32.118:8000/webrtc/ws';
+  static const String _signalingServerUrl = 'wss://gzservice.clipora.cc/webrtc/ws';
   
   // STUN/TURN 服务器配置
   static const Map<String, dynamic> _rtcConfiguration = {
@@ -81,13 +109,17 @@ class _DataSyncPageState extends State<DataSyncPage> {
 
   Future<void> _initializeWebRTC() async {
     // 生成本地用户ID
-    _localUserId = 'user_${DateTime.now().millisecondsSinceEpoch}';
-    _roomId = 'sync_room_${Random().nextInt(10000)}';
+    _localUserId = globalBoxStorage.read('token'); //'user_${DateTime.now().millisecondsSinceEpoch}';
+    _roomId = globalBoxStorage.read('user_id'); //'sync_room_${Random().nextInt(10000)}';
     _roomIdController.text = _roomId;
+
+    _addLog('🔧 初始化WebRTC...');
+    _addLog('👤 本地用户ID: $_localUserId');
+    _addLog('🏠 默认房间ID: $_roomId');
+    _addLog('🌐 信令服务器地址: $_signalingServerUrl');
     
+    _connectToSignalingServer();
     setState(() {});
-    _addLog('本地用户ID: $_localUserId');
-    _addLog('默认房间ID: $_roomId');
   }
 
   Future<void> _connectToSignalingServer() async {
@@ -95,10 +127,27 @@ class _DataSyncPageState extends State<DataSyncPage> {
       final uri = '$_signalingServerUrl/$_localUserId';
       _signalingChannel = IOWebSocketChannel.connect(uri);
       
+      // 添加连接状态标志
+      bool connectionEstablished = false;
+      
       _signalingChannel!.stream.listen(
         (message) {
+          // 如果这是第一次收到消息，说明连接已建立
+          if (!connectionEstablished) {
+            connectionEstablished = true;
+            setState(() {
+              _signalingStatus = '已连接';
+              _isSignalingConnected = true;
+            });
+            _addLog('已连接到信令服务器');
+            
+            // 连接建立后自动加入房间
+            _joinRoom();
+          }
+          
           _handleSignalingMessage(json.decode(message));
         },
+
         onError: (error) {
           _addLog('信令服务器错误: $error');
           setState(() {
@@ -114,12 +163,15 @@ class _DataSyncPageState extends State<DataSyncPage> {
           });
         },
       );
-      
-      setState(() {
-        _signalingStatus = '已连接';
-        _isSignalingConnected = true;
-      });
-      _addLog('已连接到信令服务器');
+
+      // 发送一个ping消息来触发连接确认
+      await Future.delayed(const Duration(milliseconds: 100));
+      final pingMessage = {
+        'type': 'ping',
+        'user_id': _localUserId,
+      };
+      _signalingChannel!.sink.add(json.encode(pingMessage));
+      _addLog('正在连接信令服务器...');
       
     } catch (e) {
       _addLog('连接信令服务器失败: $e');
@@ -131,8 +183,13 @@ class _DataSyncPageState extends State<DataSyncPage> {
   }
 
   Future<void> _joinRoom() async {
-    if (!_isSignalingConnected || _roomIdController.text.isEmpty) {
-      _addLog('请先连接信令服务器并输入房间ID');
+    if (!_isSignalingConnected) {
+      _addLog('❌ 信令服务器未连接，无法加入房间');
+      return;
+    }
+    
+    if (_roomIdController.text.isEmpty) {
+      _addLog('❌ 房间ID为空，无法加入房间');
       return;
     }
 
@@ -144,8 +201,13 @@ class _DataSyncPageState extends State<DataSyncPage> {
       'user_id': _localUserId,
     };
     
-    _signalingChannel!.sink.add(json.encode(message));
-    _addLog('加入房间: $_roomId');
+    try {
+      _signalingChannel!.sink.add(json.encode(message));
+      _addLog('🚀 正在加入房间: $_roomId');
+      _addLog('📤 发送加入房间消息: ${json.encode(message)}');
+    } catch (e) {
+      _addLog('❌ 发送加入房间消息失败: $e');
+    }
   }
 
   Future<void> _leaveRoom() async {
@@ -221,6 +283,12 @@ class _DataSyncPageState extends State<DataSyncPage> {
     _addLog('收到信令消息: $type');
     
     switch (type) {
+      case 'ping':
+      case 'pong':
+        // 处理ping/pong消息，用于连接确认
+        _addLog('收到服务器响应，连接已建立');
+        break;
+        
       case 'user-joined':
         final userId = message['user_id'];
         if (userId != _localUserId && !_roomUsers.contains(userId)) {
@@ -246,6 +314,14 @@ class _DataSyncPageState extends State<DataSyncPage> {
           _roomUsers.addAll(users.where((u) => u != _localUserId));
         });
         _addLog('房间用户列表: ${_roomUsers.join(', ')}');
+        break;
+        
+      case 'join-room-success':
+        _addLog('✅ 成功加入房间: ${message['room_id']}');
+        break;
+        
+      case 'join-room-error':
+        _addLog('❌ 加入房间失败: ${message['error']}');
         break;
         
       case 'offer':
@@ -421,6 +497,12 @@ class _DataSyncPageState extends State<DataSyncPage> {
         case 'file':
           _handleFileReceive(data);
           break;
+        case 'file-header':
+          _handleFileHeader(data);
+          break;
+        case 'file-chunk':
+          _handleFileChunk(data);
+          break;
         case 'text':
           _addLog('收到文本: ${data['content']}');
           break;
@@ -445,6 +527,95 @@ class _DataSyncPageState extends State<DataSyncPage> {
       _addLog('文件已保存: $fileName (${bytes.length} 字节)');
     } catch (e) {
       _addLog('保存文件错误: $e');
+    }
+  }
+
+  void _handleFileHeader(Map<String, dynamic> data) {
+    try {
+      final fileId = data['fileId'];
+      final fileName = data['fileName'];
+      final fileSize = data['fileSize'];
+      final totalChunks = data['totalChunks'];
+      final chunkSize = data['chunkSize'];
+      final from = data['from'];
+      
+      _addLog('开始接收文件: $fileName (${fileSize} 字节, $totalChunks 块)');
+      
+      _receivingFiles[fileId] = _FileReceiveInfo(
+        fileId: fileId,
+        fileName: fileName,
+        fileSize: fileSize,
+        totalChunks: totalChunks,
+        chunkSize: chunkSize,
+        from: from,
+        receivedChunks: {},
+        chunks: List.filled(totalChunks, null),
+      );
+      
+      setState(() {});
+    } catch (e) {
+      _addLog('处理文件头错误: $e');
+    }
+  }
+
+  Future<void> _handleFileChunk(Map<String, dynamic> data) async {
+    try {
+      final fileId = data['fileId'];
+      final chunkIndex = data['chunkIndex'];
+      final totalChunks = data['totalChunks'];
+      final chunkData = data['data'];
+      final from = data['from'];
+      
+      if (!_receivingFiles.containsKey(fileId)) {
+        _addLog('收到未知文件块: $fileId');
+        return;
+      }
+      
+      final fileInfo = _receivingFiles[fileId]!;
+      
+      // 解码并存储块数据
+      final bytes = base64Decode(chunkData);
+      fileInfo.chunks[chunkIndex] = bytes;
+      fileInfo.receivedChunks[chunkIndex] = true;
+      
+      final progress = (fileInfo.receivedChunks.length / fileInfo.totalChunks * 100).round();
+      _addLog('接收进度: ${fileInfo.fileName} $progress% (${fileInfo.receivedChunks.length}/${fileInfo.totalChunks})');
+      
+      // 检查是否接收完所有块
+      if (fileInfo.receivedChunks.length == fileInfo.totalChunks) {
+        await _assembleAndSaveFile(fileInfo);
+        _receivingFiles.remove(fileId);
+      }
+      
+      setState(() {});
+    } catch (e) {
+      _addLog('处理文件块错误: $e');
+    }
+  }
+
+  Future<void> _assembleAndSaveFile(_FileReceiveInfo fileInfo) async {
+    try {
+      _addLog('开始组装文件: ${fileInfo.fileName}');
+      
+      // 组装所有块
+      final allBytes = <int>[];
+      for (int i = 0; i < fileInfo.totalChunks; i++) {
+        if (fileInfo.chunks[i] != null) {
+          allBytes.addAll(fileInfo.chunks[i]!);
+        } else {
+          throw Exception('缺少文件块 $i');
+        }
+      }
+      
+      // 保存文件
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/${fileInfo.fileName}');
+      await file.writeAsBytes(allBytes);
+      
+      _addLog('✅ 文件接收完成: ${fileInfo.fileName} (${allBytes.length} 字节)');
+      _addLog('📁 保存路径: ${file.path}');
+    } catch (e) {
+      _addLog('❌ 组装文件错误: $e');
     }
   }
 
@@ -730,6 +901,22 @@ class _DataSyncPageState extends State<DataSyncPage> {
                 ),
               ),
             ],
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // 调试按钮
+          ElevatedButton.icon(
+            onPressed: _isSignalingConnected ? () {
+              _addLog('🔄 手动重新加入房间');
+              _joinRoom();
+            } : null,
+            icon: const Icon(Icons.refresh),
+            label: const Text('重新加入房间'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+            ),
           ),
           
           const SizedBox(height: 16),
