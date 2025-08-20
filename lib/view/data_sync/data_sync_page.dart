@@ -928,164 +928,244 @@ class _DataSyncPageState extends State<DataSyncPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('数据同步'),
-        backgroundColor: Theme
-            .of(context)
-            .primaryColor,
-        foregroundColor: Colors.white,
+        title: const Text('文件同步', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
         elevation: 0,
+        centerTitle: true,
       ),
-      body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Theme
-                    .of(context)
-                    .primaryColor
-                    .withOpacity(0.1),
-                Theme
-                    .of(context)
-                    .colorScheme
-                    .surface,
-              ],
-            ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              // 状态卡片
+              _buildStatusCard(),
+              const SizedBox(height: 24),
+              // 设备列表
+              _buildDeviceList(),
+              const Spacer(),
+              // 同步按钮
+              _buildSyncButton(),
+              const SizedBox(height: 20),
+            ],
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-
-
-                // 控制面板
-                _buildControlPanel(),
-              ],
-            ),
-          )
+        ),
       ),
     );
   }
 
 
-  Widget _buildControlPanel() {
+  // 状态卡片
+  Widget _buildStatusCard() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme
-            .of(context)
-            .cardColor,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-
-          const SizedBox(height: 16),
-
-          const Text(
-            '房间管理',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+          Icon(
+            _isSignalingConnected ? Icons.cloud_done : Icons.cloud_off,
+            size: 48,
+            color: _isSignalingConnected ? Colors.green : Colors.grey,
           ),
-          const SizedBox(height: 8),
-
-          // WebRTC连接
-          const Text(
-            'WebRTC连接',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // 用户选择下拉框
-          if (_roomUsers.isNotEmpty)
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: '选择目标用户',
-                border: OutlineInputBorder(),
-              ),
-              value: _targetUserId.isEmpty ? null : _targetUserId,
-              items: _roomUsers.map((user) {
-                return DropdownMenuItem<String>(
-                  value: user,
-                  child: Text(user),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _targetUserId = value ?? '';
-                });
-              },
-            ),
-
-          const SizedBox(height: 8),
-
-          ElevatedButton.icon(
-            onPressed: (_roomUsers.isNotEmpty && _targetUserId.isNotEmpty) ? () => _sendOffer(_targetUserId) : null,
-            label: const Text('连接'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-            ),
-          ),
-
           const SizedBox(height: 12),
-          // 状态行：数据通道和同步状态
+          Text(
+            _isSignalingConnected ? '已连接到同步服务' : '连接同步服务中...',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _isSignalingConnected ? '可以开始同步数据' : '请稍候',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 设备列表
+  Widget _buildDeviceList() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
             children: [
-              Icon(
-                _isDataChannelOpen ? Icons.check_circle : Icons.error_outline,
-                color: _isDataChannelOpen ? Colors.green : Colors.redAccent,
-                size: 18,
+              Icon(Icons.devices, color: Colors.grey[700], size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                '可同步的设备',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              const SizedBox(width: 6),
-              Text(_isDataChannelOpen ? '数据通道：已建立' : '数据通道：未建立'),
-              const SizedBox(width: 16),
-              Icon(
-                _isSyncInProgress ? Icons.sync : Icons.pause_circle_outline,
-                color: _isSyncInProgress ? Colors.blue : Colors.grey,
-                size: 18,
-              ),
-              const SizedBox(width: 6),
-              Text(_isSyncInProgress ? '同步状态：进行中' : '同步状态：空闲'),
             ],
           ),
+          const SizedBox(height: 16),
+          if (_roomUsers.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.search, color: Colors.grey[500], size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    '正在搜索附近的设备...',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            )
+          else
+            ..._roomUsers.map((user) => _buildDeviceItem(user)).toList(),
+        ],
+      ),
+    );
+  }
 
-          const SizedBox(height: 8),
-
-          // 开始同步按钮（针对已连接的目标用户）
-          ElevatedButton.icon(
-            onPressed: (_isDataChannelOpen && !_isSyncInProgress) ? _startSync : null,
-            icon: const Icon(Icons.sync_alt),
-            label: Text(_isSyncInProgress ? '正在同步…' : '开始同步'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme
-                  .of(context)
-                  .primaryColor,
-              foregroundColor: Colors.white,
+  // 设备项
+  Widget _buildDeviceItem(String userId) {
+    final isSelected = _targetUserId == userId;
+    final isConnected = _isDataChannelOpen && isSelected;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: isSelected ? Colors.blue[50] : Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            setState(() {
+              _targetUserId = userId;
+            });
+            if (!isConnected) {
+              _sendOffer(userId);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(
+                  isConnected ? Icons.smartphone_outlined : Icons.phone_android,
+                  color: isConnected ? Colors.green : Colors.grey[600],
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '设备 ${userId.substring(0, 8)}...',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isConnected ? '已连接' : '点击连接',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isConnected ? Colors.green : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isConnected)
+                  Icon(Icons.check_circle, color: Colors.green, size: 20),
+              ],
             ),
           ),
+        ),
+      ),
+    );
+  }
 
-          const SizedBox(height: 16),
-        ],
+  // 同步按钮
+  Widget _buildSyncButton() {
+    final canSync = _isDataChannelOpen && !_isSyncInProgress;
+    
+    return Container(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: canSync ? _startSync : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: canSync ? Colors.blue : Colors.grey[300],
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_isSyncInProgress)
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            else
+              const Icon(Icons.sync, size: 20),
+            const SizedBox(width: 12),
+            Text(
+              _isSyncInProgress ? '正在同步数据...' : '开始同步',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
