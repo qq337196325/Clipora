@@ -135,8 +135,8 @@ class _DataSyncPageState extends State<DataSyncPage> {
 
   Future<void> _initializeWebRTC() async {
     // 生成本地用户ID
-    _localUserId = globalBoxStorage.read('token'); //'user_${DateTime.now().millisecondsSinceEpoch}';
-    _roomId = globalBoxStorage.read('user_id'); //'sync_room_${Random().nextInt(10000)}';
+    _localUserId = globalBoxStorage.read('token');
+    _roomId = globalBoxStorage.read('user_id');
     _roomIdController.text = _roomId;
 
     _connectToSignalingServer();
@@ -159,7 +159,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
             setState(() {
               _isSignalingConnected = true;
             });
-            print('已连接到信令服务器');
 
             // 连接建立后自动加入房间
             _joinRoom();
@@ -169,13 +168,11 @@ class _DataSyncPageState extends State<DataSyncPage> {
         },
 
         onError: (error) {
-          print('信令服务器错误: $error');
           setState(() {
             _isSignalingConnected = false;
           });
         },
         onDone: () {
-          print('信令服务器连接断开');
           setState(() {
             _isSignalingConnected = false;
           });
@@ -189,9 +186,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
         'user_id': _localUserId,
       };
       _signalingChannel!.sink.add(json.encode(pingMessage));
-      print('正在连接信令服务器...');
     } catch (e) {
-      print('连接信令服务器失败: $e');
       setState(() {
         _isSignalingConnected = false;
       });
@@ -219,8 +214,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
 
     try {
       _signalingChannel!.sink.add(json.encode(message));
-      print('🚀 正在加入房间: $_roomId');
-      print('📤 发送加入房间消息: ${json.encode(message)}');
     } catch (e) {
       print('❌ 发送加入房间消息失败: $e');
     }
@@ -233,12 +226,9 @@ class _DataSyncPageState extends State<DataSyncPage> {
         print('关闭旧的PeerConnection');
       }
 
-      print('创建PeerConnection，配置: ${_rtcConfiguration.toString()}');
       _peerConnection = await createPeerConnection(_rtcConfiguration);
-      print('PeerConnection创建成功');
 
       _peerConnection!.onIceCandidate = (RTCIceCandidate candidate) {
-        print('生成ICE候选者: ${candidate.candidate?.substring(0, 50)}...');
         _sendIceCandidate(candidate);
       };
 
@@ -248,14 +238,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
         });
         print('WebRTC连接状态变化: $_connectionStatus');
 
-        // 添加失败状态的详细信息
-        if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
-          print('⚠️ WebRTC连接失败，可能原因:');
-          print('1. STUN/TURN服务器不可达');
-          print('2. 网络防火墙阻止连接');
-          print('3. ICE候选者收集失败');
-          print('4. 信令交换不完整');
-        }
       };
 
       _peerConnection!.onIceConnectionState = (RTCIceConnectionState state) {
@@ -277,7 +259,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
 
   void _handleSignalingMessage(Map<String, dynamic> message) {
     final type = message['type'];
-    print('收到信令消息: $type');
 
     switch (type) {
       case 'ping':
@@ -295,11 +276,8 @@ class _DataSyncPageState extends State<DataSyncPage> {
           print('用户加入: $userId');
         }
 
-
         for (var user in message["data"]["users"]) {
           if(user != _localUserId){
-
-            print('用户加入22223333: $user');
             _targetUserId = user;
             _roomUsers.add(user);
             setState(() {
@@ -308,7 +286,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
           }
         }
 
-        print('用户加入2222: $message');
         break;
 
       case 'user-left':
@@ -363,17 +340,11 @@ class _DataSyncPageState extends State<DataSyncPage> {
         message['data']['type'],
       );
 
-      print('设置远程描述(Offer)');
       await _peerConnection!.setRemoteDescription(offer);
-
-      print('创建Answer');
       final answer = await _peerConnection!.createAnswer();
-
-      print('设置本地描述(Answer)');
       await _peerConnection!.setLocalDescription(answer);
 
       _sendAnswer(message['user_id'], answer);
-      print('发送Answer给: ${message['user_id']}');
     } catch (e) {
       print('❌ 处理Offer失败: $e');
     }
@@ -381,15 +352,12 @@ class _DataSyncPageState extends State<DataSyncPage> {
 
   Future<void> _handleAnswer(Map<String, dynamic> message) async {
     try {
-      print('收到Answer来自: ${message['user_id']}');
       final answer = RTCSessionDescription(
         message['data']['sdp'],
         message['data']['type'],
       );
 
-      print('设置远程描述(Answer)');
       await _peerConnection!.setRemoteDescription(answer);
-      print('Answer处理完成');
     } catch (e) {
       print('❌ 处理Answer失败: $e');
     }
@@ -405,8 +373,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
       );
 
       await _peerConnection!.addCandidate(candidate);
-      print('添加ICE候选者来自: ${message['user_id']}');
-      print('候选者类型: ${candidateData['candidate']?.split(' ')[7] ?? 'unknown'}');
     } catch (e) {
       print('❌ 添加ICE候选者失败: $e');
     }
@@ -414,8 +380,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
 
   void _sendOffer(String targetUserId) async {
     try {
-      print('开始建立连接到: $targetUserId');
-
       if (_peerConnection == null) {
         await _initializePeerConnection();
       }
@@ -423,15 +387,11 @@ class _DataSyncPageState extends State<DataSyncPage> {
       _targetUserId = targetUserId;
 
       // 创建数据通道
-      print('创建数据通道');
       final dataChannelInit = RTCDataChannelInit();
       _dataChannel = await _peerConnection!.createDataChannel('fileSync', dataChannelInit);
       _setupDataChannel(_dataChannel!);
 
-      print('创建Offer');
       final offer = await _peerConnection!.createOffer();
-
-      print('设置本地描述(Offer)');
       await _peerConnection!.setLocalDescription(offer);
 
       final message = {
@@ -446,8 +406,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
       };
 
       _signalingChannel!.sink.add(json.encode(message));
-      print('发送Offer给: $targetUserId');
-      print('等待对方响应...');
     } catch (e) {
       print('❌ 发送Offer失败: $e');
     }
@@ -496,7 +454,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
     };
 
     _dataChannel!.onDataChannelState = (RTCDataChannelState state) {
-      print('数据通道状态: ${state.toString()}');
       final bool opened = state == RTCDataChannelState.RTCDataChannelOpen;
       if (opened != _isDataChannelOpen) {
         setState(() {
@@ -563,7 +520,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
     try {
       final List<dynamic> req = (data['uuids'] ?? []) as List<dynamic>;
       final List<String> requestUUIDs = req.map((e) => e.toString()).toList();
-      print('📥 收到库存请求，待检查 ${requestUUIDs.length} 个 uuid');
 
       // 查询本地存在的文章
       final existingArticles = await ArticleService.instance.getByUUIDs(requestUUIDs);
@@ -594,7 +550,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
         'from': _localUserId,
       };
       _dataChannel?.send(RTCDataChannelMessage(json.encode(resp)));
-      print('📤 已返回库存响应：需要同步 ${missingUUIDs.length}/${requestUUIDs.length}');
 
       if (haveValid.isNotEmpty) {
         print('✅ 本地已有（DB 路径非空）: $haveValid');
@@ -711,8 +666,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
   // 新协议：合并二进制并解压、写库
   Future<void> _finalizeBinaryFile(_BinaryReceiveState state) async {
     try {
-      print('🔗 开始合并二进制数据: ${state.fileName}');
-
       // 合并字节
       int totalSize = 0;
       for (final chunk in state.chunks) {
@@ -724,8 +677,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
         merged.setRange(offset, offset + chunk.length, chunk);
         offset += chunk.length;
       }
-
-      print('🔗 合并完成，大小: $totalSize 字节，开始解压...');
 
       // 解压 zip
       final Archive archive = ZipDecoder().decodeBytes(merged);
@@ -774,8 +725,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
         }
       }
 
-      print('✅ 文件解压成功: $extractDir');
-
       // 写库：根据 uuid 更新对应文章的本地路径
       await ArticleService.instance.dbService.isar.writeTxn(() async {
         final articles = await ArticleService.instance.getByUUIDs([state.uuid]);
@@ -783,7 +732,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
           final article = articles.first;
           article.localMhtmlPath = extractDir;
           await ArticleService.instance.updateLocalMhtmlPath(article);
-          print('🗂️ 已更新文章本地路径: ${article.title}');
         } else {
           print('⚠️ 未找到对应UUID的文章: ${state.uuid}');
         }
@@ -798,9 +746,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
       };
       _dataChannel?.send(RTCDataChannelMessage(json.encode(ack)));
 
-      print('📮 已发送成功确认: ${state.uuid}');
     } catch (e) {
-      print('❌ 处理二进制文件失败: $e');
       // 发送失败ACK
       final ack = {
         'type': 'transfer-ack',
@@ -827,9 +773,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
       final totalChunks = data['totalChunks'];
       final chunkSize = data['chunkSize'];
       final from = data['from'];
-
-      print('开始接收文件: $fileName (${fileSize} 字节, $totalChunks 块)');
-
+      
       _receivingFiles[fileId] = _FileReceiveInfo(
         fileId: fileId,
         fileName: fileName,
