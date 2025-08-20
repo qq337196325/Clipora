@@ -60,6 +60,7 @@ EnhancedAnnotationDb createAnnotationFromModel(AnnotationModel model, int localA
     ..boundingWidth = model.boundingWidth
     ..boundingHeight = model.boundingHeight
     ..version = model.version
+    ..uuid = model.uuid
     ..updateTimestamp = model.updateTimestamp
     ..createdAt = parseDateTime(model.createTime) ?? now
     ..updatedAt = parseDateTime(model.updateTime) ?? now

@@ -32,6 +32,7 @@ ArticleDb createArticleFromModel(ArticleModel model) {
     ..isCreateService = true
     ..isGenerateMarkdown = model.markdownStatus == 1
     ..version = model.version
+    ..uuid = model.uuid
     ..updateTimestamp = model.updateTimestamp
     ..createdAt = parseDateTime(model.createTime) ?? now
     ..updatedAt = parseDateTime(model.updateTime) ?? now;

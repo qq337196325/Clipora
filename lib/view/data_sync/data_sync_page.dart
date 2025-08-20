@@ -79,28 +79,29 @@ class _DataSyncPageState extends State<DataSyncPage> {
   RTCPeerConnection? _peerConnection;
   RTCDataChannel? _dataChannel;
   WebSocketChannel? _signalingChannel;
-  bool _isConnected = false;
   bool _isSignalingConnected = false;
   String _connectionStatus = '未连接';
-  String _signalingStatus = '未连接';
   String _localUserId = '';
   String _roomId = '';
   String _targetUserId = '';
-  final List<String> _syncLog = [];
   final List<String> _roomUsers = [];
   final TextEditingController _roomIdController = TextEditingController();
   final TextEditingController _targetUserController = TextEditingController();
-  
+
   // 文件分块接收相关变量（旧：base64 JSON 协议）
   final Map<String, _FileReceiveInfo> _receivingFiles = {};
 
   // 新：二进制传输协议接收状态
   final Map<String, _BinaryReceiveState> _binaryReceiving = {};
   String? _currentBinaryUuid;
-  
+
+  // 发送侧：数据通道状态与同步状态
+  bool _isDataChannelOpen = false;
+  bool _isSyncInProgress = false;
+
   // 信令服务器配置
   static const String _signalingServerUrl = 'wss://gzservice.clipora.cc/webrtc/ws';
-  
+
   // STUN/TURN 服务器配置
   static const Map<String, dynamic> _rtcConfiguration = {
     'iceServers': [
@@ -138,11 +139,6 @@ class _DataSyncPageState extends State<DataSyncPage> {
     _roomId = globalBoxStorage.read('user_id'); //'sync_room_${Random().nextInt(10000)}';
     _roomIdController.text = _roomId;
 
-    _addLog('🔧 初始化WebRTC...');
-    _addLog('👤 本地用户ID: $_localUserId');
-    _addLog('🏠 默认房间ID: $_roomId');
-    _addLog('🌐 信令服务器地址: $_signalingServerUrl');
-    
     _connectToSignalingServer();
     setState(() {});
   }
@@ -151,39 +147,36 @@ class _DataSyncPageState extends State<DataSyncPage> {
     try {
       final uri = '$_signalingServerUrl/$_localUserId';
       _signalingChannel = IOWebSocketChannel.connect(uri);
-      
+
       // 添加连接状态标志
       bool connectionEstablished = false;
-      
+
       _signalingChannel!.stream.listen(
-        (message) {
+            (message) {
           // 如果这是第一次收到消息，说明连接已建立
           if (!connectionEstablished) {
             connectionEstablished = true;
             setState(() {
-              _signalingStatus = '已连接';
               _isSignalingConnected = true;
             });
-            _addLog('已连接到信令服务器');
-            
+            print('已连接到信令服务器');
+
             // 连接建立后自动加入房间
             _joinRoom();
           }
-          
+
           _handleSignalingMessage(json.decode(message));
         },
 
         onError: (error) {
-          _addLog('信令服务器错误: $error');
+          print('信令服务器错误: $error');
           setState(() {
-            _signalingStatus = '连接错误';
             _isSignalingConnected = false;
           });
         },
         onDone: () {
-          _addLog('信令服务器连接断开');
+          print('信令服务器连接断开');
           setState(() {
-            _signalingStatus = '连接断开';
             _isSignalingConnected = false;
           });
         },
@@ -196,12 +189,10 @@ class _DataSyncPageState extends State<DataSyncPage> {
         'user_id': _localUserId,
       };
       _signalingChannel!.sink.add(json.encode(pingMessage));
-      _addLog('正在连接信令服务器...');
-      
+      print('正在连接信令服务器...');
     } catch (e) {
-      _addLog('连接信令服务器失败: $e');
+      print('连接信令服务器失败: $e');
       setState(() {
-        _signalingStatus = '连接失败';
         _isSignalingConnected = false;
       });
     }
@@ -209,202 +200,198 @@ class _DataSyncPageState extends State<DataSyncPage> {
 
   Future<void> _joinRoom() async {
     if (!_isSignalingConnected) {
-      _addLog('❌ 信令服务器未连接，无法加入房间');
+      print('❌ 信令服务器未连接，无法加入房间');
       return;
     }
-    
+
     if (_roomIdController.text.isEmpty) {
-      _addLog('❌ 房间ID为空，无法加入房间');
+      print('❌ 房间ID为空，无法加入房间');
       return;
     }
 
     _roomId = _roomIdController.text;
-    
+
     final message = {
       'type': 'join-room',
       'room_id': _roomId,
       'user_id': _localUserId,
     };
-    
+
     try {
       _signalingChannel!.sink.add(json.encode(message));
-      _addLog('🚀 正在加入房间: $_roomId');
-      _addLog('📤 发送加入房间消息: ${json.encode(message)}');
+      print('🚀 正在加入房间: $_roomId');
+      print('📤 发送加入房间消息: ${json.encode(message)}');
     } catch (e) {
-      _addLog('❌ 发送加入房间消息失败: $e');
+      print('❌ 发送加入房间消息失败: $e');
     }
-  }
-
-  Future<void> _leaveRoom() async {
-    if (!_isSignalingConnected) return;
-
-    final message = {
-      'type': 'leave-room',
-      'room_id': _roomId,
-      'user_id': _localUserId,
-    };
-    
-    _signalingChannel!.sink.add(json.encode(message));
-    _addLog('离开房间: $_roomId');
-    
-    setState(() {
-      _roomUsers.clear();
-    });
   }
 
   Future<void> _initializePeerConnection() async {
     try {
       if (_peerConnection != null) {
         await _peerConnection!.close();
-        _addLog('关闭旧的PeerConnection');
+        print('关闭旧的PeerConnection');
       }
 
-      _addLog('创建PeerConnection，配置: ${_rtcConfiguration.toString()}');
+      print('创建PeerConnection，配置: ${_rtcConfiguration.toString()}');
       _peerConnection = await createPeerConnection(_rtcConfiguration);
-      _addLog('PeerConnection创建成功');
-      
+      print('PeerConnection创建成功');
+
       _peerConnection!.onIceCandidate = (RTCIceCandidate candidate) {
-        _addLog('生成ICE候选者: ${candidate.candidate?.substring(0, 50)}...');
+        print('生成ICE候选者: ${candidate.candidate?.substring(0, 50)}...');
         _sendIceCandidate(candidate);
       };
 
       _peerConnection!.onConnectionState = (RTCPeerConnectionState state) {
         setState(() {
           _connectionStatus = _getConnectionStatusText(state);
-          _isConnected = state == RTCPeerConnectionState.RTCPeerConnectionStateConnected;
         });
-        _addLog('WebRTC连接状态变化: $_connectionStatus');
-        
+        print('WebRTC连接状态变化: $_connectionStatus');
+
         // 添加失败状态的详细信息
         if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
-          _addLog('⚠️ WebRTC连接失败，可能原因:');
-          _addLog('1. STUN/TURN服务器不可达');
-          _addLog('2. 网络防火墙阻止连接');
-          _addLog('3. ICE候选者收集失败');
-          _addLog('4. 信令交换不完整');
+          print('⚠️ WebRTC连接失败，可能原因:');
+          print('1. STUN/TURN服务器不可达');
+          print('2. 网络防火墙阻止连接');
+          print('3. ICE候选者收集失败');
+          print('4. 信令交换不完整');
         }
       };
 
       _peerConnection!.onIceConnectionState = (RTCIceConnectionState state) {
-        _addLog('ICE连接状态: ${state.toString()}');
+        print('ICE连接状态: ${state.toString()}');
       };
 
       _peerConnection!.onIceGatheringState = (RTCIceGatheringState state) {
-        _addLog('ICE收集状态: ${state.toString()}');
+        print('ICE收集状态: ${state.toString()}');
       };
 
       _peerConnection!.onDataChannel = (RTCDataChannel channel) {
-        _addLog('收到数据通道: ${channel.label}');
+        print('收到数据通道: ${channel.label}');
         _setupDataChannel(channel);
       };
-      
     } catch (e) {
-      _addLog('❌ 创建PeerConnection失败: $e');
+      print('❌ 创建PeerConnection失败: $e');
     }
   }
 
   void _handleSignalingMessage(Map<String, dynamic> message) {
     final type = message['type'];
-    _addLog('收到信令消息: $type');
-    
+    print('收到信令消息: $type');
+
     switch (type) {
       case 'ping':
       case 'pong':
-        // 处理ping/pong消息，用于连接确认
-        _addLog('收到服务器响应，连接已建立');
+      // 处理ping/pong消息，用于连接确认
+        print('收到服务器响应，连接已建立');
         break;
-        
+
       case 'user-joined':
         final userId = message['user_id'];
         if (userId != _localUserId && !_roomUsers.contains(userId)) {
           setState(() {
             _roomUsers.add(userId);
           });
-          _addLog('用户加入: $userId');
+          print('用户加入: $userId');
         }
+
+
+        for (var user in message["data"]["users"]) {
+          if(user != _localUserId){
+
+            print('用户加入22223333: $user');
+            _targetUserId = user;
+            _roomUsers.add(user);
+            setState(() {
+
+            });
+          }
+        }
+
+        print('用户加入2222: $message');
         break;
-        
+
       case 'user-left':
         final userId = message['user_id'];
         setState(() {
           _roomUsers.remove(userId);
         });
-        _addLog('用户离开: $userId');
+        print('用户离开: $userId');
         break;
-        
+
       case 'room-users':
         final users = List<String>.from(message['users'] ?? []);
         setState(() {
           _roomUsers.clear();
           _roomUsers.addAll(users.where((u) => u != _localUserId));
         });
-        _addLog('房间用户列表: ${_roomUsers.join(', ')}');
+        print('房间用户列表: ${_roomUsers.join(', ')}');
         break;
-        
+
       case 'join-room-success':
-        _addLog('✅ 成功加入房间: ${message['room_id']}');
+        print('✅ 成功加入房间: ${message['room_id']}');
         break;
-        
+
       case 'join-room-error':
-        _addLog('❌ 加入房间失败: ${message['error']}');
+        print('❌ 加入房间失败: ${message['error']}');
         break;
-        
+
       case 'offer':
         _handleOffer(message);
         break;
-        
+
       case 'answer':
         _handleAnswer(message);
         break;
-        
+
       case 'ice-candidate':
         _handleIceCandidate(message);
         break;
-        
+
       default:
-        _addLog('未知信令消息类型: $type');
+        print('未知信令消息类型: $type');
     }
   }
 
   Future<void> _handleOffer(Map<String, dynamic> message) async {
     try {
-      _addLog('收到Offer来自: ${message['user_id']}');
+      print('收到Offer来自: ${message['user_id']}');
       await _initializePeerConnection();
-      
+
       final offer = RTCSessionDescription(
         message['data']['sdp'],
         message['data']['type'],
       );
-      
-      _addLog('设置远程描述(Offer)');
+
+      print('设置远程描述(Offer)');
       await _peerConnection!.setRemoteDescription(offer);
-      
-      _addLog('创建Answer');
+
+      print('创建Answer');
       final answer = await _peerConnection!.createAnswer();
-      
-      _addLog('设置本地描述(Answer)');
+
+      print('设置本地描述(Answer)');
       await _peerConnection!.setLocalDescription(answer);
-      
+
       _sendAnswer(message['user_id'], answer);
-      _addLog('发送Answer给: ${message['user_id']}');
+      print('发送Answer给: ${message['user_id']}');
     } catch (e) {
-      _addLog('❌ 处理Offer失败: $e');
+      print('❌ 处理Offer失败: $e');
     }
   }
 
   Future<void> _handleAnswer(Map<String, dynamic> message) async {
     try {
-      _addLog('收到Answer来自: ${message['user_id']}');
+      print('收到Answer来自: ${message['user_id']}');
       final answer = RTCSessionDescription(
         message['data']['sdp'],
         message['data']['type'],
       );
-      
-      _addLog('设置远程描述(Answer)');
+
+      print('设置远程描述(Answer)');
       await _peerConnection!.setRemoteDescription(answer);
-      _addLog('Answer处理完成');
+      print('Answer处理完成');
     } catch (e) {
-      _addLog('❌ 处理Answer失败: $e');
+      print('❌ 处理Answer失败: $e');
     }
   }
 
@@ -416,19 +403,19 @@ class _DataSyncPageState extends State<DataSyncPage> {
         candidateData['sdp_mid'],
         candidateData['sdp_m_line_index'],
       );
-      
+
       await _peerConnection!.addCandidate(candidate);
-      _addLog('添加ICE候选者来自: ${message['user_id']}');
-      _addLog('候选者类型: ${candidateData['candidate']?.split(' ')[7] ?? 'unknown'}');
+      print('添加ICE候选者来自: ${message['user_id']}');
+      print('候选者类型: ${candidateData['candidate']?.split(' ')[7] ?? 'unknown'}');
     } catch (e) {
-      _addLog('❌ 添加ICE候选者失败: $e');
+      print('❌ 添加ICE候选者失败: $e');
     }
   }
 
   void _sendOffer(String targetUserId) async {
     try {
-      _addLog('开始建立连接到: $targetUserId');
-      
+      print('开始建立连接到: $targetUserId');
+
       if (_peerConnection == null) {
         await _initializePeerConnection();
       }
@@ -436,17 +423,17 @@ class _DataSyncPageState extends State<DataSyncPage> {
       _targetUserId = targetUserId;
 
       // 创建数据通道
-      _addLog('创建数据通道');
+      print('创建数据通道');
       final dataChannelInit = RTCDataChannelInit();
       _dataChannel = await _peerConnection!.createDataChannel('fileSync', dataChannelInit);
       _setupDataChannel(_dataChannel!);
 
-      _addLog('创建Offer');
+      print('创建Offer');
       final offer = await _peerConnection!.createOffer();
-      
-      _addLog('设置本地描述(Offer)');
+
+      print('设置本地描述(Offer)');
       await _peerConnection!.setLocalDescription(offer);
-      
+
       final message = {
         'type': 'offer',
         'room_id': _roomId,
@@ -457,18 +444,18 @@ class _DataSyncPageState extends State<DataSyncPage> {
           'sdp': offer.sdp,
         },
       };
-      
+
       _signalingChannel!.sink.add(json.encode(message));
-      _addLog('发送Offer给: $targetUserId');
-      _addLog('等待对方响应...');
+      print('发送Offer给: $targetUserId');
+      print('等待对方响应...');
     } catch (e) {
-      _addLog('❌ 发送Offer失败: $e');
+      print('❌ 发送Offer失败: $e');
     }
   }
 
   void _sendAnswer(String targetUserId, RTCSessionDescription answer) {
     _targetUserId = targetUserId;
-    
+
     final message = {
       'type': 'answer',
       'room_id': _roomId,
@@ -479,13 +466,13 @@ class _DataSyncPageState extends State<DataSyncPage> {
         'sdp': answer.sdp,
       },
     };
-    
+
     _signalingChannel!.sink.add(json.encode(message));
   }
 
   void _sendIceCandidate(RTCIceCandidate candidate) {
     if (_targetUserId.isEmpty) return;
-    
+
     final message = {
       'type': 'ice-candidate',
       'room_id': _roomId,
@@ -497,19 +484,25 @@ class _DataSyncPageState extends State<DataSyncPage> {
         'sdp_m_line_index': candidate.sdpMLineIndex,
       },
     };
-    
+
     _signalingChannel!.sink.add(json.encode(message));
   }
 
   void _setupDataChannel(RTCDataChannel channel) {
     _dataChannel = channel;
-    
+
     _dataChannel!.onMessage = (RTCDataChannelMessage message) {
       _handleReceivedMessage(message);
     };
 
     _dataChannel!.onDataChannelState = (RTCDataChannelState state) {
-      _addLog('数据通道状态: ${state.toString()}');
+      print('数据通道状态: ${state.toString()}');
+      final bool opened = state == RTCDataChannelState.RTCDataChannelOpen;
+      if (opened != _isDataChannelOpen) {
+        setState(() {
+          _isDataChannelOpen = opened;
+        });
+      }
     };
   }
 
@@ -524,7 +517,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
 
       final data = json.decode(message.text);
       final type = data['type'];
-      
+
       switch (type) {
         case 'file':
           _handleFileReceive(data);
@@ -539,136 +532,128 @@ class _DataSyncPageState extends State<DataSyncPage> {
           _handleFileBinaryHeader(data);
           break;
         case 'transfer-complete':
-          _addLog('📨 收到传输完成指示: ${data['uuid'] ?? ''}');
+          print('📨 收到传输完成指示: ${data['uuid'] ?? ''}');
           // 实际合并触发在 _handleBinaryData 内部（收到足够的块时）
           break;
         case 'transfer-ack':
-          _addLog('📮 收到传输确认: ${data['uuid']} 成功: ${data['success']}');
+          print('📮 收到传输确认: ${data['uuid']} 成功: ${data['success']}');
           break;
         case 'sync-inventory-request':
-          // 基于 uuid 的库存检查请求
+        // 基于 uuid 的库存检查请求
           _handleSyncInventoryRequest(data);
           break;
         case 'sync-inventory-response':
-          // 基于 uuid 的库存检查响应
+        // 基于 uuid 的库存检查响应
           _handleSyncInventoryResponse(data);
           break;
         case 'text':
-          _addLog('收到文本: ${data['content']}');
+          print('收到文本: ${data['content']}');
           break;
         default:
-          _addLog('收到未知消息类型: $type');
+          print('收到未知消息类型: $type');
       }
     } catch (e) {
-      _addLog('处理消息错误: $e');
+      print('处理消息错误: $e');
     }
   }
 
-  // 发送库存请求：携带本地已具备文件的文章 uuid 列表
-  Future<void> _sendSyncInventoryRequest() async {
-    if (_dataChannel?.state != RTCDataChannelState.RTCDataChannelOpen) {
-      _addLog('数据通道未打开，无法发送库存请求');
-      return;
-    }
-    try {
-      final articles = await ArticleService.instance.getArticlesWithLocalMhtml();
-      final uuids = articles
-          .where((a) => a.uuid.isNotEmpty)
-          .map((a) => a.uuid)
-          .toSet()
-          .toList();
 
-      final message = {
-        'type': 'sync-inventory-request',
-        'uuids': uuids,
-        'from': _localUserId,
-      };
-      _dataChannel!.send(RTCDataChannelMessage(json.encode(message)));
-      _addLog('📦 已发送库存请求，共 ${uuids.length} 个 uuid');
-    } catch (e) {
-      _addLog('❌ 发送库存请求失败: $e');
-    }
-  }
-
-  // 处理对端的库存请求：根据 uuid 判断本地是否具备对应文件（localMhtmlPath 目录存在）
+  // 处理对端的库存请求：根据 uuid 判断本地是否具备对应文件（以数据库 localMhtmlPath 非空为准）
   Future<void> _handleSyncInventoryRequest(Map<String, dynamic> data) async {
     try {
       final List<dynamic> req = (data['uuids'] ?? []) as List<dynamic>;
       final List<String> requestUUIDs = req.map((e) => e.toString()).toList();
-      _addLog('📥 收到库存请求，待检查 ${requestUUIDs.length} 个 uuid');
+      print('📥 收到库存请求，待检查 ${requestUUIDs.length} 个 uuid');
 
       // 查询本地存在的文章
       final existingArticles = await ArticleService.instance.getByUUIDs(requestUUIDs);
-      final Set<String> haveValidFiles = {};
-      for (final a in existingArticles) {
-        final p = a.localMhtmlPath;
-        if (p.isNotEmpty) {
-          final dir = Directory(p);
-          final exists = await dir.exists();
-          if (exists) {
-            haveValidFiles.add(a.uuid);
-          }
+      final Map<String, dynamic> existingMap = { for (final a in existingArticles) a.uuid: a };
+
+      final List<String> missingUUIDs = []; // 需要同步的 uuid（仅以 DB 的 localMhtmlPath 是否为空为准）
+      final List<String> haveValid = [];    // 本地已有（localMhtmlPath 非空）
+      final List<String> unknown = [];      // 本地不存在该 uuid（忽略）
+
+      for (final uuid in requestUUIDs) {
+        final a = existingMap[uuid];
+        if (a == null) {
+          unknown.add(uuid);
+          continue;
+        }
+        final path = (a.localMhtmlPath ?? '').trim();
+        if (path.isEmpty) {
+          missingUUIDs.add(uuid);
+        } else {
+          haveValid.add(uuid);
         }
       }
-
-      // 缺失的 uuid = 请求中 - 本地已具备
-      final missingUUIDs = requestUUIDs.where((u) => !haveValidFiles.contains(u)).toList();
 
       final resp = {
         'type': 'sync-inventory-response',
         'missingUUIDs': missingUUIDs,
+        'missingUuids': missingUUIDs, // 兼容 web 端
         'from': _localUserId,
       };
       _dataChannel?.send(RTCDataChannelMessage(json.encode(resp)));
-      _addLog('📤 已返回库存响应：缺失 ${missingUUIDs.length}/${requestUUIDs.length}');
+      print('📤 已返回库存响应：需要同步 ${missingUUIDs.length}/${requestUUIDs.length}');
+
+      if (haveValid.isNotEmpty) {
+        print('✅ 本地已有（DB 路径非空）: $haveValid');
+      }
+      if (missingUUIDs.isNotEmpty) {
+        print('❗ 本地缺失（DB 路径为空）: $missingUUIDs');
+      }
+      if (unknown.isNotEmpty) {
+        print('ℹ️ 本地不存在这些 uuid（忽略）: $unknown');
+      }
     } catch (e) {
-      _addLog('❌ 处理库存请求失败: $e');
+      print('❌ 处理库存请求失败: $e');
+      final resp = {
+        'type': 'sync-inventory-response',
+        'missingUUIDs': <String>[],
+        'missingUuids': <String>[],
+        'from': _localUserId,
+      };
+      _dataChannel?.send(RTCDataChannelMessage(json.encode(resp)));
     }
   }
 
   void _handleSyncInventoryResponse(Map<String, dynamic> data) {
     try {
-      final List<dynamic> miss = (data['missingUUIDs'] ?? []) as List<dynamic>;
+      final List<dynamic> miss = (data['missingUUIDs'] ?? data['missingUuids'] ?? []) as List<dynamic>;
       final List<String> missingUUIDs = miss.map((e) => e.toString()).toList();
       if (missingUUIDs.isEmpty) {
-        _addLog('✅ 对端不缺文件，已同步');
+        print('✅ 对端不缺文件，已同步');
+        setState(() {
+          _isSyncInProgress = false;
+        });
       } else {
-        _addLog('❗ 对端缺失 ${missingUUIDs.length} 个文件，后续仅对这些 uuid 发送');
+        print('❗ 对端缺失 ${missingUUIDs.length} 个文件，后续仅对这些 uuid 发送');
+        // 触发发送缺失文件
+        _sendMissingFiles(missingUUIDs);
       }
       // 可在此处缓存 missingUUIDs 以驱动后续文件发送管线
     } catch (e) {
-      _addLog('❌ 处理库存响应失败: $e');
+      print('❌ 处理库存响应失败: $e');
+      setState(() {
+        _isSyncInProgress = false;
+      });
     }
   }
 
-  Future<void> _sendFile() async {
-    if (_dataChannel?.state != RTCDataChannelState.RTCDataChannelOpen) {
-      _addLog('数据通道未打开');
-      return;
-    }
-
-    try {
-      // 先发起库存检查，依据 uuid 判断是否需要同步文件
-      await _sendSyncInventoryRequest();
-      _addLog('已发起基于 uuid 的库存同步流程');
-    } catch (e) {
-      _addLog('发送文件错误: $e');
-    }
-  }
 
   Future<void> _handleFileReceive(Map<String, dynamic> data) async {
     try {
       final fileName = data['fileName'];
       final fileData = data['data'];
       final bytes = base64Decode(fileData);
-      
+
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(bytes);
-      
-      _addLog('文件已保存: $fileName (${bytes.length} 字节)');
+
+      print('文件已保存: $fileName (${bytes.length} 字节)');
     } catch (e) {
-      _addLog('保存文件错误: $e');
+      print('保存文件错误: $e');
     }
   }
 
@@ -681,7 +666,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
       final int totalChunks = (data['totalChunks'] ?? 0) as int;
 
       if (uuid.isEmpty || totalChunks <= 0) {
-        _addLog('❌ 无效的文件头: uuid 或 totalChunks 缺失');
+        print('❌ 无效的文件头: uuid 或 totalChunks 缺失');
         return;
       }
 
@@ -693,10 +678,10 @@ class _DataSyncPageState extends State<DataSyncPage> {
       );
       _currentBinaryUuid = uuid;
 
-      _addLog('📥 开始接收(二进制): $fileName (${size} 字节, $totalChunks 块)');
+      print('📥 开始接收(二进制): $fileName (${size} 字节, $totalChunks 块)');
       setState(() {});
     } catch (e) {
-      _addLog('❌ 处理二进制文件头错误: $e');
+      print('❌ 处理二进制文件头错误: $e');
     }
   }
 
@@ -704,7 +689,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
   void _handleBinaryData(Uint8List binary) {
     try {
       if (_currentBinaryUuid == null || !_binaryReceiving.containsKey(_currentBinaryUuid)) {
-        _addLog('⚠️ 收到意外的二进制数据，未找到正在接收的文件');
+        print('⚠️ 收到意外的二进制数据，未找到正在接收的文件');
         return;
       }
 
@@ -713,20 +698,20 @@ class _DataSyncPageState extends State<DataSyncPage> {
       state.receivedChunks += 1;
 
       final progress = (state.receivedChunks / state.totalChunks * 100).clamp(0, 100).toStringAsFixed(1);
-      _addLog('📦 接收二进制块: ${state.fileName} $progress% (${state.receivedChunks}/${state.totalChunks})');
+      print('📦 接收二进制块: ${state.fileName} $progress% (${state.receivedChunks}/${state.totalChunks})');
 
       if (state.receivedChunks >= state.totalChunks) {
         _finalizeBinaryFile(state);
       }
     } catch (e) {
-      _addLog('❌ 处理二进制数据块错误: $e');
+      print('❌ 处理二进制数据块错误: $e');
     }
   }
 
   // 新协议：合并二进制并解压、写库
   Future<void> _finalizeBinaryFile(_BinaryReceiveState state) async {
     try {
-      _addLog('🔗 开始合并二进制数据: ${state.fileName}');
+      print('🔗 开始合并二进制数据: ${state.fileName}');
 
       // 合并字节
       int totalSize = 0;
@@ -740,7 +725,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
         offset += chunk.length;
       }
 
-      _addLog('🔗 合并完成，大小: $totalSize 字节，开始解压...');
+      print('🔗 合并完成，大小: $totalSize 字节，开始解压...');
 
       // 解压 zip
       final Archive archive = ZipDecoder().decodeBytes(merged);
@@ -766,7 +751,8 @@ class _DataSyncPageState extends State<DataSyncPage> {
       // 解压所有文件
       for (final ArchiveFile file in archive) {
         // 判断目录/文件
-        final bool isDirectory = file.isFile == false || file.name.endsWith('/') || (file.content.isEmpty && !file.name.contains('.'));
+        final bool isDirectory = file.isFile == false || file.name.endsWith('/') ||
+            (file.content.isEmpty && !file.name.contains('.'));
         if (isDirectory) {
           String dirName = file.name;
           if (!dirName.endsWith('/')) {
@@ -788,7 +774,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
         }
       }
 
-      _addLog('✅ 文件解压成功: $extractDir');
+      print('✅ 文件解压成功: $extractDir');
 
       // 写库：根据 uuid 更新对应文章的本地路径
       await ArticleService.instance.dbService.isar.writeTxn(() async {
@@ -797,9 +783,9 @@ class _DataSyncPageState extends State<DataSyncPage> {
           final article = articles.first;
           article.localMhtmlPath = extractDir;
           await ArticleService.instance.updateLocalMhtmlPath(article);
-          _addLog('🗂️ 已更新文章本地路径: ${article.title}');
+          print('🗂️ 已更新文章本地路径: ${article.title}');
         } else {
-          _addLog('⚠️ 未找到对应UUID的文章: ${state.uuid}');
+          print('⚠️ 未找到对应UUID的文章: ${state.uuid}');
         }
       });
 
@@ -812,9 +798,9 @@ class _DataSyncPageState extends State<DataSyncPage> {
       };
       _dataChannel?.send(RTCDataChannelMessage(json.encode(ack)));
 
-      _addLog('📮 已发送成功确认: ${state.uuid}');
+      print('📮 已发送成功确认: ${state.uuid}');
     } catch (e) {
-      _addLog('❌ 处理二进制文件失败: $e');
+      print('❌ 处理二进制文件失败: $e');
       // 发送失败ACK
       final ack = {
         'type': 'transfer-ack',
@@ -841,9 +827,9 @@ class _DataSyncPageState extends State<DataSyncPage> {
       final totalChunks = data['totalChunks'];
       final chunkSize = data['chunkSize'];
       final from = data['from'];
-      
-      _addLog('开始接收文件: $fileName (${fileSize} 字节, $totalChunks 块)');
-      
+
+      print('开始接收文件: $fileName (${fileSize} 字节, $totalChunks 块)');
+
       _receivingFiles[fileId] = _FileReceiveInfo(
         fileId: fileId,
         fileName: fileName,
@@ -854,10 +840,10 @@ class _DataSyncPageState extends State<DataSyncPage> {
         receivedChunks: {},
         chunks: List.filled(totalChunks, null),
       );
-      
+
       setState(() {});
     } catch (e) {
-      _addLog('处理文件头错误: $e');
+      print('处理文件头错误: $e');
     }
   }
 
@@ -868,38 +854,38 @@ class _DataSyncPageState extends State<DataSyncPage> {
       final totalChunks = data['totalChunks'];
       final chunkData = data['data'];
       final from = data['from'];
-      
+
       if (!_receivingFiles.containsKey(fileId)) {
-        _addLog('收到未知文件块: $fileId');
+        print('收到未知文件块: $fileId');
         return;
       }
-      
+
       final fileInfo = _receivingFiles[fileId]!;
-      
+
       // 解码并存储块数据
       final bytes = base64Decode(chunkData);
       fileInfo.chunks[chunkIndex] = bytes;
       fileInfo.receivedChunks[chunkIndex] = true;
-      
+
       final progress = (fileInfo.receivedChunks.length / fileInfo.totalChunks * 100).round();
-      _addLog('接收进度: ${fileInfo.fileName} $progress% (${fileInfo.receivedChunks.length}/${fileInfo.totalChunks})');
-      
+      print('接收进度: ${fileInfo.fileName} $progress% (${fileInfo.receivedChunks.length}/${fileInfo.totalChunks})');
+
       // 检查是否接收完所有块
       if (fileInfo.receivedChunks.length == fileInfo.totalChunks) {
         await _assembleAndSaveFile(fileInfo);
         _receivingFiles.remove(fileId);
       }
-      
+
       setState(() {});
     } catch (e) {
-      _addLog('处理文件块错误: $e');
+      print('处理文件块错误: $e');
     }
   }
 
   Future<void> _assembleAndSaveFile(_FileReceiveInfo fileInfo) async {
     try {
-      _addLog('开始组装文件: ${fileInfo.fileName}');
-      
+      print('开始组装文件: ${fileInfo.fileName}');
+
       // 组装所有块
       final allBytes = <int>[];
       for (int i = 0; i < fileInfo.totalChunks; i++) {
@@ -909,34 +895,18 @@ class _DataSyncPageState extends State<DataSyncPage> {
           throw Exception('缺少文件块 $i');
         }
       }
-      
+
       // 保存文件
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/${fileInfo.fileName}');
       await file.writeAsBytes(allBytes);
-      
-      _addLog('✅ 文件接收完成: ${fileInfo.fileName} (${allBytes.length} 字节)');
-      _addLog('📁 保存路径: ${file.path}');
+
+      print('✅ 文件接收完成: ${fileInfo.fileName} (${allBytes.length} 字节)');
+      print('📁 保存路径: ${file.path}');
     } catch (e) {
-      _addLog('❌ 组装文件错误: $e');
+      print('❌ 组装文件错误: $e');
     }
   }
-
-  Future<void> _sendTestMessage() async {
-    if (_dataChannel?.state == RTCDataChannelState.RTCDataChannelOpen) {
-      final message = {
-        'type': 'text',
-        'content': '测试消息 - ${DateTime.now()}',
-        'from': _localUserId,
-      };
-      
-      _dataChannel!.send(RTCDataChannelMessage(json.encode(message)));
-      _addLog('发送测试消息');
-    } else {
-      _addLog('数据通道未打开');
-    }
-  }
-
 
 
   String _getConnectionStatusText(RTCPeerConnectionState state) {
@@ -958,144 +928,59 @@ class _DataSyncPageState extends State<DataSyncPage> {
     }
   }
 
-  void _addLog(String message) {
-    setState(() {
-      _syncLog.insert(0, '${DateTime.now().toString().substring(11, 19)}: $message');
-      if (_syncLog.length > 100) {
-        _syncLog.removeLast();
-      }
-    });
-  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('数据同步'),
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Theme
+            .of(context)
+            .primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).primaryColor.withOpacity(0.1),
-              Theme.of(context).colorScheme.surface,
-            ],
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-
-              // 状态卡片
-              _buildStatusCard(),
-
-              // 控制面板
-              _buildControlPanel(),
-
-              // 日志区域
-              Container(
-                height: 400,
-                child: _buildLogArea(),
-              ),
-            ],
-          ),
-        )
-      ),
-    );
-  }
-
-  Widget _buildStatusCard() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: _isSignalingConnected ? Colors.green : Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '信令服务器: $_signalingStatus',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 8),
-          Row(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: _isConnected ? Colors.green : Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'WebRTC连接: $_connectionStatus',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text('用户ID: $_localUserId'),
-              ),
-            ],
-          ),
-          if (_roomUsers.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Text('房间用户: ${_roomUsers.join(', ')}'),
-                ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme
+                    .of(context)
+                    .primaryColor
+                    .withOpacity(0.1),
+                Theme
+                    .of(context)
+                    .colorScheme
+                    .surface,
               ],
             ),
-          ],
-        ],
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+
+
+                // 控制面板
+                _buildControlPanel(),
+              ],
+            ),
+          )
       ),
     );
   }
+
 
   Widget _buildControlPanel() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Theme
+            .of(context)
+            .cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -1108,28 +993,9 @@ class _DataSyncPageState extends State<DataSyncPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            '信令服务器连接',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 12),
-          
-          // 连接信令服务器按钮
-          ElevatedButton.icon(
-            onPressed: _isSignalingConnected ? null : _connectToSignalingServer,
-            icon: const Icon(Icons.cloud_outlined),
-            label: Text(_isSignalingConnected ? '已连接信令服务器' : '连接信令服务器'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isSignalingConnected ? Colors.green : Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-            ),
-          ),
-          
+
           const SizedBox(height: 16),
-          
+
           const Text(
             '房间管理',
             style: TextStyle(
@@ -1138,65 +1004,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
             ),
           ),
           const SizedBox(height: 8),
-          
-          // 房间ID输入
-          TextField(
-            controller: _roomIdController,
-            decoration: const InputDecoration(
-              labelText: '房间ID',
-              hintText: '输入房间ID',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          
-          const SizedBox(height: 8),
-          
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _isSignalingConnected ? _joinRoom : null,
-                  icon: const Icon(Icons.meeting_room),
-                  label: const Text('加入房间'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _isSignalingConnected ? _leaveRoom : null,
-                  icon: const Icon(Icons.exit_to_app),
-                  label: const Text('离开房间'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 8),
-          
-          // 调试按钮
-          ElevatedButton.icon(
-            onPressed: _isSignalingConnected ? () {
-              _addLog('🔄 手动重新加入房间');
-              _joinRoom();
-            } : null,
-            icon: const Icon(Icons.refresh),
-            label: const Text('重新加入房间'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple,
-              foregroundColor: Colors.white,
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
+
           // WebRTC连接
           const Text(
             'WebRTC连接',
@@ -1206,7 +1014,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // 用户选择下拉框
           if (_roomUsers.isNotEmpty)
             DropdownButtonFormField<String>(
@@ -1227,148 +1035,237 @@ class _DataSyncPageState extends State<DataSyncPage> {
                 });
               },
             ),
-          
+
           const SizedBox(height: 8),
-          
+
           ElevatedButton.icon(
             onPressed: (_roomUsers.isNotEmpty && _targetUserId.isNotEmpty) ? () => _sendOffer(_targetUserId) : null,
-            icon: const Icon(Icons.connect_without_contact),
-            label: const Text('建立WebRTC连接'),
+            label: const Text('连接'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
             ),
           ),
-          
-          const SizedBox(height: 16),
-          
-          // 网络诊断
-          const Text(
-            '网络诊断',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // 同步操作
-          const Text(
-            '同步操作',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          
+
+          const SizedBox(height: 12),
+          // 状态行：数据通道和同步状态
           Row(
             children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _sendTestMessage,
-                  icon: const Icon(Icons.message),
-                  label: const Text('发送测试'),
-                ),
+              Icon(
+                _isDataChannelOpen ? Icons.check_circle : Icons.error_outline,
+                color: _isDataChannelOpen ? Colors.green : Colors.redAccent,
+                size: 18,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _sendFile,
-                  icon: const Icon(Icons.file_upload),
-                  label: const Text('发送文件'),
-                ),
+              const SizedBox(width: 6),
+              Text(_isDataChannelOpen ? '数据通道：已建立' : '数据通道：未建立'),
+              const SizedBox(width: 16),
+              Icon(
+                _isSyncInProgress ? Icons.sync : Icons.pause_circle_outline,
+                color: _isSyncInProgress ? Colors.blue : Colors.grey,
+                size: 18,
               ),
+              const SizedBox(width: 6),
+              Text(_isSyncInProgress ? '同步状态：进行中' : '同步状态：空闲'),
             ],
           ),
+
+          const SizedBox(height: 8),
+
+          // 开始同步按钮（针对已连接的目标用户）
+          ElevatedButton.icon(
+            onPressed: (_isDataChannelOpen && !_isSyncInProgress) ? _startSync : null,
+            icon: const Icon(Icons.sync_alt),
+            label: Text(_isSyncInProgress ? '正在同步…' : '开始同步'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme
+                  .of(context)
+                  .primaryColor,
+              foregroundColor: Colors.white,
+            ),
+          ),
+
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildLogArea() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.history),
-                const SizedBox(width: 8),
-                const Text(
-                  '同步日志',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _syncLog.clear();
-                    });
-                  },
-                  icon: const Icon(Icons.clear),
-                  tooltip: '清空日志',
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: _syncLog.isEmpty
-                ? const Center(
-                    child: Text(
-                      '暂无日志',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: _syncLog.length,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                        margin: const EdgeInsets.symmetric(vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          _syncLog[index],
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-    );
+  // 发送端：开始同步（发送库存请求）
+  Future<void> _startSync() async {
+    if (_dataChannel == null || !_isDataChannelOpen) {
+      print('❌ 数据通道未建立，无法开始同步');
+      return;
+    }
+    if (_isSyncInProgress) {
+      print('⏳ 已有同步任务进行中，请稍候');
+      return;
+    }
+
+    try {
+      setState(() {
+        _isSyncInProgress = true;
+      });
+      print('🚀 开始同步文章文件...');
+
+      // 1. 获取所有含有本地MHTML路径的文章
+      final articles = await ArticleService.instance.getArticlesWithLocalMhtml();
+      if (articles.isEmpty) {
+        print('ℹ️ 没有找到需要同步的文章文件');
+        setState(() {
+          _isSyncInProgress = false;
+        });
+        return;
+      }
+
+      final uuids = articles.map((a) => a.uuid).toList();
+      print('📋 找到 ${articles.length} 个待同步文章: $uuids');
+
+      // 2. 发送库存请求
+      final req = {
+        'type': 'sync-inventory-request',
+        'uuids': uuids,
+        'from': _localUserId,
+      };
+      _dataChannel?.send(RTCDataChannelMessage(json.encode(req)));
+      print('✅ 已发送库存请求，等待对方响应...');
+    } catch (e) {
+      print('❌ 开始同步失败: $e');
+      setState(() {
+        _isSyncInProgress = false;
+      });
+    }
+  }
+
+  // 发送端：根据对端缺失UUID发送文件
+  Future<void> _sendMissingFiles(List<String> missingUUIDs) async {
+    if (_dataChannel == null || !_isDataChannelOpen) {
+      print('❌ 数据通道未建立，无法发送文件');
+      setState(() {
+        _isSyncInProgress = false;
+      });
+      return;
+    }
+
+    try {
+      final missingArticles = await ArticleService.instance.getByUUIDs(missingUUIDs);
+      print('📦 需要发送 ${missingArticles.length} 个文件');
+
+      const int chunkSize = 65536; // 64KB
+
+      for (int i = 0; i < missingArticles.length; i++) {
+        final a = missingArticles[i];
+        final titleOrUuid = (a.title.isNotEmpty ? a.title : a.uuid);
+        try {
+          if ((a.localMhtmlPath).isEmpty) {
+            print('⚠️ 文章 ${a.uuid} 缺少本地路径，跳过');
+            continue;
+          }
+
+          // 决定压缩的目录
+          String dirPath = a.localMhtmlPath;
+          final dir = Directory(dirPath);
+          if (!await dir.exists()) {
+            // 若保存的是文件路径，取父级目录
+            final fileAsPath = File(dirPath);
+            if (await fileAsPath.exists()) {
+              dirPath = Directory(p.dirname(dirPath)).path;
+            } else {
+              print('⚠️ 本地目录/文件不存在，跳过: $dirPath');
+              continue;
+            }
+          }
+
+          print('📤 (${i + 1}/${missingArticles.length}) 压缩并发送: $titleOrUuid');
+          final Uint8List zipBytes = await _zipDirectoryToBytes(dirPath);
+
+          // 文件头
+          final int totalChunks = (zipBytes.length / chunkSize).ceil();
+          final header = {
+            'type': 'file-binary-header',
+            'uuid': a.uuid,
+            'fileName': 'article_${a.uuid}.zip',
+            'size': zipBytes.length,
+            'totalChunks': totalChunks,
+          };
+          _dataChannel?.send(RTCDataChannelMessage(json.encode(header)));
+          print('📨 已发送文件头: ${header['fileName']} (${zipBytes.length} 字节, $totalChunks 块)');
+
+          // 分块发送
+          for (int chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            final int start = chunkIndex * chunkSize;
+            final int end = (start + chunkSize > zipBytes.length) ? zipBytes.length : start + chunkSize;
+            final Uint8List chunk = Uint8List.sublistView(zipBytes, start, end);
+
+            _dataChannel?.send(RTCDataChannelMessage.fromBinary(chunk));
+
+            if ((chunkIndex + 1) % 8 == 0) {
+              // 简单节流，避免缓冲区压力
+              await Future.delayed(const Duration(milliseconds: 2));
+            }
+
+            final progress = (((chunkIndex + 1) / totalChunks) * 100).clamp(0, 100).toStringAsFixed(1);
+            print('📦 正在发送 ${a.uuid}: $progress% (${chunkIndex + 1}/$totalChunks)');
+          }
+
+          // 发送完成指示
+          final complete = {
+            'type': 'transfer-complete',
+            'uuid': a.uuid,
+          };
+          _dataChannel?.send(RTCDataChannelMessage(json.encode(complete)));
+          print('✅ 文件发送完成: ${a.uuid}');
+        } catch (err) {
+          print('❌ 发送文件失败(${a.uuid}): $err');
+        }
+      }
+
+      print('🎉 文章文件同步完成');
+      setState(() {
+        _isSyncInProgress = false;
+      });
+    } catch (e) {
+      print('❌ 处理库存响应/发送文件失败: $e');
+      setState(() {
+        _isSyncInProgress = false;
+      });
+    }
+  }
+
+  // 工具：将目录压缩为Zip字节
+  Future<Uint8List> _zipDirectoryToBytes(String directoryPath) async {
+    final Directory root = Directory(directoryPath);
+    if (!await root.exists()) {
+      throw Exception('目录不存在: $directoryPath');
+    }
+
+    final Archive archive = Archive();
+
+    Future<void> addDirectory(Directory dir, String relative) async {
+      final List<FileSystemEntity> entities = await dir.list(recursive: false, followLinks: false).toList();
+      // 确保目录项存在（可选）
+      if (relative.isNotEmpty && !relative.endsWith('/')) {
+        archive.addFile(ArchiveFile('$relative/', 0, Uint8List(0))
+          ..isFile = false);
+      }
+      for (final entity in entities) {
+        final String name = p.basename(entity.path);
+        final String relPath = relative.isEmpty ? name : '$relative/$name';
+        if (entity is File) {
+          final bytes = await entity.readAsBytes();
+          archive.addFile(ArchiveFile(relPath.replaceAll('\\', '/'), bytes.length, bytes));
+        } else if (entity is Directory) {
+          await addDirectory(entity, relPath);
+        }
+      }
+    }
+
+    await addDirectory(root, '');
+
+    final ZipEncoder encoder = ZipEncoder();
+    final List<int>? encoded = encoder.encode(archive);
+    if (encoded == null) {
+      throw Exception('Zip 压缩失败');
+    }
+    return Uint8List.fromList(encoded);
   }
 }

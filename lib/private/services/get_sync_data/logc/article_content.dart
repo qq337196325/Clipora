@@ -19,6 +19,7 @@ ArticleContentDb createArticleContentFromModel(ArticleContentModel model, int lo
     ..textContent = model.textContent
     ..isOriginal = model.isOriginal
     ..version = model.version
+    ..uuid = model.uuid
     ..updateTimestamp = model.updateTimestamp
     ..createdAt = parseDateTime(model.createTime) ?? now
     ..updatedAt = parseDateTime(model.updateTime) ?? now;
