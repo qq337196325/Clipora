@@ -996,6 +996,37 @@ class ArticleService extends ArticleCreateService {
     }
   }
 
+  /// 根据一组 UUID 批量获取文章（仅当前用户）
+  Future<List<ArticleDb>> getByUUIDs(List<String> uuids) async {
+    try {
+      if (uuids.isEmpty) return [];
+      final results = await dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
+          .filter()
+          .anyOf(uuids, (q, uuid) => q.uuidEqualTo(uuid))
+          .findAll();
+      return results;
+    } catch (e) {
+      getLogger().e('❌ 批量按UUID获取文章失败: $e');
+      return [];
+    }
+  }
 
+  /// 获取所有含本地 MHTML 路径的文章（用于同步文件）
+  Future<List<ArticleDb>> getArticlesWithLocalMhtml() async {
+    try {
+      return await dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
+          .filter()
+          .localMhtmlPathIsNotEmpty()
+          .sortByCreatedAtDesc()
+          .findAll();
+    } catch (e) {
+      getLogger().e('❌ 获取本地MHTML文章失败: $e');
+      return [];
+    }
+  }
 
 }

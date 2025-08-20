@@ -17,12 +17,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'package:path_provider/path_provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
+import 'dart:typed_data';
+import 'package:archive/archive.dart';
+import 'package:path/path.dart' as p;
 
 import '../../basics/ui.dart';
+import '../../db/article/service/article_service.dart';
 
 // 文件接收信息类
 class _FileReceiveInfo {
@@ -47,6 +50,24 @@ class _FileReceiveInfo {
   });
 }
 
+// 新的二进制文件接收状态
+class _BinaryReceiveState {
+  final String uuid;
+  final String fileName;
+  final int size;
+  final int totalChunks;
+  int receivedChunks;
+  final List<Uint8List> chunks;
+
+  _BinaryReceiveState({
+    required this.uuid,
+    required this.fileName,
+    required this.size,
+    required this.totalChunks,
+    this.receivedChunks = 0,
+    List<Uint8List>? chunks,
+  }) : chunks = chunks ?? <Uint8List>[];
+}
 class DataSyncPage extends StatefulWidget {
   const DataSyncPage({super.key});
 
@@ -70,8 +91,12 @@ class _DataSyncPageState extends State<DataSyncPage> {
   final TextEditingController _roomIdController = TextEditingController();
   final TextEditingController _targetUserController = TextEditingController();
   
-  // 文件分块接收相关变量
+  // 文件分块接收相关变量（旧：base64 JSON 协议）
   final Map<String, _FileReceiveInfo> _receivingFiles = {};
+
+  // 新：二进制传输协议接收状态
+  final Map<String, _BinaryReceiveState> _binaryReceiving = {};
+  String? _currentBinaryUuid;
   
   // 信令服务器配置
   static const String _signalingServerUrl = 'wss://gzservice.clipora.cc/webrtc/ws';
@@ -490,6 +515,13 @@ class _DataSyncPageState extends State<DataSyncPage> {
 
   void _handleReceivedMessage(RTCDataChannelMessage message) {
     try {
+      // 兼容二进制与JSON文本两种数据
+      if (message.isBinary) {
+        // 二进制数据块
+        _handleBinaryData(message.binary);
+        return;
+      }
+
       final data = json.decode(message.text);
       final type = data['type'];
       
@@ -503,6 +535,24 @@ class _DataSyncPageState extends State<DataSyncPage> {
         case 'file-chunk':
           _handleFileChunk(data);
           break;
+        case 'file-binary-header':
+          _handleFileBinaryHeader(data);
+          break;
+        case 'transfer-complete':
+          _addLog('📨 收到传输完成指示: ${data['uuid'] ?? ''}');
+          // 实际合并触发在 _handleBinaryData 内部（收到足够的块时）
+          break;
+        case 'transfer-ack':
+          _addLog('📮 收到传输确认: ${data['uuid']} 成功: ${data['success']}');
+          break;
+        case 'sync-inventory-request':
+          // 基于 uuid 的库存检查请求
+          _handleSyncInventoryRequest(data);
+          break;
+        case 'sync-inventory-response':
+          // 基于 uuid 的库存检查响应
+          _handleSyncInventoryResponse(data);
+          break;
         case 'text':
           _addLog('收到文本: ${data['content']}');
           break;
@@ -511,6 +561,98 @@ class _DataSyncPageState extends State<DataSyncPage> {
       }
     } catch (e) {
       _addLog('处理消息错误: $e');
+    }
+  }
+
+  // 发送库存请求：携带本地已具备文件的文章 uuid 列表
+  Future<void> _sendSyncInventoryRequest() async {
+    if (_dataChannel?.state != RTCDataChannelState.RTCDataChannelOpen) {
+      _addLog('数据通道未打开，无法发送库存请求');
+      return;
+    }
+    try {
+      final articles = await ArticleService.instance.getArticlesWithLocalMhtml();
+      final uuids = articles
+          .where((a) => a.uuid.isNotEmpty)
+          .map((a) => a.uuid)
+          .toSet()
+          .toList();
+
+      final message = {
+        'type': 'sync-inventory-request',
+        'uuids': uuids,
+        'from': _localUserId,
+      };
+      _dataChannel!.send(RTCDataChannelMessage(json.encode(message)));
+      _addLog('📦 已发送库存请求，共 ${uuids.length} 个 uuid');
+    } catch (e) {
+      _addLog('❌ 发送库存请求失败: $e');
+    }
+  }
+
+  // 处理对端的库存请求：根据 uuid 判断本地是否具备对应文件（localMhtmlPath 目录存在）
+  Future<void> _handleSyncInventoryRequest(Map<String, dynamic> data) async {
+    try {
+      final List<dynamic> req = (data['uuids'] ?? []) as List<dynamic>;
+      final List<String> requestUUIDs = req.map((e) => e.toString()).toList();
+      _addLog('📥 收到库存请求，待检查 ${requestUUIDs.length} 个 uuid');
+
+      // 查询本地存在的文章
+      final existingArticles = await ArticleService.instance.getByUUIDs(requestUUIDs);
+      final Set<String> haveValidFiles = {};
+      for (final a in existingArticles) {
+        final p = a.localMhtmlPath;
+        if (p.isNotEmpty) {
+          final dir = Directory(p);
+          final exists = await dir.exists();
+          if (exists) {
+            haveValidFiles.add(a.uuid);
+          }
+        }
+      }
+
+      // 缺失的 uuid = 请求中 - 本地已具备
+      final missingUUIDs = requestUUIDs.where((u) => !haveValidFiles.contains(u)).toList();
+
+      final resp = {
+        'type': 'sync-inventory-response',
+        'missingUUIDs': missingUUIDs,
+        'from': _localUserId,
+      };
+      _dataChannel?.send(RTCDataChannelMessage(json.encode(resp)));
+      _addLog('📤 已返回库存响应：缺失 ${missingUUIDs.length}/${requestUUIDs.length}');
+    } catch (e) {
+      _addLog('❌ 处理库存请求失败: $e');
+    }
+  }
+
+  void _handleSyncInventoryResponse(Map<String, dynamic> data) {
+    try {
+      final List<dynamic> miss = (data['missingUUIDs'] ?? []) as List<dynamic>;
+      final List<String> missingUUIDs = miss.map((e) => e.toString()).toList();
+      if (missingUUIDs.isEmpty) {
+        _addLog('✅ 对端不缺文件，已同步');
+      } else {
+        _addLog('❗ 对端缺失 ${missingUUIDs.length} 个文件，后续仅对这些 uuid 发送');
+      }
+      // 可在此处缓存 missingUUIDs 以驱动后续文件发送管线
+    } catch (e) {
+      _addLog('❌ 处理库存响应失败: $e');
+    }
+  }
+
+  Future<void> _sendFile() async {
+    if (_dataChannel?.state != RTCDataChannelState.RTCDataChannelOpen) {
+      _addLog('数据通道未打开');
+      return;
+    }
+
+    try {
+      // 先发起库存检查，依据 uuid 判断是否需要同步文件
+      await _sendSyncInventoryRequest();
+      _addLog('已发起基于 uuid 的库存同步流程');
+    } catch (e) {
+      _addLog('发送文件错误: $e');
     }
   }
 
@@ -527,6 +669,167 @@ class _DataSyncPageState extends State<DataSyncPage> {
       _addLog('文件已保存: $fileName (${bytes.length} 字节)');
     } catch (e) {
       _addLog('保存文件错误: $e');
+    }
+  }
+
+  // 新协议：处理二进制文件头
+  void _handleFileBinaryHeader(Map<String, dynamic> data) {
+    try {
+      final String uuid = data['uuid']?.toString() ?? '';
+      final String fileName = data['fileName']?.toString() ?? 'article_$uuid.zip';
+      final int size = (data['size'] ?? 0) as int;
+      final int totalChunks = (data['totalChunks'] ?? 0) as int;
+
+      if (uuid.isEmpty || totalChunks <= 0) {
+        _addLog('❌ 无效的文件头: uuid 或 totalChunks 缺失');
+        return;
+      }
+
+      _binaryReceiving[uuid] = _BinaryReceiveState(
+        uuid: uuid,
+        fileName: fileName,
+        size: size,
+        totalChunks: totalChunks,
+      );
+      _currentBinaryUuid = uuid;
+
+      _addLog('📥 开始接收(二进制): $fileName (${size} 字节, $totalChunks 块)');
+      setState(() {});
+    } catch (e) {
+      _addLog('❌ 处理二进制文件头错误: $e');
+    }
+  }
+
+  // 新协议：接收二进制数据块
+  void _handleBinaryData(Uint8List binary) {
+    try {
+      if (_currentBinaryUuid == null || !_binaryReceiving.containsKey(_currentBinaryUuid)) {
+        _addLog('⚠️ 收到意外的二进制数据，未找到正在接收的文件');
+        return;
+      }
+
+      final state = _binaryReceiving[_currentBinaryUuid!]!;
+      state.chunks.add(binary);
+      state.receivedChunks += 1;
+
+      final progress = (state.receivedChunks / state.totalChunks * 100).clamp(0, 100).toStringAsFixed(1);
+      _addLog('📦 接收二进制块: ${state.fileName} $progress% (${state.receivedChunks}/${state.totalChunks})');
+
+      if (state.receivedChunks >= state.totalChunks) {
+        _finalizeBinaryFile(state);
+      }
+    } catch (e) {
+      _addLog('❌ 处理二进制数据块错误: $e');
+    }
+  }
+
+  // 新协议：合并二进制并解压、写库
+  Future<void> _finalizeBinaryFile(_BinaryReceiveState state) async {
+    try {
+      _addLog('🔗 开始合并二进制数据: ${state.fileName}');
+
+      // 合并字节
+      int totalSize = 0;
+      for (final chunk in state.chunks) {
+        totalSize += chunk.length;
+      }
+      final Uint8List merged = Uint8List(totalSize);
+      int offset = 0;
+      for (final chunk in state.chunks) {
+        merged.setRange(offset, offset + chunk.length, chunk);
+        offset += chunk.length;
+      }
+
+      _addLog('🔗 合并完成，大小: $totalSize 字节，开始解压...');
+
+      // 解压 zip
+      final Archive archive = ZipDecoder().decodeBytes(merged);
+
+      // 选择存储目录（优先应用支持目录，不存在则回退文档目录）
+      Directory appDir;
+      try {
+        appDir = await getApplicationSupportDirectory();
+      } catch (_) {
+        appDir = await getApplicationDocumentsDirectory();
+      }
+      final String baseDir = p.join(appDir.path, 'article_files');
+      final Directory baseDirectory = Directory(baseDir);
+      if (!await baseDirectory.exists()) {
+        await baseDirectory.create(recursive: true);
+      }
+
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String extractDir = p.join(baseDir, 'article_${state.uuid}_extracted_$timestamp');
+      final Directory extractDirectory = Directory(extractDir);
+      await extractDirectory.create(recursive: true);
+
+      // 解压所有文件
+      for (final ArchiveFile file in archive) {
+        // 判断目录/文件
+        final bool isDirectory = file.isFile == false || file.name.endsWith('/') || (file.content.isEmpty && !file.name.contains('.'));
+        if (isDirectory) {
+          String dirName = file.name;
+          if (!dirName.endsWith('/')) {
+            dirName += '/';
+          }
+          final String dirPath = p.join(extractDir, dirName);
+          final Directory dir = Directory(dirPath);
+          if (!await dir.exists()) {
+            await dir.create(recursive: true);
+          }
+        } else {
+          final String filePath = p.join(extractDir, file.name);
+          final Directory parentDir = Directory(p.dirname(filePath));
+          if (!await parentDir.exists()) {
+            await parentDir.create(recursive: true);
+          }
+          final File outputFile = File(filePath);
+          await outputFile.writeAsBytes(file.content as List<int>);
+        }
+      }
+
+      _addLog('✅ 文件解压成功: $extractDir');
+
+      // 写库：根据 uuid 更新对应文章的本地路径
+      await ArticleService.instance.dbService.isar.writeTxn(() async {
+        final articles = await ArticleService.instance.getByUUIDs([state.uuid]);
+        if (articles.isNotEmpty) {
+          final article = articles.first;
+          article.localMhtmlPath = extractDir;
+          await ArticleService.instance.updateLocalMhtmlPath(article);
+          _addLog('🗂️ 已更新文章本地路径: ${article.title}');
+        } else {
+          _addLog('⚠️ 未找到对应UUID的文章: ${state.uuid}');
+        }
+      });
+
+      // 发送ACK
+      final ack = {
+        'type': 'transfer-ack',
+        'uuid': state.uuid,
+        'success': true,
+        'message': '文件接收并解压成功',
+      };
+      _dataChannel?.send(RTCDataChannelMessage(json.encode(ack)));
+
+      _addLog('📮 已发送成功确认: ${state.uuid}');
+    } catch (e) {
+      _addLog('❌ 处理二进制文件失败: $e');
+      // 发送失败ACK
+      final ack = {
+        'type': 'transfer-ack',
+        'uuid': state.uuid,
+        'success': false,
+        'message': e.toString(),
+      };
+      _dataChannel?.send(RTCDataChannelMessage(json.encode(ack)));
+    } finally {
+      // 清理状态
+      if (_currentBinaryUuid == state.uuid) {
+        _currentBinaryUuid = null;
+      }
+      _binaryReceiving.remove(state.uuid);
+      setState(() {});
     }
   }
 
@@ -634,34 +937,7 @@ class _DataSyncPageState extends State<DataSyncPage> {
     }
   }
 
-  Future<void> _sendFile() async {
-    if (_dataChannel?.state != RTCDataChannelState.RTCDataChannelOpen) {
-      _addLog('数据通道未打开');
-      return;
-    }
 
-    try {
-      // 创建一个示例文件
-      final directory = await getApplicationDocumentsDirectory();
-      final testFile = File('${directory.path}/test_sync.txt');
-      await testFile.writeAsString('这是一个测试同步文件 - ${DateTime.now()}');
-      
-      final bytes = await testFile.readAsBytes();
-      final base64Data = base64Encode(bytes);
-      
-      final message = {
-        'type': 'file',
-        'fileName': 'test_sync.txt',
-        'data': base64Data,
-        'from': _localUserId,
-      };
-      
-      _dataChannel!.send(RTCDataChannelMessage(json.encode(message)));
-      _addLog('发送文件: test_sync.txt (${bytes.length} 字节)');
-    } catch (e) {
-      _addLog('发送文件错误: $e');
-    }
-  }
 
   String _getConnectionStatusText(RTCPeerConnectionState state) {
     switch (state) {
