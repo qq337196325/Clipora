@@ -34,6 +34,7 @@ import '../../basics/translations/select_language_widget.dart';
 import '../../basics/translations/language_controller.dart';
 import '../../private/api/user_api.dart';
 import 'phone_login_page.dart';
+import 'email_login_page.dart';
 import 'apple_web_auth_widget.dart';
 import '../../route/route_name.dart';
 import '../../basics/logger.dart';
@@ -141,6 +142,30 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
   Widget _buildLoginButtons() {
     return Column(
       children: [
+        // 社交登录按钮区域
+        _buildSocialLoginSection(),
+        
+        const SizedBox(height: 32),
+        
+        // 分割线
+        _buildDivider(),
+        
+        const SizedBox(height: 24),
+        
+        // 图标登录区域
+        _buildIconLoginSection(),
+        
+        const SizedBox(height: 16),
+        
+        // 提示文本
+        _buildNoticeText(),
+      ],
+    );
+  }
+
+  Widget _buildSocialLoginSection() {
+    return Column(
+      children: [
         // Apple登录按钮
         _buildLoginButton(
           icon: Icons.apple,
@@ -160,18 +185,142 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
             textColor: Colors.white,
             onPressed: onWechatLogin,
           ),
-          const SizedBox(height: 16),
         ],
-        
-        // 手机号登录按钮
-        _buildLoginButton(
-          icon: Icons.phone_android,
-          text: 'i18n_login_使用手机号登录'.tr,
-          backgroundColor: const Color(0xFF005A9C),
-          textColor: Colors.white,
-          onPressed: onPhoneLogin,
+      ],
+    );
+  }
+
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        const Expanded(
+          child: Divider(
+            thickness: 1,
+            color: Color(0xFFE2E8F0),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            '或',
+            style: TextStyle(
+              fontSize: 13,
+              color: const Color(0xFF94A3B8),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const Expanded(
+          child: Divider(
+            thickness: 1,
+            color: Color(0xFFE2E8F0),
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildIconLoginSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // 手机号登录图标
+        _buildIconLoginButton(
+          icon: Icons.phone_android,
+          color: const Color(0xFF3B82F6),
+          onPressed: onPhoneLogin,
+          tooltip: 'i18n_login_使用手机号登录'.tr,
+        ),
+        
+        const SizedBox(width: 32),
+        
+        // 邮箱登录图标
+        _buildIconLoginButton(
+          icon: Icons.email_outlined,
+          color: const Color(0xFF722ED1),
+          onPressed: onEmailLogin,
+          tooltip: '使用邮箱登录',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIconLoginButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFF1F5F9)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onPressed();
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                icon,
+                size: 24,
+                color: color,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoticeText() {
+    return Text(
+      'i18n_login_没有账号将自动创建账号'.tr,
+      style: TextStyle(
+        fontSize: 13,
+        color: const Color(0xFF94A3B8),
+        fontWeight: FontWeight.w400,
+      ),
+    );
+  }
+
+  // 占位：邮箱登录
+  void onEmailLogin() {
+    if (!isAgreePrivacyAgreement) {
+      openSmartDialog();
+      BotToast.showText(
+        textStyle: TextStyle(color: UiColour.neutral_11),
+        text: 'i18n_login_请阅读并勾选我们的隐私政策与用户协议'.tr,
+        contentColor: UiColour.neutral_5,
+        align: Alignment(0, 0),
+      );
+      return;
+    }
+    prefs.setBool("privacy", true);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const EmailLoginPage(),
+      ),
     );
   }
 

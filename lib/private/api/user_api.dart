@@ -28,6 +28,9 @@ class UserApi {
   static Future<Map> smsCodeApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/sms_code", data:param);
   }
+  static Future<Map> mailCodeApi(dynamic param) async {
+    return await Request().post("$apiVersion/api/user/mail_code", data:param);
+  }
   static Future<Map> accountLoginApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/account_login", data:param);
   }
