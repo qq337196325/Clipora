@@ -40,6 +40,9 @@ class UserApi {
   static Future<Map> appleLoginApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/apple_login", data:param);
   }
+  static Future<Map> googleLoginApi(dynamic param) async {
+    return await Request().post("$apiVersion/api/user/google_login", data:param);
+  }
   static Future<Map> getInitDataApi(dynamic param) async {
     return await Request().post("$apiVersion/api/user/get_init_data", data:param);
   }

@@ -26,6 +26,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:google_sign_in/google_sign_in.dart'
+    show GoogleSignIn, GoogleSignInAccount, GoogleSignInAuthentication;
 
 import '../../basics/app_config_interface.dart';
 import '../../basics/ui.dart';
@@ -67,7 +69,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
                 // Logo部分
                 _buildLogo(),
                 
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
                 
                 // 欢迎文本
                 _buildWelcomeText(),
@@ -176,6 +178,16 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
           onPressed: onAppleLogin,
         ),
         const SizedBox(height: 16),
+        // Google 登录按钮
+        _buildLoginButton(
+        icon: Icons.g_mobiledata,
+        text: '使用Google登录',
+        backgroundColor: const Color(0xFF4285F4),
+        textColor: Colors.white,
+        onPressed: onGoogleLogin,
+        ),
+        const SizedBox(height: 16),
+
         
         // 微信登录按钮
         if (_showWeChatLogin) ...[
@@ -201,7 +213,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             '或',
             style: TextStyle(
@@ -788,6 +800,110 @@ mixin LoginPageBLoC on State<LoginPage> {
       
       // 显示错误信息
       _showErrorDialog('i18n_login_Apple登录失败'.tr, 'i18n_login_网络连接异常'.tr);
+    }
+  }
+
+  // Google 登录
+  Future<void> onGoogleLogin() async {
+    if (languageController.isChinese() && !isAgreePrivacyAgreement) {
+      openSmartDialog();
+      BotToast.showText(
+        textStyle: TextStyle(color: UiColour.neutral_11),
+        text: 'i18n_login_请阅读并勾选我们的隐私政策与用户协议'.tr,
+        contentColor: UiColour.neutral_5,
+        align: Alignment(0, 0),
+      );
+      return;
+    }
+
+    prefs.setBool("privacy", true);
+    getLogger().i('用户点击Google登录按钮');
+
+    try {
+      final googleSignIn = GoogleSignIn(
+        scopes: <String>['email', 'profile'],
+      );
+
+      final GoogleSignInAccount? account = await googleSignIn.signIn();
+      if (account == null) {
+        getLogger().i('用户取消Google登录');
+        return;
+      }
+
+      final GoogleSignInAuthentication auth = await account.authentication;
+      final String? accessToken = auth.accessToken;
+      final String? idToken = auth.idToken;
+
+      if ((accessToken == null || accessToken.isEmpty) && (idToken == null || idToken.isEmpty)) {
+        getLogger().e('未能获取到有效的Google授权凭证');
+        _showErrorDialog('Google登录失败', '未能获取到有效的授权凭证，请重试');
+        return;
+      }
+
+      await _processGoogleLogin(accessToken, idToken);
+    } catch (e) {
+      getLogger().e('Google登录异常: $e');
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      _showErrorDialog('Google登录失败', '网络连接异常或服务不可用，请稍后重试');
+    }
+  }
+
+  Future<void> _processGoogleLogin(String? accessToken, String? idToken) async {
+    try {
+      _showLoadingDialog('i18n_login_正在登录中'.tr);
+
+      final params = {
+        'access_token': accessToken,
+        'id_token': idToken,
+        'platform': Platform.isAndroid ? 'android' : 'ios',
+      };
+
+      final res = await UserApi.googleLoginApi(params);
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      getLogger().i('Google登录API响应: $res');
+
+      if (res["code"] != 0) {
+        getLogger().e('Google登录失败: ${res["message"]}');
+        _showErrorDialog('Google登录失败', res['message'] ?? '登录失败，请重试');
+        return;
+      }
+
+      final String? token = res['data']?['token'];
+
+      globalBoxStorage.write('user_id', res['data']["id"]);
+      globalBoxStorage.write('user_name', res['data']["name"]);
+      globalBoxStorage.write('token', res['data']["token"]);
+
+      globalBoxStorage.write('is_not_login', res['data']["is_not_login"]);
+      globalBoxStorage.write('member_type', res['data']["member_type"]);
+      globalBoxStorage.write('member_expire_time', res['data']["member_expire_time"]);
+
+      if (token == null || token.isEmpty) {
+        getLogger().e('Google登录成功但未获取到token');
+        _showErrorDialog('登录失败', '服务器未返回有效的登录凭证');
+        return;
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
+
+      getLogger().i('✅ Google登录成功，token已保存');
+
+      if (mounted) {
+        context.go('/${RouteName.index}');
+      }
+    } catch (e) {
+      getLogger().e('处理Google登录异常: $e');
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      _showErrorDialog('Google登录失败', '网络连接异常');
     }
   }
 
