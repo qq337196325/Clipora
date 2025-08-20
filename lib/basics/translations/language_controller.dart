@@ -252,6 +252,11 @@ class LanguageController extends GetxController {
       return language.languageName;
     }
   }
+
+  /// 是否是中文环境
+  bool isChinese() {
+    return currentLocale.value.languageCode == "zh";
+  }
 }
 
 /// 语言模型

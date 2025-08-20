@@ -32,6 +32,7 @@ import '../../basics/ui.dart';
 import '../../components/ui_border_radius_widget.dart';
 import '../../basics/translations/select_language_widget.dart';
 import '../../basics/translations/language_controller.dart';
+import '../../basics/language_utils.dart';
 import '../../private/api/user_api.dart';
 import 'phone_login_page.dart';
 import 'email_login_page.dart';
@@ -305,7 +306,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
 
   // 占位：邮箱登录
   void onEmailLogin() {
-    if (!isAgreePrivacyAgreement) {
+    if (languageController.isChinese() && !isAgreePrivacyAgreement) {
       openSmartDialog();
       BotToast.showText(
         textStyle: TextStyle(color: UiColour.neutral_11),
@@ -333,7 +334,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
   }) {
     return Container(
       width: double.infinity,
-      height: 56,
+      height: 48,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -464,6 +465,8 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         children: [
+
+          languageController.isChinese() ?
           Transform.scale(
             scale: 0.9,
             child: Checkbox(
@@ -476,7 +479,7 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
                 });
               },
             ),
-          ),
+          ) : SizedBox(),
 
           GestureDetector(
             onTap: () {
@@ -546,7 +549,8 @@ class _LoginPageState extends State<LoginPage> with LoginPageBLoC {
 }
 
 mixin LoginPageBLoC on State<LoginPage> {
-  
+  final languageController = Get.find<LanguageController>();
+
   // Fluwx实例
   final Fluwx _fluwx = Fluwx();
   
@@ -585,7 +589,7 @@ mixin LoginPageBLoC on State<LoginPage> {
       // TODO: 发布华为版注释下面两行
 
       final config = Get.find<IConfig>();
-      if(!config.isHuawei){
+      if(languageController.isChinese() && !config.isHuawei){
         openSmartDialog();
       }
     }
@@ -593,7 +597,7 @@ mixin LoginPageBLoC on State<LoginPage> {
 
   // Apple登录
   void onAppleLogin() async {
-    if (!isAgreePrivacyAgreement) {
+    if (languageController.isChinese() && !isAgreePrivacyAgreement) {
       openSmartDialog();
       BotToast.showText(
         textStyle: TextStyle(color: UiColour.neutral_11),
@@ -791,7 +795,7 @@ mixin LoginPageBLoC on State<LoginPage> {
   void onWechatLogin() async {
     try {
 
-      if (!isAgreePrivacyAgreement) {
+      if (languageController.isChinese() && !isAgreePrivacyAgreement) {
         openSmartDialog();
         BotToast.showText(
           textStyle: TextStyle(color: UiColour.neutral_11),
@@ -828,7 +832,7 @@ mixin LoginPageBLoC on State<LoginPage> {
   // 手机号登录
   void onPhoneLogin() {
 
-    if (!isAgreePrivacyAgreement) {
+    if (languageController.isChinese() && !isAgreePrivacyAgreement) {
       openSmartDialog();
       BotToast.showText(
         textStyle: TextStyle(color: UiColour.neutral_11),
