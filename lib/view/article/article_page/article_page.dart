@@ -303,16 +303,12 @@ mixin ArticlePageBLoC on State<ArticlePage> {
     final article = articleController.currentArticle!;
 
     // 根据isGenerateMarkdown决定是否显示图文tab
-    if (article.isGenerateMarkdown) {
+    if (article.content != null && article.content!.isNotEmpty) {
       tabs.insert(0, 'i18n_article_图文'.tr);
     }
     if (article.url != "") {
       tabs.add('i18n_article_网页'.tr);
     }
-    // 根据isGenerateMhtml决定是否显示快照tab
-    // if (article.isGenerateMhtml) {
-    //
-    // }
     tabs.add('i18n_article_快照'.tr);
     
     // 先初始化tabWidget，再更新TabController

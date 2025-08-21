@@ -30,6 +30,7 @@ class ArticleModel {
   final int updateTimestamp;
   final String uuid;
   final String description;
+  final bool isGenerateMarkdown;
   final List<String> tagUuids;
   final List<String> categoryUuids;
 
@@ -65,6 +66,7 @@ class ArticleModel {
     required this.updateTimestamp,
     required this.uuid,
     required this.description,
+    required this.isGenerateMarkdown,
     required this.tagUuids,
     required this.categoryUuids,
   });
@@ -102,6 +104,7 @@ class ArticleModel {
       updateTimestamp: json['update_timestamp'] as int? ?? 0,
       uuid: json['uuid'] as String? ?? "",
       description: json['description'] as String? ?? "",
+      isGenerateMarkdown: json['is_generate_markdown'] as bool? ?? false,
       tagUuids: json['tag_uuids'] == null ? [] : List<String>.from(json["tag_uuids"].map((x) => x)),
       categoryUuids: json['category_uuids'] == null ? [] : List<String>.from(json["category_uuids"].map((x) => x)),
     );
@@ -175,6 +178,7 @@ class ArticleModel {
     int? updateTimestamp,
     String? uuid,
     String? description,
+    bool? isGenerateMarkdown,
 
     List<String>? tagUuids,
     List<String>? categoryUuids,
@@ -211,6 +215,7 @@ class ArticleModel {
       updateTimestamp: updateTimestamp ?? this.updateTimestamp,
       uuid: uuid ?? this.uuid,
       description: description ?? this.description,
+      isGenerateMarkdown: isGenerateMarkdown ?? this.isGenerateMarkdown,
       tagUuids: tagUuids ?? this.tagUuids,
       categoryUuids: categoryUuids ?? this.categoryUuids,
     );

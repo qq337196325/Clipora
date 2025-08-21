@@ -20,8 +20,7 @@ ArticleDb createArticleFromModel(ArticleModel model) {
     ..articleDate = parseDateTime(model.articleDate)
     ..url = model.url
     ..shareOriginalContent = model.shareOriginalContent
-  // ..mhtmlPath = ""//model.mhtmlPath
-  // ..isGenerateMhtml = false//model.mhtmlPath.isNotEmpty
+    ..isGenerateMarkdown = model.isGenerateMarkdown
     ..markdownStatus = model.markdownStatus
     ..isRead = model.isRead
     ..readCount = model.readCount
@@ -50,8 +49,7 @@ void updateArticleFromModel(ArticleDb article, ArticleModel model) {
   article.articleDate = parseDateTime(model.articleDate);
   article.url = model.url;
   article.shareOriginalContent = model.shareOriginalContent;
-  // article.mhtmlPath = "";//model.mhtmlPath;
-  // article.isGenerateMhtml = false;//model.mhtmlPath.isNotEmpty;
+  article.isGenerateMarkdown = model.isGenerateMarkdown;
   article.markdownStatus = model.markdownStatus;
   article.isRead = model.isRead;
   article.readCount = model.readCount;
@@ -65,16 +63,3 @@ void updateArticleFromModel(ArticleDb article, ArticleModel model) {
   article.updateTimestamp = model.updateTimestamp;
   article.updatedAt = parseDateTime(model.updateTime) ?? DateTime.now();
 }
-
-
-// /// 截取文本到指定长度
-// String _truncateText(String text, int maxLength) {
-//   if (text.length <= maxLength) {
-//     return text;
-//   }
-//   return '${text.substring(0, maxLength)}...';
-// }
-
-
-
-

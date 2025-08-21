@@ -227,6 +227,8 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   @override
   void initState() {
     super.initState();
+
+
     // initEnhancedLogic();
   }
 
@@ -280,6 +282,55 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   }
 
 
+  /// 预处理 Markdown 文本中的本地图片/链接路径，将以 cliporaimages/ 开头的相对路径补全为 file:// 完整路径
+  /// 使用当前文章的 localMhtmlPath 作为根目录
+  String _prepareMarkdownLocalImages(String content) {
+    if (content.isEmpty || !content.contains('cliporaimages/')) {
+      return content;
+    }
+    final localPath = articleController.currentArticle?.localMhtmlPath ?? '';
+    if (localPath.isEmpty) {
+      return content;
+    }
+    // 构造 file:// 前缀，并确保以 "/" 结尾
+    var basePrefix = Uri.file(localPath).toString();
+    if (!basePrefix.endsWith('/')) basePrefix = '$basePrefix/';
+
+    var result = content;
+
+    // Markdown/普通链接中的 (cliporaimages/xxx)
+    result = result.replaceAllMapped(
+      RegExp(r'(\()(\s*)(cliporaimages\/)'),
+      (m) => '${m.group(1)}${m.group(2)}${basePrefix}cliporaimages/',
+    );
+
+    // HTML 属性：src="cliporaimages/..." 或 src='cliporaimages/...'
+    result = result.replaceAllMapped(
+      RegExp(r'(src\s*=\s*")cliporaimages\/'),
+      (m) => '${m.group(1)}${basePrefix}cliporaimages/',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r"(src\s*=\s*')cliporaimages\/"),
+      (m) => '${m.group(1)}${basePrefix}cliporaimages/',
+    );
+
+    // HTML 属性：href="cliporaimages/..." 或 href='cliporaimages/...'
+    result = result.replaceAllMapped(
+      RegExp(r'(href\s*=\s*")cliporaimages\/'),
+      (m) => '${m.group(1)}${basePrefix}cliporaimages/',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r"(href\s*=\s*')cliporaimages\/"),
+      (m) => '${m.group(1)}${basePrefix}cliporaimages/',
+    );
+
+    if (!identical(result, content)) {
+      getLogger().i('🔗 已将相对路径 cliporaimages/ 补全为本地 file:// 路径（前缀: ' + basePrefix + ')');
+    }
+
+    return result;
+  }
+
   /// 设置Markdown内容的顶部内边距
   /// [padding] - The padding value in pixels.
   Future<void> setMarkdownPaddingTop(double padding) async {
@@ -302,10 +353,13 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     try {
       getLogger().i('🎨 开始渲染Markdown内容 (长度: ${markdownContent.length})...');
 
+      // 在渲染前预处理相对图片/链接路径
+      final preparedContent = _prepareMarkdownLocalImages(markdownContent);
+
       // 使用简单的Markdown渲染器
       final success = await SimpleMarkdownRenderer.renderMarkdown(
         webViewController!,
-        markdownContent,
+        preparedContent,
       );
 
       if (success) {
@@ -1488,7 +1542,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
         getLogger().i('✅ 为高亮添加笔记成功: $highlightId');
       } else {
         BotToast.showText(text: 'i18n_article_笔记添加失败'.tr);
-        // 回滚数据库操作
+        // 回滚数据库更改
         annotation.annotationType = AnnotationType.highlight;
         annotation.noteContent = '';
         await EnhancedAnnotationService.instance.updateAnnotation(annotation);
@@ -1559,10 +1613,22 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   // === 从底部弹窗处理删除 ===
   void _handleDeleteFromBottomSheet(String highlightId, String content) async {
     try {
-      // 第一步：显示加载状态
+      // 第一步：显示确认对话框
+      final shouldDelete = await showDeleteHighlightDialog(
+        context: context,
+        highlightContent: content,
+        highlightId: highlightId,
+      );
+
+      if (shouldDelete != true) {
+        getLogger().d('❌ 用户取消删除操作');
+        return;
+      }
+
+      // 第二步：显示加载状态
       BotToast.showText(text: 'i18n_article_正在删除标注'.tr);
 
-      // 第二步：从DOM中删除标注元素
+      // 第三步：从DOM中删除标注元素
       final domDeleteSuccess = await basicScriptsLogic.removeHighlight(highlightId);
 
       if (!domDeleteSuccess) {
@@ -1571,11 +1637,11 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
         return;
       }
 
-      // 第三步：从数据库中删除记录
+      // 第四步：从数据库中删除记录
       getLogger().d('🔄 从数据库中删除标注记录...');
       await EnhancedAnnotationService.instance.deleteAnnotationByHighlightId(highlightId);
 
-      // 第四步：用户反馈
+      // 第五步：用户反馈
       BotToast.showText(text: 'i18n_article_标注已删除'.tr);
       getLogger().i('🎉 从底部弹窗删除标注完成: $highlightId');
 
