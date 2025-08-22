@@ -13,13 +13,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:bot_toast/bot_toast.dart';
 import 'package:clipora/view/article/article_markdown/utils/basic_scripts_logic.dart';
 import 'package:clipora/view/article/article_markdown/utils/simple_markdown_renderer.dart';
+import 'package:clipora/view/article/article_markdown/utils/markdown_preprocessor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter/rendering.dart';
@@ -39,7 +38,7 @@ import 'components/enhanced_selection_menu.dart';
 import 'components/highlight_action_menu.dart';
 import 'components/note_detail_bottom_sheet.dart';
 import 'utils/simple_html_template.dart';
-
+import 'utils/webview_injection_manager.dart';
 
 class ArticleMarkdownWidget extends StatefulWidget {
   final String? url;
@@ -71,6 +70,12 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Artic
       backgroundColor: Colors.transparent, // 确保WebView背景透明
       body: _buildOptimizedWebView(),
     );
+  }
+  
+  @override
+  void dispose() {
+    _injectionManager?.cleanup();
+    super.dispose();
   }
 
   Widget _buildOptimizedWebView() {
@@ -108,16 +113,15 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Artic
 
         webViewController = controller;
         articleController.markdownController = controller;
-        // 注入主题色，保证加载前背景色一致
+        // 注入主题色，保证加载前背景色一致（使用注入管理器）
         final config = articleController.currentThemeConfig;
         final bgColor = '#${config.backgroundColor.value.toRadixString(16).padLeft(8, '0').substring(2)}';
         final textColor = '#${config.textColor.value.toRadixString(16).padLeft(8, '0').substring(2)}';
-        controller.evaluateJavascript(source: '''
-          document.documentElement.style.setProperty('--background-color', '$bgColor');
-          document.documentElement.style.setProperty('--text-color', '$textColor');
-          document.body.style.backgroundColor = '$bgColor';
-          document.body.style.color = '$textColor';
-        ''');
+        _injectionManager = WebViewInjectionManager(controller);
+        _injectionManager!.injectThemeColors(
+          backgroundColor: bgColor,
+          textColor: textColor,
+        );
       },
       onLoadStart: (controller, url) {
         getLogger().d('🚀 WebView开始加载: $url');
@@ -126,21 +130,15 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Artic
         getLogger().d('🚀 WebView开始加载11111111111111: $url');
         try {
           getLogger().d('🚀 WebView开始加载11111111111111: $url');
-          _setupEnhancedTextSelectionHandlers();
-
-
-          // // 注入基础脚本
-          basicScriptsLogic = BasicScriptsLogic(webViewController!);
-          await basicScriptsLogic.injectBasicScripts(webViewController!);
-
-          // 注入Range标注引擎（包含完整的文本选择监听逻辑）
-          final injectionSuccess = await basicScriptsLogic.injectRangeAnnotationScript();
-          getLogger().d('🔥 Range引擎注入结果: $injectionSuccess');
-
-          await _injectHighlightClickListener();
-
-          // 注入页面点击监听器
-          await _injectPageClickListener();
+          // 统一注册所有JS处理器与DOM监听器 + 注入核心脚本
+          basicScriptsLogic = BasicScriptsLogic(webViewController!); // 保留实例用于后续高亮等操作
+          final injectionSuccess = await _injectionManager?.initializeAll(
+            onEnhancedTextSelected: handleEnhancedTextSelected,
+            onSelectionCleared: handleEnhancedSelectionCleared,
+            onHighlightClicked: handleHighlightClicked,
+            onPageClicked: _handlePageClick,
+          ) ?? false;
+          getLogger().d('🔥 核心脚本注入结果: $injectionSuccess');
 
           await _renderMarkdownContent(); // 渲染文档
 
@@ -212,6 +210,9 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
   // ArticleDb? get article => widget.article;
   InAppWebViewController? webViewController;
   late BasicScriptsLogic basicScriptsLogic;
+
+  // === WebView注入管理器 ===
+  WebViewInjectionManager? _injectionManager;
 
   // @override
   EdgeInsetsGeometry get contentPadding => widget.contentPadding;
@@ -292,43 +293,8 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     if (localPath.isEmpty) {
       return content;
     }
-    // 构造 file:// 前缀，并确保以 "/" 结尾
-    var basePrefix = Uri.file(localPath).toString();
-    if (!basePrefix.endsWith('/')) basePrefix = '$basePrefix/';
-
-    var result = content;
-
-    // Markdown/普通链接中的 (cliporaimages/xxx)
-    result = result.replaceAllMapped(
-      RegExp(r'(\()(\s*)(cliporaimages\/)'),
-      (m) => '${m.group(1)}${m.group(2)}${basePrefix}cliporaimages/',
-    );
-
-    // HTML 属性：src="cliporaimages/..." 或 src='cliporaimages/...'
-    result = result.replaceAllMapped(
-      RegExp(r'(src\s*=\s*")cliporaimages\/'),
-      (m) => '${m.group(1)}${basePrefix}cliporaimages/',
-    );
-    result = result.replaceAllMapped(
-      RegExp(r"(src\s*=\s*')cliporaimages\/"),
-      (m) => '${m.group(1)}${basePrefix}cliporaimages/',
-    );
-
-    // HTML 属性：href="cliporaimages/..." 或 href='cliporaimages/...'
-    result = result.replaceAllMapped(
-      RegExp(r'(href\s*=\s*")cliporaimages\/'),
-      (m) => '${m.group(1)}${basePrefix}cliporaimages/',
-    );
-    result = result.replaceAllMapped(
-      RegExp(r"(href\s*=\s*')cliporaimages\/"),
-      (m) => '${m.group(1)}${basePrefix}cliporaimages/',
-    );
-
-    if (!identical(result, content)) {
-      getLogger().i('🔗 已将相对路径 cliporaimages/ 补全为本地 file:// 路径（前缀: ' + basePrefix + ')');
-    }
-
-    return result;
+    // 使用工具类统一处理，减少重复正则构建开销
+    return MarkdownPreprocessor.prepareCliporaLocalAssets(content, localPath);
   }
 
   /// 设置Markdown内容的顶部内边距
@@ -578,44 +544,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
       //     isVisuallyRestoring = false;
       //   });
       // }
-    }
-  }
-
-
-  // === 增强文本选择处理 ===
-  void _setupEnhancedTextSelectionHandlers() {
-    try {
-      getLogger().d('🔥 开始注册增强文本选择回调处理器...');
-
-      webViewController!.addJavaScriptHandler(
-        handlerName: 'onEnhancedTextSelected',
-        callback: handleEnhancedTextSelected,
-      );
-      getLogger().d('🔥 已注册: onEnhancedTextSelected');
-
-      webViewController!.addJavaScriptHandler(
-        handlerName: 'onEnhancedSelectionCleared',
-        callback: handleEnhancedSelectionCleared,
-      );
-      getLogger().d('🔥 已注册: onEnhancedSelectionCleared');
-
-      // 注册页面点击回调
-      webViewController!.addJavaScriptHandler(
-        handlerName: 'onPageClicked',
-        callback: _handlePageClick,
-      );
-
-      // === 第一步：添加标注点击监听Handler ===
-      webViewController!.addJavaScriptHandler(
-        handlerName: 'onHighlightClicked',
-        callback: handleHighlightClicked,
-      );
-
-      // 验证JavaScript桥接
-      _verifyJavaScriptBridge();
-
-    } catch (e) {
-      getLogger().e('❌ 注册增强文本选择回调处理器失败: $e');
     }
   }
 
@@ -957,48 +885,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     }
   }
 
-  // 验证JavaScript桥接
-  Future<void> _verifyJavaScriptBridge() async {
-    try {
-      getLogger().d('🔄 验证JavaScript桥接...');
-
-      // 检查flutter_inappwebview桥接是否可用
-      final bridgeAvailable = await webViewController!.evaluateJavascript(source: '''
-        (function() {
-          const available = typeof window.flutter_inappwebview !== 'undefined' && 
-                           typeof window.flutter_inappwebview.callHandler === 'function';
-          console.log('🔍 Flutter桥接可用性:', available);
-          return available;
-        })();
-      ''');
-
-      getLogger().d('🔍 Flutter桥接可用: $bridgeAvailable');
-
-      // 测试一个简单的Handler调用
-      webViewController!.addJavaScriptHandler(
-        handlerName: 'testHandler',
-        callback: (args) {
-          getLogger().d('✅ 测试Handler被成功调用: $args');
-        },
-      );
-
-      // 从JavaScript端调用测试Handler
-      await webViewController!.evaluateJavascript(source: '''
-        (function() {
-          console.log('🧪 测试调用Flutter Handler...');
-          if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-            window.flutter_inappwebview.callHandler('testHandler', 'bridge_test_successful');
-          } else {
-            console.error('❌ Flutter桥接不可用');
-          }
-        })();
-      ''');
-
-    } catch (e) {
-      getLogger().e('❌ 验证JavaScript桥接失败: $e');
-    }
-  }
-
 
 
   // === 页面点击处理 ===
@@ -1007,59 +893,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     getLogger().d('🎯 Markdown页面被点击');
     if (widget.onTap != null) {
       widget.onTap!();
-    }
-  }
-
-  /// 注入页面点击监听器
-  Future<void> _injectPageClickListener() async {
-    try {
-      getLogger().d('🔄 开始注入页面点击监听器...');
-      
-      await webViewController!.evaluateJavascript(source: '''
-        (function() {
-          // 防止重复注册
-          if (window.pageClickListenerInstalled) {
-            console.log('⚠️ 页面点击监听器已存在，跳过重复注册');
-            return;
-          }
-          
-          // 添加全局点击事件监听器
-          document.addEventListener('click', function(e) {
-            try {
-              // 检查点击的是否为标注元素
-              const highlightElement = e.target.closest('[data-highlight-id]');
-              
-              if (!highlightElement) {
-                // 不是标注元素，触发页面点击事件
-                console.log('🎯 检测到页面点击');
-                
-                // 调用Flutter Handler
-                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                  window.flutter_inappwebview.callHandler('onPageClicked', {
-                    timestamp: Date.now(),
-                    target: e.target.tagName
-                  });
-                  console.log('✅ 页面点击数据已发送到Flutter');
-                } else {
-                  console.error('❌ Flutter桥接不可用，无法发送页面点击数据');
-                }
-              }
-            } catch (error) {
-              console.error('❌ 处理页面点击异常:', error);
-            }
-          }, false);
-          
-          // 标记监听器已安装
-          window.pageClickListenerInstalled = true;
-          console.log('✅ 页面点击监听器安装完成');
-          
-        })();
-      ''');
-
-      getLogger().i('✅ 页面点击监听脚本注入成功');
-
-    } catch (e) {
-      getLogger().e('❌ 注入页面点击监听脚本失败: $e');
     }
   }
 
@@ -1094,95 +927,6 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     }
   }
 
-
-  // === 第一步：注入标注点击监听脚本 ===
-  Future<void> _injectHighlightClickListener() async {
-    try {
-      // 使用事件委托监听所有标注元素的点击
-      await webViewController!.evaluateJavascript(source: '''
-        (function() {
-          // 防止重复注册
-          if (window.highlightClickListenerInstalled) {
-            console.log('⚠️ 标注点击监听器已存在，跳过重复注册');
-            return;
-          }
-          
-          // 添加全局点击事件监听器（事件委托方式）
-          document.addEventListener('click', function(e) {
-            try {
-              // 查找点击的是否为标注元素或其子元素
-              const highlightElement = e.target.closest('[data-highlight-id]');
-              
-              if (highlightElement) {
-                // 阻止默认行为和事件冒泡
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('🎯 检测到标注点击:', highlightElement);
-                
-                // 提取标注信息
-                const highlightId = highlightElement.dataset.highlightId;
-                const content = highlightElement.textContent || '';
-                const highlightType = highlightElement.dataset.type || 'highlight';
-                const colorClass = highlightElement.className || '';
-                
-                // 获取元素位置信息
-                const rect = highlightElement.getBoundingClientRect();
-                const position = {
-                  x: rect.x,
-                  y: rect.y,
-                  centerX: rect.x + rect.width / 2,
-                  centerY: rect.y + rect.height / 2
-                };
-                
-                const boundingRect = {
-                  x: rect.x,
-                  y: rect.y,
-                  width: rect.width,
-                  height: rect.height,
-                  top: rect.top,
-                  left: rect.left,
-                  bottom: rect.bottom,
-                  right: rect.right
-                };
-                
-                // 构造传递给Flutter的数据
-                const clickData = {
-                  highlightId: highlightId,
-                  content: content,
-                  type: highlightType,
-                  colorClass: colorClass,
-                  position: position,
-                  boundingRect: boundingRect,
-                  elementTag: highlightElement.tagName,
-                  timestamp: Date.now()
-                };
-                
-                console.log('📦 准备发送标注点击数据:', clickData);
-                
-                // 调用Flutter Handler
-                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                  window.flutter_inappwebview.callHandler('onHighlightClicked', clickData);
-                  console.log('✅ 标注点击数据已发送到Flutter');
-                } else {
-                  console.error('❌ Flutter桥接不可用，无法发送标注点击数据');
-                }
-              }
-            } catch (error) {
-              console.error('❌ 处理标注点击异常:', error);
-            }
-          }, true); // 使用capture阶段，确保能优先处理
-          
-          // 标记监听器已安装
-          window.highlightClickListenerInstalled = true;
-          console.log('✅ 标注点击监听器安装完成');
-          
-        })();
-      ''');
-    } catch (e) {
-      getLogger().e('❌ 注入标注点击监听脚本失败: $e');
-    }
-  }
 
 
   // === 第一步：标注点击处理方法 ===
@@ -1730,18 +1474,7 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
   /// 清理复制内容
   String _cleanCopyContent(String content) {
-    if (content.isEmpty) return '';
-
-    // 移除HTML标签（如果有）
-    String cleaned = content.replaceAll(RegExp(r'<[^>]*>'), '');
-
-    // 规范化空白字符
-    cleaned = cleaned
-        .replaceAll(RegExp(r'\s+'), ' ')  // 多个空白字符替换为单个空格
-        .replaceAll(RegExp(r'\n\s*\n'), '\n\n')  // 保留段落分隔但去除多余空行
-        .trim();  // 去除首尾空白
-
-    return cleaned;
+    return MarkdownPreprocessor.cleanTextForCopy(content);
   }
 
   Future<void> _handleDeleteHighlight(String highlightId, String content) async {
