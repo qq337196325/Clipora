@@ -23,6 +23,7 @@ import 'dart:async';
 import 'package:get/get.dart';
 
 import '../../basics/logger.dart';
+import 'article_web/utils/web_utils.dart';
 import 'controller/article_controller.dart';
 
 class ArticleMhtmlWidget extends StatefulWidget {
@@ -161,12 +162,8 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget>
           if (!hasError)
             Expanded(
               child: InAppWebView(
-                // initialUrlRequest: URLRequest(url: WebUri(mhtmlFileUrl)),
-                // initialUrlRequest: URLRequest(url: WebUri(mhtmlFileUrl)),
-                // initialFile: "${articleController.currentArticle!.localMhtmlPath}/index.html",
                 // 尝试多种加载方式
                 initialUrlRequest: _getInitialUrlRequest(),
-                // initialSettings: WebViewSettings.getWebViewSettings(),
                 onWebViewCreated: (controller) {
                   webViewController = controller;
                   
@@ -197,7 +194,7 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget>
                   // await _injectPageClickListener();
                   //
                   // // 页面加载完成后进行优化设置
-                  // finalizeWebPageOptimization(url,webViewController);
+                  finalizeWebPageOptimization(url,webViewController);
                   //
                   // // 注入内边距
                   // final padding = widget.contentPadding.resolve(Directionality.of(context));
@@ -220,36 +217,6 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget>
                   getLogger().e('错误类型: ${error.type}');
                   // getLogger().e('错误代码: ${error.code}');
                   return;
-                  
-                  // 添加详细的文件检查信息
-                  final localMhtmlPath = articleController.currentArticle?.localMhtmlPath;
-                  if (localMhtmlPath != null) {
-                    final htmlPath = '$localMhtmlPath/index.html';
-                    final htmlFile = File(htmlPath);
-                    getLogger().e('HTML文件路径: $htmlPath');
-                    getLogger().e('HTML文件存在: ${htmlFile.existsSync()}');
-                    
-                    final dir = Directory(localMhtmlPath);
-                    if (dir.existsSync()) {
-                      getLogger().e('目录内容:');
-                      try {
-                        dir.listSync().forEach((entity) {
-                          getLogger().e('  ${entity.path}');
-                        });
-                      } catch (e) {
-                        getLogger().e('无法列出目录内容: $e');
-                      }
-                    }
-                  }
-
-                  setState(() {
-                    isLoading = false;
-                    hasError = true;
-                    errorMessage = 'i18n_article_加载错误文件路径'.trParams({
-                      'description': error.description ?? '',
-                      'path': request.url?.toString() ?? widget.mhtmlPath
-                    });
-                  });
                 },
                 onReceivedHttpError: (controller, request, errorResponse) {
                   getLogger().e('MHTML HTTP错误',

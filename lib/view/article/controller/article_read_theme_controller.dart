@@ -43,7 +43,7 @@ class ArticleReadThemeController extends ArticleMarkdownController  {
   final RxDouble _lineHeight = 1.6.obs;
   double get lineHeight => _lineHeight.value;
   
-  final RxDouble _letterSpacing = 2.0.obs;
+  final RxDouble _letterSpacing = (-0.3).obs;
   double get letterSpacing => _letterSpacing.value;
   
   final RxDouble _paragraphSpacing = 4.0.obs;

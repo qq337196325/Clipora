@@ -190,10 +190,6 @@ class ArticleMarkdownWidgetState extends State<ArticleMarkdownWidget> with Artic
     );
   }
 
-
-
-
-
 }
 
 
@@ -297,6 +293,40 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
     return MarkdownPreprocessor.prepareCliporaLocalAssets(content, localPath);
   }
 
+  /// 为 Markdown 内容添加标题、域名和作者信息
+  String _addHeaderToMarkdown(String content) {
+    final article = widget.article;
+    if (article == null) {
+      return content;
+    }
+
+    final StringBuffer header = StringBuffer();
+    
+    // 添加文章标题
+    if (article.title.isNotEmpty) {
+      header.writeln('# ${article.title}');
+      header.writeln();
+    }
+    
+    // 添加域名和作者信息
+    final List<String> metaInfo = [];
+    if (article.domain.isNotEmpty) {
+      metaInfo.add(article.domain);
+    }
+    if (article.author.isNotEmpty) {
+      metaInfo.add(article.author);
+    }
+    
+    if (metaInfo.isNotEmpty) {
+      header.writeln(metaInfo.join(' | '));
+      // header.writeln();
+      header.writeln('---');
+      header.writeln();
+    }
+    
+    return header.toString() + content;
+  }
+
   /// 设置Markdown内容的顶部内边距
   /// [padding] - The padding value in pixels.
   Future<void> setMarkdownPaddingTop(double padding) async {
@@ -321,11 +351,14 @@ mixin ArticleMarkdownWidgetBLoC on State<ArticleMarkdownWidget> {
 
       // 在渲染前预处理相对图片/链接路径
       final preparedContent = _prepareMarkdownLocalImages(markdownContent);
+      
+      // 添加标题、域名和作者信息
+      final contentWithHeader = _addHeaderToMarkdown(preparedContent);
 
       // 使用简单的Markdown渲染器
       final success = await SimpleMarkdownRenderer.renderMarkdown(
         webViewController!,
-        preparedContent,
+        contentWithHeader,
       );
 
       if (success) {
