@@ -17,17 +17,15 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:get/get.dart';
 
 import '../../../route/route_name.dart';
-import '../../basics/logger.dart';
+import '../../basics/utils/user_utils.dart';
 import '../../db/article/service/article_service.dart';
-import '../../db/tag/tag_service.dart';
 import '../../db/article/article_db.dart';
-import 'components/auto_parse_tip_widget.dart'; // 添加导入
+import '../article_list/widgets/sort_bottom_sheet.dart';
+import '../article_list/models/sort_option.dart';
 
 
 class IndexWidget extends StatefulWidget {
@@ -37,14 +35,11 @@ class IndexWidget extends StatefulWidget {
   State<IndexWidget> createState() => _GroupPageState();
 }
 
-class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC {
 
-  @override
-  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // 调用AutomaticKeepAliveClientMixin的build方法
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -57,473 +52,281 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC, TickerPro
         ),
       ),
       child: RefreshIndicator(
-        onRefresh: _loadArticles,
+        onRefresh: _refreshArticles,
         color: Theme.of(context).primaryColor,
         backgroundColor: Theme.of(context).cardColor,
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          children: [
-            const SizedBox(height: 8),
-            _buildUnreadSection(),
-            _buildRecentlyReadSection(),
-            _buildTagsSection(),
-            const SizedBox(height: 40),
-          ],
+        child: _buildContent(),
+      ),
+    );
+  }
+
+  /// 构建页面内容
+  Widget _buildContent() {
+    if (isLoading && articles.isEmpty) {
+      // 首次加载显示加载动画
+      return Center(
+        child: LoadingAnimationWidget.threeArchedCircle(
+          color: Theme.of(context).primaryColor,
+          size: 50,
+        ),
+      );
+    }
+
+    if (hasError && articles.isEmpty) {
+      // 加载失败显示错误信息
+      return ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          const SizedBox(height: 100),
+          Center(
+            child: Column(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '加载失败',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  errorMessage,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadArticles,
+                  child: const Text('重试'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // 显示文章列表
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: articles.length + 1, // +1 for header
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          // 页面头部
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              // 排序按钮
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '我的文章',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: _showSortBottomSheet,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.sort_rounded,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '排序',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          );
+        }
+
+        final article = articles[index - 1];
+        return _buildArticleItem(article);
+      },
+    );
+  }
+
+  /// 构建文章项
+  Widget _buildArticleItem(ArticleDb article) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () {
+          context.push('/${RouteName.articlePage}?id=${article.id}');
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 文章标题
+              Text(
+                article.title ?? '无标题',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              // 文章摘要
+              if (article.excerpt?.isNotEmpty == true)
+                Text(
+                  article.excerpt!,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              const SizedBox(height: 12),
+              // 文章信息
+              Row(
+                children: [
+                  
+                  // 域名信息
+                  if (article.domain.isNotEmpty) ...[
+                    // 网站图标
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: Image.network(
+                        getFavicon(article.domain), //'https://cn.cravatar.com/favicon/api/index.php?url=${article.domain}',
+                        width: 14,
+                        height: 14,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.language,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // 域名文本
+                    Text(
+                      article.domain,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                      ),
+                    ),
+                  ],
+                  const Spacer(),
+
+                  // 创建时间
+                  Icon(
+                    Icons.access_time,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _formatDate(article.createdAt),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    ),
+                  ), 
+                  // 收藏状态
+                  if (article.isImportant == true)
+                    Icon(
+                      Icons.bookmark,
+                      size: 16,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-
-  /// 构建最近阅读文章区域
-  Widget _buildRecentlyReadSection() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.only(top: 8, bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.tertiary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.history_rounded,
-                  size: 20,
-                  color: colorScheme.tertiary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'i18n_home_最近阅读'.tr,
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.only(left: 16,right: 16),
-            child: recentlyReadArticles.isEmpty
-                ?  Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32.0),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.history_rounded,
-                      size: 32,
-                      color: theme.disabledColor,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'i18n_home_暂无最近阅读记录'.tr,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.textTheme.bodySmall?.color,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-                : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: recentlyReadArticles.expand((article) {
-                final index = recentlyReadArticles.indexOf(article);
-                return [
-                  if (index > 0)
-                    Container(
-                      // margin: const EdgeInsets.symmetric(vertical: 14),
-                      height: 1,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.transparent,
-                            theme.dividerColor.withOpacity(0.5),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () async {
-                        final routeStatus = await context.push('/${RouteName.articlePage}?id=${article.id}');
-                        if(routeStatus == true) {
-                          _loadArticles();
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      splashColor: colorScheme.tertiary.withOpacity(0.1),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: colorScheme.tertiary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                article.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 14,
-                              color: theme.disabledColor,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ];
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 构建标签区域
-  Widget _buildTagsSection() {
-    if (tagsWithCount.isEmpty) {
-      return const SizedBox.shrink();
+  /// 格式化日期
+  String _formatDate(DateTime? dateTime) {
+    if (dateTime == null) return '';
+    
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays}天前';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}小时前';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}分钟前';
+    } else {
+      return '刚刚';
     }
+  }
 
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.only(top: 8, bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.local_offer_rounded,
-                  size: 20,
-                  color: colorScheme.secondary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'i18n_home_我的标签'.tr,
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 10.0,
-            runSpacing: 10.0,
-            children: tagsWithCount.map((tagWithCount) {
-              return Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    // 跳转到标签文章列表页面
-                    context.push('/${RouteName.articleList}?type=tag&title=${Uri.encodeComponent('i18n_home_标签'.tr + tagWithCount.tag.name)}&tagId=${tagWithCount.tag.id}&tagName=${Uri.encodeComponent(tagWithCount.tag.name)}');
-                  },
-                  borderRadius: BorderRadius.circular(20),
-                  splashColor: colorScheme.secondary.withOpacity(0.2),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          colorScheme.secondary.withOpacity(0.1),
-                          colorScheme.secondary.withOpacity(0.05),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: colorScheme.secondary.withOpacity(0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.tag_rounded,
-                          size: 14,
-                          color: colorScheme.secondary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          tagWithCount.tag.name,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: colorScheme.secondary,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            '${tagWithCount.count}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSecondary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
+  /// 显示排序底部弹窗
+  void _showSortBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SortBottomSheet(
+        currentSort: currentSort,
+        onSortChanged: _onSortChanged,
       ),
     );
   }
 
-  /// 构建未读文章区域
-  Widget _buildUnreadSection() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.only(top: 16, bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () {
-              context.push('/${RouteName.articleList}?type=read-later&title=${'i18n_home_稍后阅读'.tr}');
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.bookmark_rounded,
-                      size: 20,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'i18n_home_稍后阅读'.tr,
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                  const Spacer(),
-                  if (unreadArticlesCount > 0)
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: Container(
-                        key: ValueKey(unreadArticlesCount),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'i18n_home_共count篇'.trParams({'count': unreadArticlesCount.toString()}),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // 添加自动解析提示组件
-          const AutoParseTipWidget(),
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.only(left: 16,right: 16),
-            child: unreadArticles.isEmpty
-                ? Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.bookmark_outline_rounded,
-                      size: 32,
-                      color: theme.disabledColor,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'i18n_home_暂无需要稍后阅读的文章'.tr,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.textTheme.bodySmall?.color,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-                : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: unreadArticles.expand((article) {
-                final index = unreadArticles.indexOf(article);
-                return [
-                  if (index > 0)
-                    Container(
-                      height: 1,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.transparent,
-                            theme.dividerColor.withOpacity(0.5),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  InkWell(
-                    onTap: article.markdownStatus == 3 ? null : () async {
-                      final routeStatus = await context.push('/${RouteName.articlePage}?id=${article.id}');
-                      if(routeStatus == true) {
-                        _loadArticles();
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    splashColor: colorScheme.primary.withOpacity(0.1),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 4,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: article.markdownStatus == 3
-                                  ? colorScheme.secondary // 正在生成时使用橙色
-                                  : colorScheme.primary, // 正常状态使用蓝色
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              article.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: article.markdownStatus == 3
-                                    ? theme.disabledColor // 正在生成时使用灰色
-                                    : theme.textTheme.bodyLarge?.color, // 正常状态使用黑色
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // 根据文章状态显示不同的图标
-                          article.markdownStatus == 3
-                              ? LoadingAnimationWidget.staggeredDotsWave(
-                                  color: colorScheme.secondary,
-                                  size: 16,
-                                )
-                              : Icon(
-                                  Icons.arrow_forward_ios_rounded,
-                                  size: 14,
-                                  color: theme.disabledColor,
-                                ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ];
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
+  /// 处理排序变化
+  void _onSortChanged(SortOption newSort) {
+    setState(() {
+      currentSort = newSort;
+    });
+    Navigator.of(context).pop();
+    _applySorting();
   }
+
+
+
 
 
 
 }
 
 mixin IndexWidgetBLoC on State<IndexWidget> {
-
+  // 文章列表数据
+  List<ArticleDb> articles = [];
   bool isLoading = false;
   bool hasError = false;
   String errorMessage = '';
-
-  // 文章列表相关变量
-  List<ArticleDb> articles = [];
-  List<ArticleDb> unreadArticles = [];
-  List<ArticleDb> recentlyReadArticles = [];
-  List<TagWithCount> tagsWithCount = [];
-  int unreadArticlesCount = 0; // 未读文章总数量
-
-  // 数据缓存时间戳，用于智能刷新
-  DateTime? _lastLoadTime;
-
-  // 定时器，用于定时刷新文章列表
-  Timer? _refreshTimer;
-
+  
+  // 排序相关
+  SortOption currentSort = const SortOption(type: SortType.createTime, isDescending: true);
 
   @override
   void initState() {
@@ -531,73 +334,86 @@ mixin IndexWidgetBLoC on State<IndexWidget> {
 
     // 确保UI完全初始化后再加载数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 添加额外延迟确保GetX服务完全就绪
       _loadArticles();
-      // Future.delayed(const Duration(milliseconds: 200), () {
-      //   print('🚀 开始加载文章列表 (延迟后)');
-      //
-      // });
-      
-      // 启动定时器，每6秒刷新一次文章列表
-      _startRefreshTimer();
-
-
     });
   }
 
   @override
   void dispose() {
     // 清理定时器
-    _refreshTimer?.cancel();
-    _refreshTimer = null;
     super.dispose();
   }
 
-  /// 启动定时刷新定时器 
-  void _startRefreshTimer() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      _loadArticles();
-    });
-  }
-
-
-
-  /// 获取文章列表
+  /// 加载文章列表数据
   Future<void> _loadArticles() async {
-    if (isLoading) return;
-
-    setState(() {
-      isLoading = true;
-      hasError = false;
-      errorMessage = '';
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = true;
+        hasError = false;
+        errorMessage = '';
+      });
+    }
 
     try {
-      // 执行正常的查询
-      final results = await Future.wait([
-        ArticleService.instance.getUnreadArticles(limit: 5),
-        ArticleService.instance.getRecentlyReadArticles(limit: 5),
-        TagService.instance.getTagsWithArticleCount(),
-        ArticleService.instance.getUnreadArticlesCount(), // 获取未读文章总数量
-      ]);
-      final unreadList = results[0] as List<ArticleDb>;
-      final recentlyReadList = results[1] as List<ArticleDb>;
-      final tagsList = results[2] as List<TagWithCount>;
-      final unreadCount = results[3] as int;
-
-
-      setState(() {
-        unreadArticles = unreadList;
-        recentlyReadArticles = recentlyReadList;
-        tagsWithCount = tagsList;
-        unreadArticlesCount = unreadCount; // 使用真实的未读文章总数量
-        isLoading = false;
-        _lastLoadTime = DateTime.now(); // 更新缓存时间
-      });
-
-    } catch (e, stackTrace) {
-      getLogger().e('❌ 获取文章列表失败: $e   堆栈跟踪: $stackTrace');
+      print('📱 [IndexWidget] 开始获取全部文章数据...');
+      
+      // 获取全部文章，类似 ArticleListType.all 的实现
+      final result = await ArticleService.instance.getArticlesWithPaging(
+        offset: 0,
+        limit: 20, // 首页显示前20篇文章
+        sortBy: 'createTime', // 按创建时间排序 
+        isDescending: true, // 降序排列，最新的在前面
+      );
+      
+      if (mounted) {
+        setState(() {
+          articles = result;
+          isLoading = false;
+        });
+        // 应用当前排序
+        _applySorting();
+      }
+      
+      print('📱 [IndexWidget] 成功获取到 ${result.length} 篇文章');
+      if (result.isNotEmpty) {
+        print('📱 [IndexWidget] 第一篇文章标题: ${result.first.title}');
+      }
+    } catch (e) {
+      print('❌ [IndexWidget] 获取文章数据失败: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          hasError = true;
+          errorMessage = e.toString();
+        });
+      }
     }
   }
 
+  /// 刷新文章列表
+  Future<void> _refreshArticles() async {
+    await _loadArticles();
+  }
+
+
+  /// 应用排序
+  void _applySorting() {
+    setState(() {
+      articles.sort((a, b) {
+        int comparison;
+        switch (currentSort.type) {
+          case SortType.createTime:
+            comparison = (a.createdAt ?? DateTime(0)).compareTo(b.createdAt ?? DateTime(0));
+            break;
+          case SortType.modifyTime:
+            comparison = (a.updatedAt ?? DateTime(0)).compareTo(b.updatedAt ?? DateTime(0));
+            break;
+          case SortType.name:
+            comparison = (a.title ?? '').compareTo(b.title ?? '');
+            break;
+        }
+        return currentSort.isDescending ? -comparison : comparison;
+      });
+    });
+  }
 }

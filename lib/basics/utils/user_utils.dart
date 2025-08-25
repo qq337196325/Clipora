@@ -114,3 +114,8 @@ DateTime? parseDateTime(String? dateTimeStr) {
     return null;
   }
 }
+
+
+getFavicon(String domain){
+  return "https://cn.cravatar.com/favicon/api/index.php?url=" + domain;
+}

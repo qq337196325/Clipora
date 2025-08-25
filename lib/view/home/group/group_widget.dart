@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:get/get.dart';
 
+import '../../../db/tag/tag_service.dart';
 import '../../../route/route_name.dart';
 import '../../../db/category/category_db.dart';
 import '../../../db/category/category_service.dart';
@@ -91,9 +92,14 @@ class _GroupPageState extends State<GroupPage>
                               : _buildCategoriesCard(),
                         ),
                       ),
-                      // SliverToBoxAdapter(
-                      //   child: _buildManageTagsRow(),
-                      // ),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: GroupConstants.pagePadding,
+                          child: _buildTagsSection(),
+                        )
+                      ),
+
+                      // _buildTagsSection()
                     ],
                   ),
                 ),
@@ -275,6 +281,16 @@ class _GroupPageState extends State<GroupPage>
     return Row(
       children: [
         _buildManageTag(
+          icon: Icons.bookmark_border, //bookmark_rounded
+          label: '未分组',
+          onTap: () {
+            context.push('/${RouteName.articleList}?type=read-later&title=${'i18n_home_稍后阅读'.tr}');
+          },
+        ),
+        const SizedBox(width: 8),
+
+
+        _buildManageTag(
           icon: Icons.archive_outlined,
           label: 'i18n_group_归档'.tr,
           onTap: () {
@@ -434,11 +450,16 @@ mixin GroupPageBLoC on State<GroupPage> {
   // 定时刷新相关
   Timer? _refreshTimer;
 
+  List<TagWithCount> tagsWithCount = [];
+
   @override
   void initState() {
     super.initState();
     _loadCategories();
     _startRefreshTimer();
+
+
+
   }
 
   @override
@@ -734,18 +755,13 @@ mixin GroupPageBLoC on State<GroupPage> {
       value.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     });
 
+
+    tagsWithCount = await TagService.instance.getTagsWithArticleCount();
+
     setState(() {
       isLoading = false;
       _lastLoadTime = DateTime.now(); // 更新缓存时间
     });
-  }
-
-  Future<void> _createSampleData() async {
-    final mobile = await _categoryService.createCategory(name: '默认分组', icon: '👋');
-    // await _categoryService.createCategory(name: 'Flutter', icon: '🐦', parentId: mobile.id);
-    // await _categoryService.createCategory(name: 'React Native', icon: '⚛️', parentId: mobile.id, sortOrder: 1);
-    // await _categoryService.createCategory(name: '空军建军节', icon: '📄', sortOrder: 1);
-    // await _categoryService.createCategory(name: '紧急集合', icon: '📄', sortOrder: 2);
   }
 
   void _toggleCategory(int categoryId) {
@@ -902,6 +918,113 @@ mixin GroupPageBLoC on State<GroupPage> {
         onAddSubCategory: () => _showAddSubCategoryDialog(category),
         onEdit: () => _showEditCategoryDialog(category),
         onDelete: () => _showDeleteCategoryDialog(category),
+      ),
+    );
+  }
+
+
+  /// 构建标签区域
+  Widget _buildTagsSection() {
+    if (tagsWithCount.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.only(top: 8, bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.local_offer_rounded,
+                  size: 14,
+                  color: colorScheme.secondary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'i18n_home_我的标签'.tr,
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10.0,
+            runSpacing: 10.0,
+            children: tagsWithCount.map((tagWithCount) {
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    // 跳转到标签文章列表页面
+                    context.push('/${RouteName.articleList}?type=tag&title=${Uri.encodeComponent('i18n_home_标签'.tr + tagWithCount.tag.name)}&tagId=${tagWithCount.tag.id}&tagName=${Uri.encodeComponent(tagWithCount.tag.name)}');
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: colorScheme.secondary.withOpacity(0.2),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.secondary.withOpacity(0.1),
+                          colorScheme.secondary.withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: colorScheme.secondary.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.tag_rounded,
+                          size: 14,
+                          color: colorScheme.secondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          tagWithCount.tag.name,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: colorScheme.secondary,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            '${tagWithCount.count}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSecondary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }
