@@ -537,6 +537,110 @@ class ArticleService extends ArticleCreateService {
     }
   }
 
+  /// 监听文章变化的流（用于响应式UI更新）
+  Stream<List<ArticleDb>> watchArticles({
+    String? sortBy,
+    bool isDescending = true,
+    int? limit,
+  }) {
+    try {
+      final query = dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
+          .filter()
+          .deletedAtIsNull();
+      
+      final sortedQuery = _applySorting(query, sortBy, isDescending);
+      
+      // 如果有限制数量，应用limit
+      if (limit != null) {
+        return sortedQuery.limit(limit).watch(fireImmediately: true);
+      } else {
+        return sortedQuery.watch(fireImmediately: true);
+      }
+    } catch (e) {
+      getLogger().e('❌ 监听文章变化失败: $e');
+      // 返回空流
+      return Stream.value([]);
+    }
+  }
+
+  /// 监听未读文章变化的流
+  Stream<List<ArticleDb>> watchUnreadArticles({
+    String? sortBy,
+    bool isDescending = true,
+    int? limit,
+  }) {
+    try {
+      final query = dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
+          .filter()
+          .deletedAtIsNull()
+          .and()
+          .isReadEqualTo(0);
+      
+      final sortedQuery = _applySorting(query, sortBy, isDescending);
+      
+      if (limit != null) {
+        return sortedQuery.limit(limit).watch(fireImmediately: true);
+      } else {
+        return sortedQuery.watch(fireImmediately: true);
+      }
+    } catch (e) {
+      getLogger().e('❌ 监听未读文章变化失败: $e');
+      return Stream.value([]);
+    }
+  }
+
+  /// 监听重要文章变化的流
+  Stream<List<ArticleDb>> watchImportantArticles({
+    String? sortBy,
+    bool isDescending = true,
+    int? limit,
+  }) {
+    try {
+      final query = dbService.articles
+          .where()
+          .userIdEqualTo(getUserId())
+          .filter()
+          .deletedAtIsNull()
+          .and()
+          .isImportantEqualTo(true);
+      
+      final sortedQuery = _applySorting(query, sortBy, isDescending);
+      
+      if (limit != null) {
+        return sortedQuery.limit(limit).watch(fireImmediately: true);
+      } else {
+        return sortedQuery.watch(fireImmediately: true);
+      }
+    } catch (e) {
+      getLogger().e('❌ 监听重要文章变化失败: $e');
+      return Stream.value([]);
+    }
+  }
+
+  /// 刷新文章数据（用于下拉刷新等场景）
+  /// 这个方法可以触发远程同步或其他数据更新操作
+  Future<void> refreshArticles() async {
+    try {
+      getLogger().i('🔄 开始刷新文章数据...');
+      
+      // 这里可以添加远程同步逻辑
+      // 例如：从服务器拉取最新数据
+      // await syncFromServer();
+      
+      // 由于使用了 Isar watch，数据库的任何变化都会自动触发UI更新
+      // 所以这里主要是触发数据同步操作
+      
+      getLogger().i('✅ 文章数据刷新完成');
+    } catch (e) {
+      getLogger().e('❌ 刷新文章数据失败: $e');
+      rethrow;
+    }
+  }
+
   /// 分页获取所有文章
   Future<List<ArticleDb>> getArticlesWithPaging({
     required int offset,

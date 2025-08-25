@@ -392,29 +392,10 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
     // }
   }
 
-  /// 执行删除操作
-  Future<void> _deleteArticle(BuildContext context) async {
-    try {
-      await ArticleService.instance.softDeleteArticle(widget.articleId);
-      
-      if (mounted) {
-        BotToast.showText(text: 'i18n_article_文章已删除'.tr);
-        
-        // 返回到文章列表页面
-        // 确认对话框已经通过pop(true)关闭，这里只需要返回到文章列表
-        Navigator.of(context).pop(); // 返回到文章列表页面
-      }
-    } catch (e) {
-      BotToast.showText(text: '${'i18n_article_删除失败'.tr}$e');
-      getLogger().e('❌ 删除文章失败: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     // 根据文章的重要状态动态设置图标和文字
     final isImportant = _article?.isImportant ?? false;
@@ -431,40 +412,40 @@ class _MoreActionsModalState extends State<MoreActionsModal> {
         isEnabled: hasUrl,
       ),
 
-      if(!config.isCommunityEdition)
-        _ActionItem(
-          icon: Icons.refresh,
-          label: 'i18n_article_刷新解析'.tr,
-          onTap: () {
-            if (!_isInWebTab()) {
-              _showSwitchToWebTabHint(context, 'i18n_article_刷新解析'.tr);
-              return;
-            }
-
-            if (widget.onReGenerateMarkdown != null) {
-              Navigator.of(context).pop();
-              widget.onReGenerateMarkdown!();
-            } else {
-              _showToast(context, 'i18n_article_刷新解析'.tr);
-            }
-          },
-      ),
-    _ActionItem(
-        icon: Icons.camera_alt_outlined,
-        label: 'i18n_article_重新生成快照'.tr,
-        onTap: () {
-          if (!_isInWebTab()) {
-            _showSwitchToWebTabHint(context, 'i18n_article_重新生成快照'.tr);
-            return;
-          }
-          
-          if (widget.onReGenerateSnapshot != null) {
-            Navigator.of(context).pop();
-            widget.onReGenerateSnapshot!();
-          } else {
-            _showToast(context, 'i18n_article_重新生成快照'.tr);
-          }
-        }),
+      // if(!config.isCommunityEdition)
+      //   _ActionItem(
+      //     icon: Icons.refresh,
+      //     label: 'i18n_article_刷新解析'.tr,
+      //     onTap: () {
+      //       if (!_isInWebTab()) {
+      //         _showSwitchToWebTabHint(context, 'i18n_article_刷新解析'.tr);
+      //         return;
+      //       }
+      //
+      //       if (widget.onReGenerateMarkdown != null) {
+      //         Navigator.of(context).pop();
+      //         widget.onReGenerateMarkdown!();
+      //       } else {
+      //         _showToast(context, 'i18n_article_刷新解析'.tr);
+      //       }
+      //     },
+      // ),
+    // _ActionItem(
+    //     icon: Icons.camera_alt_outlined,
+    //     label: 'i18n_article_重新生成快照'.tr,
+    //     onTap: () {
+    //       if (!_isInWebTab()) {
+    //         _showSwitchToWebTabHint(context, 'i18n_article_重新生成快照'.tr);
+    //         return;
+    //       }
+    //
+    //       if (widget.onReGenerateSnapshot != null) {
+    //         Navigator.of(context).pop();
+    //         widget.onReGenerateSnapshot!();
+    //       } else {
+    //         _showToast(context, 'i18n_article_重新生成快照'.tr);
+    //       }
+    //     }),
 
       if(!config.isCommunityEdition)
         _ActionItem(icon: Icons.g_translate, label: 'i18n_article_AI翻译'.tr, onTap: () => _showTranslateModal(context)),

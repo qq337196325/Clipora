@@ -62,114 +62,125 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC {
 
   /// 构建页面内容
   Widget _buildContent() {
-    if (isLoading && articles.isEmpty) {
-      // 首次加载显示加载动画
-      return Center(
-        child: LoadingAnimationWidget.threeArchedCircle(
-          color: Theme.of(context).primaryColor,
-          size: 50,
-        ),
-      );
-    }
-
-    if (hasError && articles.isEmpty) {
-      // 加载失败显示错误信息
-      return ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          const SizedBox(height: 100),
-          Center(
-            child: Column(
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '加载失败',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  errorMessage,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _loadArticles,
-                  child: const Text('重试'),
-                ),
-              ],
+    return StreamBuilder<List<ArticleDb>>(
+      stream: _articlesStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // 首次加载显示加载动画
+          return Center(
+            child: LoadingAnimationWidget.threeArchedCircle(
+              color: Theme.of(context).primaryColor,
+              size: 50,
             ),
-          ),
-        ],
-      );
-    }
+          );
+        }
 
-    // 显示文章列表
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: articles.length + 1, // +1 for header
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          // 页面头部
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        if (snapshot.hasError) {
+          // 加载失败显示错误信息
+          return ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             children: [
-              const SizedBox(height: 20),
-              // 排序按钮
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '我的文章',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+              const SizedBox(height: 100),
+              Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.error,
                     ),
-                  ),
-                  InkWell(
-                    onTap: _showSortBottomSheet,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.sort_rounded,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '排序',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                            ),
-                          ),
-                        ],
-                      ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '加载失败',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      snapshot.error.toString(),
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _initializeStream();
+                        });
+                      },
+                      child: const Text('重试'),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
             ],
           );
         }
 
-        final article = articles[index - 1];
-        return _buildArticleItem(article);
+        final articles = snapshot.data ?? [];
+        
+        // 显示文章列表
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: articles.length + 1, // +1 for header
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              // 页面头部
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  // 排序按钮
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '我的收藏',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      InkWell(
+                        onTap: _showSortBottomSheet,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.sort_rounded,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '排序',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              );
+            }
+
+            final article = articles[index - 1];
+            return _buildArticleItem(article);
+          },
+        );
       },
     );
   }
@@ -319,101 +330,62 @@ class _GroupPageState extends State<IndexWidget> with IndexWidgetBLoC {
 }
 
 mixin IndexWidgetBLoC on State<IndexWidget> {
-  // 文章列表数据
-  List<ArticleDb> articles = [];
-  bool isLoading = false;
-  bool hasError = false;
-  String errorMessage = '';
-  
   // 排序相关
   SortOption currentSort = const SortOption(type: SortType.createTime, isDescending: true);
+  
+  // 文章流
+  Stream<List<ArticleDb>>? _articlesStream;
 
   @override
   void initState() {
     super.initState();
-
-    // 确保UI完全初始化后再加载数据
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadArticles();
-    });
+    _initializeStream();
   }
 
   @override
   void dispose() {
-    // 清理定时器
     super.dispose();
   }
 
-  /// 加载文章列表数据
-  Future<void> _loadArticles() async {
-    if (mounted) {
-      setState(() {
-        isLoading = true;
-        hasError = false;
-        errorMessage = '';
-      });
-    }
-
-    try {
-      print('📱 [IndexWidget] 开始获取全部文章数据...');
-      
-      // 获取全部文章，类似 ArticleListType.all 的实现
-      final result = await ArticleService.instance.getArticlesWithPaging(
-        offset: 0,
-        limit: 20, // 首页显示前20篇文章
-        sortBy: 'createTime', // 按创建时间排序 
-        isDescending: true, // 降序排列，最新的在前面
-      );
-      
-      if (mounted) {
-        setState(() {
-          articles = result;
-          isLoading = false;
-        });
-        // 应用当前排序
-        _applySorting();
-      }
-      
-      print('📱 [IndexWidget] 成功获取到 ${result.length} 篇文章');
-      if (result.isNotEmpty) {
-        print('📱 [IndexWidget] 第一篇文章标题: ${result.first.title}');
-      }
-    } catch (e) {
-      print('❌ [IndexWidget] 获取文章数据失败: $e');
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-          hasError = true;
-          errorMessage = e.toString();
-        });
-      }
-    }
-  }
+  /// 初始化文章流
+   void _initializeStream() {
+     // 将排序参数传递给watchArticles，让数据库层面处理排序
+     String sortBy;
+     switch (currentSort.type) {
+       case SortType.createTime:
+         sortBy = 'createTime';
+         break;
+       case SortType.modifyTime:
+         sortBy = 'modifyTime';
+         break;
+       case SortType.name:
+         sortBy = 'name';
+         break;
+     }
+     
+     _articlesStream = ArticleService.instance.watchArticles(
+       sortBy: sortBy,
+       isDescending: currentSort.isDescending,
+       limit: 20, // 首页显示前20篇文章
+     );
+   }
 
   /// 刷新文章列表
-  Future<void> _refreshArticles() async {
-    await _loadArticles();
-  }
-
-
-  /// 应用排序
-  void _applySorting() {
-    setState(() {
-      articles.sort((a, b) {
-        int comparison;
-        switch (currentSort.type) {
-          case SortType.createTime:
-            comparison = (a.createdAt ?? DateTime(0)).compareTo(b.createdAt ?? DateTime(0));
-            break;
-          case SortType.modifyTime:
-            comparison = (a.updatedAt ?? DateTime(0)).compareTo(b.updatedAt ?? DateTime(0));
-            break;
-          case SortType.name:
-            comparison = (a.title ?? '').compareTo(b.title ?? '');
-            break;
-        }
-        return currentSort.isDescending ? -comparison : comparison;
-      });
-    });
-  }
+   Future<void> _refreshArticles() async {
+     try {
+       // StreamBuilder会自动响应数据变化，这里可以触发数据刷新
+       await ArticleService.instance.refreshArticles();
+     } catch (e) {
+       // 错误处理，但不阻止刷新完成
+       print('❌ [IndexWidget] 刷新失败: $e');
+     }
+   }
+ 
+   /// 应用排序
+   void _applySorting() {
+     setState(() {
+       // 重新初始化流以应用新的排序
+       _initializeStream();
+     });
+   }
 }

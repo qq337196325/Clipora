@@ -219,6 +219,7 @@ class ArticleMhtmlWidgetState extends State<ArticleMhtmlWidget>
                   getLogger().e('请求URL: ${request.url}');
                   getLogger().e('错误类型: ${error.type}');
                   // getLogger().e('错误代码: ${error.code}');
+                  return;
                   
                   // 添加详细的文件检查信息
                   final localMhtmlPath = articleController.currentArticle?.localMhtmlPath;
