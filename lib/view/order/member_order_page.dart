@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,6 +26,7 @@ import '../../basics/app_config_interface.dart';
 import '../../basics/logger.dart';
 import '../../basics/ui.dart';
 import '../../private/api/user_api.dart';
+import 'components/show_dialog.dart';
 
 /// 会员购买页面
 class MemberOrderPage extends StatefulWidget {
@@ -56,21 +56,25 @@ class _MemberOrderPageState extends State<MemberOrderPage>
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
                       // 会员介绍卡片
-                      _buildMemberIntroCard(),
+                      buildMemberIntroCard(context),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
-                      // 限时买断说明卡片
-                      _buildLimitedTimeCard(),
+                      // 功能对比表
+                      buildFeatureComparison(context),
 
-                      const SizedBox(height: 24),
 
-                      // 会员特权列表
-                      _buildMemberFeaturesList(),
+                      const SizedBox(height: 16),
 
+                      // 订阅计划选择
+                      _buildSubscriptionPlans(),
+
+                      const SizedBox(height: 32),
+                      // 底部购买按钮区域
+                      _buildBottomPurchaseArea(),
                       const SizedBox(height: 30),
                     ],
                   ),
@@ -78,8 +82,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
               ),
             ),
 
-            // 底部购买按钮区域
-            _buildBottomPurchaseArea(),
+
           ],
         ),
       ),
@@ -89,7 +92,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
   /// 顶部导航栏
   Widget _buildTopBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         boxShadow: [
@@ -109,10 +112,10 @@ class _MemberOrderPageState extends State<MemberOrderPage>
               onTap: () => Navigator.of(context).pop(),
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: Theme.of(context).dividerColor,
                     width: 0.5,
@@ -120,7 +123,7 @@ class _MemberOrderPageState extends State<MemberOrderPage>
                 ),
                 child: Icon(
                   Icons.arrow_back_ios_new,
-                  size: 18,
+                  size: 14,
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
@@ -132,487 +135,83 @@ class _MemberOrderPageState extends State<MemberOrderPage>
           // 标题
           Flexible(
             child: Text(
-              'i18n_member_高级会员'.tr,
+              'Clipora 高级会员',
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Theme.of(context).textTheme.headlineMedium?.color,
                 letterSpacing: 0.5,
               ),
             ),
           ),
-
-          const Spacer(),
         ],
       ),
     );
   }
 
-  /// 会员介绍卡片
-  Widget _buildMemberIntroCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Theme.of(context).colorScheme.primaryFixed,
-            Theme.of(context).colorScheme.primaryFixed.withOpacity(0.8),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).primaryColor.withOpacity(0.3),
-            offset: const Offset(0, 8),
-            blurRadius: 24,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  Icons.diamond,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'i18n_member_Clipora高级版'.tr,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'i18n_member_解锁全部功能潜力'.tr,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
 
-          const SizedBox(height: 20),
 
-          Text(
-            'i18n_member_享受高级功能'.tr,
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).colorScheme.onPrimary,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 限时买断说明卡片
-  Widget _buildLimitedTimeCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 20,
-            spreadRadius: 0,
-          ),
-        ],
-        border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 限时买断标题
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'i18n_member_限时买断'.tr,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Icon(
-                Icons.access_time_filled,
-                color: Theme.of(context).colorScheme.secondary,
-                size: 20,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // 价格展示
-          _buildPriceDisplay(),
-
-          const SizedBox(height: 16),
-
-          // 限时说明
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                width: 1,
-              ),
-            ),
-            child: _buildLimitedTimeDescription(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 价格显示组件
-  Widget _buildPriceDisplay() {
-    if (Platform.isIOS) {
-      if (products.isNotEmpty) {
-        // iOS使用App Store价格
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              productMember.price,
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.headlineLarge?.color,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'i18n_member_一次性购买'.tr,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                ),
-              ),
-            ),
-          ],
-        );
-      } else {
-        // iOS价格加载中
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            SizedBox(
-              width: 80,
-              height: 36,
-              child: Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'i18n_member_一次性购买'.tr,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                ),
-              ),
-            ),
-          ],
-        );
-      }
-    } else {
-      // Android使用默认价格
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            '¥',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).textTheme.titleLarge?.color,
-            ),
-          ),
-          Text(
-            '98',
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.headlineLarge?.color,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              'i18n_member_一次性购买'.tr,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-  }
-
-  /// 限时说明
-  Widget _buildLimitedTimeDescription() {
-    final features = [
-      {
-        'icon': Icons.schedule,
-        'text': 'i18n_member_未来订阅计划'.tr,
-        'color': const Color(0xFF4ECDC4),
-      },
-      {
-        'icon': Icons.security,
-        'text': 'i18n_member_现有数据保证'.tr,
-        'color': const Color(0xFF52c41a),
-      },
-      {
-        'icon': Icons.update,
-        'text': 'i18n_member_终身更新'.tr,
-        'color': const Color(0xFF1890ff),
-      },
-      {
-        'icon': Icons.block,
-        'text': 'i18n_member_无广告保证'.tr,
-        'color': const Color(0xFFff4d4f),
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 标题
-        Row(
-          children: [
-            Icon(
-              Icons.info_outline,
-              size: 16,
-              color: Theme.of(context).primaryColor,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'i18n_member_重要说明'.tr,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        // 特性列表
-        ...features.map((feature) => Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: (feature['color'] as Color).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Icon(
-                  feature['icon'] as IconData,
-                  size: 14,
-                  color: feature['color'] as Color,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  feature['text'] as String,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        )),
-      ],
-    );
-  }
-
-  /// 会员特权列表
-  Widget _buildMemberFeaturesList() {
-    final features = [
-      {
-        'icon': Icons.cloud_sync,
-        'title': 'i18n_member_无限同步'.tr,
-        'subtitle': 'i18n_member_无限同步描述'.tr,
-        'color': const Color(0xFF4ECDC4),
-      },
-      {
-        'icon': Icons.storage,
-        'title': 'i18n_member_无限存储'.tr,
-        'subtitle': 'i18n_member_无限存储描述'.tr,
-        'color': const Color(0xFF667eea),
-      },
-      {
-        'icon': Icons.auto_awesome,
-        'title': 'i18n_member_高级功能'.tr,
-        'subtitle': 'i18n_member_高级功能描述'.tr,
-        'color': const Color(0xFF9B59B6),
-      },
-      {
-        'icon': Icons.support_agent,
-        'title': 'i18n_member_优先支持'.tr,
-        'subtitle': 'i18n_member_优先支持描述'.tr,
-        'color': const Color(0xFFFF9500),
-      },
-    ];
-
+  /// 订阅计划选择
+  Widget _buildSubscriptionPlans() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'i18n_member_高级特权'.tr,
+          '选择订阅计划',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Theme.of(context).textTheme.headlineMedium?.color,
           ),
         ),
-        const SizedBox(height: 16),
-        ...features.map((feature) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _buildFeatureItem(
-            icon: feature['icon'] as IconData,
-            title: feature['title'] as String,
-            subtitle: feature['subtitle'] as String,
-            color: feature['color'] as Color,
-          ),
-        )),
+        const SizedBox(height: 12),
+        
+        // 月度计划
+        buildPlanCard(
+          title: '月度会员',
+          duration: '1个月',
+          price: _getLocalizedPrice('monthly'),
+          originalPrice: null,
+          isSelected: selectedPlan == 'monthly',
+          onTap: () => setState(() => selectedPlan = 'monthly'),
+          badge: null,
+          context: context
+        ),
+        
+        const SizedBox(height: 10),
+        
+        // 半年计划
+        buildPlanCard(
+          title: '半年会员',
+          duration: '6个月',
+          price: _getLocalizedPrice('halfyear'),
+          originalPrice: null,
+          isSelected: selectedPlan == 'halfyear',
+          onTap: () => setState(() => selectedPlan = 'halfyear'),
+          badge: null,
+          context: context
+        ),
+        
+        const SizedBox(height: 10),
+        
+        // 年度计划
+        buildPlanCard(
+          title: '年度会员',
+          duration: '12个月',
+          price: _getLocalizedPrice('yearly'),
+          originalPrice: null,
+          isSelected: selectedPlan == 'yearly',
+          onTap: () => setState(() => selectedPlan = 'yearly'),
+          badge: null,
+          isRecommended: true,
+          context: context
+        ),
       ],
     );
   }
 
-  /// 功能特性项
-  Widget _buildFeatureItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).textTheme.titleLarge?.color,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF8C8C8C),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.check_circle,
-            size: 20,
-            color: color,
-          ),
-        ],
-      ),
-    );
-  }
+
 
   /// 底部购买区域
   Widget _buildBottomPurchaseArea() {
@@ -620,176 +219,76 @@ class _MemberOrderPageState extends State<MemberOrderPage>
     final bool isAndroid = Platform.isAndroid;
     
     // 获取价格字符串
-    String priceString;
-    if (Platform.isIOS) {
-      if (products.isNotEmpty) {
-        priceString = productMember.price;
-      } else {
-        priceString = '...'; // 价格加载中
-      }
-    } else {
-      priceString = '¥98';
-    }
+    String priceString = _getLocalizedPrice(selectedPlan);
     
     final String buttonText = isAndroid
-        ? 'i18n_member_微信支付'.trParams({'price': priceString})
-        : 'i18n_member_立即购买'.trParams({'price': priceString});
+        ? '微信支付 $priceString'
+        : '立即购买 $priceString';
     final IconData buttonIcon = isAndroid ? Icons.payment : Icons.shopping_cart;
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.04),
-            offset: const Offset(0, -2),
-            blurRadius: 12,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // 协议条款
-          _buildAgreementSection(),
-          const SizedBox(height: 16),
-          // 购买按钮
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: (isLoading || (Platform.isIOS && products.isEmpty)) ? null : handlePurchase,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                elevation: 0,
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                padding: EdgeInsets.zero,
-              ).copyWith(
-                backgroundColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.disabled)) {
-                    return Theme.of(context).primaryColor.withOpacity(0.5);
-                  }
-                  return Theme.of(context).primaryColor;
-                }),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: isLoading ? null : LinearGradient(
-                    colors: [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withOpacity(0.8),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              buttonIcon,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                buttonText,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 协议条款区域
-  Widget _buildAgreementSection() {
     return Column(
       children: [
-        // 协议勾选
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  isAgreedToTerms = !isAgreedToTerms;
-                });
-              },
-              child: Container(
-                width: 18,
-                height: 18,
-                margin: const EdgeInsets.only(top: 1),
-                decoration: BoxDecoration(
-                  color: isAgreedToTerms ? Theme.of(context).primaryColor : Colors.transparent,
-                  border: Border.all(
-                    color: isAgreedToTerms ? Theme.of(context).primaryColor : Theme.of(context).dividerColor,
-                    width: 1.5,
-                  ),
-                  borderRadius: BorderRadius.circular(4),
+        // 协议条款
+        _buildAgreementSection(),
+        const SizedBox(height: 16),
+        // 购买按钮
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            onPressed: (isLoading || (Platform.isIOS && products.isEmpty)) ? null : handlePurchase,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: EdgeInsets.zero,
+            ).copyWith(
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return Theme.of(context).primaryColor.withOpacity(0.5);
+                }
+                return Theme.of(context).primaryColor;
+              }),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: isLoading ? null : LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    Theme.of(context).primaryColor.withOpacity(0.8),
+                  ],
                 ),
-                child: isAgreedToTerms
-                    ? Icon(
-                        Icons.check,
-                        size: 12,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      )
-                    : null,
+                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: InkWell(
-                onTap: (){
-                  setState(() {
-                    isAgreedToTerms = !isAgreedToTerms;
-                  });
-                },
-                child: Text('i18n_member_购买前请阅读并同意'.tr, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
-              ),
-            ),
-            Expanded(
-              child: RichText(
-                text: TextSpan(
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                    height: 1.4,
+              child: Center(
+                child: isLoading
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
+                )
+                    : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    WidgetSpan(
-                      child: GestureDetector(
-                        onTap: () => _handleUserAgreement(),
-                        child: Text(
-                          'i18n_member_购买协议'.tr,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).primaryColor,
-                          ),
+                    Icon(
+                      buttonIcon,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        buttonText,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -797,17 +296,127 @@ class _MemberOrderPageState extends State<MemberOrderPage>
                 ),
               ),
             ),
-          ],
+          ),
+        ),
+
+      ],
+    );
+  }
+
+  /// 协议条款区域
+  Widget _buildAgreementSection() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // GestureDetector(
+        //   onTap: () {
+        //     setState(() {
+        //       isAgreedToTerms = !isAgreedToTerms;
+        //     });
+        //   },
+        //   child: Container(
+        //     width: 18,
+        //     height: 18,
+        //     margin: const EdgeInsets.only(top: 1),
+        //     decoration: BoxDecoration(
+        //       color: isAgreedToTerms ? Theme.of(context).primaryColor : Colors.transparent,
+        //       border: Border.all(
+        //         color: isAgreedToTerms ? Theme.of(context).primaryColor : Theme.of(context).dividerColor,
+        //         width: 1.5,
+        //       ),
+        //       borderRadius: BorderRadius.circular(4),
+        //     ),
+        //     child: isAgreedToTerms
+        //         ? Icon(
+        //             Icons.check,
+        //             size: 12,
+        //             color: Theme.of(context).colorScheme.onPrimary,
+        //           )
+        //         : null,
+        //   ),
+        // ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                // isAgreedToTerms = !isAgreedToTerms;
+              });
+            },
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                  height: 1.4,
+                ),
+                children: [
+                  const TextSpan(text: '购买前请阅读 '),
+                  WidgetSpan(
+                    child: GestureDetector(
+                      onTap: () => _handleUserAgreement(),
+                      child: Text(
+                        '《购买协议》',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
+
+  /// 获取本地化价格
+  String _getLocalizedPrice(String plan) {
+    if (Platform.isIOS && products.isNotEmpty) {
+      // iOS使用App Store价格
+      switch (plan) {
+        case 'monthly':
+          return productMonthly?.price ?? '¥12';
+        case 'halfyear':
+          return productHalfYear?.price ?? '¥49';
+        case 'yearly':
+          return productYearly?.price ?? '¥88';
+        case 'monthly_x6':
+          return '¥72'; // 月度价格 x 6
+        case 'monthly_x12':
+          return '¥144'; // 月度价格 x 12
+        default:
+          return '¥12';
+      }
+    } else {
+      // Android或iOS价格未加载时使用默认价格
+      switch (plan) {
+        case 'monthly':
+          return '¥12';
+        case 'halfyear':
+          return '¥49';
+        case 'yearly':
+          return '¥88';
+        case 'monthly_x6':
+          return '¥72';
+        case 'monthly_x12':
+          return '¥144';
+        default:
+          return '¥12';
+      }
+    }
+  }
+
 }
 
 /// 业务逻辑 Mixin
 mixin MemberOrderPageBLoC on State<MemberOrderPage> {
   bool isLoading = false;
-  bool isAgreedToTerms = false;
+  bool isAgreedToTerms = true;
+  String selectedPlan = 'yearly'; // 默认选择年度计划
   Fluwx fluwx = Fluwx();
 
   // 支付结果监听订阅
@@ -817,7 +426,9 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
   final InAppPurchase inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> subscription;
   List<ProductDetails> products = <ProductDetails>[];
-  late ProductDetails productMember;
+  ProductDetails? productMonthly;
+  ProductDetails? productHalfYear;
+  ProductDetails? productYearly;
 
   @override
   void initState() {
@@ -846,15 +457,21 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
   _iosPayInit() async {
     /// 获取IOS支付价格
     if (Platform.isIOS) {
-      const Set<String> kIds = {'buy_outmembers'};
+      const Set<String> kIds = {'monthly_member', 'halfyear_member', 'yearly_member'};
       final ProductDetailsResponse response = await inAppPurchase.queryProductDetails(kIds);
 
       if (mounted) {
         setState(() {
           response.productDetails.forEach((value) {
             switch (value.id) {
-              case "buy_outmembers":
-                productMember = value;
+              case "monthly_member":
+                productMonthly = value;
+                break;
+              case "halfyear_member":
+                productHalfYear = value;
+                break;
+              case "yearly_member":
+                productYearly = value;
                 break;
             }
           });
@@ -899,23 +516,23 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
       case 0:
         // 支付成功
         getLogger().i('✅ 微信支付：支付成功');
-        _showSuccessDialog();
+        showSuccessDialog(context);
         break;
       case -1:
         // 支付错误 - 可能有具体的原因
         getLogger().e('❌ 微信支付：支付错误 - ${response.errStr}');
-        _showErrorDialog('i18n_member_payment_failed_retry'.tr);
+        showErrorDialog('支付失败，请重试',context);
         break;
       case -2:
         // 用户取消支付
         getLogger().w('⚠️ 微信支付：用户取消支付');
-        BotToast.showText(text: "i18n_member_payment_cancelled".tr);
+        BotToast.showText(text: "支付已取消");
         break;
       default:
         // 其他错误
         getLogger().e(
             '❌ 微信支付：未知错误 - 错误码: ${response.errCode}, 错误信息: ${response.errStr}');
-        _showErrorDialog('i18n_member_payment_error_retry_later'.tr);
+        showErrorDialog('支付出现错误，请稍后重试',context);
         break;
     }
   }
@@ -924,7 +541,7 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
   Future<void> handlePurchase() async {
     // 检查是否同意协议
     if (!isAgreedToTerms) {
-      _showErrorDialog('i18n_member_please_agree_to_terms'.tr);
+      showErrorDialog('请先阅读并同意购买协议',context);
       return;
     }
 
@@ -938,13 +555,30 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
     try {
       // 调用支付API获取支付参数
       if(Platform.isAndroid){
+        // 根据选择的计划确定订单类型
+        int memberType;
+        switch (selectedPlan) {
+          case 'monthly':
+            memberType = 2; // 月度订阅
+            break;
+          case 'halfyear':
+            memberType = 3; // 半年订阅
+            break;
+          case 'yearly':
+            memberType = 4; // 年度订阅
+            break;
+          default:
+            memberType = 4; // 默认年度
+        }
+        
         final res = await UserApi.createTranslatePayOrderApi({
           "pay_type": 1,
           "platform": "app",
           "order_type": 1,
+          "member_type": memberType,
         });
         if(res["code"] != 0){
-          _showErrorDialog('i18n_member_failed_to_initiate_payment'.tr);
+          showErrorDialog('发起支付失败', context);
           return;
         }
 
@@ -969,7 +603,7 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
             setState(() {
               isLoading = false;
             });
-            _showErrorDialog('i18n_member_failed_to_initiate_payment'.tr);
+            showErrorDialog('发起支付失败',context);
           }
         }
       } else if (Platform.isIOS) {
@@ -983,14 +617,33 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
         setState(() {
           isLoading = false;
         });
-        _showErrorDialog('i18n_member_failed_to_create_order'.tr);
+        showErrorDialog('创建订单失败',context);
       }
     }
   }
 
   /// 发起Ios支付
   Future<void> buyProduct() async {
-    ProductDetails prod = productMember;
+    ProductDetails? prod;
+    switch (selectedPlan) {
+      case 'monthly':
+        prod = productMonthly;
+        break;
+      case 'halfyear':
+        prod = productHalfYear;
+        break;
+      case 'yearly':
+        prod = productYearly;
+        break;
+      default:
+        prod = productYearly;
+    }
+    
+    if (prod == null) {
+      showErrorDialog('产品信息加载失败', context);
+      return;
+    }
+    
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: prod);
     inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
@@ -1014,29 +667,28 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
             });
           }
 
-          String errorMessage = 'i18n_member_payment_failed'.tr;
+          String errorMessage = '支付失败';
           if (purchaseDetails.error != null) {
             switch (purchaseDetails.error!.code) {
               case 'purchase_canceled':
-                errorMessage = 'i18n_member_payment_cancelled'.tr;
+                errorMessage = '支付已取消';
                 BotToast.showText(text: errorMessage);
                 break;
               case 'item_unavailable':
-                errorMessage = 'i18n_member_item_unavailable'.tr;
-                _showErrorDialog(errorMessage);
+                errorMessage = '商品不可用';
+                showErrorDialog(errorMessage,context);
                 break;
               case 'network_error':
-                errorMessage = 'i18n_member_network_error'.tr;
-                _showErrorDialog(errorMessage);
+                errorMessage = '网络错误';
+                showErrorDialog(errorMessage,context);
                 break;
               default:
-                errorMessage = 'i18n_member_payment_exception'
-                    .trParams({'message': purchaseDetails.error!.message});
-                _showErrorDialog(errorMessage);
+                errorMessage = '支付异常：${purchaseDetails.error!.message}';
+                showErrorDialog(errorMessage,context);
                 break;
             }
           } else {
-            _showErrorDialog(errorMessage);
+            showErrorDialog(errorMessage,context);
           }
           break;
 
@@ -1053,7 +705,7 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
               isLoading = false;
             });
           }
-          BotToast.showText(text: "i18n_member_payment_cancelled".tr);
+          BotToast.showText(text: "支付已取消");
           break;
 
         default:
@@ -1075,10 +727,27 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
   /// 处理支付验证
   Future<void> _handlePaymentVerification(PurchaseDetails purchaseDetails) async {
     try {
+      // 根据选择的计划确定订单类型
+      int memberType;
+      switch (selectedPlan) {
+        case 'monthly':
+          memberType = 2; // 月度订阅
+          break;
+        case 'halfyear':
+          memberType = 3; // 半年订阅
+          break;
+        case 'yearly':
+          memberType = 4; // 年度订阅
+          break;
+        default:
+          memberType = 4; // 默认年度
+      }
+      
       Map<String, dynamic> param = {
         "order_type": 1,
         "platform": "ios",
         "pay_type": 3,
+        "member_type": memberType,
         "local_verification_data": purchaseDetails.verificationData.localVerificationData,
         "server_verification_data": purchaseDetails.verificationData.serverVerificationData,
         "source": purchaseDetails.verificationData.source,
@@ -1094,11 +763,11 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
 
       if (res["code"] == 0) {
         getLogger().i('✅ iOS支付：后台验证成功');
-        _showSuccessDialog();
+        showSuccessDialog(context);
       } else {
         String errorMessage =
-            res["message"] ?? 'i18n_member_verification_failed_contact_support'.tr;
-        _showErrorDialog(errorMessage);
+            res["message"] ?? '验证失败，请联系客服';
+        showErrorDialog(errorMessage,context);
       }
     } catch (e) {
       if (!mounted) return;
@@ -1107,7 +776,7 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
         isLoading = false;
       });
 
-      _showErrorDialog("i18n_member_verification_exception_contact_support".tr);
+      showErrorDialog("验证异常，请联系客服",context);
     }
   }
 
@@ -1115,163 +784,5 @@ mixin MemberOrderPageBLoC on State<MemberOrderPage> {
   void _handleUserAgreement() {
     final Uri _url = Uri.parse("https://clipora.guanshangyun.com/payment_agreement");
     goLaunchUrl(_url);
-  }
-
-  /// 显示成功对话框
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: const Color(0xFFFEFDF8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF52c41a), Color(0xFF73d13d)],
-                    ),
-                    borderRadius: BorderRadius.circular(32),
-                  ),
-                  child: const Icon(
-                    Icons.diamond,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'i18n_member_upgrade_successful'.tr,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3C3C3C),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'i18n_member_premium_activated'.tr,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF8C8C8C),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF667eea),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'i18n_member_confirm'.tr,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// 显示错误对话框
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: const Color(0xFFFEFDF8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B6B).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(32),
-                  ),
-                  child: const Icon(
-                    Icons.error_outline,
-                    color: Color(0xFFFF6B6B),
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'i18n_member_upgrade_failed'.tr,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3C3C3C),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  message,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF8C8C8C),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF667eea),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'i18n_member_confirm'.tr,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
   }
 }
